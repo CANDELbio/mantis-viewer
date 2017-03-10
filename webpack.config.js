@@ -1,6 +1,8 @@
 module.exports = {
-    entry: "./app/index.tsx",
+    //entry: "./app/index.tsx",
+    entry: "./app/webpack_entrypoint.js",
     output: {
+        
         filename: "./dist/bundle.js",
     },
     // Enable sourcemaps for debugging webpack's output.
@@ -19,6 +21,11 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
+                exclude: /(node_modules)/
+            },
+            {
+                test: /\.html?$/,
+                loader: 'file-loader?name=[name].[ext]',
                 exclude: /(node_modules)/,
             },
             {

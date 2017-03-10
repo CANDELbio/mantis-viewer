@@ -17,6 +17,7 @@
     },
     "files": [
         //"./typings/index.d.ts",
-        "./app/index.tsx"
+        //"./app/index.tsx",
+        "./main.ts"
     ]
 }

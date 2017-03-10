@@ -17,11 +17,14 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
+    "@types/electron": "^1.4.33",
     "@types/jimp": "^0.2.0",
+    "@types/node": "^7.0.8",
     "@types/react": "^15.0.14",
     "@types/react-dom": "^0.14.23",
     "@types/react-redux": "^4.4.37",
     "electron": "^1.4.1",
+    "file-loader": "^0.10.1",
     "source-map-loader": "^0.1.6",
     "ts-loader": "^2.0.1"
   },
