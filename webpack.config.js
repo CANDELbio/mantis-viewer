@@ -2,8 +2,8 @@ module.exports = {
     //entry: "./app/index.tsx",
     entry: "./app/webpack_entrypoint.js",
     output: {
-        
-        filename: "./dist/bundle.js",
+        path: "./dist",
+        filename: "bundle.js",
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
@@ -23,11 +23,10 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /(node_modules)/
             },
-            {
-                test: /\.html?$/,
-                loader: 'file-loader?name=[name].[ext]',
-                exclude: /(node_modules)/,
-            },
+            /*{
+                test: /\.(html|css)?$/,
+                loader: 'file-loader?name=[name].[ext]'
+            },*/
             {
                 enforce: 'pre',
                 test: /\.js?$/,
@@ -40,8 +39,8 @@ module.exports = {
     // assume a corresponding global variable exists and use that instead.
     // This is important because it allows us to avoid bundling all of our
     // dependencies, which allows browsers to cache those libraries between builds.
-    externals: {
+    /*externals: {
         "react": "React",
         "react-dom": "ReactDOM"
-    }
+    }*/
 };
