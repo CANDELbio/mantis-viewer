@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "./dist/",
+        "outDir": "./",
         "sourceMap": true,
         "module": "commonjs",
         "target": "es6",
@@ -16,8 +16,7 @@
         "strictNullChecks": true
     },
     "files": [
-        //"./typings/index.d.ts",
-        //"./app/index.tsx",
-        "./main.ts"
+        "./main.ts",
+        "./renderer.ts"
     ]
 }

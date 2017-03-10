@@ -27,3 +27,4 @@ const mapDispatchToProps = (dispatch: any, ownprops: Hello.HelloProps) : Hello.H
 
 export const MainFrame = connect<{}, {}, {}>(mapStateToProps, mapDispatchToProps)(Hello.Hello)
 
+
