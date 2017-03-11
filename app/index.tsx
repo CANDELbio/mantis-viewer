@@ -7,7 +7,9 @@ import { mainPage } from "./reducers/MainPage"
 import { Provider } from "react-redux"
 import { State } from "./interfaces/State"
 import { Image } from "./components/Image"
+import * as UserActions from "./actions/UserActions"
 
+const electron = require("electron")
 
 
 
@@ -17,6 +19,14 @@ let initialState: State = {
     }
 
 let store = createStore(mainPage, initialState)
+
+
+electron.ipcRenderer.on("open-file", (event: Electron.IpcRendererEvent, fileName: string) => {
+    console.log(fileName)
+    store.dispatch(UserActions.selectFile(fileName))
+})
+
+
 
 ReactDOM.render(
     <Provider store = {store} >

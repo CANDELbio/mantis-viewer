@@ -1,15 +1,16 @@
-import * as electron from "electron"
+import * as Electron from "electron"
 
 
 
 
-const shell = electron.shell
-const Menu = electron.Menu
+const shell = Electron.shell
+const Menu = Electron.Menu
 
 // Module to control application life.
-const app = electron.app
+const app = Electron.app
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const BrowserWindow = Electron.BrowserWindow
+const dialog = Electron.dialog
 
 
 const path = require('path')
@@ -26,15 +27,18 @@ let menuTemplate = [{
   submenu: [{
     label: "Open",
     click: () => {
-      console.log("Here")
-      //shell.showItemInFolder(os.homedir)
+      dialog.showOpenDialog((fileNames:string[]) => {
+        if(mainWindow != null)
+          mainWindow.webContents.send("open-file", fileNames[0])
+      })
     }
+  
   }]
 }]
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({width: 1600, height: 1200})
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   

@@ -9,6 +9,7 @@ export interface HelloProps {
     compiler: string
     framework: string 
     value: number
+    selectedFile: string | null
     onSliderChange?: (value: number) => void 
     onSelectFile?: (value: string) => void
 }
@@ -27,6 +28,7 @@ export class Hello extends React.Component<HelloProps, undefined> {
         return(
             <div>
                 <h1>Hello from {this.props.compiler} and {this.props.framework}! Number is: {this.props.value}</h1>
+                <p>File selected is {this.props.selectedFile}</p>
                 <Slider 
                     max={10} 
                     min={0}
@@ -38,7 +40,7 @@ export class Hello extends React.Component<HelloProps, undefined> {
                     iconName="document"
                     onClick={this.onFileOpenButtonClicked}
                 />
-                <Image width ={250} height = {250}/>
+                <Image width ={250} height = {250} fileName={this.props.selectedFile}/>
             </div>
         )
     }

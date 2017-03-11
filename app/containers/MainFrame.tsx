@@ -9,7 +9,8 @@ const mapStateToProps = (state: State, ownprops: Hello.HelloProps) : Hello.Hello
     return {
         compiler: "Gino",
         framework: "Pino",
-        value: state.value
+        value: state.value,
+        selectedFile: state.selectedFile
     }
 }
 
