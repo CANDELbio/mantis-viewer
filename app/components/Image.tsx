@@ -13,21 +13,23 @@ export class Image extends React.Component<ImageProps, undefined> {
         super(props)
     }
 
-    mountImg(img: HTMLImageElement) {
+    mountImg(imgEl: HTMLImageElement) {
         console.log("In mount img")
-        console.log(img)
+        console.log(imgEl)
         console.log(this.props.fileName)
-        if(this.props.fileName != null)
-        {
-            Jimp.read(this.props.fileName).then(function (lenna: any) {
-                    console.log(lenna)
-                    lenna.resize(256, 256)            // resize
-                    .quality(60)                 // set JPEG quality
-                    .greyscale()                 // set greyscale
+        let width = this.props.width
+        let height = this.props.height
+        if(this.props.fileName != null) {
+            Jimp.read(this.props.fileName).then(function (img: any) {
+                    console.log(img)
+                    img.resize(width, height)
+                    .color([
+                        { apply: 'red', params: [50] }
+                    ])            
                     .getBase64(Jimp.MIME_JPEG, function (err:any , src:any) {
-                        img.setAttribute("src", src)
-                        img.setAttribute("width", "250")
-                        img.setAttribute("height", "250")
+                        imgEl.setAttribute("src", src)
+                        imgEl.setAttribute("width", width.toString())
+                        imgEl.setAttribute("height", height.toString())
                     });
                 }).catch(function (err:any) {
                     console.error(err);
