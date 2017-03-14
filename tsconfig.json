@@ -18,6 +18,9 @@
     },
     "files": [
         "./main.ts",
-        "./renderer.ts"
+        "./renderer.ts",
+        //Adding files here individually is required to have VisualStudio Code 
+        //accept the decorator syntax. Hopefully this will be fixed in the future
+        "./app/stores/ImageStore.tsx"
     ]
 }

@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "tsc && webpack"
+    "build": "tsc main.ts renderer.ts --sourceMap && webpack"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [

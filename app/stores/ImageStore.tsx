@@ -19,6 +19,7 @@ export class ImageStore {
     }
 
 
+
     imageData = computedAsync(null, async () => {
         if(this.selectedFile != null) {
             return(await Jimp.read(this.selectedFile))
@@ -27,4 +28,6 @@ export class ImageStore {
             return(null)
     })
 }
+
+
 
