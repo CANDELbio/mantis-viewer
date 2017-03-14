@@ -5,7 +5,7 @@ import Jimp = require("jimp")
 interface ImageProps {
     width: number
     height: number
-    imgData: any
+    imgData: string
 }
 
 export class Image extends React.Component<ImageProps, undefined> {
@@ -38,7 +38,7 @@ export class Image extends React.Component<ImageProps, undefined> {
     }
 
     */
-
+    /*
     mountImg(imgEl: HTMLImageElement) {
         if(imgEl != null) {
             let width = this.props.width
@@ -50,14 +50,13 @@ export class Image extends React.Component<ImageProps, undefined> {
                         });
         }
     }
-
+    */
 
     render() {
+        console.log("rendering image")
         return(
             <div>
-                <img 
-                    ref={(img) => {this.mountImg(img)}}
-                />
+                <img src={this.props.imgData} />
             </div>
         )
     }
