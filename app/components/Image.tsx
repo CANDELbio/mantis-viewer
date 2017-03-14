@@ -5,14 +5,14 @@ import Jimp = require("jimp")
 interface ImageProps {
     width: number
     height: number
-    fileName: string | null
+    imgData: any
 }
 
 export class Image extends React.Component<ImageProps, undefined> {
     constructor(props: ImageProps) {
         super(props)
     }
-
+    /*
     mountImg(imgEl: HTMLImageElement) {
         console.log("In mount img")
         console.log(imgEl)
@@ -37,11 +37,25 @@ export class Image extends React.Component<ImageProps, undefined> {
         }
     }
 
+    */
+
+    mountImg(imgEl: HTMLImageElement) {
+        if(imgEl != null) {
+            let width = this.props.width
+            let height = this.props.height
+            this.props.imgData.getBase64(Jimp.MIME_JPEG, function (err:any , src:any) {
+                            imgEl.setAttribute("src", src)
+                            imgEl.setAttribute("width", width.toString())
+                            imgEl.setAttribute("height", height.toString())
+                        });
+        }
+    }
+
 
     render() {
         return(
             <div>
-                <img
+                <img 
                     ref={(img) => {this.mountImg(img)}}
                 />
             </div>

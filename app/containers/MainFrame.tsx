@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 import { Dispatch } from "redux"
 import * as Hello from "../components/Hello"
 import * as UserActions from "../actions/UserActions"
-
+/*
 
 const mapStateToProps = (state: State, ownprops: Hello.HelloProps) : Hello.HelloProps => {
     return {
@@ -29,3 +29,4 @@ const mapDispatchToProps = (dispatch: any, ownprops: Hello.HelloProps) : Hello.H
 export const MainFrame = connect<{}, {}, {}>(mapStateToProps, mapDispatchToProps)(Hello.Hello)
 
 
+*/
