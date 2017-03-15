@@ -4,6 +4,7 @@ import { Button } from "@blueprintjs/core"
 import { Image } from "./Image"
 
 import { ImageStore } from "../stores/ImageStore"
+import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 
 export interface HelloProps { 
@@ -28,10 +29,11 @@ export class Hello extends React.Component<HelloProps, undefined> {
 
     render() {
         let imgComponent = null
-        //if(this.props.store.imageData.value != null)
-        if(this.props.store.imageData != null)
-            imgComponent =    
-            <Image width ={250} height = {250} imgData=     {this.props.store.imageData}/>
+
+        if(this.props.store.imageData != null) {
+            console.log("Here")
+            imgComponent = <IMCImage imageData={this.props.store.imageData}/>
+        }
 
         return(
             <div>
