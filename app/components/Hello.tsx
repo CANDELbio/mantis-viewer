@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Slider } from "@blueprintjs/core"
+import { RangeSlider } from "@blueprintjs/core"
 import { Button } from "@blueprintjs/core"
 import { Image } from "./Image"
 
@@ -7,13 +7,11 @@ import { ImageStore } from "../stores/ImageStore"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 
+const Select = require("react-select")
+
+
+
 export interface HelloProps { 
-    /*compiler: string
-    framework: string 
-    value: number
-    selectedFile: string | null
-    onSliderChange?: (value: number) => void 
-    onSelectFile?: (value: string) => void*/
     store: ImageStore
 }
 
@@ -27,35 +25,48 @@ export class Hello extends React.Component<HelloProps, undefined> {
     //    shell.showItemInFolder(os.homedir())
     }
 
+    
     render() {
         let imgComponent = null
-
+        let rChannelSlider = null
+        let rChannel = "191Ir(Ir191Di)"
+        let rChannelSelect = null
+        
         if(this.props.store.imageData != null) {
             console.log("Here")
-            imgComponent = <IMCImage imageData={this.props.store.imageData}/>
+            imgComponent = <IMCImage 
+                imageData={this.props.store.imageData}
+                stats={this.props.store.imageStats}
+                rChannel={this.props.store.rChannel}
+                rChannelDomain={this.props.store.rChannelDomain}
+            />
+            rChannelSlider = <RangeSlider
+                min={this.props.store.imageStats[rChannel][0]}
+                max={this.props.store.imageStats[rChannel][1]}
+                value={this.props.store.rChannelDomain}
+                onRelease={this.props.store.setRChannelDomain}
+                stepSize={0.1}
+            />
+            rChannelSelect = <Select
+                name="rchannel-select"
+                value={this.props.store.rChannel}
+                options={this.props.store.channelNames!.map((s) => 
+                    {return({value: s, label: s})}
+                )}
+                
+                onChange={this.props.store.setRChannel}
+            />
         }
 
         return(
             <div>
-                <h1>Hello from {this.props.store.compiler} and {this.props.store.framework}! Number is: {this.props.store.value}</h1>
+  
                 <p>File selected is {this.props.store.selectedFile}</p>
-                <Slider 
-                    max={10} 
-                    min={0}
-                    value={this.props.store.value}
-                    stepSize={1} 
-                    onChange={this.props.store.setValue}
-                    
-                />
-                <Button 
-                    iconName="document"
-                    onClick={this.onFileOpenButtonClicked}
-                />
+                {rChannelSelect}
+                {rChannelSlider}
                 {imgComponent}
 
             </div>
         )
     }
 }
-/*
-                <Image width ={250} height = {250} fileName={this.props.selectedFile}/>*/

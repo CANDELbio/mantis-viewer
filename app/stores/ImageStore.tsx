@@ -1,51 +1,78 @@
-import { observable, computed, action, autorun } from "mobx"
+import { observable, computed, action, autorun, createTransformer } from "mobx"
 import Jimp = require("jimp")
 import * as fs from "fs"
 import * as Papa from "papaparse"
+import { IMCData, IMCDataStats } from "../interfaces/IMCData"
+import * as _ from "underscore"
+import * as d3 from "d3-array"
 
 export class ImageStore {
     @observable value: number = 5
-    @observable compiler = "Gino"
-    @observable framework = "Pino" 
+
     @observable selectedFile: string | null
-    @observable.ref imageData: {}[] | null = null
+    @observable.ref imageData: IMCData[] | null = null
+    @observable channelNames: string[] | null = null
+    @observable rChannel:string | undefined
+    @observable gChannel:string | undefined
+    @observable bChannel:string | undefined
+
+    @observable rChannelDomain: [number, number] = [0, 100]
+
+    @computed get imageStats() {
+        console.log("calclating stats")
+        if(this.imageData != null && this.channelNames != null) {
+            let ret:IMCDataStats = {}
+            //Highly inefficient this can be done in a single pass
+            this.channelNames.forEach((s) => {
+                let v = d3.extent(this.imageData!, (d) => {
+                    return(d[s])
+                })
+                // Necessary because of typescript null elimination mechanism
+                if(v[0] != null && v[1] != null)
+                    ret[s] = [v[0]!, v[1]!]
+
+            })
+            return(ret)
+        }
+        else
+            return({})
+    }
 
 
+    @action parseData(d:PapaParse.ParseResult) {
+        
+    }
 
-     @action updateImageData()  {
+    @action updateImageData()  {
         if(this.selectedFile != null) 
             fs.readFile(this.selectedFile, {
                     encoding: 'ascii',
                     flag: 'r'
                 }, action((err: NodeJS.ErrnoException, data:string) => {
-                    this.imageData = Papa.parse(data, {
+                    let parseResults = Papa.parse(data, {
                         delimiter: "\t",
-                        header: true
-                    }).data
-                    //console.log(res)
-                    //console.log(res.errors)
+                        header: true,
+                        dynamicTyping: true
+                        //skipEmptyLines: true
+                    })
+                    this.imageData = parseResults.data
+                    this.channelNames = parseResults.meta.fields
                     console.log(this.imageData[0])
-                    //this.imageData = res.data
                 })
             )
     }
 
-    /*
-    @action updateImageData() {
-        let imgData = null
-        if(this.selectedFile != null) {
-            Jimp.read(this.selectedFile).then(action((img: any) => {
-                        img.getBase64(Jimp.MIME_JPEG, (err:any , src:string) => {
-                            this.imageData = src
-                        })
-                    })).catch(function (err:any) {
-                        console.error(err);
-                    });
-        }
-    }
-    */
+    
     @action setValue = (x: number) => {
         this.value = x
+    }
+
+    @action setRChannelDomain = (x: [number, number]) => {
+        this.rChannelDomain = x
+    }
+
+    @action setRChannel = (x: {label: string, value: string}) => {
+        this.rChannel = x.value
     }
 
     @action selectFile = (fName: string) => {

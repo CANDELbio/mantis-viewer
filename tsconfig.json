@@ -21,7 +21,8 @@
     "files": [
         "./main.ts",
         "./renderer.ts",
-        "./app/stores/ImageStore.tsx"
-
+        "./app/stores/ImageStore.tsx",
+        "./app/components/IMCImage.tsx",
+        "./app/components/Hello.tsx"
     ]
 }
