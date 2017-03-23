@@ -18,6 +18,8 @@ export class ImageStore {
 
     @observable rChannelDomain: [number, number] = [0, 100]
 
+    @observable temp: [number, number] 
+
     @computed get imageStats() {
         console.log("calclating stats")
         if(this.imageData != null && this.channelNames != null) {
@@ -80,6 +82,10 @@ export class ImageStore {
         this.updateImageData()
     }
      
+    @action setTemp = (x:[number, number]) => {
+        this.temp = x
+    }
+
 
 
     /*

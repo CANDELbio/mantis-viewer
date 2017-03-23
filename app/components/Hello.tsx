@@ -43,8 +43,10 @@ export class Hello extends React.Component<HelloProps, undefined> {
             rChannelSlider = <RangeSlider
                 min={this.props.store.imageStats[rChannel][0]}
                 max={this.props.store.imageStats[rChannel][1]}
+                /*value={this.props.store.temp}*/
                 value={this.props.store.rChannelDomain}
                 onRelease={this.props.store.setRChannelDomain}
+                /*onChange={this.props.store.setTemp}*/
                 stepSize={0.1}
             />
             rChannelSelect = <Select

@@ -20,16 +20,18 @@ interface IMCImageProps {
 }
 
 
-
+//Adding observer here makes the render much much slower?!?!
+// is it because we need to cache the props?!?
+// Yes that's definitely why. There are a tons of get access
+@observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     renderImage(el: HTMLCanvasElement) {
         console.log("Rendering IMC image")
         if(el == null)
             return
-        
+        console.log("Doing the expensive thing")
         let IMCData = this.props.imageData
-        console.log(this.props)
         let maxX = this.props.stats["X"][1] 
         let maxY = this.props.stats["Y"][1]
         let offScreen = document.createElement("canvas")
@@ -50,23 +52,39 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
             let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
             let data = imageData.data
-
-     
-
+            let dataIdx = new Array(IMCData.length)
 
             for(let i = 0; i < IMCData.length ; ++i) {
-                let idx = i * 4
-    
-                if(this.props.rChannel != null)
-                    data[idx] = rScale(IMCData[i][this.props.rChannel])
-                if(this.props.gChannel != null)
-                    data[idx + 1] = gScale(IMCData[i][this.props.gChannel])
-                if(this.props.bChannel != null)
-                    data[idx + 2] = bScale(IMCData[i][this.props.bChannel])
-                
-   
+                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
+                let idx = i << 2
+                dataIdx[i] = idx
                 data[idx + 3] = 255
+
             }
+
+            if(this.props.rChannel != null) {
+                let rChannel = this.props.rChannel
+                for(let i = 0; i < IMCData.length ; ++i) {
+                    data[dataIdx[i]] = rScale(IMCData[i][rChannel])
+                }
+            }
+            
+            if(this.props.gChannel != null) {
+                let gChannel = this.props.gChannel
+                for(let i = 0; i < IMCData.length ; ++i) {
+                    data[dataIdx[i] + 1] = gScale(IMCData[i][gChannel])
+                }
+            }
+
+            if(this.props.bChannel != null) {
+                let bChannel = this.props.bChannel
+                for(let i = 0; i < IMCData.length ; ++i) {
+                    data[dataIdx[i] + 2] = bScale(IMCData[i][bChannel])
+                }
+            }
+            
+
+
             ctx.putImageData(imageData, 0, 0)
             
             let onScreenCtx = el.getContext("2d")
