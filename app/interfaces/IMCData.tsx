@@ -1,8 +1,8 @@
 
 export interface IMCData {
-    X: number
-    Y: number
-    [key: string] : number
+    X: number[]
+    Y: number[]
+    [key: string] : number[]
 }
 
 export interface IMCDataStats {

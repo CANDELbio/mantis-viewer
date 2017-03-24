@@ -10,7 +10,8 @@ export class ImageStore {
     @observable value: number = 5
 
     @observable selectedFile: string | null
-    @observable.ref imageData: IMCData[] | null = null
+    @observable.ref imageData: IMCData | null
+    @observable.ref imageStats: IMCDataStats | null
     @observable channelNames: string[] | null = null
     @observable rChannel:string | undefined
     @observable gChannel:string | undefined
@@ -20,29 +21,36 @@ export class ImageStore {
 
     @observable temp: [number, number] 
 
-    @computed get imageStats() {
-        console.log("calclating stats")
-        if(this.imageData != null && this.channelNames != null) {
-            let ret:IMCDataStats = {}
-            //Highly inefficient this can be done in a single pass
-            this.channelNames.forEach((s) => {
-                let v = d3.extent(this.imageData!, (d) => {
-                    return(d[s])
-                })
-                // Necessary because of typescript null elimination mechanism
-                if(v[0] != null && v[1] != null)
-                    ret[s] = [v[0]!, v[1]!]
 
-            })
-            return(ret)
+    @action parseData(parseResult:PapaParse.ParseResult) {
+        let data = parseResult.data
+        let stats:IMCDataStats = {}
+
+        interface parsedData {
+            [key:string] :number
         }
-        else
-            return({})
-    }
+        let d:parsedData = data[0]
 
+        let imageData:IMCData = {X:[], Y:[]}
 
-    @action parseData(d:PapaParse.ParseResult) {
+        _.mapObject(d, (val, key) => {
+            stats[key] = [val, val]
+            imageData![key] = new Array(data.length)
+        })
         
+        for(let i = 0; i < data.length; ++i) {
+            let temp:parsedData = data[i]
+            _.mapObject(temp, (val, key) => {
+                if(val < stats[key][0])
+                    stats[key][0] = val
+                if(val > stats[key][1])
+                    stats[key][1] = val
+                imageData![key][i] = val
+            })
+
+        }
+        this.imageStats = stats
+        this.imageData = imageData
     }
 
     @action updateImageData()  {
@@ -57,9 +65,10 @@ export class ImageStore {
                         dynamicTyping: true
                         //skipEmptyLines: true
                     })
-                    this.imageData = parseResults.data
+                    this.parseData(parseResults)
                     this.channelNames = parseResults.meta.fields
-                    console.log(this.imageData[0])
+                    console.log(this.imageData![0])
+                    console.log(this.imageStats)
                 })
             )
     }

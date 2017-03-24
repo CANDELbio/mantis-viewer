@@ -32,7 +32,8 @@ export class Hello extends React.Component<HelloProps, undefined> {
         let rChannel = "191Ir(Ir191Di)"
         let rChannelSelect = null
         
-        if(this.props.store.imageData != null) {
+        if(this.props.store.imageData != null &&
+            this.props.store.imageStats != null) {
             console.log("Here")
             imgComponent = <IMCImage 
                 imageData={this.props.store.imageData}

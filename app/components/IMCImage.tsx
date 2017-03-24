@@ -11,7 +11,7 @@ import { IMCData, IMCDataStats } from "../interfaces/IMCData"
 
 interface IMCImageProps {
     stats: IMCDataStats,
-    imageData: IMCData[],
+    imageData: IMCData,
     rChannel?:string,
     gChannel?:string,
     bChannel?:string,
@@ -51,35 +51,36 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 .range([0, 255])
 
             let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
-            let data = imageData.data
-            let dataIdx = new Array(IMCData.length)
+            let canvasData = imageData.data
+            let IMCDataLength = IMCData["X"].length
+            let dataIdx = new Array(IMCDataLength)
 
-            for(let i = 0; i < IMCData.length ; ++i) {
+            for(let i = 0; i < IMCDataLength ; ++i) {
                 //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
                 let idx = i << 2
                 dataIdx[i] = idx
-                data[idx + 3] = 255
+                canvasData[idx + 3] = 255
 
             }
 
             if(this.props.rChannel != null) {
-                let rChannel = this.props.rChannel
-                for(let i = 0; i < IMCData.length ; ++i) {
-                    data[dataIdx[i]] = rScale(IMCData[i][rChannel])
+                let v = IMCData[this.props.rChannel]
+                for(let i = 0; i < IMCDataLength; ++i) {
+                    canvasData[dataIdx[i]] = rScale(v[i])
                 }
             }
             
             if(this.props.gChannel != null) {
-                let gChannel = this.props.gChannel
-                for(let i = 0; i < IMCData.length ; ++i) {
-                    data[dataIdx[i] + 1] = gScale(IMCData[i][gChannel])
+                let v = IMCData[this.props.gChannel]
+                for(let i = 0; i < IMCDataLength; ++i) {
+                    canvasData[dataIdx[i] + 1] = gScale(v[i])
                 }
             }
 
             if(this.props.bChannel != null) {
-                let bChannel = this.props.bChannel
-                for(let i = 0; i < IMCData.length ; ++i) {
-                    data[dataIdx[i] + 2] = bScale(IMCData[i][bChannel])
+                let v = IMCData[this.props.bChannel]
+                for(let i = 0; i < IMCDataLength; ++i) {
+                    canvasData[dataIdx[i] + 2] = bScale(v[i])
                 }
             }
             
