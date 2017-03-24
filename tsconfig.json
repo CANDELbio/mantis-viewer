@@ -23,6 +23,6 @@
         "./renderer.ts",
         "./app/stores/ImageStore.tsx",
         "./app/components/IMCImage.tsx",
-        "./app/components/Hello.tsx"
+        "./app/components/ImageViewer.tsx"
     ]
 }

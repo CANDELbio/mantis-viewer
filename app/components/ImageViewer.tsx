@@ -1,7 +1,7 @@
 import * as React from "react";
 import { RangeSlider } from "@blueprintjs/core"
 import { Button } from "@blueprintjs/core"
-import { Image } from "./Image"
+
 
 import { ImageStore } from "../stores/ImageStore"
 import { IMCImage } from "../components/IMCImage"
@@ -16,14 +16,11 @@ export interface HelloProps {
 }
 
 @observer
-export class Hello extends React.Component<HelloProps, undefined> {
+export class ImageViewer extends React.Component<HelloProps, undefined> {
     constructor(props: HelloProps) {
         super(props)
     }
 
-    onFileOpenButtonClicked() {
-    //    shell.showItemInFolder(os.homedir())
-    }
 
     
     render() {
@@ -34,7 +31,7 @@ export class Hello extends React.Component<HelloProps, undefined> {
         
         if(this.props.store.imageData != null &&
             this.props.store.imageStats != null) {
-            console.log("Here")
+  
             imgComponent = <IMCImage 
                 imageData={this.props.store.imageData}
                 stats={this.props.store.imageStats}
@@ -44,10 +41,9 @@ export class Hello extends React.Component<HelloProps, undefined> {
             rChannelSlider = <RangeSlider
                 min={this.props.store.imageStats[rChannel][0]}
                 max={this.props.store.imageStats[rChannel][1]}
-                /*value={this.props.store.temp}*/
-                value={this.props.store.rChannelDomain}
+                value={this.props.store.temp}
                 onRelease={this.props.store.setRChannelDomain}
-                /*onChange={this.props.store.setTemp}*/
+                onChange={this.props.store.setTemp}
                 stepSize={0.1}
             />
             rChannelSelect = <Select

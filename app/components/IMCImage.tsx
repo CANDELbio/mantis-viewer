@@ -19,10 +19,6 @@ interface IMCImageProps {
     rChannelDomain?: [number, number]
 }
 
-
-//Adding observer here makes the render much much slower?!?!
-// is it because we need to cache the props?!?
-// Yes that's definitely why. There are a tons of get access
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
@@ -96,9 +92,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     render() {
-        console.log("IMCImage rendering")
-        console.log(this.props.stats)
-        console.log(this.props.rChannel)
         return(
             <div>
                 <canvas 

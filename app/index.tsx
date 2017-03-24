@@ -1,14 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-
-//import { MainFrame } from "./containers/MainFrame"
-import { createStore } from "redux"
-import { mainPage } from "./reducers/MainPage"
-import { Provider } from "react-redux"
-import { State } from "./interfaces/State"
-import { Image } from "./components/Image"
-import * as UserActions from "./actions/UserActions"
-import { Hello } from "./components/Hello"
+import { ImageViewer } from "./components/ImageViewer"
 import * as Mobx from 'mobx';
 import { ImageStore } from "./stores/ImageStore"
 
@@ -18,13 +10,6 @@ Mobx.useStrict(true)
 const electron = require("electron")
 
 
-
-let initialState: State = {
-        value: 5,
-        selectedFile: null
-    }
-
-let store = createStore(mainPage, initialState)
 
 const imageStore = new ImageStore()
 
@@ -36,9 +21,9 @@ electron.ipcRenderer.on("open-file", (event: Electron.IpcRendererEvent, fileName
 
 
 ReactDOM.render(
-    <Provider store = {store} >
-        <Hello  store={imageStore} />
-    </Provider>,
+    <div>
+        <ImageViewer  store={imageStore} />
+    </div>,
     document.getElementById("example")
 );
 
