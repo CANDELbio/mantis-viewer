@@ -7,7 +7,7 @@ import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
-
+import { ChannelName } from "../interfaces/UIDefinitions"
 const Select = require("react-select")
 
 
@@ -30,6 +30,8 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
         let gChannelControls = null
         let bChannelControls = null
 
+        let channelControls = null
+
         if(this.props.store.imageData != null &&
             this.props.store.imageStats != null) {
   
@@ -44,6 +46,7 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                 channelMarker={this.props.store.channelMarker}
                
             />
+            /*
             rChannelControls = <ChannelControls
                 sliderMin = {0}
                 sliderMax = {1000}
@@ -54,14 +57,28 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                 selectValue = {this.props.store.channelMarker["rChannel"]}
                 onSelectChange = {this.props.store.setChannelMarker("rChannel")}
 
-            />
+            />*/
+
+            channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
+                <ChannelControls
+                    key={s}
+                    sliderMin = {0}
+                    sliderMax = {1000}
+                    sliderValue = {this.props.store.channelSliderValue[s]}
+                    onSliderChange = {this.props.store.setChannelSliderValue(s)}
+                    onSliderRelease = {this.props.store.setChannelDomain(s)}
+                    selectOptions = {channelSelectOptions}
+                    selectValue = {this.props.store.channelMarker[s]}
+                    onSelectChange = {this.props.store.setChannelMarker(s)}
+                />
+            )
         }
 
         return(
             <div>
   
                 <p>File selected is {this.props.store.selectedFile}</p>
-                {rChannelControls}
+                {channelControls}
                 {imgComponent}
 
             </div>
