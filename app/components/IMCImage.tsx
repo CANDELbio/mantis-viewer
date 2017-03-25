@@ -7,27 +7,26 @@ import * as fs from "fs"
 import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"
 import { IMCData, IMCDataStats } from "../interfaces/IMCData"
-
+import { ChannelName } from "../interfaces/UIDefinitions"
 
 interface IMCImageProps {
     stats: IMCDataStats,
     imageData: IMCData,
-    rChannel?:string,
-    gChannel?:string,
-    bChannel?:string,
-
-    rChannelDomain?: [number, number]
+    channelDomain: Record<ChannelName, [number, number]>
+    channelMarker: Record<ChannelName, string | null>  
 }
 
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
-    renderImage(el: HTMLCanvasElement) {
-        console.log("Rendering IMC image")
+    renderImage(el: HTMLCanvasElement, 
+        imcData:IMCData, 
+        channelMarker: Record<ChannelName, string | null>,
+        channelDomain:  Record<ChannelName, [number, number]>) {
+
         if(el == null)
             return
         console.log("Doing the expensive thing")
-        let IMCData = this.props.imageData
         let maxX = this.props.stats["X"][1] 
         let maxY = this.props.stats["Y"][1]
         let offScreen = document.createElement("canvas")
@@ -36,19 +35,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     
         let ctx = offScreen.getContext("2d")
         if(ctx != null) {
-            let rScale = d3Scale.scaleLinear()
-                .domain(this.props.rChannelDomain!)
-                .range([0, 255])
-            let gScale = d3Scale.scaleLinear()
-                .domain([0, 200])
-                .range([0, 255])
-            let bScale = d3Scale.scaleLinear()
-                .domain([0, 200])
-                .range([0, 255])
-
             let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
             let canvasData = imageData.data
-            let IMCDataLength = IMCData["X"].length
+            let IMCDataLength = imcData["X"].length
             let dataIdx = new Array(IMCDataLength)
 
             for(let i = 0; i < IMCDataLength ; ++i) {
@@ -58,29 +47,42 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 canvasData[idx + 3] = 255
 
             }
+            
+            if(channelMarker.rChannel != null) {
+                let v = imcData[channelMarker.rChannel!]
 
-            if(this.props.rChannel != null) {
-                let v = IMCData[this.props.rChannel]
+                let colorScale = d3Scale.scaleLinear()
+                    .domain(channelDomain.rChannel)
+                    .range([0, 255])
+
                 for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i]] = rScale(v[i])
+                    canvasData[dataIdx[i]] = colorScale(v[i])
                 }
             }
             
-            if(this.props.gChannel != null) {
-                let v = IMCData[this.props.gChannel]
+            if(channelMarker.gChannel != null) {
+                let v = imcData[channelMarker.gChannel!]
+
+                let colorScale = d3Scale.scaleLinear()
+                    .domain(channelDomain.gChannel)
+                    .range([0, 255])
+
                 for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i] + 1] = gScale(v[i])
+                    canvasData[dataIdx[i] + 1] = colorScale(v[i])
                 }
             }
 
-            if(this.props.bChannel != null) {
-                let v = IMCData[this.props.bChannel]
+            if(channelMarker.bChannel) {
+                let v = imcData[channelMarker.bChannel!]
+
+                let colorScale = d3Scale.scaleLinear()
+                    .domain(channelDomain.bChannel)
+                    .range([0, 255])
+
                 for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i] + 2] = bScale(v[i])
+                    canvasData[dataIdx[i] + 2] = colorScale(v[i])
                 }
             }
-            
-
 
             ctx.putImageData(imageData, 0, 0)
             
@@ -92,13 +94,29 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     render() {
+        //Dereferencing these here is necessary for Mobx to trigger, because
+        //render is the only tracked function (i.e. this will not trigger if
+        //the variables are dereferenced inside renderImage)
+        console.log("Rendering image")
+        let channelMarker = {
+            rChannel: this.props.channelMarker.rChannel,
+            gChannel: this.props.channelMarker.gChannel,
+            bChannel: this.props.channelMarker.bChannel
+        }
+        let channelDomain = {
+            rChannel: this.props.channelDomain.rChannel,
+            gChannel: this.props.channelDomain.gChannel,
+            bChannel: this.props.channelDomain.bChannel
+        }
+        let imcData = this.props.imageData
+
         return(
             <div>
                 <canvas 
                     className = "imcimage"
                     width = "800"
                     height = "600" 
-                    ref={(el) => {this.renderImage(el)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
                 />
             </div>
         )

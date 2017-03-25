@@ -1,0 +1,1 @@
+export type ChannelName = "rChannel" | "gChannel" | "bChannel"
