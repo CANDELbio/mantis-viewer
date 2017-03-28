@@ -27,6 +27,11 @@ module.exports = {
                 loader: 'file-loader?name=[name].[ext]'
             },*/
             {
+                test: /\.css$/,
+                loader: 'style-loader!css-loader',
+                include: /flexboxgrid/
+            },
+            {
                 enforce: 'pre',
                 test: /\.js?$/,
                 loader: 'source-map-loader',

@@ -6,11 +6,12 @@ import * as Papa from "papaparse"
 import * as fs from "fs"
 import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"
-import { IMCData, IMCDataStats } from "../interfaces/IMCData"
+import { IMCData } from "../interfaces/IMCData"
 import { ChannelName } from "../interfaces/UIDefinitions"
+import { quantile, rescaler } from "../lib/utils"
+
 
 interface IMCImageProps {
-    stats: IMCDataStats,
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>  
@@ -27,8 +28,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         if(el == null)
             return
         console.log("Doing the expensive thing")
-        let maxX = this.props.stats["X"][1] 
-        let maxY = this.props.stats["Y"][1]
+        let maxX = imcData.stats["X"][1] 
+        let maxY = imcData.stats["Y"][1]
         let offScreen = document.createElement("canvas")
         offScreen.width = maxX + 1
         offScreen.height = maxY + 1
@@ -37,7 +38,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         if(ctx != null) {
             let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
             let canvasData = imageData.data
-            let IMCDataLength = imcData["X"].length
+            let IMCDataLength = imcData.data["X"].length
             let dataIdx = new Array(IMCDataLength)
 
             for(let i = 0; i < IMCDataLength ; ++i) {
@@ -49,10 +50,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             }
             
             if(channelMarker.rChannel != null) {
-                let v = imcData[channelMarker.rChannel!]
+                let v = imcData.data[channelMarker.rChannel!]
 
+                let dom = quantile(imcData.sortedData[channelMarker.rChannel!], channelDomain.rChannel[1] / 100)
+            
                 let colorScale = d3Scale.scaleLinear()
-                    .domain(channelDomain.rChannel)
+                    .domain([0, dom])
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {
@@ -61,10 +64,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             }
             
             if(channelMarker.gChannel != null) {
-                let v = imcData[channelMarker.gChannel!]
+                let v = imcData.data[channelMarker.gChannel!]
 
+                let dom = quantile(imcData.sortedData[channelMarker.gChannel!], channelDomain.gChannel[1] / 100)
+                
                 let colorScale = d3Scale.scaleLinear()
-                    .domain(channelDomain.gChannel)
+                    .domain([0, dom])
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {
@@ -73,10 +78,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             }
 
             if(channelMarker.bChannel) {
-                let v = imcData[channelMarker.bChannel!]
+                let v = imcData.data[channelMarker.bChannel!]
+
+                let dom = quantile(imcData.sortedData[channelMarker.bChannel!], channelDomain.bChannel[1] / 100)
 
                 let colorScale = d3Scale.scaleLinear()
-                    .domain(channelDomain.bChannel)
+                    .domain([0, dom])
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {

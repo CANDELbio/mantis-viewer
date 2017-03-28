@@ -1,10 +1,19 @@
+interface IMCDataStats {
+    [key: string] : [number, number]
+}
 
-export interface IMCData {
+
+interface IMCDataObject   {
     X: number[]
     Y: number[]
     [key: string] : number[]
 }
 
-export interface IMCDataStats {
-    [key: string] : [number, number]
+export class IMCData {
+
+    data:IMCDataObject = {X:[], Y:[]}
+    sortedData:IMCDataObject = {X:[], Y:[]}
+    stats: IMCDataStats = {}
+    channelNames: string[] = []
+
 }

@@ -30,17 +30,17 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
     render() {
         return(
             <div>
+                <Select
+                    value = {this.props.selectValue}
+                    options = {this.props.selectOptions}
+                    onChange = {this.props.onSelectChange}
+                />
                 <RangeSlider
                     min = {this.props.sliderMin}
                     max = {this.props.sliderMax}
                     value = {this.props.sliderValue}
                     onRelease = {this.props.onSliderRelease}
                     onChange = {this.props.onSliderChange}
-                />
-                <Select
-                    value = {this.props.selectValue}
-                    options = {this.props.selectOptions}
-                    onChange = {this.props.onSelectChange}
                 />
             </div>
         )

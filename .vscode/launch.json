@@ -11,8 +11,9 @@
             "program": "${workspaceRoot}\\main.js",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
             "runtimeArgs": [
-                ".",
-                "--enable-logging"
+                "--enable-logging",
+                "--js-flags=--max_old_space_size=4096",
+                "."
             ],
             "env": {}
         },

@@ -1,7 +1,9 @@
-import * as React from "react";
+import * as React from "react"
 import { RangeSlider } from "@blueprintjs/core"
 import { Button } from "@blueprintjs/core"
 
+
+import { Grid, Row, Col } from 'react-flexbox-grid'
 
 import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
@@ -26,14 +28,10 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
     
     render() {
         let imgComponent = null
-        let rChannelControls = null
-        let gChannelControls = null
-        let bChannelControls = null
 
         let channelControls = null
 
-        if(this.props.store.imageData != null &&
-            this.props.store.imageStats != null) {
+        if(this.props.store.imageData != null) {
   
             let channelSelectOptions =  this.props.store.channelNames!.map((s) => {
                     return({value: s, label: s})
@@ -41,29 +39,16 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
 
             imgComponent = <IMCImage 
                 imageData={this.props.store.imageData}
-                stats={this.props.store.imageStats}
                 channelDomain={this.props.store.channelDomain}
                 channelMarker={this.props.store.channelMarker}
                
             />
-            /*
-            rChannelControls = <ChannelControls
-                sliderMin = {0}
-                sliderMax = {1000}
-                sliderValue = {this.props.store.channelSliderValue["rChannel"]}
-                onSliderChange = {this.props.store.setChannelSliderValue("rChannel")}
-                onSliderRelease = {this.props.store.setChannelDomain("rChannel")}
-                selectOptions = {channelSelectOptions}
-                selectValue = {this.props.store.channelMarker["rChannel"]}
-                onSelectChange = {this.props.store.setChannelMarker("rChannel")}
-
-            />*/
 
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
                 <ChannelControls
                     key={s}
                     sliderMin = {0}
-                    sliderMax = {1000}
+                    sliderMax = {100}
                     sliderValue = {this.props.store.channelSliderValue[s]}
                     onSliderChange = {this.props.store.setChannelSliderValue(s)}
                     onSliderRelease = {this.props.store.setChannelDomain(s)}
@@ -76,10 +61,17 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
 
         return(
             <div>
-  
-                <p>File selected is {this.props.store.selectedFile}</p>
-                {channelControls}
-                {imgComponent}
+                <Grid fluid>
+                    <p>File selected is {this.props.store.selectedFile}</p>
+                    <Row>
+                        <Col lg={3}>
+                            {channelControls}
+                        </Col>
+                        <Col lg={9}>
+                            {imgComponent}
+                        </Col>
+                    </Row>
+                </Grid>
 
             </div>
         )
