@@ -8,17 +8,24 @@ import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"
 import { IMCData } from "../interfaces/IMCData"
 import { ChannelName } from "../interfaces/UIDefinitions"
-import { quantile, rescaler } from "../lib/utils"
+import { quantile } from "../lib/utils"
+import { SelectionLayer } from "./SelectionLayer"
 
 
 interface IMCImageProps {
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
-    channelMarker: Record<ChannelName, string | null>  
+    channelMarker: Record<ChannelName, string | null>
+    canvasWidth: number
+    canvasHeight: number 
 }
 
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
+
+    constructor(props:IMCImageProps) {
+        super(props)
+    }
 
     renderImage(el: HTMLCanvasElement, 
         imcData:IMCData, 
@@ -118,12 +125,16 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let imcData = this.props.imageData
 
         return(
-            <div>
+            <div className="imcimage">
                 <canvas 
-                    className = "imcimage"
-                    width = "800"
-                    height = "600" 
+                    width = {this.props.canvasWidth}
+                    height = {this.props.canvasHeight} 
                     ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
+                />
+                <SelectionLayer 
+                    width = {this.props.canvasWidth}
+                    height = {this.props.canvasHeight}
+                    onBrushEnd = {(x) => console.log(x)}
                 />
             </div>
         )

@@ -10,6 +10,8 @@ import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 import { ChannelName } from "../interfaces/UIDefinitions"
+let Plotly = require("../lib/plotly-latest.min")
+
 const Select = require("react-select")
 
 
@@ -23,8 +25,6 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
     constructor(props: HelloProps) {
         super(props)
     }
-
-
     
     render() {
         let imgComponent = null
@@ -38,9 +38,11 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
             })
 
             imgComponent = <IMCImage 
-                imageData={this.props.store.imageData}
-                channelDomain={this.props.store.channelDomain}
-                channelMarker={this.props.store.channelMarker}
+                imageData = {this.props.store.imageData}
+                channelDomain = {this.props.store.channelDomain}
+                channelMarker = {this.props.store.channelMarker}
+                canvasWidth = {800}
+                canvasHeight = {600}
                
             />
 
@@ -72,7 +74,8 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                         </Col>
                     </Row>
                 </Grid>
-
+                <div id="plotly-tester" ref={(el) => this.testPlotly(el)}>
+                </div>
             </div>
         )
     }

@@ -22,6 +22,12 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /(node_modules)/
             },
+            /*
+            {
+                test: /node_modules/,
+                loader: 'ify-loader',
+                enforce: 'post'
+            },*/
             /*{
                 test: /\.(html|css)?$/,
                 loader: 'file-loader?name=[name].[ext]'
@@ -45,7 +51,8 @@ module.exports = {
     // dependencies, which allows browsers to cache those libraries between builds.
     externals: {
         "react": "React",
-        "react-dom": "ReactDOM",
+        "react-dom": "ReactDOM"//,
+        //"plotly.js": "Plotly"
     },
     target: "electron"
 };
