@@ -1,14 +1,14 @@
 import * as React from "react";
 import * as d3selection from "d3-selection"
 import * as d3brush from "d3-brush"
+import { D3BrushExtent, BrushEventHandler } from "../interfaces/UIDefinitions"
 
 
-type brushExtent = [[number, number], [number, number]]
 
 interface SelectionLayerProps {
     width: number
     height: number
-    onBrushEnd: ((extent: brushExtent) => void)
+    onBrushEnd: BrushEventHandler
 }
 
 export class SelectionLayer extends React.Component<SelectionLayerProps, undefined> {
@@ -17,13 +17,17 @@ export class SelectionLayer extends React.Component<SelectionLayerProps, undefin
         super(props)
     }
 
+    onBrushEnd:BrushEventHandler = (e) => {
+        this.props.onBrushEnd(e)
+    }
+
     mountBrush(el: SVGElement | null) {
         if(el != null) {
             let svg = d3selection.select(el)
             
             let brush = d3brush.brush()
 
-            brush.on("end", () => {this.props.onBrushEnd(d3selection.event.selection)})
+            brush.on("end", () => {this.onBrushEnd(d3selection.event.selection)})
 
             svg.append("g")
                 .attr("class", "brush")

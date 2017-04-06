@@ -10,7 +10,7 @@ import { IMCData } from "../interfaces/IMCData"
 import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
-
+import { BrushEventHandler } from "../interfaces/UIDefinitions"
 
 interface IMCImageProps {
     imageData: IMCData,
@@ -18,6 +18,7 @@ interface IMCImageProps {
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
     canvasHeight: number 
+    onBrushEnd: BrushEventHandler
 }
 
 @observer
@@ -26,6 +27,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     constructor(props:IMCImageProps) {
         super(props)
     }
+
+
+    onBrushEnd:BrushEventHandler = (e) => {
+        this.props.onBrushEnd(e)
+    }
+
 
     renderImage(el: HTMLCanvasElement, 
         imcData:IMCData, 
@@ -134,7 +141,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 <SelectionLayer 
                     width = {this.props.canvasWidth}
                     height = {this.props.canvasHeight}
-                    onBrushEnd = {(x) => console.log(x)}
+                    onBrushEnd = {this.onBrushEnd}
                 />
             </div>
         )

@@ -2,19 +2,20 @@ import { observable, computed, action, autorun, createTransformer } from "mobx"
 import Jimp = require("jimp")
 import * as fs from "fs"
 import * as Papa from "papaparse"
-import { IMCData } from "../interfaces/IMCData"
+import { IMCData, IMCDataObject } from "../interfaces/IMCData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
-import { ChannelName } from "../interfaces/UIDefinitions"
+import { ChannelName, D3BrushExtent } from "../interfaces/UIDefinitions"
 
 
 
 export class ImageStore {
 
     @observable.ref imageData: IMCData | null
+    @observable.ref plotData: IMCDataObject | null = null
 
     @observable selectedFile: string | null
-    @observable channelNames: string[] | null = null
+    
 
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [0, 100],
@@ -33,6 +34,35 @@ export class ImageStore {
         bChannel: null
     }
 
+    @observable currentSelection: {
+        x: [number, number]
+        y: [number, number]
+    } | null = null
+
+    @action setCurrentSelection(extent: D3BrushExtent) {
+        this.currentSelection = {
+            x: [extent[0][0], extent[1][0]], 
+            y: [extent[0][1], extent[1][1]]
+        }
+    }
+
+
+    @action updatePlotData() {
+        if(this.imageData != null && this.currentSelection != null) {
+            let data = this.imageData.data
+            let channelNames = this.imageData.channelNames
+            this.plotData = {X:[], Y:[]}
+            channelNames.forEach((s) => this.plotData![s] = [])
+
+            for(let i = 0; i < data.X.length; ++i) {
+                let x = data.X[i]
+                let y = data.Y[i]
+                if(x >= this.currentSelection.x[0] && x <= this.currentSelection.x[1])
+                    if(y >= this.currentSelection.y[0] && y <= this.currentSelection.y[1])
+                        channelNames.forEach((s) => this.plotData![s].push(data[s][i]))
+            }
+        }
+    }
 
     @action parseData(parseResult:PapaParse.ParseResult) {
         let data = parseResult.data
@@ -82,7 +112,7 @@ export class ImageStore {
                         //skipEmptyLines: true
                     })
                     this.parseData(parseResults)
-                    this.channelNames = parseResults.meta.fields
+                    //this.channelNames = parseResults.meta.fields
                 })
             )
     }
@@ -101,7 +131,7 @@ export class ImageStore {
         })
     }
 
-     @action setChannelMarker = (name: ChannelName) => {
+    @action setChannelMarker = (name: ChannelName) => {
         return action((x: {label: string, value: string}) => {
             this.channelMarker[name] = x.value
         })
@@ -117,3 +147,4 @@ export class ImageStore {
 
 
 
+ 

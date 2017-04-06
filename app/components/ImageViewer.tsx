@@ -9,23 +9,29 @@ import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
-import { ChannelName } from "../interfaces/UIDefinitions"
+import { ChannelName, BrushEventHandler } from "../interfaces/UIDefinitions"
 let Plotly = require("../lib/plotly-latest.min")
 
 const Select = require("react-select")
 
 
 
-export interface HelloProps { 
+export interface ImageViewerProps { 
     store: ImageStore
 }
 
 @observer
-export class ImageViewer extends React.Component<HelloProps, undefined> {
-    constructor(props: HelloProps) {
+export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
+    constructor(props: ImageViewerProps) {
         super(props)
     }
     
+    onBrushEnd:BrushEventHandler = (e) => {
+        this.props.store.setCurrentSelection(e)
+    }
+
+    updatePlotData = () => this.props.store.updatePlotData()
+
     render() {
         let imgComponent = null
 
@@ -33,7 +39,7 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
 
         if(this.props.store.imageData != null) {
   
-            let channelSelectOptions =  this.props.store.channelNames!.map((s) => {
+            let channelSelectOptions =  this.props.store.imageData.channelNames.map((s) => {
                     return({value: s, label: s})
             })
 
@@ -43,7 +49,7 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {800}
                 canvasHeight = {600}
-               
+                onBrushEnd = {this.onBrushEnd}
             />
 
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
@@ -60,7 +66,8 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                 />
             )
         }
-
+        console.log(this.props.store.currentSelection)
+        console.log(this.props.store.plotData)
         return(
             <div>
                 <Grid fluid>
@@ -68,14 +75,16 @@ export class ImageViewer extends React.Component<HelloProps, undefined> {
                     <Row>
                         <Col lg={3}>
                             {channelControls}
+                            <Button
+                                text = {"Plot"}
+                                onClick = {this.updatePlotData}
+                            />
                         </Col>
                         <Col lg={9}>
                             {imgComponent}
                         </Col>
                     </Row>
                 </Grid>
-                <div id="plotly-tester" ref={(el) => this.testPlotly(el)}>
-                </div>
             </div>
         )
     }
