@@ -5,18 +5,23 @@ import * as Papa from "papaparse"
 import { IMCData, IMCDataObject } from "../interfaces/IMCData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
-import { ChannelName, D3BrushExtent } from "../interfaces/UIDefinitions"
-
+import { ChannelName, D3BrushExtent, SelectOption } from "../interfaces/UIDefinitions"
+import { keepAlive, IDisposer } from "mobx-utils"
 
 
 export class ImageStore {
+
+    selectedDataDisposer: IDisposer
+
+    constructor() {
+        this.selectedDataDisposer = keepAlive(this.selectedData)
+    }
 
     @observable.ref imageData: IMCData | null
     @observable.ref plotData: IMCDataObject | null = null
 
     @observable selectedFile: string | null
-    
-
+    @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [0, 100],
         gChannel: [0, 100],
@@ -38,6 +43,39 @@ export class ImageStore {
         x: [number, number]
         y: [number, number]
     } | null = null
+    
+
+    selectedData = computed(() => {
+        console.log("Selecting data")
+        let ret:IMCDataObject | null = null
+
+        if(this.imageData != null && this.currentSelection != null) {
+            let data = this.imageData.data
+            let channelNames = this.imageData.channelNames
+            ret = {X:[], Y:[]}
+            channelNames.forEach((s) => ret![s] = [])
+
+            for(let i = 0; i < data.X.length; ++i) {
+                let x = data.X[i]
+                let y = data.Y[i]
+                if(x >= this.currentSelection.x[0] && x <= this.currentSelection.x[1])
+                    if(y >= this.currentSelection.y[0] && y <= this.currentSelection.y[1])
+                        channelNames.forEach((s) => ret![s].push(data[s][i]))
+            }
+        }
+        return(ret)
+    })
+
+    @action updatePlotData() {
+        console.log("Updating plot data")
+        let data = this.selectedData.get()
+        if(data != null)
+            this.plotData = _.pick(data, this.selectedPlotChannels)
+        else
+            this.plotData = null
+    }
+
+
 
     @action setCurrentSelection(extent: D3BrushExtent) {
         this.currentSelection = {
@@ -47,22 +85,7 @@ export class ImageStore {
     }
 
 
-    @action updatePlotData() {
-        if(this.imageData != null && this.currentSelection != null) {
-            let data = this.imageData.data
-            let channelNames = this.imageData.channelNames
-            this.plotData = {X:[], Y:[]}
-            channelNames.forEach((s) => this.plotData![s] = [])
-
-            for(let i = 0; i < data.X.length; ++i) {
-                let x = data.X[i]
-                let y = data.Y[i]
-                if(x >= this.currentSelection.x[0] && x <= this.currentSelection.x[1])
-                    if(y >= this.currentSelection.y[0] && y <= this.currentSelection.y[1])
-                        channelNames.forEach((s) => this.plotData![s].push(data[s][i]))
-            }
-        }
-    }
+    
 
     @action parseData(parseResult:PapaParse.ParseResult) {
         let data = parseResult.data
@@ -132,11 +155,15 @@ export class ImageStore {
     }
 
     @action setChannelMarker = (name: ChannelName) => {
-        return action((x: {label: string, value: string}) => {
+        return action((x: SelectOption) => {
             this.channelMarker[name] = x.value
         })
     }
 
+    @action setSelectedPlotChannels = (x: SelectOption[]) => {
+        this.selectedPlotChannels = _.pluck(x, "value")
+        console.log(this.selectedPlotChannels)
+    } 
 
     @action selectFile = (fName: string) => {
         this.selectedFile = fName

@@ -4,13 +4,12 @@ import { Button } from "@blueprintjs/core"
 
 
 import { Grid, Row, Col } from 'react-flexbox-grid'
-
+import { Histogram } from "../components/Histogram"
 import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
-import { ChannelName, BrushEventHandler } from "../interfaces/UIDefinitions"
-let Plotly = require("../lib/plotly-latest.min")
+import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
 
 const Select = require("react-select")
 
@@ -32,10 +31,14 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
 
     updatePlotData = () => this.props.store.updatePlotData()
 
+    onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
+
     render() {
         let imgComponent = null
 
         let channelControls = null
+        let plotChannelSelect = null
+        let histogram = null
 
         if(this.props.store.imageData != null) {
   
@@ -65,6 +68,19 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     onSelectChange = {this.props.store.setChannelMarker(s)}
                 />
             )
+            
+            plotChannelSelect = 
+                <Select
+                    value = {this.props.store.selectedPlotChannels}
+                    options = {channelSelectOptions}
+                    onChange = {this.onPlotChannelSelect}
+                    multi = {true}
+                />
+            histogram = 
+                <Histogram
+                    data = {this.props.store.plotData}
+                />
+            
         }
         console.log(this.props.store.currentSelection)
         console.log(this.props.store.plotData)
@@ -75,6 +91,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     <Row>
                         <Col lg={3}>
                             {channelControls}
+                            {plotChannelSelect}
                             <Button
                                 text = {"Plot"}
                                 onClick = {this.updatePlotData}
@@ -82,6 +99,11 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                         </Col>
                         <Col lg={9}>
                             {imgComponent}
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col lg = {12}>
+                            {histogram}
                         </Col>
                     </Row>
                 </Grid>

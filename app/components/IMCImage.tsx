@@ -12,6 +12,7 @@ import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 
+
 interface IMCImageProps {
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
