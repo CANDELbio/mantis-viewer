@@ -23,11 +23,16 @@ export class Histogram extends React.Component<HistogramProps, undefined> {
             let plotData = _.keys(this.props.data).map(s => {
                 return({
                     x: this.props.data![s],
-                    type: "histogram"
+                    type: "histogram",
+                    xbins: {
+                        start: 0,
+                        end: 300,
+                        size: 1
+                    }
                 })
                 
             })
-            Plotly.plot(el, [plotData[0]])
+            Plotly.newPlot(el, [plotData[0]])
         }
 
     }

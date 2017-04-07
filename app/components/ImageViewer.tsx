@@ -82,8 +82,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 />
             
         }
-        console.log(this.props.store.currentSelection)
-        console.log(this.props.store.plotData)
+     
         return(
             <div>
                 <Grid fluid>

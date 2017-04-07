@@ -132,16 +132,19 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
         let imcData = this.props.imageData
 
+        let width = imcData.stats["X"][1] + 1
+        let height = imcData.stats["Y"][1] + 1
+
         return(
             <div className="imcimage">
                 <canvas 
-                    width = {this.props.canvasWidth}
-                    height = {this.props.canvasHeight} 
+                    width = {width}
+                    height = {height} 
                     ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
                 />
                 <SelectionLayer 
-                    width = {this.props.canvasWidth}
-                    height = {this.props.canvasHeight}
+                    width = {width}
+                    height = {height}
                     onBrushEnd = {this.onBrushEnd}
                 />
             </div>

@@ -10,6 +10,10 @@ Mobx.useStrict(true)
 const electron = require("electron")
 
 
+const { BrowserWindow } = electron.remote
+
+//let win = new BrowserWindow({width: 400, height: 275})
+
 
 const imageStore = new ImageStore()
 
