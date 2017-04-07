@@ -1,8 +1,11 @@
 module.exports = {
-    entry: "./app/index.tsx",
+    entry: {
+        mainWindow: "./app/mainWindow.tsx",
+        plotWindow: "./app/plotWindow.tsx",
+    },
     output: {
         path: "./dist",
-        filename: "bundle.js",
+        filename: "[name].js",
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",

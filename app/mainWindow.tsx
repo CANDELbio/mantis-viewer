@@ -8,11 +8,26 @@ import { ImageStore } from "./stores/ImageStore"
 Mobx.useStrict(true)
 
 const electron = require("electron")
-
+const path = require('path')
+const url = require('url')
 
 const { BrowserWindow } = electron.remote
 
-//let win = new BrowserWindow({width: 400, height: 275})
+let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 800, height: 600})
+
+
+plotWindow.loadURL(url.format({
+    pathname: path.join("./", 'plotWindow.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+
+plotWindow.webContents.openDevTools()
+
+plotWindow.on('closed', function () {
+    plotWindow = null
+})
+
 
 
 const imageStore = new ImageStore()
