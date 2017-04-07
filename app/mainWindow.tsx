@@ -12,7 +12,10 @@ const path = require('path')
 const url = require('url')
 
 const { BrowserWindow } = electron.remote
+const imageStore = new ImageStore()
 
+
+//Set up the separate plotting window
 let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 800, height: 600})
 
 
@@ -28,15 +31,19 @@ plotWindow.on('closed', function () {
     plotWindow = null
 })
 
+Mobx.autorun(() => {
+    let data = imageStore.plotData
+    if(plotWindow != null)
+        plotWindow.webContents.send("plotData", data)
+})
 
 
-const imageStore = new ImageStore()
+
 
 electron.ipcRenderer.on("open-file", (event: Electron.IpcRendererEvent, fileName: string) => {
     console.log(fileName)
     imageStore.selectFile(fileName)
 })
-
 
 
 ReactDOM.render(

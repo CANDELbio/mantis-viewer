@@ -18,7 +18,7 @@ export class ImageStore {
     }
 
     @observable.ref imageData: IMCData | null
-    @observable.ref plotData: IMCDataObject | null = null
+    @observable.ref plotData: IMCDataObject | null
 
     @observable selectedFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
@@ -71,8 +71,6 @@ export class ImageStore {
         let data = this.selectedData.get()
         if(data != null)
             this.plotData = _.pick(data, this.selectedPlotChannels)
-        else
-            this.plotData = null
     }
 
 

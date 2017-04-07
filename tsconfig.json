@@ -21,6 +21,8 @@
     "files": [
         "./main.ts",
         "./renderer.ts",
+        "./app/mainWindow.tsx",
+        "./app/plotWindow.tsx",
         "./app/stores/ImageStore.tsx",
         "./app/components/IMCImage.tsx",
         "./app/components/ImageViewer.tsx",

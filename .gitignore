@@ -4,3 +4,4 @@ main.js
 main.js.map
 renderer.js
 renderer.js.map
+*.log
