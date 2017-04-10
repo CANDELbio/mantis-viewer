@@ -67,7 +67,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.rChannel != null) {
                 let v = imcData.data[channelMarker.rChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.rChannel!], channelDomain.rChannel[1] / 100)
+                let dom = quantile(imcData.sortedData[channelMarker.rChannel!], channelDomain.rChannel[1] / 100, true)
             
                 let colorScale = d3Scale.scaleLinear()
                     .domain([0, dom])
@@ -81,7 +81,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.gChannel != null) {
                 let v = imcData.data[channelMarker.gChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.gChannel!], channelDomain.gChannel[1] / 100)
+                let dom = quantile(imcData.sortedData[channelMarker.gChannel!], channelDomain.gChannel[1] / 100, true)
                 
                 let colorScale = d3Scale.scaleLinear()
                     .domain([0, dom])
@@ -95,7 +95,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.bChannel) {
                 let v = imcData.data[channelMarker.bChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.bChannel!], channelDomain.bChannel[1] / 100)
+                let dom = quantile(imcData.sortedData[channelMarker.bChannel!], channelDomain.bChannel[1] / 100, true)
 
                 let colorScale = d3Scale.scaleLinear()
                     .domain([0, dom])
@@ -131,7 +131,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             bChannel: this.props.channelDomain.bChannel
         }
         let imcData = this.props.imageData
-
+        console.log(imcData)
         let width = imcData.stats["X"][1] + 1
         let height = imcData.stats["Y"][1] + 1
 

@@ -1,4 +1,6 @@
 import { Histogram } from "./components/Histogram"
+import { Boxplot } from "./components/Boxplot"
+import { CountourPlot } from "./components/ContourPlot"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
@@ -16,6 +18,7 @@ ipc.on('plotData', (event, message) => {
         ReactDOM.render(
             <div>
                 <Histogram  data = {message} />
+                <CountourPlot data = {message} />
             </div>,
             domNode
         );

@@ -13,6 +13,9 @@ interface SelectionLayerProps {
 
 export class SelectionLayer extends React.Component<SelectionLayerProps, undefined> {
 
+    el:SVGElement | null = null
+    brush: d3brush.BrushBehavior<{}> | null = null
+
     constructor(props:SelectionLayerProps) {
         super(props)
     }
@@ -21,24 +24,28 @@ export class SelectionLayer extends React.Component<SelectionLayerProps, undefin
         this.props.onBrushEnd(e)
     }
 
-    mountBrush(el: SVGElement | null) {
-        if(el != null) {
-            let svg = d3selection.select(el)
+    componentDidMount() {
+        console.log("It has mounted")
+   
+        let svg = d3selection.select(this.el)
             
-            let brush = d3brush.brush()
+        this.brush = d3brush.brush()
 
-            brush.on("end", () => {this.onBrushEnd(d3selection.event.selection)})
+        this.brush.on("end", () => {this.onBrushEnd(d3selection.event.selection)})
 
-            svg.append("g")
-                .attr("class", "brush")
-                .call(brush)
-        }
+        svg.append("g")
+            .attr("class", "brush")
+            .call(this.brush)
 
+    }
+
+    componentWillUpdate() {
+        console.log("It's updating")
     }
 
     render() {
         return(
-            <svg width={this.props.width} height={this.props.height} ref={(el) => {this.mountBrush(el)}}/>
+            <svg width={this.props.width} height={this.props.height} ref={(el) => {this.el = el}}/>
         )
     }
 

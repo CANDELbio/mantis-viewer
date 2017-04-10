@@ -16,7 +16,7 @@ const imageStore = new ImageStore()
 
 
 //Set up the separate plotting window
-let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 800, height: 600})
+let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, height: 1200})
 
 
 plotWindow.loadURL(url.format({

@@ -4,7 +4,6 @@ import { Button } from "@blueprintjs/core"
 
 
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Histogram } from "../components/Histogram"
 import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
@@ -76,11 +75,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     onChange = {this.onPlotChannelSelect}
                     multi = {true}
                 />
-            histogram = 
-                <Histogram
-                    data = {this.props.store.plotData}
-                />
-            
         }
      
         return(
@@ -98,11 +92,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                         </Col>
                         <Col lg={9}>
                             {imgComponent}
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col lg = {12}>
-                            {histogram}
                         </Col>
                     </Row>
                 </Grid>

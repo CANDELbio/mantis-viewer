@@ -4,13 +4,13 @@ import { PlotlyPlot } from "./PlotlyPlot"
 
 
 
-interface HistogramProps {
+interface BoxplotProps {
     data: {[x:string]: number[]} | null
 }
 
 
-export class Histogram extends React.Component<HistogramProps, undefined> {
-    constructor(props: HistogramProps) {
+export class Boxplot extends React.Component<BoxplotProps, undefined> {
+    constructor(props: BoxplotProps) {
         super(props)
     }
 
@@ -45,19 +45,10 @@ export class Histogram extends React.Component<HistogramProps, undefined> {
     }*/
 
     render() {
-        let extraProps = 
-            {
-                xbins: {
-                    start: 0,
-                    end: 300,
-                    size: 1,
-                }
-            }
         return(
             <PlotlyPlot
                 data = {this.props.data}
-                type = "histogram"
-                extraTraceProps = {extraProps}
+                type = "box"
             />
         )
     }
