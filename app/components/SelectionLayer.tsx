@@ -25,8 +25,6 @@ export class SelectionLayer extends React.Component<SelectionLayerProps, undefin
     }
 
     componentDidMount() {
-        console.log("It has mounted")
-   
         let svg = d3selection.select(this.el)
             
         this.brush = d3brush.brush()
@@ -37,10 +35,6 @@ export class SelectionLayer extends React.Component<SelectionLayerProps, undefin
             .attr("class", "brush")
             .call(this.brush)
 
-    }
-
-    componentWillUpdate() {
-        console.log("It's updating")
     }
 
     render() {
