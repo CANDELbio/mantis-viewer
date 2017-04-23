@@ -1,7 +1,5 @@
 import * as _ from "underscore"
-import * as readline from "readline"
 import * as fs from "fs"
-//const readlines = (require("n-readlines"))
 
 interface IMCDataStats {
     X: [number, number]
@@ -26,14 +24,12 @@ export class IMCData {
         return(_.keys(this.data))
     }
 
-    private calculateStats(fName:string) {
+    private calculateStats(fName:string, lines: string[]) {
         let lineNumber = 0
         let colNames: string[] = []
-        const rl = readline.createInterface({
-            input: fs.createReadStream(fName)
-        })
-        
-        rl.on('line', (line: string) => {
+
+        while(lineNumber < lines.length) {
+            let line = lines[lineNumber]
             let fields = line.split("\t")
             if (lineNumber == 0) {
                 colNames = fields
@@ -54,23 +50,24 @@ export class IMCData {
 
             }
             ++lineNumber
-        })
+        }
     }
 
     constructor(fName: string) {
         this.stats = {X:[0, 0], Y:[0, 0]}
-
-        this.calculateStats(fName)
+        this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
+        this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
         let lineNumber = 0
         let colNames: string[] = []
         let xIdx = 0
         let yIdx = 0
 
-        const rl = readline.createInterface({
-            input: fs.createReadStream(fName)
-        })
+        let lines = fs.readFileSync(fName, 'utf-8')
+            .split("\n")
+        this.calculateStats(fName, lines)
 
-        rl.on('line', (line: string) => {
+        while(lineNumber < lines.length) {
+            let line = lines[lineNumber]
             let fields = line.split("\t")
             if(lineNumber == 0) {
                 colNames = fields
@@ -78,6 +75,8 @@ export class IMCData {
                 yIdx = colNames.findIndex((s) => {return(s == "Y")})
                 let nRows = (this.stats.X[1] + 1) * (this.stats.Y[1] + 1)
                 colNames.forEach((s) => {
+                    console.log("Allocating object of size ", Float32Array.BYTES_PER_ELEMENT * nRows)
+                    console.log("Total number of rows", nRows)
                     let buf = new ArrayBuffer(Float32Array.BYTES_PER_ELEMENT * nRows)
                     this.data[s] = new Float32Array(buf)
                 })
@@ -96,8 +95,8 @@ export class IMCData {
             }
 
             ++lineNumber
-        })
-
+        }
+        
         _.mapObject(this.data, (val, key) => {
             this.sortedData[key] = val.slice().sort((a, b) => a - b)
         })
