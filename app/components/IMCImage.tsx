@@ -67,10 +67,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.rChannel != null) {
                 let v = imcData.data[channelMarker.rChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.rChannel!], channelDomain.rChannel[1] / 100, true)
-            
+                let dom = channelDomain.rChannel.map((x) => {
+                    return(quantile(imcData.sortedData[channelMarker.rChannel!], x / 100, true))
+                }) 
+                
                 let colorScale = d3Scale.scaleLinear()
-                    .domain([0, dom])
+                    .domain(dom)
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {
@@ -81,10 +83,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.gChannel != null) {
                 let v = imcData.data[channelMarker.gChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.gChannel!], channelDomain.gChannel[1] / 100, true)
+                let dom = channelDomain.gChannel.map((x) => {
+                    return(quantile(imcData.sortedData[channelMarker.gChannel!], x / 100, true))
+                }) 
                 
                 let colorScale = d3Scale.scaleLinear()
-                    .domain([0, dom])
+                    .domain(dom)
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {
@@ -95,10 +99,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(channelMarker.bChannel) {
                 let v = imcData.data[channelMarker.bChannel!]
 
-                let dom = quantile(imcData.sortedData[channelMarker.bChannel!], channelDomain.bChannel[1] / 100, true)
+                let dom = channelDomain.bChannel.map((x) => {
+                    return(quantile(imcData.sortedData[channelMarker.bChannel!], x / 100, true))
+                }) 
 
                 let colorScale = d3Scale.scaleLinear()
-                    .domain([0, dom])
+                    .domain(dom)
                     .range([0, 255])
 
                 for(let i = 0; i < IMCDataLength; ++i) {
