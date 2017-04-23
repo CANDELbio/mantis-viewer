@@ -1,6 +1,6 @@
 import { observable, computed, action, autorun, createTransformer } from "mobx"
 import Jimp = require("jimp")
-import * as fs from "fs"
+
 import * as Papa from "papaparse"
 import { IMCData, IMCDataObject } from "../interfaces/IMCData"
 import * as _ from "underscore"
@@ -47,7 +47,7 @@ export class ImageStore {
 
     selectedData = computed(() => {
         console.log("Selecting data")
-        let ret:IMCDataObject | null = null
+        let ret:{[x:string] : number[]} = {}
 
         if(this.imageData != null && this.currentSelection != null) {
             let data = this.imageData.data
@@ -83,7 +83,7 @@ export class ImageStore {
     }
 
 
-    
+    /*
 
     @action parseData(parseResult:PapaParse.ParseResult) {
         let data = parseResult.data
@@ -119,8 +119,16 @@ export class ImageStore {
         })
         this.imageData = imageData
     }
+*/
 
     @action updateImageData()  {
+        if(this.selectedFile != null) {
+            this.imageData = new IMCData(this.selectedFile)
+            console.log(this.imageData)
+        }
+    }
+/*
+    @action updateImageDataOld()  {
         if(this.selectedFile != null) 
             fs.readFile(this.selectedFile, {
                     encoding: 'ascii',
@@ -136,7 +144,7 @@ export class ImageStore {
                     //this.channelNames = parseResults.meta.fields
                 })
             )
-    }
+    }*/
 
 
   
