@@ -1,10 +1,10 @@
 module.exports = {
     entry: {
-        mainWindow: "./app/mainWindow.tsx",
-        plotWindow: "./app/plotWindow.tsx",
+        mainWindow: "./src/mainWindow.tsx",
+        plotWindow: "./src/plotWindow.tsx",
     },
     output: {
-        path: "./dist",
+        path: "./app",
         filename: "[name].js",
     },
     // Enable sourcemaps for debugging webpack's output.
@@ -16,7 +16,9 @@ module.exports = {
     node: {
         fs: "empty",
         net: "empty",
-        tls: "empty"
+        tls: "empty",
+        __dirname: false,
+        __filename: false
     },
     module: {
         rules: [

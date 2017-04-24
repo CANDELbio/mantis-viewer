@@ -20,7 +20,7 @@ let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, 
 
 
 plotWindow.loadURL(url.format({
-    pathname: path.join("./", 'plotWindow.html'),
+    pathname: path.join(__dirname, 'plotWindow.html'),
     protocol: 'file:',
     slashes: true
   }))

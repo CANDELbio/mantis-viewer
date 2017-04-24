@@ -21,12 +21,12 @@
     "files": [
         "./main.ts",
         "./renderer.ts",
-        "./app/mainWindow.tsx",
-        "./app/plotWindow.tsx",
-        "./app/stores/ImageStore.tsx",
-        "./app/components/IMCImage.tsx",
-        "./app/components/ImageViewer.tsx",
-        "./app/components/ChannelControls.tsx",
-        "./app/components/Histogram.tsx"
+        "./src/mainWindow.tsx",
+        "./src/plotWindow.tsx",
+        "./src/stores/ImageStore.tsx",
+        "./src/components/IMCImage.tsx",
+        "./src/components/ImageViewer.tsx",
+        "./src/components/ChannelControls.tsx",
+        "./src/components/Histogram.tsx"
     ]
 }

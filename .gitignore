@@ -5,3 +5,5 @@ main.js.map
 renderer.js
 renderer.js.map
 *.log
+app/*.js
+app/*.map
