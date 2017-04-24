@@ -40,6 +40,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
                     max = {this.props.sliderMax}
                     value = {this.props.sliderValue}
                     labelStepSize = {10}
+                    stepSize = {0.01}
                     onRelease = {this.props.onSliderRelease}
                     onChange = {this.props.onSliderChange}
                 />

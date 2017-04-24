@@ -21,14 +21,14 @@ export class ImageStore {
     @observable selectedFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
+        rChannel: [80, 100],
+        gChannel: [80, 100],
+        bChannel: [80, 100]
     }
     @observable channelSliderValue: Record<ChannelName, [number, number]> = { 
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
+        rChannel: [80, 100],
+        gChannel: [80, 100],
+        bChannel: [80, 100]
     }
 
     @observable channelMarker: Record<ChannelName, string | null> = {
