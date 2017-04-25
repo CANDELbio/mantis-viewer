@@ -2,7 +2,6 @@ import * as React from "react";
 import * as ReactDOM from "react-dom"
 import * as d3Scale from "d3-scale"
 import * as d3Array from "d3-array"
-import * as Papa from "papaparse"
 import * as fs from "fs"
 import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"

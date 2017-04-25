@@ -1,5 +1,4 @@
 import { observable, computed, action, autorun, createTransformer } from "mobx"
-import Jimp = require("jimp")
 import { IMCData, IMCDataObject } from "../lib/IMCData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
