@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import request
-import numpy as np
 
 
 import imgtest
@@ -14,13 +13,13 @@ def hello():
 
 @app.route("/segmentation", methods = ['POST'])
 def run_segmentation():
-    print(request)
-    print "Here"
+    print request.headers
+    
+    width = int(request.headers["width"])
+    height = int(request.headers["height"])
     data = request.get_data()
-    v = np.frombuffer(data, np.uint8)
-    print v.shape
 
-    imgtest.read_image(v, 985, 822)
+    imgtest.read_image(data, width, height)
 
     return "202"
 

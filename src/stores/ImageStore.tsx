@@ -133,55 +133,11 @@ export class ImageStore {
         if(this.canvasImageData != null) {
             let xhr = new XMLHttpRequest
             xhr.open("POST", "http://127.0.0.1:5000/segmentation", false)
+            xhr.setRequestHeader("width", this.canvasImageData.width.toString())
+            xhr.setRequestHeader("height", this.canvasImageData.height.toString())
             xhr.send(this.canvasImageData.data.buffer)
         }
     }
-
-    /*
-    @action doSegmentation = () => {
-        console.log("segmenting")
-        if(this.canvasImageData != null) {
-            const postData = JSON.stringify({
-                data: this.canvasImageData.data.slice(0, 10),
-                height: this.canvasImageData.height,
-                width: this.canvasImageData.width
-
-            })
-
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: '/segmentation',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
-                }
-            };
-            console.log(postData)
-            const req = http.request(options, (res) => {
-                console.log(`STATUS: ${res.statusCode}`);
-                console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-                res.setEncoding('utf8');
-                res.on('data', (chunk) => {
-                    console.log(`BODY: ${chunk}`);
-                });
-                res.on('end', () => {
-                    console.log('No more data in response.');
-                });
-            });
-
-            req.on('error', (e) => {
-                console.error(`problem with request: ${e.message}`);
-            });
-
-            // write data to request body
-            req.write(postData);
-            req.end();
-
-        }
-    }*/
-
 }
 
 
