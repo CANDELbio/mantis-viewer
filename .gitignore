@@ -7,3 +7,4 @@ renderer.js.map
 *.log
 app/*.js
 app/*.map
+*.pyc

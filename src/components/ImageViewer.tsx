@@ -32,6 +32,8 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
 
+    doSegmentation = () => this.props.store.doSegmentation()
+
     render() {
         let imgComponent = null
 
@@ -88,6 +90,10 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                             <Button
                                 text = {"Plot"}
                                 onClick = {this.updatePlotData}
+                            />
+                            <Button
+                                text = {"Segment"}
+                                onClick = {this.doSegmentation}
                             />
                         </Col>
                         <Col lg={9}>
