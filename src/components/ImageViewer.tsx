@@ -32,7 +32,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
 
-    doSegmentation = () => this.props.store.doSegmentation()
 
     render() {
         let imgComponent = null
@@ -54,8 +53,9 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 canvasWidth = {800}
                 canvasHeight = {600}
                 onBrushEnd = {this.onBrushEnd}
+                onCanvasDataLoaded = {this.props.store.setCanvasImageData}
             />
-
+ 
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
                 <ChannelControls
                     key={s}
@@ -93,7 +93,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                             />
                             <Button
                                 text = {"Segment"}
-                                onClick = {this.doSegmentation}
+                                onClick = {this.props.store.doSegmentation}
                             />
                         </Col>
                         <Col lg={9}>

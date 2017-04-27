@@ -19,20 +19,24 @@ interface IMCImageProps {
     canvasWidth: number
     canvasHeight: number 
     onBrushEnd: BrushEventHandler
+    onCanvasDataLoaded: ((data: ImageData) => void)
+
 }
 
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
+    el:HTMLCanvasElement | null = null
+
     constructor(props:IMCImageProps) {
         super(props)
     }
 
-
+    onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
+    
     onBrushEnd:BrushEventHandler = (e) => {
         this.props.onBrushEnd(e)
     }
-
 
     renderImage(el: HTMLCanvasElement, 
         imcData:IMCData, 
@@ -41,6 +45,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         if(el == null)
             return
+        this.el = el
+
         console.log("Doing the expensive thing")
         let maxX = imcData.stats["X"][1] 
         let maxY = imcData.stats["Y"][1]
@@ -112,7 +118,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             }
 
             ctx.putImageData(imageData, 0, 0)
-            
+            this.onCanvasDataLoaded(imageData)
             let onScreenCtx = el.getContext("2d")
             if(onScreenCtx != null) {
                 onScreenCtx.drawImage(offScreen, 0, 0, el.width, el.height)
