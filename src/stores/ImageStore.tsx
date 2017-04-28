@@ -24,6 +24,8 @@ export class ImageStore {
     @observable.ref imageData: IMCData | null
     @observable.ref plotData: IMCDataObject | null
 
+    @observable.ref extraData: Uint8ClampedArray | null = null
+
     @observable selectedFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
@@ -132,7 +134,17 @@ export class ImageStore {
         console.log("segmenting")
         if(this.canvasImageData != null) {
             let xhr = new XMLHttpRequest
-            xhr.open("POST", "http://127.0.0.1:5000/segmentation", false)
+            xhr.open("POST", "http://127.0.0.1:5000/segmentation", true)
+            xhr.responseType = "arraybuffer"
+            xhr.onload = action((e) => {
+                if (xhr.readyState === 4) {
+                    console.log(xhr)
+                    let v = new Uint8ClampedArray(xhr.response)
+                    this.extraData = v
+                    console.log(v)
+                }
+            })
+
             xhr.setRequestHeader("width", this.canvasImageData.width.toString())
             xhr.setRequestHeader("height", this.canvasImageData.height.toString())
             xhr.send(this.canvasImageData.data.buffer)

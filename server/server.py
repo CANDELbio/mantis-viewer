@@ -4,6 +4,9 @@ from flask import request
 
 import imgtest
 
+
+
+
 app = Flask(__name__)
 
 @app.route("/")
@@ -19,10 +22,11 @@ def run_segmentation():
     height = int(request.headers["height"])
     data = request.get_data()
 
-    imgtest.read_image(data, width, height)
+    segmentation_mask = imgtest.read_image(data, width, height)
 
-    return "202"
-
+    response = app.make_response(segmentation_mask.tobytes())
+    #response.headers['content-type'] = 'application/octet-stream'
+    return response
 
 
 if __name__ == "__main__":

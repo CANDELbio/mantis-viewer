@@ -63,3 +63,11 @@ def segment_image(img):
     colormap_watershed[water == -1] =  [66, 244, 244]
     cv2.imwrite('watershed_colormapped.png', colormap_watershed)
 
+    mask = np.zeros_like(img)
+    mask[water == -1] =  [66, 244, 244]
+    cv2.imwrite('segmentation_mask.png', mask)
+
+    #Adding the alpha channel for canvas rendering
+    alpha = np.full_like(mask[:, :, 0], 128)
+    mask = np.dstack((mask, alpha))
+    return mask

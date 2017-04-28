@@ -54,6 +54,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 canvasHeight = {600}
                 onBrushEnd = {this.onBrushEnd}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
+                extraData = {this.props.store.extraData}
             />
  
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 

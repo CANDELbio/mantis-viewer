@@ -20,7 +20,7 @@ interface IMCImageProps {
     canvasHeight: number 
     onBrushEnd: BrushEventHandler
     onCanvasDataLoaded: ((data: ImageData) => void)
-
+    extraData: Uint8ClampedArray | null
 }
 
 @observer
@@ -126,6 +126,26 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
+    renderExtraLayer(el: HTMLCanvasElement | null, data: Uint8ClampedArray) {
+        if(el != null) {
+            console.log("FIXME!!")
+            let ctx = el.getContext("2d")
+            if(ctx != null) {
+                let imageData = ctx.getImageData(0, 0, el.width, el.height)
+                for(let i = 0; i < data.length; i++)
+                    imageData.data[i] = data[i]
+                console.log("Putting data")
+                console.log(data)
+                ctx.putImageData(imageData, 0, 0)
+                
+
+
+            }
+
+        }
+    }
+
+
     render() {
         //Dereferencing these here is necessary for Mobx to trigger, because
         //render is the only tracked function (i.e. this will not trigger if
@@ -146,13 +166,26 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let width = imcData.stats["X"][1] + 1
         let height = imcData.stats["Y"][1] + 1
 
+        let extraLayer = null
+        if(this.props.extraData != null)
+            extraLayer = 
+                <canvas 
+                    id = "layer2" 
+                    width = {width} 
+                    height = {height} 
+                    style={{position: "absolute", left: "0", top: "0", zIndex: 1}}
+                    ref = {(el) => {this.renderExtraLayer(el, this.props.extraData!)}}
+                />
+
         return(
             <div className="imcimage">
                 <canvas 
+                    id = "baselayer"
                     width = {width}
                     height = {height} 
                     ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
                 />
+                {extraLayer}
                 <SelectionLayer 
                     width = {width}
                     height = {height}
