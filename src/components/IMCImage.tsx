@@ -134,8 +134,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 let imageData = ctx.getImageData(0, 0, el.width, el.height)
                 for(let i = 0; i < data.length; i++)
                     imageData.data[i] = data[i]
-                console.log("Putting data")
-                console.log(data)
                 ctx.putImageData(imageData, 0, 0)
                 
 
