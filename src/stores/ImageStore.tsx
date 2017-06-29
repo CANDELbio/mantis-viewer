@@ -50,6 +50,7 @@ export class ImageStore {
         y: [number, number]
     } | null = null
 
+    @observable.shallow labelsLayers : Uint8ClampedArray[] = []
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -140,7 +141,8 @@ export class ImageStore {
                 if (xhr.readyState === 4) {
                     console.log(xhr)
                     let v = new Uint8ClampedArray(xhr.response)
-                    this.extraData = v
+                    this.labelsLayers.push(v)
+                    //this.labelsLayers = [v]
                     console.log(v)
                 }
             })

@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"
 import * as ReactDOM from "react-dom"
 import * as d3Scale from "d3-scale"
 import * as d3Array from "d3-array"
@@ -12,7 +12,7 @@ import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 
 
-interface IMCImageProps {
+export interface IMCImageProps {
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
@@ -20,7 +20,7 @@ interface IMCImageProps {
     canvasHeight: number 
     onBrushEnd: BrushEventHandler
     onCanvasDataLoaded: ((data: ImageData) => void)
-    extraData: Uint8ClampedArray | null
+    extraData: Uint8ClampedArray[]
 }
 
 @observer
@@ -126,8 +126,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    renderExtraLayer(el: HTMLCanvasElement | null, data: Uint8ClampedArray) {
-        if(el != null) {
+    renderExtraLayer(el: HTMLCanvasElement | null, labelsLayers: Uint8ClampedArray[]) {
+        console.log("rendering extra layer")
+        if(el != null && labelsLayers.length > 0) {
+            let data = labelsLayers[0]
             console.log("FIXME!!")
             let ctx = el.getContext("2d")
             if(ctx != null) {
@@ -165,14 +167,14 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let height = imcData.stats["Y"][1] + 1
 
         let extraLayer = null
-        if(this.props.extraData != null)
+        if(this.props.extraData.slice() != null)
             extraLayer = 
                 <canvas 
                     id = "layer2" 
                     width = {width} 
                     height = {height} 
                     style={{position: "absolute", left: "0", top: "0", zIndex: 1}}
-                    ref = {(el) => {this.renderExtraLayer(el, this.props.extraData!)}}
+                    ref = {(el) => {this.renderExtraLayer(el, this.props.extraData.slice())}}
                 />
 
         return(
