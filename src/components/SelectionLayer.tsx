@@ -5,9 +5,9 @@ import { D3BrushExtent, BrushEventHandler } from "../interfaces/UIDefinitions"
 
 
 
-interface SelectionLayerProps {
-    width: number
-    height: number
+export interface SelectionLayerProps {
+    canvasWidth: number
+    canvasHeight: number
     onBrushEnd: BrushEventHandler
 }
 
@@ -39,7 +39,7 @@ export class SelectionLayer extends React.Component<SelectionLayerProps, undefin
 
     render() {
         return(
-            <svg width={this.props.width} height={this.props.height} ref={(el) => {this.el = el}}/>
+            <svg width={this.props.canvasWidth} height={this.props.canvasHeight} ref={(el) => {this.el = el}}/>
         )
     }
 

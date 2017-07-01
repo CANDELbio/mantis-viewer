@@ -28,6 +28,7 @@
         "./src/components/ImageViewer.tsx",
         "./src/components/ChannelControls.tsx",
         "./src/components/Histogram.tsx",
-        "./src/components/ViewPort.tsx"
+        "./src/components/ViewPort.tsx",
+        "./src/components/LabelLayer.tsx"
     ]
 }

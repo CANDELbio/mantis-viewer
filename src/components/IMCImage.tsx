@@ -18,9 +18,7 @@ export interface IMCImageProps {
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
     canvasHeight: number 
-    onBrushEnd: BrushEventHandler
     onCanvasDataLoaded: ((data: ImageData) => void)
-    extraData: Uint8ClampedArray[]
 }
 
 @observer
@@ -34,9 +32,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     
-    onBrushEnd:BrushEventHandler = (e) => {
-        this.props.onBrushEnd(e)
-    }
 
     renderImage(el: HTMLCanvasElement, 
         imcData:IMCData, 
@@ -126,24 +121,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    renderExtraLayer(el: HTMLCanvasElement | null, labelsLayers: Uint8ClampedArray[]) {
-        console.log("rendering extra layer")
-        if(el != null && labelsLayers.length > 0) {
-            let data = labelsLayers[0]
-            console.log("FIXME!!")
-            let ctx = el.getContext("2d")
-            if(ctx != null) {
-                let imageData = ctx.getImageData(0, 0, el.width, el.height)
-                for(let i = 0; i < data.length; i++)
-                    imageData.data[i] = data[i]
-                ctx.putImageData(imageData, 0, 0)
-                
-
-
-            }
-
-        }
-    }
 
 
     render() {
@@ -166,30 +143,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let width = imcData.stats["X"][1] + 1
         let height = imcData.stats["Y"][1] + 1
 
-        let extraLayer = null
-        if(this.props.extraData.slice() != null)
-            extraLayer = 
-                <canvas 
-                    id = "layer2" 
-                    width = {width} 
-                    height = {height} 
-                    style={{position: "absolute", left: "0", top: "0", zIndex: 1}}
-                    ref = {(el) => {this.renderExtraLayer(el, this.props.extraData.slice())}}
-                />
+
 
         return(
             <div className="imcimage">
                 <canvas 
-                    id = "baselayer"
+                    id = "imcimage"
                     width = {width}
                     height = {height} 
                     ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
-                />
-                {extraLayer}
-                <SelectionLayer 
-                    width = {width}
-                    height = {height}
-                    onBrushEnd = {this.onBrushEnd}
                 />
             </div>
         )

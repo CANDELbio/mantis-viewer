@@ -1,4 +1,4 @@
-import { observable, computed, action, autorun, createTransformer } from "mobx"
+import { observable, computed, action, autorun, createTransformer, ObservableMap } from "mobx"
 import { IMCData, IMCDataObject } from "../lib/IMCData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
@@ -50,7 +50,11 @@ export class ImageStore {
         y: [number, number]
     } | null = null
 
-    @observable.shallow labelsLayers : Uint8ClampedArray[] = []
+    //@observable.shallow labelsLayers : {
+    //    [name:string]: Uint8ClampedArray
+    //} = {}
+
+    labelsLayers = observable.shallowMap<Uint8ClampedArray>()
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -141,7 +145,7 @@ export class ImageStore {
                 if (xhr.readyState === 4) {
                     console.log(xhr)
                     let v = new Uint8ClampedArray(xhr.response)
-                    this.labelsLayers.push(v)
+                    this.labelsLayers.set(Math.random().toString(), v)
                     //this.labelsLayers = [v]
                     console.log(v)
                 }

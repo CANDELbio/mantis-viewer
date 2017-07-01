@@ -9,6 +9,7 @@ import { ChannelControls } from "../components/ChannelControls"
 import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
+import { ViewPort } from "../components/ViewPort"
 
 const Select = require("react-select")
 
@@ -34,7 +35,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
 
 
     render() {
-        let imgComponent = null
+        let viewPort = null
 
         let channelControls = null
         let plotChannelSelect = null
@@ -46,7 +47,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     return({value: s, label: s})
             })
 
-            imgComponent = <IMCImage 
+            viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
@@ -54,7 +55,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 canvasHeight = {600}
                 onBrushEnd = {this.onBrushEnd}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
-                extraData = {this.props.store.labelsLayers}
+                labelsLayers = {this.props.store.labelsLayers}
             />
  
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
@@ -98,7 +99,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                             />
                         </Col>
                         <Col lg={9}>
-                            {imgComponent}
+                            {viewPort}
                         </Col>
                     </Row>
                 </Grid>

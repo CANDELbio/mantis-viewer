@@ -75,8 +75,8 @@ export class IMCData {
                 yIdx = colNames.findIndex((s) => {return(s == "Y")})
                 let nRows = (this.stats.X[1] + 1) * (this.stats.Y[1] + 1)
                 colNames.forEach((s) => {
-                    console.log("Allocating object of size ", Float32Array.BYTES_PER_ELEMENT * nRows)
-                    console.log("Total number of rows", nRows)
+                    //console.log("Allocating object of size ", Float32Array.BYTES_PER_ELEMENT * nRows)
+                    //console.log("Total number of rows", nRows)
                     let buf = new ArrayBuffer(Float32Array.BYTES_PER_ELEMENT * nRows)
                     this.data[s] = new Float32Array(buf)
                 })

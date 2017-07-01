@@ -2,6 +2,9 @@
     position: relative;
 }
 
+.viewport {
+  position: relative;
+}
 canvas {
   padding: 0;
   margin: 0;
