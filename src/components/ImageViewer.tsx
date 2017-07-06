@@ -47,12 +47,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     return({value: s, label: s})
             })
 
+            let width = this.props.store.imageData.stats["X"][1] + 1
+            let height = this.props.store.imageData.stats["Y"][1] + 1
+
             viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
-                canvasWidth = {800}
-                canvasHeight = {600}
+                canvasWidth = {width}
+                canvasHeight = {height}
                 onBrushEnd = {this.onBrushEnd}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
                 labelsLayers = {this.props.store.labelsLayers}

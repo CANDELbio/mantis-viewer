@@ -1,18 +1,14 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
+import { LabelLayer } from "../interfaces/UIDefinitions"
 
 
-interface LabelLayerProps {
-    name: string
-    width: number
-    height: number
-    data: Uint8ClampedArray
-}
 
+type LabelLayerProps = LabelLayer
 
 @observer
-export class LabelLayer extends React.Component<LabelLayerProps, undefined> {
+export class LabelLayerView extends React.Component<LabelLayerProps, undefined> {
     
     
     renderLayer(el: HTMLCanvasElement | null, data: Uint8ClampedArray) {

@@ -29,6 +29,6 @@
         "./src/components/ChannelControls.tsx",
         "./src/components/Histogram.tsx",
         "./src/components/ViewPort.tsx",
-        "./src/components/LabelLayer.tsx"
+        "./src/components/LabelLayerView.tsx"
     ]
 }

@@ -5,11 +5,12 @@ import * as IMCImage from "./IMCImage"
 import * as SelectionLayer from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 import { ObservableMap } from "mobx"
-import { LabelLayer } from "./LabelLayer"
+import { LabelLayerView } from "./LabelLayerView"
+import { LabelLayer } from "../interfaces/UIDefinitions"
 
 
 type ViewPortSpecificProps = {
-    labelsLayers: ObservableMap<Uint8ClampedArray>
+    labelsLayers: ObservableMap<LabelLayer>
 }
 
 type ViewPortProps = IMCImage.IMCImageProps & SelectionLayer.SelectionLayerProps & ViewPortSpecificProps
@@ -27,14 +28,16 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
 
         let labelLayers:JSX.Element[] = []
 
+   
+
         this.props.labelsLayers.forEach((v, k) => {
             labelLayers.push(
-                <LabelLayer
+                <LabelLayerView
                     width = {this.props.canvasWidth}
                     height = {this.props.canvasHeight}
                     name = {k}
                     key = {k}
-                    data = {v}
+                    data = {v.data}
                 />
             )
         })

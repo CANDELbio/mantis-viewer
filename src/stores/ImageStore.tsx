@@ -1,8 +1,17 @@
-import { observable, computed, action, autorun, createTransformer, ObservableMap } from "mobx"
+import { observable, 
+    computed, 
+    action, 
+    autorun, 
+    createTransformer, 
+    ObservableMap } from "mobx"
 import { IMCData, IMCDataObject } from "../lib/IMCData"
+
 import * as _ from "underscore"
 import * as d3 from "d3-array"
-import { ChannelName, D3BrushExtent, SelectOption } from "../interfaces/UIDefinitions"
+import { ChannelName, 
+    D3BrushExtent, 
+    SelectOption,
+    LabelLayer } from "../interfaces/UIDefinitions"
 import { keepAlive, IDisposer } from "mobx-utils"
 
 
@@ -50,11 +59,8 @@ export class ImageStore {
         y: [number, number]
     } | null = null
 
-    //@observable.shallow labelsLayers : {
-    //    [name:string]: Uint8ClampedArray
-    //} = {}
 
-    labelsLayers = observable.shallowMap<Uint8ClampedArray>()
+    labelsLayers = observable.shallowMap<LabelLayer>()
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -145,7 +151,13 @@ export class ImageStore {
                 if (xhr.readyState === 4) {
                     console.log(xhr)
                     let v = new Uint8ClampedArray(xhr.response)
-                    this.labelsLayers.set(Math.random().toString(), v)
+                    let layer = {
+                        data: v,
+                        width: this.canvasImageData!.width,
+                        height: this.canvasImageData!.height,
+                        name: "test segmentation"
+                    }
+                    this.labelsLayers.set(Math.random().toString(), layer)
                     //this.labelsLayers = [v]
                     console.log(v)
                 }
