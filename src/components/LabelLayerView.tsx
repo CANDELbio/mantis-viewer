@@ -27,13 +27,14 @@ export class LabelLayerView extends React.Component<LabelLayerProps, undefined> 
     
     
     render() {
+        let displayStyle = this.props.visible? "inline" : "none"
         return(
             <div>
                 <canvas 
                     id = {this.props.name} 
                     width = {this.props.width}
                     height = {this.props.height} 
-                    style={{position: "absolute", left: "0", top: "0", zIndex: 1}}
+                    style={{position: "absolute", left: "0", top: "0", zIndex: 1, display: displayStyle}}
                     ref = {(el) => {this.renderLayer(el, this.props.data)}}
                 />
             </div>

@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.11.1",
+    "@blueprintjs/table": "^1.19.0",
     "@types/react-select": "^1.0.45",
     "d3-array": "^1.1.1",
     "d3-brush": "^1.0.4",

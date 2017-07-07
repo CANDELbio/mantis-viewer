@@ -60,7 +60,7 @@ export class ImageStore {
     } | null = null
 
 
-    labelsLayers = observable.shallowMap<LabelLayer>()
+    labelsLayers = observable.shallowArray<LabelLayer>()
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -82,6 +82,14 @@ export class ImageStore {
         }
         return (ret)
     })
+
+
+    @action toggleLayerVisibility = (idx: number) => {
+        console.log(this.labelsLayers[idx].visible)
+
+        console.log(idx)
+        this.labelsLayers[idx].visible = !this.labelsLayers[idx].visible
+    }
 
     @action updatePlotData() {
         console.log("Updating plot data")
@@ -151,13 +159,13 @@ export class ImageStore {
                 if (xhr.readyState === 4) {
                     console.log(xhr)
                     let v = new Uint8ClampedArray(xhr.response)
-                    let layer = {
-                        data: v,
-                        width: this.canvasImageData!.width,
-                        height: this.canvasImageData!.height,
-                        name: "test segmentation"
-                    }
-                    this.labelsLayers.set(Math.random().toString(), layer)
+                    let layer = new LabelLayer()
+                    layer.data = v
+                    layer.width = this.canvasImageData!.width
+                    layer.height = this.canvasImageData!.height
+                    layer.name = "test segmentation"
+                    layer.visible = true
+                    this.labelsLayers.push(layer)
                     //this.labelsLayers = [v]
                     console.log(v)
                 }

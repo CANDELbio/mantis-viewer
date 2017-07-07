@@ -15,3 +15,8 @@ svg {
   left: 0;
 }
 
+.bp-table-body {
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+

@@ -10,7 +10,7 @@ import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
 import { ViewPort } from "../components/ViewPort"
-
+import { LayerTable } from "../components/LayerTable"
 const Select = require("react-select")
 
 
@@ -99,6 +99,10 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                             <Button
                                 text = {"Segment"}
                                 onClick = {this.props.store.doSegmentation}
+                            />
+                            <LayerTable 
+                                data = {this.props.store.labelsLayers}
+                                onToggleLayerVisbile = {this.props.store.toggleLayerVisibility}
                             />
                         </Col>
                         <Col lg={9}>
