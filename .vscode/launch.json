@@ -11,10 +11,12 @@
             "program": "${workspaceRoot}\\main.js",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
             "runtimeArgs": [
+                "--inspect=5858",
                 "--enable-logging",
                 "--js-flags=--max_old_space_size=8192",
                 "."
             ],
+            "protocol": "inspector",
             "env": {}
         },
         {

@@ -1,8 +1,13 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { ImageViewer } from "./components/ImageViewer"
-import * as Mobx from 'mobx';
+import * as Mobx from 'mobx'
 import { ImageStore } from "./stores/ImageStore"
+const tiff = require("tiff")
+import * as fs from "fs"
+//const Tiff = require("tiff.js")
+
+
 
 
 Mobx.useStrict(true)
@@ -42,6 +47,9 @@ Mobx.autorun(() => {
 
 electron.ipcRenderer.on("open-file", (event: Electron.IpcRendererEvent, fileName: string) => {
     console.log(fileName)
+    //let input = fs.readFileSync(fileName)
+    //let image = tiff.decode(input)
+    //console.log(image)
     imageStore.selectFile(fileName)
 })
 
