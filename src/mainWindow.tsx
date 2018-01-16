@@ -41,7 +41,7 @@ Mobx.autorun(() => {
 
 
 
-electron.ipcRenderer.on("open-file", (event: Electron.IpcRendererEvent, fileName: string) => {
+electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => {
     console.log(fileName)
     //let input = fs.readFileSync(fileName)
     //let image = tiff.decode(input)

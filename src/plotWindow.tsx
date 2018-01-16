@@ -4,9 +4,11 @@ import { CountourPlot } from "./components/ContourPlot"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-const ipc = require('electron').ipcRenderer;
+const electron = require('electron')
 
-ipc.on('plotData', (event, message) => {
+const ipc = electron.ipcRenderer
+
+ipc.on('plotData', (event: Electron.Event, message:any) => {
     console.log("Received plot data")
     console.log(message); 
     

@@ -1,6 +1,8 @@
 import * as _ from "underscore"
 import * as fs from "fs"
+import {promisify} from 'util';
 
+const readdir = promisify(fs.readdir);
 
 interface IMCDataStats {
     X: [number, number]

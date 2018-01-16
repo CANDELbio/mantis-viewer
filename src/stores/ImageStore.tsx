@@ -111,7 +111,7 @@ export class ImageStore {
 
     @action updateImageData() {
         if (this.selectedFile != null) {
-            this.imageData = new IMCData(this.selectedFile)
+            this.imageData = new IMCData(this.selectedFile, "txt")
             console.log(this.imageData)
         }
     }
