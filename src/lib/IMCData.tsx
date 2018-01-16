@@ -1,6 +1,7 @@
 import * as _ from "underscore"
 import * as fs from "fs"
 
+
 interface IMCDataStats {
     X: [number, number]
     Y: [number, number]
@@ -13,6 +14,8 @@ export interface IMCDataObject   {
     Y: Float32Array
     [key: string] : Float32Array
 }
+
+export type IMCDataInputType = "txt" | "TIFF" | "folder"
 
 export class IMCData {
 
@@ -53,7 +56,15 @@ export class IMCData {
         }
     }
 
-    constructor(fName: string) {
+    private loadFolder(fName:string) {
+
+  
+
+    }
+
+    private loadTIFF(fName:string) {}
+
+    private loadTxtFile(fName: string) {
         this.stats = {X:[0, 0], Y:[0, 0]}
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
@@ -101,5 +112,25 @@ export class IMCData {
             this.sortedData[key] = val.slice().sort((a, b) => a - b)
         })
     }
+
+    constructor(path:string, inputType:IMCDataInputType) {
+        switch(path) {
+            case("txt"):
+                this.loadTxtFile(path)
+                break
+            case("TIFF"):
+                this.loadTIFF(path)
+                break
+            case("folder"):
+                this.loadFolder(path)
+                break
+        }
+
+
+    }
+
+
+
+
     
 }

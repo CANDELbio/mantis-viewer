@@ -5,10 +5,6 @@ import * as Mobx from 'mobx'
 import { ImageStore } from "./stores/ImageStore"
 const tiff = require("tiff")
 import * as fs from "fs"
-//const Tiff = require("tiff.js")
-
-
-
 
 Mobx.useStrict(true)
 
