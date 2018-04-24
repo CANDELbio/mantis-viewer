@@ -116,7 +116,7 @@ export class IMCData {
     }
 
     constructor(path:string, inputType:IMCDataInputType) {
-        switch(path) {
+        switch(inputType) {
             case("txt"):
                 this.loadTxtFile(path)
                 break
