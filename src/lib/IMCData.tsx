@@ -18,13 +18,13 @@ export interface IMCDataObject   {
     [key: string] : Float32Array | Uint16Array
 }
 
-export type IMCDataInputType = "txt" | "TIFF" | "folder"
+export type IMCDataInputType = "TIFF" | "folder"
 
 export class IMCData {
 
     data:IMCDataObject
     sortedData:IMCDataObject
-    stats: IMCDataStats
+
 
     width: number
     height: number
@@ -33,33 +33,12 @@ export class IMCData {
         return(_.keys(this.data))
     }
 
-    private calculateStats(fName:string, lines: string[]) {
-        let lineNumber = 0
-        let colNames: string[] = []
 
-        while(lineNumber < lines.length) {
-            let line = lines[lineNumber]
-            let fields = line.split("\t")
-            if (lineNumber == 0) {
-                colNames = fields
-            } else if (lineNumber == 1) {
-                fields.forEach((x, i) => {
-                    let f = parseFloat(x)
-                    this.stats[colNames[i]] = [f, f]
-                })
-            } else {
-                fields.forEach((x, i) => {
-                    let f = parseFloat(x)
-                    let col = colNames[i]
-                    if (f < this.stats[col][0])
-                        this.stats[col][0] = f
-                    if (f > this.stats[col][1])
-                        this.stats[col][1] = f
-                })
 
-            }
-            ++lineNumber
-        }
+    private calculateSortedData() {
+        _.mapObject(this.data, (val, key) => {
+            this.sortedData[key] = val.slice().sort((a, b) => a - b)
+        })
     }
 
     private loadFolder(dirName:string) {
@@ -80,6 +59,20 @@ export class IMCData {
             this.width = tiffData.width
             this.height = tiffData.height
         })
+
+        let totPixels = this.width * this.height
+
+        this.data.X = new Uint16Array(new ArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * totPixels))
+        this.data.Y = new Uint16Array(new ArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * totPixels))
+
+        let k = 0
+        for(let i = 0; i < this.height; ++i)
+            for(let j = 0; j < this.width; ++j) {
+                this.data.X[k] = j
+                this.data.Y[k] = i
+                ++k
+            }
+
         console.log("###")
         console.log(this.data)
         return null
@@ -88,6 +81,7 @@ export class IMCData {
 
     private loadTIFF(fName:string) {}
 
+    /*
     private loadTxtFile(fName: string) {
         let lineNumber = 0
         let colNames: string[] = []
@@ -96,7 +90,7 @@ export class IMCData {
 
         let lines = fs.readFileSync(fName, 'utf-8')
             .split("\n")
-        this.calculateStats(fName, lines)
+        
 
         while(lineNumber < lines.length) {
             let line = lines[lineNumber]
@@ -128,21 +122,14 @@ export class IMCData {
 
             ++lineNumber
         }
-        
-        _.mapObject(this.data, (val, key) => {
-            this.sortedData[key] = val.slice().sort((a, b) => a - b)
-        })
+      
     }
-
+*/
     constructor(path:string, inputType:IMCDataInputType) {
-        this.stats = {X:[0, 0], Y:[0, 0]}
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
 
         switch(inputType) {
-            case("txt"):
-                this.loadTxtFile(path)
-                break
             case("TIFF"):
                 this.loadTIFF(path)
                 break
@@ -151,11 +138,6 @@ export class IMCData {
                 break
         }
 
-
+        this.calculateSortedData()
     }
-
-
-
-
-    
 }

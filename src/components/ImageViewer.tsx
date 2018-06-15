@@ -47,8 +47,8 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     return({value: s, label: s})
             })
 
-            let width = this.props.store.imageData.stats["X"][1] + 1
-            let height = this.props.store.imageData.stats["Y"][1] + 1
+            let width = this.props.store.imageData.width
+            let height = this.props.store.imageData.height
 
             viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}

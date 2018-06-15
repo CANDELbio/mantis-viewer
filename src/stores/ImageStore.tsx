@@ -111,9 +111,7 @@ export class ImageStore {
 
 
     @action updateImageData() {
-        if (this.selectedFile != null)
-            this.imageData = new IMCData(this.selectedFile, "txt")
-        else if (this.selectedDirectory != null) 
+        if (this.selectedDirectory != null) 
             this.imageData = new IMCData(this.selectedDirectory, "folder")
         
         console.log(this.imageData)

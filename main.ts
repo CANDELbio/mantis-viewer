@@ -24,14 +24,14 @@ let mainWindow: Electron.BrowserWindow | null
 
 let menuTemplate = [{
   label: "File",
-  submenu: [{
+  submenu: [/*{
     label: "Open",
     click: () => {
       dialog.showOpenDialog((fileNames:string[]) => {
         if(mainWindow != null)
           mainWindow.webContents.send("open-file", fileNames[0])
       })
-    }}, {
+    }}, */{
     label: "Open folder",
     click: () => {
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {

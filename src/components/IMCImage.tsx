@@ -43,11 +43,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.el = el
 
         console.log("Doing the expensive thing")
-        let maxX = imcData.stats["X"][1] 
-        let maxY = imcData.stats["Y"][1]
         let offScreen = document.createElement("canvas")
-        offScreen.width = maxX + 1
-        offScreen.height = maxY + 1
+        offScreen.width = imcData.width
+        offScreen.height = imcData.height
     
         let ctx = offScreen.getContext("2d")
         if(ctx != null) {
@@ -140,8 +138,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
         let imcData = this.props.imageData
         console.log(imcData)
-        let width = imcData.stats["X"][1] + 1
-        let height = imcData.stats["Y"][1] + 1
+        let width = imcData.width
+        let height = imcData.height
 
 
 
