@@ -38,14 +38,18 @@ Mobx.autorun(() => {
         plotWindow.webContents.send("plotData", data)
 })
 
+electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string) => {
+    console.log(dirName)
 
+    imageStore.selectDirectory(dirName)
+})
 
 
 electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => {
     console.log(fileName)
-    //let input = fs.readFileSync(fileName)
-    //let image = tiff.decode(input)
-    //console.log(image)
+    let input = fs.readFileSync(fileName)
+    let image = tiff.decode(input)
+    console.log(image)
     imageStore.selectFile(fileName)
 })
 

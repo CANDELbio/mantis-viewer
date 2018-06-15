@@ -31,8 +31,14 @@ let menuTemplate = [{
         if(mainWindow != null)
           mainWindow.webContents.send("open-file", fileNames[0])
       })
+    }}, {
+    label: "Open folder",
+    click: () => {
+      dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
+        if(mainWindow != null)
+          mainWindow.webContents.send("open-directory", dirName[0])
+      })
     }
-  
   }]
 }]
 

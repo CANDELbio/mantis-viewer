@@ -1,6 +1,7 @@
 
 //Assumes the input array to be sorted
-export function quantile(array:number[] | Float32Array, prob:number, isSorted: boolean) {
+export function quantile(array:number[] | Float32Array | Uint16Array, 
+    prob:number, isSorted: boolean) {
     let v = isSorted ? array : array.slice().sort((a, b) => a - b)
     let len = v.length
     let index = prob * (len-1);

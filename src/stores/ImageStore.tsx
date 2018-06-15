@@ -36,6 +36,7 @@ export class ImageStore {
     @observable.ref extraData: Uint8ClampedArray | null = null
 
     @observable selectedFile: string | null
+    @observable selectedDirectory: string | null
     @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [80, 100],
@@ -110,10 +111,12 @@ export class ImageStore {
 
 
     @action updateImageData() {
-        if (this.selectedFile != null) {
+        if (this.selectedFile != null)
             this.imageData = new IMCData(this.selectedFile, "txt")
-            console.log(this.imageData)
-        }
+        else if (this.selectedDirectory != null) 
+            this.imageData = new IMCData(this.selectedDirectory, "folder")
+        
+        console.log(this.imageData)
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -141,6 +144,11 @@ export class ImageStore {
 
     @action selectFile = (fName: string) => {
         this.selectedFile = fName
+        this.updateImageData()
+    }
+
+    @action selectDirectory = (dirName : string) => {
+        this.selectedDirectory = dirName
         this.updateImageData()
     }
 
