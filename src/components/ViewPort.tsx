@@ -17,7 +17,7 @@ type ViewPortSpecificProps  = {
 
 type ViewPortProps = IMCImage.IMCImageProps & SelectionLayer.SelectionLayerProps & ViewPortSpecificProps
 
-type s = keyof ViewPortProps
+
 
 @observer
 export class ViewPort extends React.Component<ViewPortProps, undefined> {
