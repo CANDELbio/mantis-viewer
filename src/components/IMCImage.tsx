@@ -1,6 +1,5 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as d3Scale from "d3-scale"
 import * as d3Array from "d3-array"
 import * as fs from "fs"
 import * as PIXI from "pixi.js"
@@ -68,44 +67,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     
-    textureFromData(v: Float32Array | Uint16Array, width: number, height: number) {
-        let offScreen = document.createElement("canvas")
-        offScreen.width = width
-        offScreen.height = height
-    
-        let ctx = offScreen.getContext("2d")
-        if(ctx) {
-            let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
-            let canvasData = imageData.data
-            
-            let colorScale = d3Scale.scaleLinear()
-                    .domain([0, 10])
-                    .range([0, 255])
-
-            let dataIdx = new Array(v.length)
-
-            for(let i = 0; i < v.length ; ++i) {
-                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
-                let idx = i << 2
-                dataIdx[i] = idx
-                canvasData[idx + 3] = 255
-
-            }
-
-            for(let i = 0; i < v.length; ++i) {
-                let x = colorScale(v[i])
-                canvasData[dataIdx[i]] = x
-                canvasData[dataIdx[i] + 1] = x
-                canvasData[dataIdx[i] + 2] = x
-            }
-            ctx.putImageData(imageData, 0, 0)
-
-        }
-        return(PIXI.Texture.fromCanvas(offScreen))
-
-    }
-
-
+   
     renderImage(el: HTMLDivElement, 
         imcData:IMCData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -121,30 +83,30 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         console.log("Doing the expensive thing")
-        let rTexture, gTexture, bTexture
+        let rSprite, gSprite, bSprite
         
-        if(channelMarker.rChannel != null)
-            rTexture = this.textureFromData(imcData.data[channelMarker.rChannel], imcData.width, imcData.height)
 
-        if(channelMarker.gChannel != null)
-            gTexture = this.textureFromData(imcData.data[channelMarker.gChannel], imcData.width, imcData.height)
-        
-        if(channelMarker.bChannel != null)
-            bTexture = this.textureFromData(imcData.data[channelMarker.bChannel], imcData.width, imcData.height)
     
-        let rSprite = new PIXI.Sprite(rTexture)
-        rSprite.filters = [this.redFilter]
-
-        let gSprite = new PIXI.Sprite(gTexture)
-        gSprite.filters = [this.greenFilter]
-
-        let bSprite = new PIXI.Sprite(bTexture)
-        bSprite.filters = [this.blueFilter]
-
         this.stage.removeChildren()
-        this.stage.addChild(rSprite)
-        this.stage.addChild(gSprite)
-        this.stage.addChild(bSprite)
+        
+        if(channelMarker.rChannel != null) {
+            rSprite = imcData.sprites[channelMarker.rChannel]
+            rSprite.filters = [this.redFilter]
+            this.stage.addChild(rSprite)
+        }
+
+        if(channelMarker.gChannel != null) {
+            gSprite = imcData.sprites[channelMarker.gChannel]
+            gSprite.filters = [this.greenFilter]
+            this.stage.addChild(gSprite)
+        }
+
+        if(channelMarker.bChannel != null) {
+            bSprite = imcData.sprites[channelMarker.bChannel]
+            bSprite.filters = [this.blueFilter]
+            this.stage.addChild(bSprite)
+        }
+   
         this.renderer.render(this.stage)
 
 

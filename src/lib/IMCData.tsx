@@ -1,7 +1,8 @@
 import * as _ from "underscore"
 import * as fs from "fs"
 import * as path from "path"
-import {promisify} from 'util';
+import * as PIXI from "pixi.js"
+import * as d3Scale from "d3-scale"
 
 const tiff = require("tiff")
 
@@ -24,13 +25,50 @@ export class IMCData {
 
     data:IMCDataObject
     sortedData:IMCDataObject
-
+    sprites: {[key:string] : PIXI.Sprite}
 
     width: number
     height: number
 
     get channelNames() : string[] {
         return(_.keys(this.data))
+    }
+
+    static textureFromData(v: Float32Array | Uint16Array, width: number, height: number) {
+        let offScreen = document.createElement("canvas")
+        offScreen.width = width
+        offScreen.height = height
+    
+        let ctx = offScreen.getContext("2d")
+        if(ctx) {
+            let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
+            let canvasData = imageData.data
+            
+            let colorScale = d3Scale.scaleLinear()
+                    .domain([0, 1000])
+                    .range([0, 255])
+
+            let dataIdx = new Array(v.length)
+
+            for(let i = 0; i < v.length ; ++i) {
+                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
+                let idx = i << 2
+                dataIdx[i] = idx
+                canvasData[idx + 3] = 255
+
+            }
+
+            for(let i = 0; i < v.length; ++i) {
+                let x = colorScale(v[i])
+                canvasData[dataIdx[i]] = x
+                canvasData[dataIdx[i] + 1] = x
+                canvasData[dataIdx[i] + 2] = x
+            }
+            ctx.putImageData(imageData, 0, 0)
+
+        }
+        return(PIXI.Texture.fromCanvas(offScreen))
+
     }
 
 
@@ -55,9 +93,10 @@ export class IMCData {
             let data = fs.readFileSync(path.join(dirName, f))
             let chName = path.basename(f, ".tiff")
             let tiffData = tiff.decode(data)[0]
-            this.data[chName] = tiffData.data
             this.width = tiffData.width
             this.height = tiffData.height
+            this.data[chName] = tiffData.data
+            this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height))
         })
 
         let totPixels = this.width * this.height
@@ -128,6 +167,7 @@ export class IMCData {
     constructor(path:string, inputType:IMCDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
+        this.sprites = {}
 
         switch(inputType) {
             case("TIFF"):
