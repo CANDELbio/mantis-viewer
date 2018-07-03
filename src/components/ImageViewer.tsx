@@ -64,7 +64,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
                 <ChannelControls
                     key={s}
-                    sliderMin = {80}
+                    sliderMin = {0}
                     sliderMax = {100}
                     sliderValue = {this.props.store.channelSliderValue[s]}
                     onSliderChange = {this.props.store.setChannelSliderValue(s)}

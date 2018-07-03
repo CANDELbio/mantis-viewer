@@ -10,6 +10,7 @@ import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
+import * as FS from "fs"
 
 
 export interface IMCImageProps {
@@ -84,26 +85,46 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         console.log("Doing the expensive thing")
         let rSprite, gSprite, bSprite
-        
 
-    
+        let brightnessFilterCode = `
+        precision mediump float;
+        
+        varying vec2 vTextureCoord;//The coordinates of the current pixel
+        uniform sampler2D uSampler;//The image data
+        uniform float m;
+        
+        void main(void) {
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor.r = max(gl_FragColor.r * m, 1.0);
+            gl_FragColor.g = max(gl_FragColor.g * m, 1.0);
+            gl_FragColor.b = max(gl_FragColor.b * m, 1.0);
+        }`
+
         this.stage.removeChildren()
         
         if(channelMarker.rChannel != null) {
+            // One possible way to add uniforms to a custom Filter
+            let rBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode, undefined)
+            rBrightnessFilter.uniforms.m = 100/channelDomain.rChannel["1"]
             rSprite = imcData.sprites[channelMarker.rChannel]
-            rSprite.filters = [this.redFilter]
+            rSprite.filters = [rBrightnessFilter, this.redFilter]
             this.stage.addChild(rSprite)
         }
 
         if(channelMarker.gChannel != null) {
+            // Aother possible way to add uniforms to a custom Filter
+            let gBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode, {m: 100/channelDomain.gChannel["1"]})
             gSprite = imcData.sprites[channelMarker.gChannel]
-            gSprite.filters = [this.greenFilter]
+            gSprite.filters = [gBrightnessFilter, this.greenFilter]
             this.stage.addChild(gSprite)
         }
 
         if(channelMarker.bChannel != null) {
+            // This way compiles, but raises an error when you run it.
+            let bBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode,undefined);
+            bBrightnessFilter.uniforms = {m: 100/channelDomain.bChannel["1"]}
             bSprite = imcData.sprites[channelMarker.bChannel]
-            bSprite.filters = [this.blueFilter]
+            bSprite.filters = [bBrightnessFilter, this.blueFilter]
             this.stage.addChild(bSprite)
         }
    
@@ -135,6 +156,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             gChannel: this.props.channelDomain.gChannel,
             bChannel: this.props.channelDomain.bChannel
         }
+
+        console.log(channelDomain);
+        
         let imcData = this.props.imageData
         console.log(imcData)
         let scaleFactor = 1200 / imcData.width

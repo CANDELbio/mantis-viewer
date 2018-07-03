@@ -45,7 +45,7 @@ export class IMCData {
             let canvasData = imageData.data
             
             let colorScale = d3Scale.scaleLinear()
-                    .domain([0, 1000])
+                    .domain([0, 1000]) // Hardcoded max. 
                     .range([0, 255])
 
             let dataIdx = new Array(v.length)
