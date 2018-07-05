@@ -86,47 +86,61 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         console.log("Doing the expensive thing")
         let rSprite, gSprite, bSprite
 
-        let value = 1.0.toFixed(2)
+        // Generating brightness filter code for each channel.
+        // Somewhat hacky workaround because uniforms weren't working with Typescript.
+        let brightnessFilterCode = new Map<string, string> ()
+        let channels =  ['r', 'g', 'b']
+        
+        for (var i in channels){
+            let key = channels[i]
+            let channelName = `${key}Channel` as ChannelName
 
-        let brightnessFilterCode = `
-        varying vec2 vTextureCoord;
-        varying vec4 vColor;
-        
-        uniform sampler2D uSampler;
-        uniform vec4 uTextureClamp;
-        uniform vec4 uColor;
-        
-        void main(void)
-        {
-            gl_FragColor = texture2D(uSampler, vTextureCoord);
-            gl_FragColor.r = min(gl_FragColor.r * ${(100.0/channelDomain.rChannel["1"]).toFixed(2)}, 1.0);
-            gl_FragColor.g = min(gl_FragColor.g * ${(100.0/channelDomain.gChannel["1"]).toFixed(2)}, 1.0);
-            gl_FragColor.b = min(gl_FragColor.b * ${(100.0/channelDomain.bChannel["1"]).toFixed(2)}, 1.0);
-        }`
+            console.log(`Generating bfc for ${key} with channel ${channelName}`)
+
+            let curChannelDomain = channelDomain[channelName]
+
+            let b = ((curChannelDomain["0"] === 0 ) ? 0 : curChannelDomain["0"]/100).toFixed(4)
+            let m = (100.0/(curChannelDomain["1"] - curChannelDomain["0"])).toFixed(4)
+
+            let filterCode = `
+            varying vec2 vTextureCoord;
+            varying vec4 vColor;
+            
+            uniform sampler2D uSampler;
+            uniform vec4 uTextureClamp;
+            uniform vec4 uColor;
+            
+            void main(void)
+            {
+                gl_FragColor = texture2D(uSampler, vTextureCoord);
+                gl_FragColor.${key} = min((gl_FragColor.${key} * ${m}) + ${b}, 1.0);
+            }`
+
+            console.log(filterCode)
+
+            brightnessFilterCode.set(key, filterCode)
+        }
 
         console.log(brightnessFilterCode)
 
         this.stage.removeChildren()
         
         if(channelMarker.rChannel != null) {
-            // One possible way to add uniforms to a custom Filter
-            let rBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode,undefined);
+            let rBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode.get('r'),undefined);
             rSprite = imcData.sprites[channelMarker.rChannel]
             rSprite.filters = [rBrightnessFilter, this.redFilter]
             this.stage.addChild(rSprite)
         }
 
         if(channelMarker.gChannel != null) {
-            // Aother possible way to add uniforms to a custom Filter
-            let gBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode,undefined);
+            let gBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode.get('g'),undefined);
             gSprite = imcData.sprites[channelMarker.gChannel]
             gSprite.filters = [gBrightnessFilter, this.greenFilter]
             this.stage.addChild(gSprite)
         }
 
         if(channelMarker.bChannel != null) {
-            // This way compiles, but raises an error when you run it.
-            let bBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode,undefined);
+            let bBrightnessFilter = new PIXI.Filter(undefined,brightnessFilterCode.get('b'),undefined);
             bSprite = imcData.sprites[channelMarker.bChannel]
             bSprite.filters = [bBrightnessFilter, this.blueFilter]
             this.stage.addChild(bSprite)
