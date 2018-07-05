@@ -24,7 +24,6 @@ export type IMCDataInputType = "TIFF" | "folder"
 export class IMCData {
 
     data:IMCDataObject
-    sortedData:IMCDataObject
     sprites: {[key:string] : PIXI.Sprite}
 
     width: number
@@ -71,13 +70,6 @@ export class IMCData {
 
     }
 
-
-
-    private calculateSortedData() {
-        _.mapObject(this.data, (val, key) => {
-            this.sortedData[key] = val.slice().sort((a, b) => a - b)
-        })
-    }
 
     private loadFolder(dirName:string) {
         let files = fs.readdirSync(dirName)
@@ -166,7 +158,6 @@ export class IMCData {
 */
     constructor(path:string, inputType:IMCDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
-        this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.sprites = {}
 
         switch(inputType) {
@@ -177,7 +168,5 @@ export class IMCData {
                 this.loadFolder(path)
                 break
         }
-
-        this.calculateSortedData()
     }
 }

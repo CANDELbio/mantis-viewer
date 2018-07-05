@@ -95,8 +95,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             let key = channels[i]
             let channelName = `${key}Channel` as ChannelName
 
-            console.log(`Generating bfc for ${key} with channel ${channelName}`)
-
             let curChannelDomain = channelDomain[channelName]
 
             let b = ((curChannelDomain["0"] === 0 ) ? 0 : curChannelDomain["0"]/100).toFixed(4)
@@ -115,8 +113,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 gl_FragColor = texture2D(uSampler, vTextureCoord);
                 gl_FragColor.${key} = min((gl_FragColor.${key} * ${m}) + ${b}, 1.0);
             }`
-
-            console.log(filterCode)
 
             brightnessFilterCode.set(key, filterCode)
         }
