@@ -12,6 +12,14 @@ interface IMCDataStats {
     [key: string] : [number, number]
 }
 
+interface MinMax {
+    min: number
+    max: number
+}
+
+export interface IMCMinMax {
+    [key: string] : MinMax
+}
 
 export interface IMCDataObject   {
     X: Float32Array | Uint16Array
@@ -23,7 +31,8 @@ export type IMCDataInputType = "TIFF" | "folder"
 
 export class IMCData {
 
-    data:IMCDataObject
+    data: IMCDataObject
+    minmax: IMCMinMax
     sprites: {[key:string] : PIXI.Sprite}
 
     width: number
@@ -33,7 +42,18 @@ export class IMCData {
         return(_.keys(this.data))
     }
 
-    static textureFromData(v: Float32Array | Uint16Array, width: number, height: number) {
+    static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {
+        let min = v[0]
+        let max = v[0]
+        for (var i in v){
+            let curValue = v[i]
+            if (curValue < min) min = curValue
+            if (curValue > max) max = curValue 
+        }
+        return({min: min, max: max})
+    }
+
+    static textureFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
         let offScreen = document.createElement("canvas")
         offScreen.width = width
         offScreen.height = height
@@ -44,7 +64,7 @@ export class IMCData {
             let canvasData = imageData.data
             
             let colorScale = d3Scale.scaleLinear()
-                    .domain([0, 1000]) // Hardcoded max. 
+                    .domain([minmax.min, minmax.max]) // Hardcoded max. 
                     .range([0, 255])
 
             let dataIdx = new Array(v.length)
@@ -88,7 +108,8 @@ export class IMCData {
             this.width = tiffData.width
             this.height = tiffData.height
             this.data[chName] = tiffData.data
-            this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height))
+            this.minmax[chName] = IMCData.calculateMinMax(tiffData.data)
+            this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
         })
 
         let totPixels = this.width * this.height
@@ -158,6 +179,7 @@ export class IMCData {
 */
     constructor(path:string, inputType:IMCDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
+        this.minmax = {}
         this.sprites = {}
 
         switch(inputType) {
