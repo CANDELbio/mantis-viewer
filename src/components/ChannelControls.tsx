@@ -6,7 +6,6 @@ const Select = require("react-select")
 
 export interface ChannelControlsProps {
 
-    
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
@@ -16,7 +15,6 @@ export interface ChannelControlsProps {
     selectOptions: {value: string, label:string}[]
     selectValue: string | null
     onSelectChange: ((x: {value:string, label:string}) => void)
-
 
 }
 
@@ -40,7 +38,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
                     max = {this.props.sliderMax}
                     value = {this.props.sliderValue}
                     labelStepSize = {10}
-                    stepSize = {0.01}
+                    stepSize = {this.props.sliderMax/1000} // Might want to change the number/size of steps. Seemed like a good starting point.
                     onRelease = {this.props.onSliderRelease}
                     onChange = {this.props.onSliderChange}
                 />
@@ -48,6 +46,4 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
         )
 
     }
-
-
 }

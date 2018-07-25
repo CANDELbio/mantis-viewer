@@ -45,8 +45,8 @@ export class IMCData {
     static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {
         let min = v[0]
         let max = v[0]
-        for (var i in v){
-            let curValue = v[i]
+        v.length
+        for (let curValue of v){
             if (curValue < min) min = curValue
             if (curValue > max) max = curValue 
         }
@@ -64,7 +64,7 @@ export class IMCData {
             let canvasData = imageData.data
             
             let colorScale = d3Scale.scaleLinear()
-                    .domain([minmax.min, minmax.max]) // Hardcoded max. 
+                    .domain([minmax.min, minmax.max])
                     .range([0, 255])
 
             let dataIdx = new Array(v.length)
@@ -89,7 +89,6 @@ export class IMCData {
         return(PIXI.Texture.fromCanvas(offScreen))
 
     }
-
 
     private loadFolder(dirName:string) {
         let files = fs.readdirSync(dirName)
