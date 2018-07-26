@@ -95,7 +95,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     
             // Using slider values to generate m and b for a linear transformation (y = mx + b).
             let b = ((curChannelDomain["0"] === 0 ) ? 0 : curChannelDomain["0"]/channelMax).toFixed(4)
-            let m = (channelMax/(curChannelDomain["1"] - curChannelDomain["0"])).toFixed(4)
+            let m = ((curChannelDomain["1"] === 0) ? 0 : (channelMax/(curChannelDomain["1"] - curChannelDomain["0"]))).toFixed(4)
 
             let filterCode = `
             varying vec2 vTextureCoord;

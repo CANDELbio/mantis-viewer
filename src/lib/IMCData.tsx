@@ -45,7 +45,6 @@ export class IMCData {
     static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {
         let min = v[0]
         let max = v[0]
-        v.length
         for (let curValue of v){
             if (curValue < min) min = curValue
             if (curValue > max) max = curValue 
