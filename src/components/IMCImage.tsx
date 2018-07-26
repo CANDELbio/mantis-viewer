@@ -12,6 +12,7 @@ import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 
 export interface IMCImageProps {
+
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
@@ -72,48 +73,46 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     
-    // Generating brightness filter code for each channel.
+    // Generating brightness filter code for the passed in channel.
     // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
-    generateBrightnessFilterCode = ( imcData:IMCData, 
+    generateBrightnessFilterCode = ( 
+        channelName:ChannelName,
+        imcData:IMCData, 
         channelMarker: Record<ChannelName, string | null>,
         channelDomain:  Record<ChannelName, [number, number]>) => {
-        let brightnessFilterCode = new Map<string, string> ()
-        let channels =  ['r', 'g', 'b']
 
-        for (var i in channels){
-            let key = channels[i]
-            let channelName = `${key}Channel` as ChannelName
+        let curChannelDomain = channelDomain[channelName]
 
-            let curChannelDomain = channelDomain[channelName]
-
-            // Get the max value for the given channel.
-            let marker = channelMarker[channelName]
-            let channelMax = 100.0
-            if (marker != null){
-                channelMax = imcData.minmax[marker].max
-            }
-    
-            // Using slider values to generate m and b for a linear transformation (y = mx + b).
-            let b = ((curChannelDomain["0"] === 0 ) ? 0 : curChannelDomain["0"]/channelMax).toFixed(4)
-            let m = ((curChannelDomain["1"] === 0) ? 0 : (channelMax/(curChannelDomain["1"] - curChannelDomain["0"]))).toFixed(4)
-
-            let filterCode = `
-            varying vec2 vTextureCoord;
-            varying vec4 vColor;
-            
-            uniform sampler2D uSampler;
-            uniform vec4 uTextureClamp;
-            uniform vec4 uColor;
-            
-            void main(void)
-            {
-                gl_FragColor = texture2D(uSampler, vTextureCoord);
-                gl_FragColor.${key} = min((gl_FragColor.${key} * ${m}) + ${b}, 1.0);
-            }`
-
-            brightnessFilterCode.set(channelName, filterCode)
+        // Get the max value for the given channel.
+        let marker = channelMarker[channelName]
+        let channelMax = 100.0
+        if (marker != null){
+            channelMax = imcData.minmax[marker].max
         }
-        return brightnessFilterCode
+
+        // Get the PIXI channel name (i.e. r, g, b) from the first character of the channelName.
+        let channel = channelName.charAt(0)
+
+        // Using slider values to generate m and b for a linear transformation (y = mx + b).
+        let b = ((curChannelDomain["0"] === 0 ) ? 0 : curChannelDomain["0"]/channelMax).toFixed(4)
+        let m = ((curChannelDomain["1"] === 0) ? 0 : (channelMax/(curChannelDomain["1"] - curChannelDomain["0"]))).toFixed(4)
+
+        let filterCode = `
+        varying vec2 vTextureCoord;
+        varying vec4 vColor;
+        
+        uniform sampler2D uSampler;
+        uniform vec4 uTextureClamp;
+        uniform vec4 uColor;
+        
+        void main(void)
+        {
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor.${channel} = min((gl_FragColor.${channel} * ${m}) + ${b}, 1.0);
+        }`
+
+        return filterCode
+
     }
    
     renderImage(el: HTMLDivElement, 
@@ -130,16 +129,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             el.appendChild(this.renderer.view)
         }
 
-        let brightnessFilterCode = this.generateBrightnessFilterCode(imcData, channelMarker, channelDomain)
-
         this.stage.removeChildren()
 
         // For each channel setting the brightness and color filters
         for (let s of ["rChannel", "gChannel", "bChannel"]) {
             let curChannel = s as ChannelName
+            let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
             let curMarker = channelMarker[curChannel] 
             if(curMarker != null) {
-                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode.get(curChannel),undefined)
+                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
                 this.stage.addChild(sprite)
