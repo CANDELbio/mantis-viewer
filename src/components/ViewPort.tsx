@@ -26,11 +26,15 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
         this.props.onBrushEnd(e)
     }
 
+    handleWheel:React.WheelEventHandler<HTMLDivElement> = (e) => {
+        this.props.handleWheel(e)
+    }
+
     render() {
 
         let labelLayers:JSX.Element[] = []
 
-   
+        
 
         this.props.labelsLayers
             //.filter((d) => {d.visible})
@@ -51,11 +55,12 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
             <div className = "viewport">
                 <IMCImage.IMCImage {...this.props}/>
                 {labelLayers}
-                <SelectionLayer.SelectionLayer
-                    canvasWidth = {this.props.canvasWidth}
-                    canvasHeight = {this.props.canvasHeight}
-                    onBrushEnd = {this.onBrushEnd}
-                />
+                {/* <SelectionLayer.SelectionLayer
+                canvasWidth = {this.props.canvasWidth}
+                canvasHeight = {this.props.canvasHeight}
+                onBrushEnd = {this.onBrushEnd}
+                handleWheel = {this.handleWheel}
+                /> */}
             </div>
         )
     }

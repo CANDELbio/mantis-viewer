@@ -55,6 +55,8 @@ export class ImageStore {
         y: [number, number]
     } | null = null
 
+    @observable imageScale = 1.0
+
     labelsLayers = observable.shallowArray<LabelLayer>()
 
     selectedData = computed(() => {
@@ -97,6 +99,22 @@ export class ImageStore {
             x: [extent[0][0], extent[1][0]],
             y: [extent[0][1], extent[1][1]]
         }
+    }
+
+    @action setZoom(e:React.WheelEvent<HTMLDivElement>) {
+        console.log("Scaling...")
+        e.stopPropagation()
+        e.preventDefault()
+
+        console.log(e.clientX - e.currentTarget.getBoundingClientRect().left)
+        console.log(e.clientY - e.currentTarget.getBoundingClientRect().top) 
+
+        let isZoomIn = e.deltaY < 0
+        let direction = isZoomIn ? 1 : -1
+        let factor = (1 + direction * 0.05)
+        this.imageScale *= factor
+
+        if (this.imageScale < 1.0) this.imageScale = 1.0
     }
 
     @action updateImageData() {

@@ -19,6 +19,8 @@ export interface IMCImageProps {
     canvasWidth: number
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void)
+    imageScale: number
+    handleWheel: React.WheelEventHandler<HTMLDivElement>
 
 }
 
@@ -29,6 +31,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     renderer: PIXI.WebGLRenderer
     stage: PIXI.Container
+
+    imageScale: number
 
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
@@ -68,7 +72,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             gChannel: greenFilter,
             bChannel: blueFilter
         }
+    }
 
+    handleWheel:React.WheelEventHandler<HTMLDivElement> = (e) => {
+        this.props.handleWheel(e)
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -114,16 +121,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return filterCode
 
     }
-   
+
     renderImage(el: HTMLDivElement, 
-        imcData:IMCData, 
+        imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
-        channelDomain:  Record<ChannelName, [number, number]>) {
+        channelDomain: Record<ChannelName, [number, number]>,
+        imageScale: number) {
 
         if(el == null)
             return
         this.el = el
-        
+
         if(!this.el.hasChildNodes()) {
             this.renderer = new PIXI.WebGLRenderer(imcData.width, imcData.height)
             el.appendChild(this.renderer.view)
@@ -140,6 +148,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                sprite.scale.x = imageScale
+                sprite.scale.y = imageScale
                 this.stage.addChild(sprite)
             }
         }
@@ -176,8 +186,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
 
         return(
-            <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
+            <div className="imcimage" onWheel={this.handleWheel}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, this.props.imageScale)}}
             />
         )
     }
