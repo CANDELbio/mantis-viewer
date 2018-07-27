@@ -19,8 +19,6 @@ export interface IMCImageProps {
     canvasWidth: number
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void)
-    imageScale: number
-    handleWheel: React.WheelEventHandler<HTMLDivElement>
 
 }
 
@@ -30,15 +28,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     el:HTMLDivElement | null = null
 
     renderer: PIXI.WebGLRenderer
+    rootContainer : PIXI.Container
     stage: PIXI.Container
-
-    imageScale: number
 
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
     constructor(props:IMCImageProps) {
         super(props)
+        this.rootContainer = new PIXI.Container()
         this.stage = new PIXI.Container()
+        this.stage.interactive = true
+        this.rootContainer.addChild(this.stage)
 
         let redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [
@@ -74,11 +74,44 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    handleWheel:React.WheelEventHandler<HTMLDivElement> = (e) => {
-        this.props.handleWheel(e)
-    }
-
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
+
+    zoom = (x:number, y:number, isZoomIn:boolean) => {
+        console.log("Zooming...")
+        let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+        
+        let direction = isZoomIn ? 1 : -1
+        let factor = (1 + direction * 0.05)
+        //this.edgeContainer.visible = false
+        this.stage.scale.x *= factor
+        this.stage.scale.y *= factor
+
+        //Cant zoom out out past 1
+        if (this.stage.scale.x < 1.0 && this.stage.scale.y < 1.0) {
+            this.stage.scale.x = 1.0
+            this.stage.scale.y = 1.0
+            // Hacky workaround so that image is centered when zoomed out.
+            this.stage.position.x = 0
+            this.stage.position.y = 0
+        } else {
+            this.stage.updateTransform()
+            
+            setTimeout(() => { this.stage.visible = true; this.renderer.render(this.rootContainer) }, 200)
+            
+            this.stage.updateTransform()
+            let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            console.log(beforeTransform)
+            console.log(afterTransform)
+
+            console.log(this.stage.position.x)
+            console.log(this.stage.position.y)
+            
+            this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
+            this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
+        }
+        this.stage.updateTransform()
+        this.renderer.render(this.rootContainer)
+    }
     
     // Generating brightness filter code for the passed in channel.
     // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
@@ -125,8 +158,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
-        channelDomain: Record<ChannelName, [number, number]>,
-        imageScale: number) {
+        channelDomain: Record<ChannelName, [number, number]>) {
 
         if(el == null)
             return
@@ -134,8 +166,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         if(!this.el.hasChildNodes()) {
             this.renderer = new PIXI.WebGLRenderer(imcData.width, imcData.height)
+            this.stage.hitArea = new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height)
             el.appendChild(this.renderer.view)
         }
+
+        this.el.addEventListener("wheel", e => {
+            e.stopPropagation()
+            e.preventDefault()
+            this.zoom(e.clientX, e.clientY, e.deltaY < 0)
+        })
 
         this.stage.removeChildren()
 
@@ -148,18 +187,13 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-                sprite.scale.x = imageScale
-                sprite.scale.y = imageScale
                 this.stage.addChild(sprite)
             }
         }
    
-        this.renderer.render(this.stage)
-            //if(onScreenCtx != null) {
-            //    onScreenCtx.drawImage(offScreen, 0, 0, imcData.width, imcData.height, 0, 0, el.width, el.height)
-                //onScreenCtx.drawImage(offScreen, 0, 0, el.width, el.height)
-            //}
-        }
+        this.renderer.render(this.rootContainer)
+        
+    }
 
     render() {
         //Dereferencing these here is necessary for Mobx to trigger, because
@@ -183,11 +217,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let width = imcData.width * scaleFactor
         let height = imcData.height * scaleFactor
 
-
-
         return(
-            <div className="imcimage" onWheel={this.handleWheel}
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, this.props.imageScale)}}
+            <div className="imcimage"
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
             />
         )
     }

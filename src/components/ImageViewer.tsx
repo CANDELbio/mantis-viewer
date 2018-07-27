@@ -25,10 +25,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         this.props.store.setCurrentSelection(e)
     }
 
-    handleWheel:React.WheelEventHandler<HTMLDivElement> = (e) => {
-        this.props.store.setZoom(e)
-    }
-
     updatePlotData = () => this.props.store.updatePlotData()
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
@@ -69,11 +65,9 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 imageData = {this.props.store.imageData}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
-                imageScale = {this.props.store.imageScale}
                 canvasWidth = {width}
                 canvasHeight = {height}
                 onBrushEnd = {this.onBrushEnd}
-                handleWheel = {this.handleWheel}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
                 labelsLayers = {this.props.store.labelsLayers}
             />

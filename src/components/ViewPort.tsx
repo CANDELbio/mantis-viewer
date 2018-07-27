@@ -26,10 +26,6 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
         this.props.onBrushEnd(e)
     }
 
-    handleWheel:React.WheelEventHandler<HTMLDivElement> = (e) => {
-        this.props.handleWheel(e)
-    }
-
     render() {
 
         let labelLayers:JSX.Element[] = []
