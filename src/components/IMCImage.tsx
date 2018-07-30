@@ -100,12 +100,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             
             this.stage.updateTransform()
             let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-            console.log(beforeTransform)
-            console.log(afterTransform)
 
-            console.log(this.stage.position.x)
-            console.log(this.stage.position.y)
-            
             this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
             this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
         }
