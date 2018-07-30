@@ -11,8 +11,8 @@ import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 
-
 export interface IMCImageProps {
+
     imageData: IMCData,
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
@@ -29,44 +29,91 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     renderer: PIXI.WebGLRenderer
     stage: PIXI.Container
-    redFilter: PIXI.filters.ColorMatrixFilter
-    greenFilter: PIXI.filters.ColorMatrixFilter
-    blueFilter: PIXI.filters.ColorMatrixFilter
+
+    channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
     constructor(props:IMCImageProps) {
         super(props)
         this.stage = new PIXI.Container()
 
-        this.redFilter = new PIXI.filters.ColorMatrixFilter()
-        this.redFilter.matrix = [
+        let redFilter = new PIXI.filters.ColorMatrixFilter()
+        redFilter.matrix = [
             1, 0, 0, 0, 0,
             0, 0, 0, 0, 0,
             0, 0, 0, 0, 0,
             0, 0, 0, 1, 0
         ]
-        this.redFilter.blendMode = PIXI.BLEND_MODES.ADD
+        redFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        this.greenFilter = new PIXI.filters.ColorMatrixFilter()
-        this.greenFilter.matrix = [
+        let greenFilter = new PIXI.filters.ColorMatrixFilter()
+        greenFilter.matrix = [
             0, 0, 0, 0, 0,
             0, 1, 0, 0, 0,
             0, 0, 0, 0, 0,
             0, 0, 0, 1, 0
         ]
-        this.greenFilter.blendMode = PIXI.BLEND_MODES.ADD
+        greenFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        this.blueFilter = new PIXI.filters.ColorMatrixFilter()
-        this.blueFilter.matrix = [
+        let blueFilter = new PIXI.filters.ColorMatrixFilter()
+        blueFilter.matrix = [
             0, 0, 0, 0, 0,
             0, 0, 0, 0, 0,
             0, 0, 1, 0, 0,
             0, 0, 0, 1, 0
         ]
-        this.blueFilter.blendMode = PIXI.BLEND_MODES.ADD
+        blueFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+       this.channelFilters = {
+            rChannel: redFilter,
+            gChannel: greenFilter,
+            bChannel: blueFilter
+        }
+
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     
+    // Generating brightness filter code for the passed in channel.
+    // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
+    generateBrightnessFilterCode = ( 
+        channelName:ChannelName,
+        imcData:IMCData, 
+        channelMarker: Record<ChannelName, string | null>,
+        channelDomain:  Record<ChannelName, [number, number]>) => {
+
+        let curChannelDomain = channelDomain[channelName]
+
+        // Get the max value for the given channel.
+        let marker = channelMarker[channelName]
+        let channelMax = 100.0
+        if (marker != null){
+            channelMax = imcData.minmax[marker].max
+        }
+
+        // Get the PIXI channel name (i.e. r, g, b) from the first character of the channelName.
+        let channel = channelName.charAt(0)
+
+        // Using slider values to generate m and b for a linear transformation (y = mx + b).
+        let b = ((curChannelDomain[0] === 0 ) ? 0 : curChannelDomain[0]/channelMax).toFixed(4)
+        let m = ((curChannelDomain[1] === 0) ? 0 : (channelMax/(curChannelDomain[1] - curChannelDomain[0]))).toFixed(4)
+
+        let filterCode = `
+        varying vec2 vTextureCoord;
+        varying vec4 vColor;
+        
+        uniform sampler2D uSampler;
+        uniform vec4 uTextureClamp;
+        uniform vec4 uColor;
+        
+        void main(void)
+        {
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor.${channel} = min((gl_FragColor.${channel} * ${m}) + ${b}, 1.0);
+        }`
+
+        return filterCode
+
+    }
    
     renderImage(el: HTMLDivElement, 
         imcData:IMCData, 
@@ -82,43 +129,27 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             el.appendChild(this.renderer.view)
         }
 
-        console.log("Doing the expensive thing")
-        let rSprite, gSprite, bSprite
-        
-
-    
         this.stage.removeChildren()
-        
-        if(channelMarker.rChannel != null) {
-            rSprite = imcData.sprites[channelMarker.rChannel]
-            rSprite.filters = [this.redFilter]
-            this.stage.addChild(rSprite)
-        }
 
-        if(channelMarker.gChannel != null) {
-            gSprite = imcData.sprites[channelMarker.gChannel]
-            gSprite.filters = [this.greenFilter]
-            this.stage.addChild(gSprite)
-        }
-
-        if(channelMarker.bChannel != null) {
-            bSprite = imcData.sprites[channelMarker.bChannel]
-            bSprite.filters = [this.blueFilter]
-            this.stage.addChild(bSprite)
+        // For each channel setting the brightness and color filters
+        for (let s of ["rChannel", "gChannel", "bChannel"]) {
+            let curChannel = s as ChannelName
+            let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+            let curMarker = channelMarker[curChannel] 
+            if(curMarker != null) {
+                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
+                let sprite = imcData.sprites[curMarker]
+                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                this.stage.addChild(sprite)
+            }
         }
    
         this.renderer.render(this.stage)
-
-
-
-    
             //if(onScreenCtx != null) {
             //    onScreenCtx.drawImage(offScreen, 0, 0, imcData.width, imcData.height, 0, 0, el.width, el.height)
                 //onScreenCtx.drawImage(offScreen, 0, 0, el.width, el.height)
             //}
         }
-
-
 
     render() {
         //Dereferencing these here is necessary for Mobx to trigger, because
@@ -135,8 +166,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             gChannel: this.props.channelDomain.gChannel,
             bChannel: this.props.channelDomain.bChannel
         }
+        
         let imcData = this.props.imageData
-        console.log(imcData)
         let scaleFactor = 1200 / imcData.width
 
         let width = imcData.width * scaleFactor
