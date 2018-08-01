@@ -76,28 +76,20 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
 
-    zoom = (x:number, y:number, isZoomIn:boolean) => {
-        console.log("Zooming...")
+    zoom = (isZoomIn:boolean) => {
         let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
         
         let direction = isZoomIn ? 1 : -1
         let factor = (1 + direction * 0.05)
-        //this.edgeContainer.visible = false
         this.stage.scale.x *= factor
         this.stage.scale.y *= factor
 
-        //Cant zoom out out past 1
         if (this.stage.scale.x < 1.0 && this.stage.scale.y < 1.0) {
+            //Cant zoom out out past 1
             this.stage.scale.x = 1.0
             this.stage.scale.y = 1.0
-            // Hacky workaround so that image is centered when zoomed out.
-            this.stage.position.x = 0
-            this.stage.position.y = 0
         } else {
-            this.stage.updateTransform()
-            
-            setTimeout(() => { this.stage.visible = true; this.renderer.render(this.rootContainer) }, 200)
-            
+            //If wea are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
             this.stage.updateTransform()
             let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
@@ -106,6 +98,54 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
         this.stage.updateTransform()
         this.renderer.render(this.rootContainer)
+    }
+
+    addZoom(el:HTMLDivElement) {
+        el.addEventListener("wheel", e => {
+            e.stopPropagation()
+            e.preventDefault()
+            this.zoom(e.deltaY < 0)
+        })
+    }
+
+    addPan(el:HTMLDivElement) {
+        let mouseDownX:number, mouseDownY:number
+        let dragging = false
+
+        // On mousedown set dragging to true and save the mouse position where we started dragging
+        el.addEventListener("mousedown", e => {
+            dragging = true
+
+            let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+
+            mouseDownX = pos.x
+            mouseDownY = pos.y
+
+        })
+
+        // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
+        el.addEventListener("mousemove", e => {
+            if(dragging){
+                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                let dx = pos.x - mouseDownX
+                let dy = pos.y - mouseDownY
+
+                this.stage.position.x += dx
+                this.stage.position.y += dy
+                this.stage.updateTransform()
+
+                this.renderer.render(this.rootContainer)
+            }
+        })
+
+        // If the mouse is released stop dragging
+        el.addEventListener('mouseup', e => {
+            dragging = false
+        })
+        // If the mouse exits the PIXI element stop dragging
+        el.addEventListener('mouseout', e => {
+            dragging = false
+        })
     }
     
     // Generating brightness filter code for the passed in channel.
@@ -161,24 +201,21 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         if(!this.el.hasChildNodes()) {
             this.renderer = new PIXI.WebGLRenderer(imcData.width, imcData.height)
-            this.stage.hitArea = new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height)
             el.appendChild(this.renderer.view)
         }
 
-        this.el.addEventListener("wheel", e => {
-            e.stopPropagation()
-            e.preventDefault()
-            this.zoom(e.clientX, e.clientY, e.deltaY < 0)
-        })
+        this.addZoom(this.el)
+
+        this.addPan(this.el)
 
         this.stage.removeChildren()
 
         // For each channel setting the brightness and color filters
         for (let s of ["rChannel", "gChannel", "bChannel"]) {
             let curChannel = s as ChannelName
-            let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
             let curMarker = channelMarker[curChannel] 
             if(curMarker != null) {
+                let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
