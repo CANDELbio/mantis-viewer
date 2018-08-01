@@ -89,7 +89,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.stage.scale.x = 1.0
             this.stage.scale.y = 1.0
         } else {
-            //If wea are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
+            //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
             this.stage.updateTransform()
             let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
@@ -115,12 +115,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // On mousedown set dragging to true and save the mouse position where we started dragging
         el.addEventListener("mousedown", e => {
             dragging = true
-
             let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-
             mouseDownX = pos.x
             mouseDownY = pos.y
-
         })
 
         // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
@@ -133,7 +130,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 this.stage.position.x += dx
                 this.stage.position.y += dy
                 this.stage.updateTransform()
-
                 this.renderer.render(this.rootContainer)
             }
         })
@@ -142,6 +138,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         el.addEventListener('mouseup', e => {
             dragging = false
         })
+
         // If the mouse exits the PIXI element stop dragging
         el.addEventListener('mouseout', e => {
             dragging = false
