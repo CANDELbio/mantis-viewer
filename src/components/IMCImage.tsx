@@ -35,6 +35,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     constructor(props:IMCImageProps) {
         super(props)
+
+        // Need a root container to hold the stage so that we can call updateTransform on the stage.
         this.rootContainer = new PIXI.Container()
         this.stage = new PIXI.Container()
         this.stage.interactive = true
