@@ -33,6 +33,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
+    // The width at which the stage should be fixed.
+    fixedWidth: number
+    // The minimum scale for zooming. Based on the fixed width/image width
+    minScale: number
+
     constructor(props:IMCImageProps) {
         super(props)
 
@@ -74,6 +79,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             gChannel: greenFilter,
             bChannel: blueFilter
         }
+
+        this.fixedWidth = 1000
+        this.minScale = 1.0
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -86,10 +94,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.stage.scale.x *= factor
         this.stage.scale.y *= factor
 
-        if (this.stage.scale.x < 1.0 && this.stage.scale.y < 1.0) {
+        if (this.stage.scale.x < this.minScale && this.stage.scale.y < this.minScale) {
             //Cant zoom out out past 1
-            this.stage.scale.x = 1.0
-            this.stage.scale.y = 1.0
+            this.stage.scale.x = this.minScale
+            this.stage.scale.y = this.minScale
         } else {
             //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
             this.stage.updateTransform()
@@ -199,7 +207,18 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.el = el
 
         if(!this.el.hasChildNodes()) {
-            this.renderer = new PIXI.WebGLRenderer(imcData.width, imcData.height)
+            // Setting up the scale factor to account for the fixed width
+            let scaleFactor = this.fixedWidth / imcData.width
+            let width = imcData.width * scaleFactor
+            let height = imcData.height * scaleFactor
+            this.minScale = scaleFactor
+
+            // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+            this.stage.scale.x = scaleFactor
+            this.stage.scale.y = scaleFactor
+
+            //Setting up the renderer
+            this.renderer = new PIXI.WebGLRenderer(width, height)
             el.appendChild(this.renderer.view)
         }
 
@@ -243,10 +262,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
         
         let imcData = this.props.imageData
-        let scaleFactor = 1200 / imcData.width
-
-        let width = imcData.width * scaleFactor
-        let height = imcData.height * scaleFactor
 
         return(
             <div className="imcimage"

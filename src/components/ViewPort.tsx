@@ -50,7 +50,7 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
         return(
             <div className = "viewport">
                 <IMCImage.IMCImage {...this.props}/>
-                {labelLayers}
+                {/* {labelLayers} */}
                 {/* <SelectionLayer.SelectionLayer
                 canvasWidth = {this.props.canvasWidth}
                 canvasHeight = {this.props.canvasHeight}
