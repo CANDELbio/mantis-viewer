@@ -35,6 +35,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     // The width at which the stage should be fixed.
     fixedWidth: number
+    // The scaled height of the stage.
+    scaledHeight: number
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
 
@@ -86,6 +88,21 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
 
+    // Checks to make sure that we haven't panned past the bounds of the stage.
+    checkStageBounds = () => {
+        // Not able to scroll past top left corner
+        if(this.stage.position.x > 0) this.stage.position.x = 0
+        if(this.stage.position.y > 0) this.stage.position.y = 0
+
+        // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
+        let minX = this.fixedWidth - (this.props.imageData.width * this.stage.scale.x)
+        let minY = this.scaledHeight - (this.props.imageData.height * this.stage.scale.y)
+
+        // Not able to scroll past the bottom right corner
+        if(this.stage.position.x < minX) this.stage.position.x = minX
+        if(this.stage.position.y < minY) this.stage.position.y = minY
+    }
+
     zoom = (isZoomIn:boolean) => {
         let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
         
@@ -106,6 +123,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
             this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
         }
+        this.checkStageBounds()
         this.stage.updateTransform()
         this.renderer.render(this.rootContainer)
     }
@@ -139,6 +157,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
                 this.stage.position.x += dx
                 this.stage.position.y += dy
+                this.checkStageBounds()
                 this.stage.updateTransform()
                 this.renderer.render(this.rootContainer)
             }
@@ -212,6 +231,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             let width = imcData.width * scaleFactor
             let height = imcData.height * scaleFactor
             this.minScale = scaleFactor
+            this.scaledHeight = height
 
             // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
             this.stage.scale.x = scaleFactor
