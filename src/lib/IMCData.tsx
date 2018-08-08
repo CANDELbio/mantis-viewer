@@ -86,7 +86,6 @@ export class IMCData {
 
         }
         return(PIXI.Texture.fromCanvas(offScreen))
-
     }
 
     private loadFolder(dirName:string) {
@@ -100,14 +99,16 @@ export class IMCData {
         console.log(files)
         
         files.forEach(f => {
-            let data = fs.readFileSync(path.join(dirName, f))
-            let chName = path.basename(f, ".tiff")
-            let tiffData = tiff.decode(data)[0]
-            this.width = tiffData.width
-            this.height = tiffData.height
-            this.data[chName] = tiffData.data
-            this.minmax[chName] = IMCData.calculateMinMax(tiffData.data)
-            this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
+            if(f.endsWith(".tiff")){
+                let data = fs.readFileSync(path.join(dirName, f))
+                let chName = path.basename(f, ".tiff")
+                let tiffData = tiff.decode(data)[0]
+                this.width = tiffData.width
+                this.height = tiffData.height
+                this.data[chName] = tiffData.data
+                this.minmax[chName] = IMCData.calculateMinMax(tiffData.data)
+                this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
+            }
         })
 
         let totPixels = this.width * this.height

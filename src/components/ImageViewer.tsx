@@ -63,6 +63,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 
             viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}
+                segmentationData = {this.props.store.segmentationData}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {width}

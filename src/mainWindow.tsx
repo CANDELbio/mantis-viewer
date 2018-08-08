@@ -44,6 +44,9 @@ electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string)
     imageStore.selectDirectory(dirName)
 })
 
+electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, fileName:string) => {
+    imageStore.selectSegmentationFile(fileName)
+})
 
 electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => {
     console.log(fileName)

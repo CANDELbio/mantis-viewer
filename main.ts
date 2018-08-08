@@ -39,7 +39,17 @@ let menuTemplate = [{
           mainWindow.webContents.send("open-directory", dirName[0])
       })
     }
-  }]
+  },
+  {
+  label: "Open segmentation file",
+  click: () => {
+    dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
+      if(mainWindow != null)
+        mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+    })
+  }
+}
+]
 }]
 
 function createWindow () {

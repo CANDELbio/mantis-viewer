@@ -10,10 +10,12 @@ import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
+import { SegmentationData } from "../lib/SegmentationData";
 
 export interface IMCImageProps {
 
     imageData: IMCData,
+    segmentationData: SegmentationData | null
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
@@ -89,7 +91,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
-    checkStageBounds = () => {
+    checkStageBounds() {
         // Not able to scroll past top left corner
         if(this.stage.position.x > 0) this.stage.position.x = 0
         if(this.stage.position.y > 0) this.stage.position.y = 0
@@ -103,7 +105,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         if(this.stage.position.y < minY) this.stage.position.y = minY
     }
 
-    zoom = (isZoomIn:boolean) => {
+    zoom(isZoomIn:boolean) {
         let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
         
         let direction = isZoomIn ? 1 : -1
@@ -218,6 +220,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
+        segmentationData: SegmentationData | null,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>) {
 
@@ -260,6 +263,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 this.stage.addChild(sprite)
             }
         }
+
+        if(segmentationData != null){
+            this.stage.addChild(segmentationData.sprite)
+        }
    
         this.renderer.render(this.rootContainer)
         
@@ -283,9 +290,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         
         let imcData = this.props.imageData
 
+        let segmentationData = this.props.segmentationData
+
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
+                    ref={(el) => {this.renderImage(el, imcData, segmentationData, channelMarker, channelDomain)}}
             />
         )
     }
