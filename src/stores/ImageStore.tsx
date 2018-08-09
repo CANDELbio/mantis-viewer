@@ -29,7 +29,7 @@ export class ImageStore {
     @observable.ref imageData: IMCData | null
     @observable.ref plotData: IMCDataObject | null
 
-    @observable.ref segmentationData: SegmentationData
+    @observable.ref segmentationData: SegmentationData | null
 
     @observable.ref extraData: Uint8ClampedArray | null = null
 
@@ -47,6 +47,8 @@ export class ImageStore {
         gChannel: [0, 100],
         bChannel: [0, 100]
     }
+
+    @observable segmentationAlpha: number = 5
 
     @observable channelMarker: Record<ChannelName, string | null> = {
         rChannel: null,
@@ -115,6 +117,20 @@ export class ImageStore {
         if (this.selectedSegmentationFile != null) {
             this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
         }
+    }
+
+    @action setSegmentationSliderValue = () => {
+        return action((value: number) => {
+            this.segmentationAlpha = value
+        })
+    }
+
+    @action clearSegmentationData = () => {
+        return action(() => {
+            this.selectedSegmentationFile = null
+            this.segmentationData = null
+            this.segmentationAlpha = 5
+        })
     }
 
     @action setChannelDomain = (name: ChannelName) => {

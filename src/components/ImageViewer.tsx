@@ -9,6 +9,8 @@ import { observer } from "mobx-react"
 import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
 import { ViewPort } from "../components/ViewPort"
 import { LayerTable } from "../components/LayerTable"
+import { SelectedData } from "../components/SelectedData"
+import { SegmentationControls } from "../components/SegmentationControls"
 const Select = require("react-select")
 
 export interface ImageViewerProps { 
@@ -48,9 +50,18 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
     render() {
         let viewPort = null
 
+        let selectedData = null
         let channelControls = null
         let plotChannelSelect = null
         let histogram = null
+        let segmentationControls = null
+
+        if(this.props.store.selectedFile || this.props.store.selectedDirectory) {
+            selectedData = <SelectedData
+                selectedFile = {this.props.store.selectedFile}
+                selectedDirectory = {this.props.store.selectedDirectory}
+            />
+        }
 
         if(this.props.store.imageData != null) {
   
@@ -64,6 +75,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
             viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}
                 segmentationData = {this.props.store.segmentationData}
+                segmentationAlpha = {this.props.store.segmentationAlpha}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {width}
@@ -86,6 +98,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     onSelectChange = {this.props.store.setChannelMarker(s)}
                 />
             )
+
+            if (this.props.store.selectedSegmentationFile != null) {
+                segmentationControls = <SegmentationControls
+                    segmentationPath = {this.props.store.selectedSegmentationFile}
+                    sliderValue = {this.props.store.segmentationAlpha}
+                    onSliderChange = {this.props.store.setSegmentationSliderValue()}
+                    onButtonClick = {this.props.store.clearSegmentationData()}
+                />
+            }
             
             plotChannelSelect = 
                 <Select
@@ -99,11 +120,14 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         return(
             <div>
                 <Grid fluid>
-                    <p>File selected is {this.props.store.selectedFile}</p>
+                    {selectedData}
                     <Row>
                         <Col lg={3}>
                             {channelControls}
-                            {plotChannelSelect}
+                            
+                            {segmentationControls}
+
+                            {/* {plotChannelSelect}
                             <Button
                                 text = {"Plot"}
                                 onClick = {this.updatePlotData}
@@ -115,7 +139,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                             <LayerTable 
                                 data = {this.props.store.labelsLayers}
                                 onToggleLayerVisbile = {this.props.store.toggleLayerVisibility}
-                            />
+                            /> */}
                         </Col>
                         <Col lg={9}>
                             {viewPort}

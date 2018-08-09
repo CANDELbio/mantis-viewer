@@ -16,6 +16,7 @@ export interface IMCImageProps {
 
     imageData: IMCData,
     segmentationData: SegmentationData | null
+    segmentationAlpha: number
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
@@ -220,9 +221,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
-        segmentationData: SegmentationData | null,
         channelMarker: Record<ChannelName, string | null>,
-        channelDomain: Record<ChannelName, [number, number]>) {
+        channelDomain: Record<ChannelName, [number, number]>, 
+        segmentationData: SegmentationData | null,
+        segmentationAlpha: number) {
 
         if(el == null)
             return
@@ -265,7 +267,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         if(segmentationData != null){
-            this.stage.addChild(segmentationData.sprite)
+            let sprite = segmentationData.sprite
+            sprite.alpha = segmentationAlpha/10
+            this.stage.addChild(sprite)
         }
    
         this.renderer.render(this.rootContainer)
@@ -291,10 +295,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let imcData = this.props.imageData
 
         let segmentationData = this.props.segmentationData
+        let segmentationAlpha = this.props.segmentationAlpha
 
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, segmentationData, channelMarker, channelDomain)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha)}}
             />
         )
     }

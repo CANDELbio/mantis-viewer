@@ -75,7 +75,7 @@ export class SegmentationData {
                     canvasData[dataIdx[i]] = color['r']
                     canvasData[dataIdx[i] + 1] = color['g']
                     canvasData[dataIdx[i] + 2] = color['b']
-                    canvasData[dataIdx[i] + 3] = 128
+                    canvasData[dataIdx[i] + 3] = 255
                 }
 
             }

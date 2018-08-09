@@ -35,7 +35,7 @@ let menuTemplate = [{
     label: "Open folder",
     click: () => {
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
-        if(mainWindow != null)
+        if(mainWindow != null && dirName != null)
           mainWindow.webContents.send("open-directory", dirName[0])
       })
     }
@@ -44,7 +44,7 @@ let menuTemplate = [{
   label: "Open segmentation file",
   click: () => {
     dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
-      if(mainWindow != null)
+      if(mainWindow != null && fileNames != null)
         mainWindow.webContents.send("open-segmentation-file", fileNames[0])
     })
   }
