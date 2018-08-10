@@ -219,6 +219,20 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     }
 
+    drawSegmentCentroids(segmentationData: SegmentationData) {
+        let graphics = new PIXI.Graphics()
+        let centroids = segmentationData.centroidMap
+
+        graphics.beginFill(0xf1c40f)
+
+        for(let key in centroids){
+            let centroid = centroids[key]
+            graphics.drawCircle(centroid.x * this.minScale, centroid.y * this.minScale, 2)
+        }
+        graphics.endFill()
+        this.stage.addChild(graphics)
+    }
+
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -270,6 +284,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             let sprite = segmentationData.segmentSprite
             sprite.alpha = segmentationAlpha/10
             this.stage.addChild(sprite)
+            this.drawSegmentCentroids(segmentationData)
         }
    
         this.renderer.render(this.rootContainer)

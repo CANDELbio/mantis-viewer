@@ -118,10 +118,10 @@ export class SegmentationData {
             if(segmentId != 0){
                 // The incoming tiffdata (v) is an array with one entry per pixel.
                 // To convert from this array index to x, y coordinates we need to 
-                // divide the current index by the image height to get the y coordinate
+                // divide the current index by the image width to get the y coordinate
                 // and then take the remainder of the divison to get the x coordinate
-                let x =  i%height
-                let y = Math.floor(i/height)
+                let x =  i%width
+                let y = Math.floor(i/width)
 
                 pixelMap[this.segmentMapKey(x, y)] = segmentId
 
