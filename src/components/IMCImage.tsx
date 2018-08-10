@@ -267,7 +267,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         if(segmentationData != null){
-            let sprite = segmentationData.sprite
+            let sprite = segmentationData.segmentSprite
             sprite.alpha = segmentationAlpha/10
             this.stage.addChild(sprite)
         }
