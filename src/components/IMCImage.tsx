@@ -155,8 +155,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         el.addEventListener("mousemove", e => {
             if(dragging){
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                let dx = pos.x - mouseDownX
-                let dy = pos.y - mouseDownY
+                let dx = (pos.x - mouseDownX) * this.stage.scale.x
+                let dy = (pos.y - mouseDownY) * this.stage.scale.y
 
                 this.stage.position.x += dx
                 this.stage.position.y += dy
@@ -256,14 +256,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.stage.scale.x = scaleFactor
             this.stage.scale.y = scaleFactor
 
-            //Setting up the renderer
+            // Setting up the renderer
             this.renderer = new PIXI.WebGLRenderer(width, height)
             el.appendChild(this.renderer.view)
+        
+            // Setting up event listeners
+            // TODO: Clear these or don't add them again if a new set of images is selected.
+            this.addZoom(this.el)
+            this.addPan(this.el)
         }
-
-        this.addZoom(this.el)
-
-        this.addPan(this.el)
 
         this.stage.removeChildren()
 
@@ -275,6 +276,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
+                // Delete sprite filters so they get cleared from memory before adding new ones
+                sprite.filters = null
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
                 this.stage.addChild(sprite)
             }

@@ -170,11 +170,7 @@ export class SegmentationData {
         this.pixelMap = pixelMap
         this.segmentMap = segmentMap
 
-        console.log(this.pixelMap)
-        console.log(this.segmentMap)
-
         this.centroidMap = SegmentationData.calculateCentroids(segmentMap)
-        console.log(this.centroidMap)
     }
 
 
