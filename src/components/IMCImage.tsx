@@ -218,6 +218,32 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return filterCode
 
     }
+    // Draws a cross in the following order centered at X and Y
+    //
+    //       (2) *     * (3)
+    //
+    // (12)* (1) *     * (4) * (5)
+    //
+    // (11)* (10)*     * (7) * (6)
+    //
+    //      (9) *      * (8)
+    //
+    drawCross(graphics:PIXI.Graphics, x:number, y:number, armLength: number, armHalfWidth: number){
+        graphics.drawPolygon([
+            x - armHalfWidth, y + armHalfWidth, //1
+            x - armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth,
+            x + (armHalfWidth + armLength), y + armHalfWidth,
+            x + (armHalfWidth + armLength), y - armHalfWidth,
+            x + armHalfWidth, y - armHalfWidth,
+            x + armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - armHalfWidth,
+            x - (armHalfWidth + armLength), y - armHalfWidth,
+            x - (armHalfWidth + armLength), y + armHalfWidth //12
+        ])
+    }
 
     drawSegmentCentroids(segmentationData: SegmentationData) {
         let graphics = new PIXI.Graphics()
@@ -227,7 +253,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         for(let key in centroids){
             let centroid = centroids[key]
-            graphics.drawCircle(centroid.x * this.minScale, centroid.y * this.minScale, 2)
+            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 1 * this.minScale)
         }
         graphics.endFill()
         this.stage.addChild(graphics)
