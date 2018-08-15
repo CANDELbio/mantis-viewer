@@ -1,8 +1,8 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as d3Scale from "d3-scale"
 import * as d3Array from "d3-array"
 import * as fs from "fs"
+import * as PIXI from "pixi.js"
 import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"
 import { IMCData } from "../lib/IMCData"
@@ -10,116 +10,315 @@ import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
-
+import { SegmentationData } from "../lib/SegmentationData";
 
 export interface IMCImageProps {
+
     imageData: IMCData,
+    segmentationData: SegmentationData | null
+    segmentationAlpha: number
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void)
+
 }
 
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
-    el:HTMLCanvasElement | null = null
+    el:HTMLDivElement | null = null
+
+    renderer: PIXI.WebGLRenderer
+    rootContainer : PIXI.Container
+    stage: PIXI.Container
+
+    channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
+
+    // The width at which the stage should be fixed.
+    fixedWidth: number
+    // The scaled height of the stage.
+    scaledHeight: number
+    // The minimum scale for zooming. Based on the fixed width/image width
+    minScale: number
 
     constructor(props:IMCImageProps) {
         super(props)
+
+        // Need a root container to hold the stage so that we can call updateTransform on the stage.
+        this.rootContainer = new PIXI.Container()
+        this.stage = new PIXI.Container()
+        this.stage.interactive = true
+        this.rootContainer.addChild(this.stage)
+
+        let redFilter = new PIXI.filters.ColorMatrixFilter()
+        redFilter.matrix = [
+            1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0
+        ]
+        redFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+        let greenFilter = new PIXI.filters.ColorMatrixFilter()
+        greenFilter.matrix = [
+            0, 0, 0, 0, 0,
+            0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0
+        ]
+        greenFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+        let blueFilter = new PIXI.filters.ColorMatrixFilter()
+        blueFilter.matrix = [
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 0, 1, 0
+        ]
+        blueFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+       this.channelFilters = {
+            rChannel: redFilter,
+            gChannel: greenFilter,
+            bChannel: blueFilter
+        }
+
+        this.fixedWidth = 1000
+        this.minScale = 1.0
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    
 
-    renderImage(el: HTMLCanvasElement, 
+    // Checks to make sure that we haven't panned past the bounds of the stage.
+    checkStageBounds() {
+        // Not able to scroll past top left corner
+        if(this.stage.position.x > 0) this.stage.position.x = 0
+        if(this.stage.position.y > 0) this.stage.position.y = 0
+
+        // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
+        let minX = this.fixedWidth - (this.props.imageData.width * this.stage.scale.x)
+        let minY = this.scaledHeight - (this.props.imageData.height * this.stage.scale.y)
+
+        // Not able to scroll past the bottom right corner
+        if(this.stage.position.x < minX) this.stage.position.x = minX
+        if(this.stage.position.y < minY) this.stage.position.y = minY
+    }
+
+    zoom(isZoomIn:boolean) {
+        let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+        
+        let direction = isZoomIn ? 1 : -1
+        let factor = (1 + direction * 0.05)
+        this.stage.scale.x *= factor
+        this.stage.scale.y *= factor
+
+        if (this.stage.scale.x < this.minScale && this.stage.scale.y < this.minScale) {
+            //Cant zoom out out past 1
+            this.stage.scale.x = this.minScale
+            this.stage.scale.y = this.minScale
+        } else {
+            //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
+            this.stage.updateTransform()
+            let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+
+            this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
+            this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
+        }
+        this.checkStageBounds()
+        this.stage.updateTransform()
+        this.renderer.render(this.rootContainer)
+    }
+
+    addZoom(el:HTMLDivElement) {
+        el.addEventListener("wheel", e => {
+            e.stopPropagation()
+            e.preventDefault()
+            this.zoom(e.deltaY < 0)
+        })
+    }
+
+    addPan(el:HTMLDivElement) {
+        let mouseDownX:number, mouseDownY:number
+        let dragging = false
+
+        // On mousedown set dragging to true and save the mouse position where we started dragging
+        el.addEventListener("mousedown", e => {
+            dragging = true
+            let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            mouseDownX = pos.x
+            mouseDownY = pos.y
+        })
+
+        // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
+        el.addEventListener("mousemove", e => {
+            if(dragging){
+                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                let dx = (pos.x - mouseDownX) * this.stage.scale.x
+                let dy = (pos.y - mouseDownY) * this.stage.scale.y
+
+                this.stage.position.x += dx
+                this.stage.position.y += dy
+                this.checkStageBounds()
+                this.stage.updateTransform()
+                this.renderer.render(this.rootContainer)
+            }
+        })
+
+        // If the mouse is released stop dragging
+        el.addEventListener('mouseup', e => {
+            dragging = false
+        })
+
+        // If the mouse exits the PIXI element stop dragging
+        el.addEventListener('mouseout', e => {
+            dragging = false
+        })
+    }
+    
+    // Generating brightness filter code for the passed in channel.
+    // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
+    generateBrightnessFilterCode = ( 
+        channelName:ChannelName,
         imcData:IMCData, 
         channelMarker: Record<ChannelName, string | null>,
-        channelDomain:  Record<ChannelName, [number, number]>) {
+        channelDomain:  Record<ChannelName, [number, number]>) => {
+
+        let curChannelDomain = channelDomain[channelName]
+
+        // Get the max value for the given channel.
+        let marker = channelMarker[channelName]
+        let channelMax = 100.0
+        if (marker != null){
+            channelMax = imcData.minmax[marker].max
+        }
+
+        // Get the PIXI channel name (i.e. r, g, b) from the first character of the channelName.
+        let channel = channelName.charAt(0)
+
+        // Using slider values to generate m and b for a linear transformation (y = mx + b).
+        let b = ((curChannelDomain[0] === 0 ) ? 0 : curChannelDomain[0]/channelMax).toFixed(4)
+        let m = ((curChannelDomain[1] === 0) ? 0 : (channelMax/(curChannelDomain[1] - curChannelDomain[0]))).toFixed(4)
+
+        let filterCode = `
+        varying vec2 vTextureCoord;
+        varying vec4 vColor;
+        
+        uniform sampler2D uSampler;
+        uniform vec4 uTextureClamp;
+        uniform vec4 uColor;
+        
+        void main(void)
+        {
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor.${channel} = min((gl_FragColor.${channel} * ${m}) + ${b}, 1.0);
+        }`
+
+        return filterCode
+
+    }
+    // Draws a cross in the following order centered at X and Y
+    //
+    //       (2) *     * (3)
+    //
+    // (12)* (1) *     * (4) * (5)
+    //
+    // (11)* (10)*     * (7) * (6)
+    //
+    //      (9) *      * (8)
+    //
+    drawCross(graphics:PIXI.Graphics, x:number, y:number, armLength: number, armHalfWidth: number){
+        graphics.drawPolygon([
+            x - armHalfWidth, y + armHalfWidth, //1
+            x - armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth,
+            x + (armHalfWidth + armLength), y + armHalfWidth,
+            x + (armHalfWidth + armLength), y - armHalfWidth,
+            x + armHalfWidth, y - armHalfWidth,
+            x + armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - armHalfWidth,
+            x - (armHalfWidth + armLength), y - armHalfWidth,
+            x - (armHalfWidth + armLength), y + armHalfWidth //12
+        ])
+    }
+
+    drawSegmentCentroids(segmentationData: SegmentationData) {
+        let graphics = new PIXI.Graphics()
+        let centroids = segmentationData.centroidMap
+
+        graphics.beginFill(0xf1c40f)
+
+        for(let key in centroids){
+            let centroid = centroids[key]
+            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 1 * this.minScale)
+        }
+        graphics.endFill()
+        this.stage.addChild(graphics)
+    }
+
+    renderImage(el: HTMLDivElement, 
+        imcData: IMCData, 
+        channelMarker: Record<ChannelName, string | null>,
+        channelDomain: Record<ChannelName, [number, number]>, 
+        segmentationData: SegmentationData | null,
+        segmentationAlpha: number) {
 
         if(el == null)
             return
         this.el = el
 
-        console.log("Doing the expensive thing")
-        let offScreen = document.createElement("canvas")
-        offScreen.width = imcData.width
-        offScreen.height = imcData.height
-    
-        let ctx = offScreen.getContext("2d")
-        if(ctx != null) {
-            let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
-            let canvasData = imageData.data
-            let IMCDataLength = imcData.data["X"].length
-            let dataIdx = new Array(IMCDataLength)
+        if(!this.el.hasChildNodes()) {
+            // Setting up the scale factor to account for the fixed width
+            let scaleFactor = this.fixedWidth / imcData.width
+            let width = imcData.width * scaleFactor
+            let height = imcData.height * scaleFactor
+            this.minScale = scaleFactor
+            this.scaledHeight = height
 
-            for(let i = 0; i < IMCDataLength ; ++i) {
-                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
-                let idx = i << 2
-                dataIdx[i] = idx
-                canvasData[idx + 3] = 255
+            // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+            this.stage.scale.x = scaleFactor
+            this.stage.scale.y = scaleFactor
 
-            }
-            
-            if(channelMarker.rChannel != null) {
-                let v = imcData.data[channelMarker.rChannel!]
+            // Setting up the renderer
+            this.renderer = new PIXI.WebGLRenderer(width, height)
+            el.appendChild(this.renderer.view)
+        
+            // Setting up event listeners
+            // TODO: Clear these or don't add them again if a new set of images is selected.
+            this.addZoom(this.el)
+            this.addPan(this.el)
+        }
 
-                let dom = channelDomain.rChannel.map((x) => {
-                    return(quantile(imcData.sortedData[channelMarker.rChannel!], x / 100, true))
-                }) 
-                
-                let colorScale = d3Scale.scaleLinear()
-                    .domain(dom)
-                    .range([0, 255])
+        this.stage.removeChildren()
 
-                for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i]] = colorScale(v[i])
-                }
-            }
-            
-            if(channelMarker.gChannel != null) {
-                let v = imcData.data[channelMarker.gChannel!]
-
-                let dom = channelDomain.gChannel.map((x) => {
-                    return(quantile(imcData.sortedData[channelMarker.gChannel!], x / 100, true))
-                }) 
-                
-                let colorScale = d3Scale.scaleLinear()
-                    .domain(dom)
-                    .range([0, 255])
-
-                for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i] + 1] = colorScale(v[i])
-                }
-            }
-
-            if(channelMarker.bChannel) {
-                let v = imcData.data[channelMarker.bChannel!]
-
-                let dom = channelDomain.bChannel.map((x) => {
-                    return(quantile(imcData.sortedData[channelMarker.bChannel!], x / 100, true))
-                }) 
-
-                let colorScale = d3Scale.scaleLinear()
-                    .domain(dom)
-                    .range([0, 255])
-
-                for(let i = 0; i < IMCDataLength; ++i) {
-                    canvasData[dataIdx[i] + 2] = colorScale(v[i])
-                }
-            }
-
-            ctx.putImageData(imageData, 0, 0)
-            this.onCanvasDataLoaded(imageData)
-            let onScreenCtx = el.getContext("2d")
-            if(onScreenCtx != null) {
-                onScreenCtx.drawImage(offScreen, 0, 0, el.width, el.height)
+        // For each channel setting the brightness and color filters
+        for (let s of ["rChannel", "gChannel", "bChannel"]) {
+            let curChannel = s as ChannelName
+            let curMarker = channelMarker[curChannel] 
+            if(curMarker != null) {
+                let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
+                let sprite = imcData.sprites[curMarker]
+                // Delete sprite filters so they get cleared from memory before adding new ones
+                sprite.filters = null
+                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                this.stage.addChild(sprite)
             }
         }
+
+        if(segmentationData != null){
+            let sprite = segmentationData.segmentSprite
+            sprite.alpha = segmentationAlpha/10
+            this.stage.addChild(sprite)
+            this.drawSegmentCentroids(segmentationData)
+        }
+   
+        this.renderer.render(this.rootContainer)
+        
     }
-
-
 
     render() {
         //Dereferencing these here is necessary for Mobx to trigger, because
@@ -136,22 +335,16 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             gChannel: this.props.channelDomain.gChannel,
             bChannel: this.props.channelDomain.bChannel
         }
+        
         let imcData = this.props.imageData
-        console.log(imcData)
-        let width = imcData.width
-        let height = imcData.height
 
-
+        let segmentationData = this.props.segmentationData
+        let segmentationAlpha = this.props.segmentationAlpha
 
         return(
-            <div className="imcimage">
-                <canvas 
-                    id = "imcimage"
-                    width = {width}
-                    height = {height} 
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
-                />
-            </div>
+            <div className="imcimage"
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha)}}
+            />
         )
     }
 }

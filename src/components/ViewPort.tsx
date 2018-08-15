@@ -17,7 +17,7 @@ type ViewPortSpecificProps  = {
 
 type ViewPortProps = IMCImage.IMCImageProps & SelectionLayer.SelectionLayerProps & ViewPortSpecificProps
 
-type s = keyof ViewPortProps
+
 
 @observer
 export class ViewPort extends React.Component<ViewPortProps, undefined> {
@@ -30,7 +30,7 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
 
         let labelLayers:JSX.Element[] = []
 
-   
+        
 
         this.props.labelsLayers
             //.filter((d) => {d.visible})
@@ -50,12 +50,13 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
         return(
             <div className = "viewport">
                 <IMCImage.IMCImage {...this.props}/>
-                {labelLayers}
-                <SelectionLayer.SelectionLayer
-                    canvasWidth = {this.props.canvasWidth}
-                    canvasHeight = {this.props.canvasHeight}
-                    onBrushEnd = {this.onBrushEnd}
-                />
+                {/* {labelLayers} */}
+                {/* <SelectionLayer.SelectionLayer
+                canvasWidth = {this.props.canvasWidth}
+                canvasHeight = {this.props.canvasHeight}
+                onBrushEnd = {this.onBrushEnd}
+                handleWheel = {this.handleWheel}
+                /> */}
             </div>
         )
     }

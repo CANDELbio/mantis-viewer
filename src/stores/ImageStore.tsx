@@ -5,7 +5,7 @@ import { observable,
     createTransformer, 
     ObservableMap } from "mobx"
 import { IMCData, IMCDataObject } from "../lib/IMCData"
-
+import { SegmentationData } from "../lib/SegmentationData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
 import { ChannelName, 
@@ -13,11 +13,8 @@ import { ChannelName,
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import { keepAlive, IDisposer } from "mobx-utils"
-
-
 import * as querystring from "querystring"
 import * as http from "http"
-
 
 export class ImageStore {
 
@@ -27,27 +24,31 @@ export class ImageStore {
         this.selectedDataDisposer = keepAlive(this.selectedData)
     }
 
-
     private canvasImageData:ImageData | null = null
     
     @observable.ref imageData: IMCData | null
     @observable.ref plotData: IMCDataObject | null
 
+    @observable.ref segmentationData: SegmentationData | null
+
     @observable.ref extraData: Uint8ClampedArray | null = null
 
     @observable selectedFile: string | null
     @observable selectedDirectory: string | null
+    @observable selectedSegmentationFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
-        rChannel: [80, 100],
-        gChannel: [80, 100],
-        bChannel: [80, 100]
+        rChannel: [0, 100],
+        gChannel: [0, 100],
+        bChannel: [0, 100]
     }
     @observable channelSliderValue: Record<ChannelName, [number, number]> = {
-        rChannel: [80, 100],
-        gChannel: [80, 100],
-        bChannel: [80, 100]
+        rChannel: [0, 100],
+        gChannel: [0, 100],
+        bChannel: [0, 100]
     }
+
+    @observable segmentationAlpha: number = 5
 
     @observable channelMarker: Record<ChannelName, string | null> = {
         rChannel: null,
@@ -59,7 +60,6 @@ export class ImageStore {
         x: [number, number]
         y: [number, number]
     } | null = null
-
 
     labelsLayers = observable.shallowArray<LabelLayer>()
 
@@ -84,7 +84,6 @@ export class ImageStore {
         return (ret)
     })
 
-
     @action toggleLayerVisibility = (idx: number) => {
         console.log(this.labelsLayers[idx].visible)
 
@@ -99,8 +98,6 @@ export class ImageStore {
             this.plotData = _.pick(data, this.selectedPlotChannels)
     }
 
-
-
     @action setCurrentSelection(extent: D3BrushExtent) {
         this.currentSelection = {
             x: [extent[0][0], extent[1][0]],
@@ -108,13 +105,32 @@ export class ImageStore {
         }
     }
 
-
-
     @action updateImageData() {
-        if (this.selectedDirectory != null) 
+        if (this.selectedDirectory != null) {
             this.imageData = new IMCData(this.selectedDirectory, "folder")
+        }
         
         console.log(this.imageData)
+    }
+
+    @action updateSegmentationData() {
+        if (this.selectedSegmentationFile != null) {
+            this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
+        }
+    }
+
+    @action setSegmentationSliderValue = () => {
+        return action((value: number) => {
+            this.segmentationAlpha = value
+        })
+    }
+
+    @action clearSegmentationData = () => {
+        return action(() => {
+            this.selectedSegmentationFile = null
+            this.segmentationData = null
+            this.segmentationAlpha = 5
+        })
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -131,13 +147,27 @@ export class ImageStore {
 
     @action setChannelMarker = (name: ChannelName) => {
         return action((x: SelectOption) => {
-            this.channelMarker[name] = x.value
+            // If the SelectOption has a value.
+            if(x != null){
+                this.channelMarker[name] = x.value
+                // Setting the default slider/domain values to the min/max values from the image
+                if(this.imageData != null){
+                    let min = this.imageData.minmax[x.value].min
+                    let max = this.imageData.minmax[x.value].max
+                    this.channelDomain[name] = [min, max]
+                    this.channelSliderValue[name] = [min, max]
+                }
+            // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
+            } else {
+                this.channelMarker[name] = null
+                this.channelDomain[name] = [0, 100]
+                this.channelSliderValue[name] = [0, 100]
+            }
         })
     }
 
     @action setSelectedPlotChannels = (x: SelectOption[]) => {
         this.selectedPlotChannels = _.pluck(x, "value")
-        console.log(this.selectedPlotChannels)
     }
 
     @action selectFile = (fName: string) => {
@@ -150,10 +180,14 @@ export class ImageStore {
         this.updateImageData()
     }
 
+    @action selectSegmentationFile = (fName: string) => {
+        this.selectedSegmentationFile = fName
+        this.updateSegmentationData()
+    }
+
     @action setCanvasImageData = (data:ImageData) => {
         this.canvasImageData = data
     }
-
 
     @action doSegmentation = () => {
         console.log("segmenting")
@@ -183,6 +217,3 @@ export class ImageStore {
         }
     }
 }
-
-
-

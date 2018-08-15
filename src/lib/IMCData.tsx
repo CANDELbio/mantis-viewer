@@ -1,7 +1,8 @@
 import * as _ from "underscore"
 import * as fs from "fs"
 import * as path from "path"
-import {promisify} from 'util';
+import * as PIXI from "pixi.js"
+import * as d3Scale from "d3-scale"
 
 const tiff = require("tiff")
 
@@ -11,6 +12,14 @@ interface IMCDataStats {
     [key: string] : [number, number]
 }
 
+interface MinMax {
+    min: number
+    max: number
+}
+
+export interface IMCMinMax {
+    [key: string] : MinMax
+}
 
 export interface IMCDataObject   {
     X: Float32Array | Uint16Array
@@ -22,9 +31,9 @@ export type IMCDataInputType = "TIFF" | "folder"
 
 export class IMCData {
 
-    data:IMCDataObject
-    sortedData:IMCDataObject
-
+    data: IMCDataObject
+    minmax: IMCMinMax
+    sprites: {[key:string] : PIXI.Sprite}
 
     width: number
     height: number
@@ -33,12 +42,50 @@ export class IMCData {
         return(_.keys(this.data))
     }
 
+    static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {
+        let min = v[0]
+        let max = v[0]
+        for (let curValue of v){
+            if (curValue < min) min = curValue
+            if (curValue > max) max = curValue 
+        }
+        return({min: min, max: max})
+    }
 
+    static textureFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
+        let offScreen = document.createElement("canvas")
+        offScreen.width = width
+        offScreen.height = height
+    
+        let ctx = offScreen.getContext("2d")
+        if(ctx) {
+            let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
+            let canvasData = imageData.data
+            
+            let colorScale = d3Scale.scaleLinear()
+                    .domain([minmax.min, minmax.max])
+                    .range([0, 255])
 
-    private calculateSortedData() {
-        _.mapObject(this.data, (val, key) => {
-            this.sortedData[key] = val.slice().sort((a, b) => a - b)
-        })
+            let dataIdx = new Array(v.length)
+
+            for(let i = 0; i < v.length ; ++i) {
+                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
+                let idx = i << 2
+                dataIdx[i] = idx
+                canvasData[idx + 3] = 255
+
+            }
+
+            for(let i = 0; i < v.length; ++i) {
+                let x = colorScale(v[i])
+                canvasData[dataIdx[i]] = x
+                canvasData[dataIdx[i] + 1] = x
+                canvasData[dataIdx[i] + 2] = x
+            }
+            ctx.putImageData(imageData, 0, 0)
+
+        }
+        return(PIXI.Texture.fromCanvas(offScreen))
     }
 
     private loadFolder(dirName:string) {
@@ -52,12 +99,16 @@ export class IMCData {
         console.log(files)
         
         files.forEach(f => {
-            let data = fs.readFileSync(path.join(dirName, f))
-            let chName = path.basename(f, ".tiff")
-            let tiffData = tiff.decode(data)[0]
-            this.data[chName] = tiffData.data
-            this.width = tiffData.width
-            this.height = tiffData.height
+            if(f.endsWith(".tiff")){
+                let data = fs.readFileSync(path.join(dirName, f))
+                let chName = path.basename(f, ".tiff")
+                let tiffData = tiff.decode(data)[0]
+                this.width = tiffData.width
+                this.height = tiffData.height
+                this.data[chName] = tiffData.data
+                this.minmax[chName] = IMCData.calculateMinMax(tiffData.data)
+                this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
+            }
         })
 
         let totPixels = this.width * this.height
@@ -127,7 +178,8 @@ export class IMCData {
 */
     constructor(path:string, inputType:IMCDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
-        this.sortedData = {X: new Float32Array(0), Y: new Float32Array(0)}
+        this.minmax = {}
+        this.sprites = {}
 
         switch(inputType) {
             case("TIFF"):
@@ -137,7 +189,5 @@ export class IMCData {
                 this.loadFolder(path)
                 break
         }
-
-        this.calculateSortedData()
     }
 }
