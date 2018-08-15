@@ -5,6 +5,7 @@ import { observable,
     createTransformer, 
     ObservableMap } from "mobx"
 import { IMCData, IMCDataObject } from "../lib/IMCData"
+import { SegmentationData } from "../lib/SegmentationData"
 import * as _ from "underscore"
 import * as d3 from "d3-array"
 import { ChannelName, 
@@ -28,10 +29,13 @@ export class ImageStore {
     @observable.ref imageData: IMCData | null
     @observable.ref plotData: IMCDataObject | null
 
+    @observable.ref segmentationData: SegmentationData | null
+
     @observable.ref extraData: Uint8ClampedArray | null = null
 
     @observable selectedFile: string | null
     @observable selectedDirectory: string | null
+    @observable selectedSegmentationFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [0, 100],
@@ -43,6 +47,8 @@ export class ImageStore {
         gChannel: [0, 100],
         bChannel: [0, 100]
     }
+
+    @observable segmentationAlpha: number = 5
 
     @observable channelMarker: Record<ChannelName, string | null> = {
         rChannel: null,
@@ -100,10 +106,31 @@ export class ImageStore {
     }
 
     @action updateImageData() {
-        if (this.selectedDirectory != null) 
+        if (this.selectedDirectory != null) {
             this.imageData = new IMCData(this.selectedDirectory, "folder")
+        }
         
         console.log(this.imageData)
+    }
+
+    @action updateSegmentationData() {
+        if (this.selectedSegmentationFile != null) {
+            this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
+        }
+    }
+
+    @action setSegmentationSliderValue = () => {
+        return action((value: number) => {
+            this.segmentationAlpha = value
+        })
+    }
+
+    @action clearSegmentationData = () => {
+        return action(() => {
+            this.selectedSegmentationFile = null
+            this.segmentationData = null
+            this.segmentationAlpha = 5
+        })
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -151,6 +178,11 @@ export class ImageStore {
     @action selectDirectory = (dirName : string) => {
         this.selectedDirectory = dirName
         this.updateImageData()
+    }
+
+    @action selectSegmentationFile = (fName: string) => {
+        this.selectedSegmentationFile = fName
+        this.updateSegmentationData()
     }
 
     @action setCanvasImageData = (data:ImageData) => {

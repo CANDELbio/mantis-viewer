@@ -10,10 +10,13 @@ import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
+import { SegmentationData } from "../lib/SegmentationData";
 
 export interface IMCImageProps {
 
     imageData: IMCData,
+    segmentationData: SegmentationData | null
+    segmentationAlpha: number
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
@@ -89,7 +92,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
-    checkStageBounds = () => {
+    checkStageBounds() {
         // Not able to scroll past top left corner
         if(this.stage.position.x > 0) this.stage.position.x = 0
         if(this.stage.position.y > 0) this.stage.position.y = 0
@@ -103,7 +106,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         if(this.stage.position.y < minY) this.stage.position.y = minY
     }
 
-    zoom = (isZoomIn:boolean) => {
+    zoom(isZoomIn:boolean) {
         let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
         
         let direction = isZoomIn ? 1 : -1
@@ -152,8 +155,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         el.addEventListener("mousemove", e => {
             if(dragging){
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                let dx = pos.x - mouseDownX
-                let dy = pos.y - mouseDownY
+                let dx = (pos.x - mouseDownX) * this.stage.scale.x
+                let dy = (pos.y - mouseDownY) * this.stage.scale.y
 
                 this.stage.position.x += dx
                 this.stage.position.y += dy
@@ -215,11 +218,53 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return filterCode
 
     }
+    // Draws a cross in the following order centered at X and Y
+    //
+    //       (2) *     * (3)
+    //
+    // (12)* (1) *     * (4) * (5)
+    //
+    // (11)* (10)*     * (7) * (6)
+    //
+    //      (9) *      * (8)
+    //
+    drawCross(graphics:PIXI.Graphics, x:number, y:number, armLength: number, armHalfWidth: number){
+        graphics.drawPolygon([
+            x - armHalfWidth, y + armHalfWidth, //1
+            x - armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth + armLength,
+            x + armHalfWidth, y + armHalfWidth,
+            x + (armHalfWidth + armLength), y + armHalfWidth,
+            x + (armHalfWidth + armLength), y - armHalfWidth,
+            x + armHalfWidth, y - armHalfWidth,
+            x + armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - (armHalfWidth + armLength),
+            x - armHalfWidth, y - armHalfWidth,
+            x - (armHalfWidth + armLength), y - armHalfWidth,
+            x - (armHalfWidth + armLength), y + armHalfWidth //12
+        ])
+    }
+
+    drawSegmentCentroids(segmentationData: SegmentationData) {
+        let graphics = new PIXI.Graphics()
+        let centroids = segmentationData.centroidMap
+
+        graphics.beginFill(0xf1c40f)
+
+        for(let key in centroids){
+            let centroid = centroids[key]
+            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 1 * this.minScale)
+        }
+        graphics.endFill()
+        this.stage.addChild(graphics)
+    }
 
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
-        channelDomain: Record<ChannelName, [number, number]>) {
+        channelDomain: Record<ChannelName, [number, number]>, 
+        segmentationData: SegmentationData | null,
+        segmentationAlpha: number) {
 
         if(el == null)
             return
@@ -237,14 +282,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.stage.scale.x = scaleFactor
             this.stage.scale.y = scaleFactor
 
-            //Setting up the renderer
+            // Setting up the renderer
             this.renderer = new PIXI.WebGLRenderer(width, height)
             el.appendChild(this.renderer.view)
+        
+            // Setting up event listeners
+            // TODO: Clear these or don't add them again if a new set of images is selected.
+            this.addZoom(this.el)
+            this.addPan(this.el)
         }
-
-        this.addZoom(this.el)
-
-        this.addPan(this.el)
 
         this.stage.removeChildren()
 
@@ -256,9 +302,18 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 let sprite = imcData.sprites[curMarker]
+                // Delete sprite filters so they get cleared from memory before adding new ones
+                sprite.filters = null
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
                 this.stage.addChild(sprite)
             }
+        }
+
+        if(segmentationData != null){
+            let sprite = segmentationData.segmentSprite
+            sprite.alpha = segmentationAlpha/10
+            this.stage.addChild(sprite)
+            this.drawSegmentCentroids(segmentationData)
         }
    
         this.renderer.render(this.rootContainer)
@@ -283,9 +338,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         
         let imcData = this.props.imageData
 
+        let segmentationData = this.props.segmentationData
+        let segmentationAlpha = this.props.segmentationAlpha
+
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha)}}
             />
         )
     }

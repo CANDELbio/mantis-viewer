@@ -44,6 +44,5 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
                 />
             </div>
         )
-
     }
 }
