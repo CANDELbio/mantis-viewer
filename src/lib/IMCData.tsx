@@ -176,6 +176,23 @@ export class IMCData {
       
     }
 */
+
+    meanPixelIntensity(chName:string, pixels:Array<number>):number {
+        if(chName in this.data) {
+            let chData = this.data[chName]
+            let sum = 0
+            let count = 0
+            for (let curPixel of pixels){
+                sum += chData[curPixel]
+                count += 1
+            }
+            return sum/count
+        }
+        else {
+            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString());
+        }
+    }
+
     constructor(path:string, inputType:IMCDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.minmax = {}

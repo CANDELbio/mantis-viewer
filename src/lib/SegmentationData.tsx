@@ -1,9 +1,5 @@
-import * as _ from "underscore"
 import * as fs from "fs"
-import * as path from "path"
 import * as PIXI from "pixi.js"
-import * as d3Scale from "d3-scale"
-import { TouchBarSegmentedControl } from "electron";
 
 const tiff = require("tiff")
 
@@ -28,8 +24,10 @@ export class SegmentationData {
     segmentSprite : PIXI.Sprite
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
     pixelMap:  {[key:string] : number}
-    // Mapping of a segmentId to pixel locations (x, y, index)
-    segmentMap: {[key:number] : Array<PixelLocation>}
+    // Mapping of a segmentId to pixel indices.
+    segmentIndexMap: {[key:number] : Array<number>}
+    // Mapping of a segmentId to pixel locations (x, y)
+    segmentLocationMap: {[key:number] : Array<PixelLocation>}
     // Mapping of segmentId to the pixel that represents the centroid
     centroidMap: {[key:number] :  PixelLocation} 
 
@@ -111,7 +109,8 @@ export class SegmentationData {
     // Generates the pixelMap (key of x_y to segmentId) and segmentMap (key of segmentId to an array of pixels contained in that segment)
     private static generateMaps(v: Float32Array | Uint16Array, width: number, height: number) {
         let pixelMap:{[key:string] : number} = {}
-        let segmentMap:{[key:number] :  Array<PixelLocation>} = {}
+        let segmentLocationMap:{[key:number] :  Array<PixelLocation>} = {}
+        let segmentIndexMap:{[key:number] :  Array<number>} = {}
         
         for(let i = 0; i < v.length; ++i) {
             let segmentId = v[i]
@@ -126,11 +125,17 @@ export class SegmentationData {
                 pixelMap[this.segmentMapKey(x, y)] = segmentId
 
                 let pixelLocation = {x: x, y: y}
-                if(!(segmentId in segmentMap)) segmentMap[segmentId] = []
-                segmentMap[segmentId].push(pixelLocation)
+
+                // Adding pixel xy to segmentLocationMap
+                if(!(segmentId in segmentLocationMap)) segmentLocationMap[segmentId] = []
+                segmentLocationMap[segmentId].push(pixelLocation)
+
+                // Adding pixel index to the segmentIndexMap
+                if(!(segmentId in segmentIndexMap)) segmentIndexMap[segmentId] = []
+                segmentIndexMap[segmentId].push(i)
             }
         }
-        return {pixelMap: pixelMap, segmentMap: segmentMap}
+        return {pixelMap: pixelMap, segmentLocationMap: segmentLocationMap, segmentIndexMap: segmentIndexMap}
     }
 
     // Calculates the centroid of a segment by taking the average of the coordinates of all of the pixels in that segment
@@ -166,11 +171,12 @@ export class SegmentationData {
         this.segmentSprite = new PIXI.Sprite(SegmentationData.segmentationTextureFromData(tiffData.data, tiffData.width, tiffData.height))
         
         // Generating the pixelMap and segmentMaps that represent the segementation data
-        let {pixelMap: pixelMap, segmentMap: segmentMap} = SegmentationData.generateMaps(tiffData.data, tiffData.width, tiffData.height)
+        let {pixelMap: pixelMap, segmentLocationMap: segmentLocationMap, segmentIndexMap:segmentIndexMap} = SegmentationData.generateMaps(tiffData.data, tiffData.width, tiffData.height)
         this.pixelMap = pixelMap
-        this.segmentMap = segmentMap
+        this.segmentLocationMap = segmentLocationMap
+        this.segmentIndexMap = segmentIndexMap
 
-        this.centroidMap = SegmentationData.calculateCentroids(segmentMap)
+        this.centroidMap = SegmentationData.calculateCentroids(segmentLocationMap)
     }
 
 

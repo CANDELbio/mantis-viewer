@@ -27,7 +27,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         this.props.store.setCurrentSelection(e)
     }
 
-    updatePlotData = () => this.props.store.updatePlotData()
+    // updatePlotData = () => this.props.store.updatePlotData()
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
 

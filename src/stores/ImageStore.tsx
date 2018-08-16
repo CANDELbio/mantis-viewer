@@ -1,20 +1,14 @@
 import { observable, 
     computed, 
-    action, 
-    autorun, 
-    createTransformer, 
-    ObservableMap } from "mobx"
-import { IMCData, IMCDataObject } from "../lib/IMCData"
+    action } from "mobx"
+import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData"
 import * as _ from "underscore"
-import * as d3 from "d3-array"
 import { ChannelName, 
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import { keepAlive, IDisposer } from "mobx-utils"
-import * as querystring from "querystring"
-import * as http from "http"
 
 export class ImageStore {
 
@@ -27,7 +21,6 @@ export class ImageStore {
     private canvasImageData:ImageData | null = null
     
     @observable.ref imageData: IMCData | null
-    @observable.ref plotData: IMCDataObject | null
 
     @observable.ref segmentationData: SegmentationData | null
 
@@ -89,13 +82,6 @@ export class ImageStore {
 
         console.log(idx)
         this.labelsLayers[idx].visible = !this.labelsLayers[idx].visible
-    }
-
-    @action updatePlotData() {
-        console.log("Updating plot data")
-        let data = this.selectedData.get()
-        if (data != null)
-            this.plotData = _.pick(data, this.selectedPlotChannels)
     }
 
     @action setCurrentSelection(extent: D3BrushExtent) {

@@ -5,6 +5,7 @@ import * as Mobx from 'mobx'
 import { ImageStore } from "./stores/ImageStore"
 const tiff = require("tiff")
 import * as fs from "fs"
+import { ScatterPlotData } from "./lib/ScatterPlotData"
 
 Mobx.useStrict(true)
 
@@ -33,9 +34,16 @@ plotWindow.on('closed', function () {
 })
 
 Mobx.autorun(() => {
-    let data = imageStore.plotData
-    if(plotWindow != null)
-        plotWindow.webContents.send("plotData", data)
+    let imcData = imageStore.imageData
+    let segmentationData = imageStore.segmentationData
+    let ch1 = imageStore.channelMarker.rChannel
+    let ch2 = imageStore.channelMarker.gChannel
+    if(plotWindow != null && imcData != null && segmentationData != null && ch1 != null && ch2 != null){
+        console.log("Generating plotData...")
+        let scatterPlotData = new ScatterPlotData(ch1, ch2, imcData, segmentationData)
+        console.log("Sending plotData...")
+        plotWindow.webContents.send("plotData", scatterPlotData)
+    }
 })
 
 electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string) => {
