@@ -11,6 +11,9 @@ interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
     selectedPlotChannels: string[]
     setSelectedPlotChannels: ((x: SelectOption[]) => void)
+    statisticSelectOptions: {value: string, label:string}[]
+    selectedStatistic: string
+    setSelectedStatistic: ((x: SelectOption) => void)
     scatterPlotData: ScatterPlotData | null
 }
 
@@ -23,6 +26,7 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
     }
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(x)
+    onStatisticSelect = (x: SelectOption) => this.props.setSelectedStatistic(x)
 
     mountPlot(el:HTMLElement | null) {
         if(el != null && this.props.scatterPlotData != null) {
@@ -43,8 +47,15 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
 
         // Clear the plot element if we don't have scatterPlot data.
         let scatterPlot = null
+        let statisticControls = null
         if (this.props.scatterPlotData != null) {
             scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
+            statisticControls = <Select
+                value = {this.props.selectedStatistic}
+                options = {this.props.statisticSelectOptions}
+                onChange = {this.onStatisticSelect}
+                clearable = {false}
+            />
         }
 
         return(
@@ -57,6 +68,7 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
                     multi = {true}
                 />
                 {scatterPlot}
+                {statisticControls}
             </div>
         )
     }

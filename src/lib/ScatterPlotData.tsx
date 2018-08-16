@@ -1,5 +1,6 @@
 import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData";
+import { PlotStatistic } from "../interfaces/UIDefinitions"
 
 interface Marker {
     size: number
@@ -16,6 +17,12 @@ interface ScatterPlotDatum {
 
 interface ScatterPlotLayout {
     title: string
+    xaxis: ScatterPlotAxis
+    yaxis: ScatterPlotAxis
+}
+
+interface ScatterPlotAxis {
+    title: string
 }
 
 export class ScatterPlotData {
@@ -25,17 +32,21 @@ export class ScatterPlotData {
     data: Array<ScatterPlotDatum>
     layout: ScatterPlotLayout
 
-    static calculateScatterPlotData(ch1: string, ch2: string, imcData:IMCData, segmentationData: SegmentationData){
+    static calculateScatterPlotData(ch1: string, ch2: string, imcData:IMCData, segmentationData: SegmentationData, plotStatistic: PlotStatistic){
         let scatterPlotData = new Array<ScatterPlotDatum>()
         let x = []
         let y = []
         let text = []
         for(let key in segmentationData.segmentIndexMap){
             let pixels = segmentationData.segmentIndexMap[key]
-            let ch1MeanIntensity = imcData.meanPixelIntensity(ch1, pixels)
-            let ch2MeanIntensity = imcData.meanPixelIntensity(ch2, pixels)
-            x.push(ch1MeanIntensity)
-            y.push(ch2MeanIntensity)
+            if(plotStatistic == "mean"){
+                x.push(imcData.meanPixelIntensity(ch1, pixels))
+                y.push(imcData.meanPixelIntensity(ch2, pixels))
+            } else if (plotStatistic == "median") {
+                x.push(imcData.medianPixelIntensity(ch1, pixels))
+                y.push(imcData.medianPixelIntensity(ch2, pixels))
+            }
+
             text.push("Segment " + key)
         }
         scatterPlotData.push({
@@ -49,11 +60,11 @@ export class ScatterPlotData {
         return scatterPlotData
     }
 
-    constructor(ch1: string, ch2: string, imcData:IMCData, segmentationData: SegmentationData) {
+    constructor(ch1: string, ch2: string, imcData:IMCData, segmentationData: SegmentationData, plotStatistic: PlotStatistic) {
         this.ch1 = ch1
         this.ch2 = ch2
-        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData)
-        this.layout = {title: ch1 + ' versus ' + ch2 }
+        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic)
+        this.layout = {title: ch1 + ' versus ' + ch2, xaxis: {title: ch1}, yaxis: {title: ch2}}
     }
 
 }

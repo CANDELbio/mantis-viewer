@@ -26,6 +26,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
     // updatePlotData = () => this.props.store.updatePlotData()
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
+    onPlotMetricSelect = (x: SelectOption) => this.props.store.setScatterPlotStatistic(x)
 
     getChannelMin = (s:ChannelName) => {
         let channelMarker = this.props.store.channelMarker[s]
@@ -101,16 +102,21 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     onButtonClick = {this.props.store.clearSegmentationData()}
                 />
 
+                let statisticOptions = [
+                    {label: "Median", value: "median"},
+                    {label: "Mean", value: "mean"}
+                ]
+
                 scatterPlot = <ScatterPlot 
                     channelSelectOptions = {channelSelectOptions}
                     selectedPlotChannels = {this.props.store.selectedPlotChannels}
                     setSelectedPlotChannels = {this.onPlotChannelSelect}
+                    statisticSelectOptions = {statisticOptions}
+                    selectedStatistic= {this.props.store.scatterPlotStatistic}
+                    setSelectedStatistic = {this.onPlotMetricSelect}
                     scatterPlotData = {this.props.store.scatterPlotData}
                 />
-            }
-
-
-            
+            } 
         }
      
         return(

@@ -85,7 +85,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             bChannel: blueFilter
         }
 
-        this.fixedWidth = 1000
+        this.fixedWidth = 675
         this.minScale = 1.0
     }
 
@@ -253,7 +253,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         for(let key in centroids){
             let centroid = centroids[key]
-            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 0.5 * this.minScale)
+            this.drawCross(graphics, centroid.x, centroid.y, 2, 0.5)
         }
         graphics.endFill()
         this.stage.addChild(graphics)
