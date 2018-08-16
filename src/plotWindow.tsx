@@ -20,7 +20,6 @@ ipc.on('plotData', (event: Electron.Event, scatterPlotData:ScatterPlotData) => {
 
         ReactDOM.render(
             <div>
-                <ScatterPlot scatterPlotData = {scatterPlotData} />
                 {/* <Histogram  data = {message} />
                 <CountourPlot data = {message} /> */}
             </div>,

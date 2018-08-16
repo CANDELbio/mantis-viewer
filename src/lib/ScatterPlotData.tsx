@@ -10,6 +10,7 @@ interface ScatterPlotDatum {
     y: number[]
     mode: string
     type: string
+    text: string[]
     marker: Marker
 }
 
@@ -28,18 +29,21 @@ export class ScatterPlotData {
         let scatterPlotData = new Array<ScatterPlotDatum>()
         let x = []
         let y = []
+        let text = []
         for(let key in segmentationData.segmentIndexMap){
             let pixels = segmentationData.segmentIndexMap[key]
             let ch1MeanIntensity = imcData.meanPixelIntensity(ch1, pixels)
             let ch2MeanIntensity = imcData.meanPixelIntensity(ch2, pixels)
             x.push(ch1MeanIntensity)
             y.push(ch2MeanIntensity)
+            text.push("Segment " + key)
         }
         scatterPlotData.push({
             x: x,
             y: y,
             mode: 'markers',
             type: 'scattergl',
+            text: text,
             marker: { size: 8 }
           })
         return scatterPlotData

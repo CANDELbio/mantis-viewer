@@ -253,7 +253,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         for(let key in centroids){
             let centroid = centroids[key]
-            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 1 * this.minScale)
+            this.drawCross(graphics, centroid.x * this.minScale, centroid.y * this.minScale, 2 * this.minScale, 0.5 * this.minScale)
         }
         graphics.endFill()
         this.stage.addChild(graphics)

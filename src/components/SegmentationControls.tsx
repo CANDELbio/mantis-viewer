@@ -23,7 +23,7 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
     render() {
         return(
             <div>
-                Selected segmentation file {this.props.segmentationPath}
+                <div>Selected segmentation file {this.props.segmentationPath}</div>
                 <Slider
                     value = {this.props.sliderValue}
                     onChange = {this.props.onSliderChange}

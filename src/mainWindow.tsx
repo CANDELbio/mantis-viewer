@@ -18,33 +18,33 @@ const imageStore = new ImageStore()
 
 
 //Set up the separate plotting window
-let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, height: 1200})
-
-
-plotWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'plotWindow.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
-
-plotWindow.webContents.openDevTools()
-
-plotWindow.on('closed', function () {
-    plotWindow = null
-})
-
-Mobx.autorun(() => {
-    let imcData = imageStore.imageData
-    let segmentationData = imageStore.segmentationData
-    let ch1 = imageStore.channelMarker.rChannel
-    let ch2 = imageStore.channelMarker.gChannel
-    if(plotWindow != null && imcData != null && segmentationData != null && ch1 != null && ch2 != null){
-        console.log("Generating plotData...")
-        let scatterPlotData = new ScatterPlotData(ch1, ch2, imcData, segmentationData)
-        console.log("Sending plotData...")
-        plotWindow.webContents.send("plotData", scatterPlotData)
-    }
-})
+// let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, height: 1200})
+//
+//
+// plotWindow.loadURL(url.format({
+//     pathname: path.join(__dirname, 'plotWindow.html'),
+//     protocol: 'file:',
+//     slashes: true
+//   }))
+//
+// plotWindow.webContents.openDevTools()
+//
+// plotWindow.on('closed', function () {
+//     plotWindow = null
+// })
+//
+// Mobx.autorun(() => {
+//     let imcData = imageStore.imageData
+//     let segmentationData = imageStore.segmentationData
+//     let ch1 = imageStore.channelMarker.rChannel
+//     let ch2 = imageStore.channelMarker.gChannel
+//     if(plotWindow != null && imcData != null && segmentationData != null && ch1 != null && ch2 != null){
+//         console.log("Generating plotData...")
+//         let scatterPlotData = new ScatterPlotData(ch1, ch2, imcData, segmentationData)
+//         console.log("Sending plotData...")
+//         plotWindow.webContents.send("plotData", scatterPlotData)
+//     }
+// })
 
 electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string) => {
     console.log(dirName)

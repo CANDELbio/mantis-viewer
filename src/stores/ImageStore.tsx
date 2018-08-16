@@ -3,6 +3,7 @@ import { observable,
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData"
+import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 import { ChannelName, 
     D3BrushExtent, 
@@ -24,12 +25,15 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
+    @observable.ref scatterPlotData: ScatterPlotData | null
+
     @observable.ref extraData: Uint8ClampedArray | null = null
 
     @observable selectedFile: string | null
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
+    
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [0, 100],
         gChannel: [0, 100],
@@ -154,6 +158,15 @@ export class ImageStore {
 
     @action setSelectedPlotChannels = (x: SelectOption[]) => {
         this.selectedPlotChannels = _.pluck(x, "value")
+        if(this.selectedPlotChannels.length == 2){
+            let ch1 = this.selectedPlotChannels[0]
+            let ch2 = this.selectedPlotChannels[1]
+            if(this.imageData != null && this.segmentationData != null){
+                this.scatterPlotData = new ScatterPlotData(ch1, ch2, this.imageData, this.segmentationData)
+            }
+        } else {
+            this.scatterPlotData = null
+        }
     }
 
     @action selectFile = (fName: string) => {

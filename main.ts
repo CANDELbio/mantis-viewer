@@ -54,7 +54,7 @@ let menuTemplate = [{
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1600, height: 1200})
+  mainWindow = new BrowserWindow({width: 2395, height: 1032})
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   
