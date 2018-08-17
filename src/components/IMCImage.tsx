@@ -43,6 +43,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
 
+    dragging: boolean
+    selecting:boolean
+
     constructor(props:IMCImageProps) {
         super(props)
 
@@ -87,6 +90,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         this.fixedWidth = 675
         this.minScale = 1.0
+
+        this.dragging = false
+        this.selecting = false
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -141,19 +147,21 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     addPan(el:HTMLDivElement) {
         let mouseDownX:number, mouseDownY:number
-        let dragging = false
 
         // On mousedown set dragging to true and save the mouse position where we started dragging
         el.addEventListener("mousedown", e => {
-            dragging = true
-            let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-            mouseDownX = pos.x
-            mouseDownY = pos.y
+            let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+            if(!altPressed){
+                this.dragging = true
+                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                mouseDownX = pos.x
+                mouseDownY = pos.y
+            }
         })
 
         // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
         el.addEventListener("mousemove", e => {
-            if(dragging){
+            if(this.dragging){
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 let dx = (pos.x - mouseDownX) * this.stage.scale.x
                 let dy = (pos.y - mouseDownY) * this.stage.scale.y
@@ -168,12 +176,58 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         // If the mouse is released stop dragging
         el.addEventListener('mouseup', e => {
-            dragging = false
+            if(this.dragging) { this.dragging = false }
         })
 
         // If the mouse exits the PIXI element stop dragging
         el.addEventListener('mouseout', e => {
-            dragging = false
+            if(this.dragging) { this.dragging = false }
+        })
+    }
+
+    addSelect(el:HTMLDivElement){
+        let selection:number[] = []
+        let selectingGraphics: PIXI.Graphics|null = null
+        // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
+        el.addEventListener("mousedown", e => {
+            let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+            if(altPressed){
+                this.selecting = true
+                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                selection.push(pos.x)
+                selection.push(pos.y)
+            }
+        })
+
+        // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
+        el.addEventListener("mousemove", e => {
+            if(this.selecting){
+                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                selection.push(pos.x)
+                selection.push(pos.y)
+
+                if(selectingGraphics != null){
+                    this.stage.removeChild(selectingGraphics)
+                    selectingGraphics.destroy()
+                }
+
+                selectingGraphics = new PIXI.Graphics()
+                selectingGraphics.beginFill(0xf1c40f)
+                selectingGraphics.drawPolygon(selection)
+                selectingGraphics.endFill()
+                selectingGraphics.alpha = 0.5
+                this.stage.addChild(selectingGraphics)
+                this.renderer.render(this.rootContainer)
+            }
+        })
+
+        // If the mouse is released stop selecting
+        el.addEventListener('mouseup', e => {
+            if(this.selecting){
+                selectingGraphics = null
+                this.selecting = false
+                selection = []
+            }
         })
     }
     
@@ -290,6 +344,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             // TODO: Clear these or don't add them again if a new set of images is selected.
             this.addZoom(this.el)
             this.addPan(this.el)
+            this.addSelect(this.el)
         }
 
         this.stage.removeChildren()
