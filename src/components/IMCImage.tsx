@@ -31,7 +31,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     el:HTMLDivElement | null = null
 
     renderer: PIXI.WebGLRenderer
-    rootContainer : PIXI.Container
+    rootContainer: PIXI.Container
     stage: PIXI.Container
 
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
@@ -43,8 +43,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
 
+    // Variables dealing with mouse movement. Either dragging dragging or selecting.
     dragging: boolean
-    selecting:boolean
+    selecting: boolean
+    // An array of Graphics containing polygons of selected regions
+    selected: Array<PIXI.Graphics>
 
     constructor(props:IMCImageProps) {
         super(props)
@@ -93,6 +96,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         this.dragging = false
         this.selecting = false
+        this.selected = new Array<PIXI.Graphics>()
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -224,6 +228,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
+                if(selectingGraphics != null) this.selected.push(selectingGraphics)
                 selectingGraphics = null
                 this.selecting = false
                 selection = []
@@ -364,11 +369,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             }
         }
 
+        // If we have segmentation data then draw the segmentation sprite and render the centroids.
         if(segmentationData != null){
             let sprite = segmentationData.segmentSprite
             sprite.alpha = segmentationAlpha/10
             this.stage.addChild(sprite)
             this.drawSegmentCentroids(segmentationData)
+        }
+
+        // Add the selected ROIs to the stage
+        for(let g of this.selected) {
+            this.stage.addChild(g)
         }
    
         this.renderer.render(this.rootContainer)
