@@ -13,7 +13,7 @@ interface RGBColorCollection {
     [key: string] : RGBColor
 }
 
-interface PixelLocation {
+export interface PixelLocation {
     x: number,
     y: number
 }

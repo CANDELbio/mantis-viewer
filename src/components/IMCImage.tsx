@@ -10,7 +10,7 @@ import { ChannelName } from "../interfaces/UIDefinitions"
 import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
-import { SegmentationData } from "../lib/SegmentationData";
+import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 
 export interface IMCImageProps {
 
@@ -42,6 +42,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     scaledHeight: number
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
+
+    segmentationData: SegmentationData | null
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     dragging: boolean
@@ -188,10 +190,38 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(this.dragging) { this.dragging = false }
         })
     }
+    
+    drawSelection(selection:number[]){
+        let selectionGraphics = new PIXI.Graphics()
+        selectionGraphics.beginFill(0xf1c40f)
+        selectionGraphics.drawPolygon(selection)
+        selectionGraphics.endFill()
+        selectionGraphics.alpha = 0.5
+        this.stage.addChild(selectionGraphics)
+        this.renderer.render(this.rootContainer)
+        return selectionGraphics
+    }
+
+    segmentsInSelection(selectionGraphics:PIXI.Graphics){
+        let selectedSegments = new Array<PixelLocation>()
+        if(this.segmentationData != null){
+            
+            for(let segment in this.segmentationData.centroidMap){
+                let centroid = this.segmentationData.centroidMap[segment]
+                let x = (centroid.x * this.stage.scale.x) + this.stage.position.x
+                let y = (centroid.y * this.stage.scale.y) + this.stage.position.y
+                let centridPoint = new PIXI.Point(x, y)
+                if(selectionGraphics.containsPoint(centridPoint)){
+                    selectedSegments.push(centroid)
+                }
+            } 
+        }
+        return selectedSegments
+    }
 
     addSelect(el:HTMLDivElement){
         let selection:number[] = []
-        let selectingGraphics: PIXI.Graphics|null = null
+        let selectionGraphics: PIXI.Graphics|null = null
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
@@ -210,26 +240,35 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                if(selectingGraphics != null){
-                    this.stage.removeChild(selectingGraphics)
-                    selectingGraphics.destroy()
+                if(selectionGraphics != null){
+                    this.stage.removeChild(selectionGraphics)
+                    selectionGraphics.destroy()
                 }
 
-                selectingGraphics = new PIXI.Graphics()
-                selectingGraphics.beginFill(0xf1c40f)
-                selectingGraphics.drawPolygon(selection)
-                selectingGraphics.endFill()
-                selectingGraphics.alpha = 0.5
-                this.stage.addChild(selectingGraphics)
-                this.renderer.render(this.rootContainer)
+                selectionGraphics = this.drawSelection(selection)
             }
         })
 
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                if(selectingGraphics != null) this.selected.push(selectingGraphics)
-                selectingGraphics = null
+                if(selectionGraphics != null) {
+                    this.selected.push(selectionGraphics)
+                    let selectedSegments = this.segmentsInSelection(selectionGraphics)
+                    console.log(selectedSegments)
+
+                    let graphics = new PIXI.Graphics()
+                    graphics.beginFill(0xe74c3c)
+    
+                    for(let centroid of selectedSegments){
+                        this.drawCross(graphics, centroid.x, centroid.y, 2, 0.5)
+                    }
+                    graphics.endFill()
+                    this.stage.addChild(graphics)
+                    this.renderer.render(this.rootContainer)
+                }
+
+                selectionGraphics = null
                 this.selecting = false
                 selection = []
             }
@@ -304,11 +343,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         ])
     }
 
-    drawSegmentCentroids(segmentationData: SegmentationData) {
+    drawSegmentCentroids(segmentationData: SegmentationData, color: number) {
         let graphics = new PIXI.Graphics()
         let centroids = segmentationData.centroidMap
 
-        graphics.beginFill(0xf1c40f)
+        graphics.beginFill(color)
 
         for(let key in centroids){
             let centroid = centroids[key]
@@ -371,10 +410,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         // If we have segmentation data then draw the segmentation sprite and render the centroids.
         if(segmentationData != null){
+            this.segmentationData = segmentationData
             let sprite = segmentationData.segmentSprite
             sprite.alpha = segmentationAlpha/10
             this.stage.addChild(sprite)
-            this.drawSegmentCentroids(segmentationData)
+            this.drawSegmentCentroids(segmentationData, 0xf1c40f) // fill yellowv
         }
 
         // Add the selected ROIs to the stage
