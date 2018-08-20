@@ -25,6 +25,12 @@ export interface IMCImageProps {
 
 }
 
+export interface IMCImageROI {
+    selectedRegionLayer: PIXI.Graphics
+    selectedCentroidsLayer: PIXI.Graphics
+}
+
+
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
@@ -49,7 +55,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     dragging: boolean
     selecting: boolean
     // An array of Graphics containing polygons of selected regions
-    selected: Array<PIXI.Graphics>
+    regionsOfInterest: Array<IMCImageROI>
 
     constructor(props:IMCImageProps) {
         super(props)
@@ -98,7 +104,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         this.dragging = false
         this.selecting = false
-        this.selected = new Array<PIXI.Graphics>()
+        this.regionsOfInterest = new Array<IMCImageROI>()
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -190,22 +196,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(this.dragging) { this.dragging = false }
         })
     }
-    
-    drawSelection(selection:number[]){
-        let selectionGraphics = new PIXI.Graphics()
-        selectionGraphics.beginFill(0xf1c40f)
+
+    drawSelectedArea(selectionGraphics:PIXI.Graphics, selection:number[], color:number, alpha: number){
+        selectionGraphics.beginFill(color)
         selectionGraphics.drawPolygon(selection)
         selectionGraphics.endFill()
-        selectionGraphics.alpha = 0.5
-        this.stage.addChild(selectionGraphics)
-        this.renderer.render(this.rootContainer)
-        return selectionGraphics
+        selectionGraphics.alpha = alpha
     }
 
     segmentsInSelection(selectionGraphics:PIXI.Graphics){
         let selectedSegments = new Array<PixelLocation>()
         if(this.segmentationData != null){
-            
             for(let segment in this.segmentationData.centroidMap){
                 let centroid = this.segmentationData.centroidMap[segment]
                 let x = (centroid.x * this.stage.scale.x) + this.stage.position.x
@@ -219,9 +220,34 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return selectedSegments
     }
 
+    drawSelectedCentroids(selectionGraphics:PIXI.Graphics, color: number){
+        let selectedSegments = this.segmentsInSelection(selectionGraphics)
+        let centroidGraphics = new PIXI.Graphics()
+        centroidGraphics.beginFill(color)
+        for(let centroid of selectedSegments){
+            this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
+        }
+        centroidGraphics.endFill()
+        this.stage.addChild(centroidGraphics)
+        this.renderer.render(this.rootContainer)
+        return centroidGraphics
+    }
+
+    drawSelection(selection:number[], color:number, alpha:number){
+        let selectionGraphics = new PIXI.Graphics()
+        this.drawSelectedArea(selectionGraphics, selection, color, alpha)
+        this.stage.addChild(selectionGraphics)
+        this.renderer.render(this.rootContainer)
+        return selectionGraphics
+    }
+
     addSelect(el:HTMLDivElement){
         let selection:number[] = []
+        // Graphics object storing the selected area
         let selectionGraphics: PIXI.Graphics|null = null
+        //Graphics object storing the selected centroids
+        let centroidGraphics: PIXI.Graphics|null = null
+
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
@@ -245,30 +271,24 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                     selectionGraphics.destroy()
                 }
 
-                selectionGraphics = this.drawSelection(selection)
+                selectionGraphics = this.drawSelection(selection, 0xf1c40f, 0.5)
+                centroidGraphics = this.drawSelectedCentroids(selectionGraphics, 0xffffff)
             }
         })
 
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                if(selectionGraphics != null) {
-                    this.selected.push(selectionGraphics)
-                    let selectedSegments = this.segmentsInSelection(selectionGraphics)
-                    console.log(selectedSegments)
-
-                    let graphics = new PIXI.Graphics()
-                    graphics.beginFill(0xe74c3c)
-    
-                    for(let centroid of selectedSegments){
-                        this.drawCross(graphics, centroid.x, centroid.y, 2, 0.5)
-                    }
-                    graphics.endFill()
-                    this.stage.addChild(graphics)
-                    this.renderer.render(this.rootContainer)
+                if(selectionGraphics != null && centroidGraphics != null) {
+                    // Add to the global collection of selected layers
+                    this.regionsOfInterest.push({
+                        selectedRegionLayer: selectionGraphics,
+                        selectedCentroidsLayer: centroidGraphics
+                    })
                 }
 
                 selectionGraphics = null
+                centroidGraphics  = null
                 this.selecting = false
                 selection = []
             }
@@ -357,6 +377,31 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.stage.addChild(graphics)
     }
 
+    initializeGraphics(imcData: IMCData){
+        if(this.el == null) return
+
+        // Setting up the scale factor to account for the fixed width
+        let scaleFactor = this.fixedWidth / imcData.width
+        let width = imcData.width * scaleFactor
+        let height = imcData.height * scaleFactor
+        this.minScale = scaleFactor
+        this.scaledHeight = height
+
+        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+        this.stage.scale.x = scaleFactor
+        this.stage.scale.y = scaleFactor
+
+        // Setting up the renderer
+        this.renderer = new PIXI.WebGLRenderer(width, height)
+        this.el.appendChild(this.renderer.view)
+
+        // Setting up event listeners
+        // TODO: Clear these or don't add them again if a new set of images is selected.
+        this.addZoom(this.el)
+        this.addPan(this.el)
+        this.addSelect(this.el)
+    }
+
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -369,26 +414,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.el = el
 
         if(!this.el.hasChildNodes()) {
-            // Setting up the scale factor to account for the fixed width
-            let scaleFactor = this.fixedWidth / imcData.width
-            let width = imcData.width * scaleFactor
-            let height = imcData.height * scaleFactor
-            this.minScale = scaleFactor
-            this.scaledHeight = height
-
-            // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
-            this.stage.scale.x = scaleFactor
-            this.stage.scale.y = scaleFactor
-
-            // Setting up the renderer
-            this.renderer = new PIXI.WebGLRenderer(width, height)
-            el.appendChild(this.renderer.view)
-        
-            // Setting up event listeners
-            // TODO: Clear these or don't add them again if a new set of images is selected.
-            this.addZoom(this.el)
-            this.addPan(this.el)
-            this.addSelect(this.el)
+            this.initializeGraphics(imcData)
         }
 
         this.stage.removeChildren()
@@ -418,8 +444,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         // Add the selected ROIs to the stage
-        for(let g of this.selected) {
-            this.stage.addChild(g)
+        for(let g of this.regionsOfInterest) {
+            this.stage.addChild(g.selectedRegionLayer)
+            this.stage.addChild(g.selectedCentroidsLayer)
         }
    
         this.renderer.render(this.rootContainer)

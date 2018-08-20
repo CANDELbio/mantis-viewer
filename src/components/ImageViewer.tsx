@@ -18,12 +18,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
     constructor(props: ImageViewerProps) {
         super(props)
     }
-    
-    onBrushEnd:BrushEventHandler = (e) => {
-        this.props.store.setCurrentSelection(e)
-    }
-
-    // updatePlotData = () => this.props.store.updatePlotData()
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
     onPlotMetricSelect = (x: SelectOption) => this.props.store.setScatterPlotStatistic(x)
@@ -75,7 +69,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {width}
                 canvasHeight = {height}
-                onBrushEnd = {this.onBrushEnd}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
                 labelsLayers = {this.props.store.labelsLayers}
             />

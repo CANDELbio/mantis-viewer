@@ -15,16 +15,12 @@ type ViewPortSpecificProps  = {
     labelsLayers: ImageStore["labelsLayers"]
 }
 
-type ViewPortProps = IMCImage.IMCImageProps & SelectionLayer.SelectionLayerProps & ViewPortSpecificProps
+type ViewPortProps = IMCImage.IMCImageProps & ViewPortSpecificProps
 
 
 
 @observer
 export class ViewPort extends React.Component<ViewPortProps, undefined> {
-    
-    onBrushEnd:BrushEventHandler = (e) => {
-        this.props.onBrushEnd(e)
-    }
 
     render() {
 
