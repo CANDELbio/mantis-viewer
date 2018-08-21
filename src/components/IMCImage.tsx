@@ -22,7 +22,9 @@ export interface IMCImageProps {
     canvasWidth: number
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
-    windowWidth: number | null
+    windowWidth: number | null,
+    regionsOfInterest: Array<IMCImageROI> | null,
+    addRegionOfInterest: ((region: IMCImageROI) => void)
 
 }
 
@@ -57,8 +59,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     dragging: boolean
     selecting: boolean
-    // An array of Graphics containing polygons of selected regions
-    regionsOfInterest: Array<IMCImageROI>
 
     constructor(props:IMCImageProps) {
         super(props)
@@ -107,10 +107,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         this.dragging = false
         this.selecting = false
-        this.regionsOfInterest = new Array<IMCImageROI>()
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
+    addRegionOfInterest = (region: IMCImageROI) => this.props.addRegionOfInterest(region)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -251,6 +251,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return selectionGraphics
     }
 
+    newROIName(){
+        if (this.props.regionsOfInterest == null) return "Selection 1"
+        return "Selection " + (this.props.regionsOfInterest.length + 1).toString()
+    }
+
     addSelect(el:HTMLDivElement){
         let selection:number[] = []
         // Graphics object storing the selected area
@@ -294,14 +299,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         el.addEventListener('mouseup', e => {
             if(this.selecting){
                 if(selectionGraphics != null && centroidGraphics != null && selectedCentroids != null) {
-                    // Add to the global collection of selected layers
-                    this.regionsOfInterest.push({
+                    let region = {
                         selectedRegionLayer: selectionGraphics,
                         selectedCentroidsLayer: centroidGraphics,
                         selectedCentroids: selectedCentroids,
-                        name: "Selection " + (this.regionsOfInterest.length + 1).toString,
+                        name: this.newROIName(),
                         notes: null
-                    })
+                    }
+                    // Add to the global collection of selected layers
+                    this.addRegionOfInterest(region)
                 }
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
@@ -448,6 +454,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
+        regionsOfInterest: Array<IMCImageROI> | null,
         windowWidth: number) {
 
         if(el == null)
@@ -489,9 +496,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         // Add the selected ROIs to the stage
-        for(let g of this.regionsOfInterest) {
-            this.stage.addChild(g.selectedRegionLayer)
-            this.stage.addChild(g.selectedCentroidsLayer)
+        if(regionsOfInterest != null) {
+            for(let g of regionsOfInterest) {
+                this.stage.addChild(g.selectedRegionLayer)
+                this.stage.addChild(g.selectedCentroidsLayer)
+            }
         }
 
         this.renderer.render(this.rootContainer)
@@ -519,6 +528,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let segmentationData = this.props.segmentationData
         let segmentationAlpha = this.props.segmentationAlpha
 
+        let rois = this.props.regionsOfInterest
+
         let renderWidth = 700
         if(this.props.windowWidth != null){
             // We need to set the render width smaller than the window width to account for the controls around it.
@@ -530,7 +541,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, renderWidth)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, rois, renderWidth)}}
             />
         )
     }

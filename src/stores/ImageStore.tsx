@@ -2,6 +2,7 @@ import { observable,
     computed, 
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
+import { IMCImageROI } from "../components/IMCIMage"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
@@ -28,6 +29,8 @@ export class ImageStore {
     @observable.ref imageData: IMCData | null
 
     @observable.ref segmentationData: SegmentationData | null
+
+    @observable.ref regionsOfInterest: Array<IMCImageROI> | null
 
     @observable.ref scatterPlotData: ScatterPlotData | null
     @observable.ref scatterPlotStatistic: PlotStatistic = "median"
@@ -133,6 +136,11 @@ export class ImageStore {
             this.selectedPlotChannels = []
             this.scatterPlotData = null
         })
+    }
+
+    @action addRegionOfInterest = (region: IMCImageROI) => {
+        if (this.regionsOfInterest == null) this.regionsOfInterest = new Array<IMCImageROI>()
+        this.regionsOfInterest.push(region)
     }
 
     @action setChannelDomain = (name: ChannelName) => {
