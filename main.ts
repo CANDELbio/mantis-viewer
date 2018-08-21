@@ -1,7 +1,5 @@
 import * as Electron from "electron"
-
-
-
+import * as _ from "underscore"
 
 const shell = Electron.shell
 const Menu = Electron.Menu
@@ -12,7 +10,6 @@ const app = Electron.app
 const BrowserWindow = Electron.BrowserWindow
 const dialog = Electron.dialog
 
-
 const path = require('path')
 const url = require('url')
 
@@ -20,7 +17,6 @@ const url = require('url')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null
-
 
 let menuTemplate = [{
   label: "File",
@@ -37,6 +33,7 @@ let menuTemplate = [{
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
         if(mainWindow != null && dirName != null)
           mainWindow.webContents.send("open-directory", dirName[0])
+          sendWindowSize()
       })
     }
   },
@@ -52,12 +49,22 @@ let menuTemplate = [{
 ]
 }]
 
+function sendWindowSize() {
+  if(mainWindow != null){
+    let dimensions = mainWindow.getSize()
+    mainWindow.webContents.send("window-size", dimensions[0], dimensions[1])
+  }
+}
+
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 2395, height: 1032})
+  mainWindow = new BrowserWindow({width: 1540, height: 740})
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   
+  // TODO: Set to 1280 x 720 when not using DevTools.
+  mainWindow.setMinimumSize(1540, 740)
+
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'app', 'mainWindow.html'),
@@ -67,6 +74,9 @@ function createWindow () {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
+
+  // Use throttle so that when we resize we only send the window size every 250 ms
+  mainWindow.on('resize', _.throttle(sendWindowSize, 250))
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

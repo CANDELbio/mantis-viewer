@@ -69,6 +69,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {width}
                 canvasHeight = {height}
+                windowWidth = {this.props.store.windowWidth}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
                 labelsLayers = {this.props.store.labelsLayers}
             />
@@ -84,6 +85,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     selectOptions = {channelSelectOptions}
                     selectValue = {this.props.store.channelMarker[s]}
                     onSelectChange = {this.props.store.setChannelMarker(s)}
+                    windowWidth = {this.props.store.windowWidth}
                 />
             )
 
@@ -116,11 +118,11 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
             <div>
                 <Grid fluid>
                     <Row>
-                        <Col lg={3}>
+                        <Col lg={2}>
                             {selectedData}
                             {channelControls}
                         </Col>
-                        <Col lg={6}>
+                        <Col lg={7}>
                             {viewPort}
                         </Col>
                         <Col lg={3}>

@@ -21,15 +21,18 @@ export interface IMCImageProps {
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
     canvasHeight: number 
-    onCanvasDataLoaded: ((data: ImageData) => void)
+    onCanvasDataLoaded: ((data: ImageData) => void),
+    windowWidth: number | null
 
 }
 
 export interface IMCImageROI {
     selectedRegionLayer: PIXI.Graphics
     selectedCentroidsLayer: PIXI.Graphics
+    selectedCentroids: PixelLocation[]
+    name: string | null
+    notes: string | null
 }
-
 
 @observer
 export class IMCImage extends React.Component<IMCImageProps, undefined> {
@@ -43,7 +46,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
     // The width at which the stage should be fixed.
-    fixedWidth: number
+    rendererWidth: number
     // The scaled height of the stage.
     scaledHeight: number
     // The minimum scale for zooming. Based on the fixed width/image width
@@ -99,7 +102,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             bChannel: blueFilter
         }
 
-        this.fixedWidth = 675
+        this.rendererWidth = 700
         this.minScale = 1.0
 
         this.dragging = false
@@ -110,18 +113,28 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
-    checkStageBounds() {
+    checkSetStageBounds() {
         // Not able to scroll past top left corner
         if(this.stage.position.x > 0) this.stage.position.x = 0
         if(this.stage.position.y > 0) this.stage.position.y = 0
 
         // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
-        let minX = this.fixedWidth - (this.props.imageData.width * this.stage.scale.x)
+        let minX = this.rendererWidth - (this.props.imageData.width * this.stage.scale.x)
         let minY = this.scaledHeight - (this.props.imageData.height * this.stage.scale.y)
 
         // Not able to scroll past the bottom right corner
         if(this.stage.position.x < minX) this.stage.position.x = minX
         if(this.stage.position.y < minY) this.stage.position.y = minY
+    }
+
+    checkSetMinScale(){
+        if (this.stage.scale.x < this.minScale && this.stage.scale.y < this.minScale) {
+            //Cant zoom out out past the minScale (where the stage fills the renderer)
+            this.stage.scale.x = this.minScale
+            this.stage.scale.y = this.minScale
+            return true
+        }
+        return false
     }
 
     zoom(isZoomIn:boolean) {
@@ -132,19 +145,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.stage.scale.x *= factor
         this.stage.scale.y *= factor
 
-        if (this.stage.scale.x < this.minScale && this.stage.scale.y < this.minScale) {
-            //Cant zoom out out past 1
-            this.stage.scale.x = this.minScale
-            this.stage.scale.y = this.minScale
-        } else {
-            //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
+        let atMinScale = this.checkSetMinScale()
+
+        //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
+        if (!atMinScale) {
             this.stage.updateTransform()
             let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
             this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
             this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
         }
-        this.checkStageBounds()
+        this.checkSetStageBounds()
         this.stage.updateTransform()
         this.renderer.render(this.rootContainer)
     }
@@ -180,7 +191,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
                 this.stage.position.x += dx
                 this.stage.position.y += dy
-                this.checkStageBounds()
+                this.checkSetStageBounds()
                 this.stage.updateTransform()
                 this.renderer.render(this.rootContainer)
             }
@@ -204,7 +215,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         selectionGraphics.alpha = alpha
     }
 
-    segmentsInSelection(selectionGraphics:PIXI.Graphics){
+    segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
         let selectedSegments = new Array<PixelLocation>()
         if(this.segmentationData != null){
             for(let segment in this.segmentationData.centroidMap){
@@ -220,11 +231,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return selectedSegments
     }
 
-    drawSelectedCentroids(selectionGraphics:PIXI.Graphics, color: number){
-        let selectedSegments = this.segmentsInSelection(selectionGraphics)
+    drawSelectedCentroids(selectedCentroids:PixelLocation[], color: number){
         let centroidGraphics = new PIXI.Graphics()
         centroidGraphics.beginFill(color)
-        for(let centroid of selectedSegments){
+        for(let centroid of selectedCentroids){
             this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
         }
         centroidGraphics.endFill()
@@ -245,8 +255,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let selection:number[] = []
         // Graphics object storing the selected area
         let selectionGraphics: PIXI.Graphics|null = null
+        // Array of PixelLocations of the selected centroids
+        let selectedCentroids: PixelLocation[]|null = null
         //Graphics object storing the selected centroids
         let centroidGraphics: PIXI.Graphics|null = null
+
 
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
@@ -272,23 +285,28 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 }
 
                 selectionGraphics = this.drawSelection(selection, 0xf1c40f, 0.5)
-                centroidGraphics = this.drawSelectedCentroids(selectionGraphics, 0xffffff)
+                selectedCentroids = this.segmentCentroidsInSelection(selectionGraphics)
+                centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
             }
         })
 
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                if(selectionGraphics != null && centroidGraphics != null) {
+                if(selectionGraphics != null && centroidGraphics != null && selectedCentroids != null) {
                     // Add to the global collection of selected layers
                     this.regionsOfInterest.push({
                         selectedRegionLayer: selectionGraphics,
-                        selectedCentroidsLayer: centroidGraphics
+                        selectedCentroidsLayer: centroidGraphics,
+                        selectedCentroids: selectedCentroids,
+                        name: "Selection " + (this.regionsOfInterest.length + 1).toString,
+                        notes: null
                     })
                 }
-
+                // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
                 centroidGraphics  = null
+                selectedCentroids = null
                 this.selecting = false
                 selection = []
             }
@@ -377,26 +395,48 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.stage.addChild(graphics)
     }
 
-    initializeGraphics(imcData: IMCData){
-        if(this.el == null) return
+    // Checks the stage scale factor and x,y position to make sure we aren't too zoomed out
+    // Or haven't moved the stage outside of the renderer bounds
+    checkScale(){
+        this.checkSetMinScale()
+        this.checkSetStageBounds()
+    }
 
+    setScaleFactors(imcData: IMCData){
         // Setting up the scale factor to account for the fixed width
-        let scaleFactor = this.fixedWidth / imcData.width
+        let scaleFactor = this.rendererWidth / imcData.width
         let width = imcData.width * scaleFactor
         let height = imcData.height * scaleFactor
         this.minScale = scaleFactor
         this.scaledHeight = height
+        this.checkScale()
+    }
 
-        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
-        this.stage.scale.x = scaleFactor
-        this.stage.scale.y = scaleFactor
+    // Resizes the WebGL Renderer and sets the new scale factors accordingly.
+    // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
+    // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
+    resizeGraphics(imcData: IMCData, windowWidth: number){
+        this.rendererWidth = windowWidth
+        this.setScaleFactors(imcData)
+        this.renderer.resize(this.rendererWidth, this.scaledHeight)
+    }
+
+    initializeGraphics(imcData: IMCData, windowWidth: number){
+        if(this.el == null) return
+
+        this.rendererWidth = windowWidth
+        this.setScaleFactors(imcData)
 
         // Setting up the renderer
-        this.renderer = new PIXI.WebGLRenderer(width, height)
+        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.scaledHeight)
         this.el.appendChild(this.renderer.view)
 
+        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+        this.stage.scale.x = this.minScale
+        this.stage.scale.y = this.minScale
+
         // Setting up event listeners
-        // TODO: Clear these or don't add them again if a new set of images is selected.
+        // TODO: Make sure these don't get added again if a new set of images is selected.
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
@@ -407,14 +447,19 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
-        segmentationAlpha: number) {
+        segmentationAlpha: number,
+        windowWidth: number) {
 
         if(el == null)
             return
         this.el = el
 
         if(!this.el.hasChildNodes()) {
-            this.initializeGraphics(imcData)
+            this.initializeGraphics(imcData, windowWidth)
+        }
+
+        if(this.rendererWidth != windowWidth){
+            this.resizeGraphics(imcData, windowWidth)
         }
 
         this.stage.removeChildren()
@@ -448,7 +493,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.stage.addChild(g.selectedRegionLayer)
             this.stage.addChild(g.selectedCentroidsLayer)
         }
-   
+
         this.renderer.render(this.rootContainer)
         
     }
@@ -474,9 +519,18 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let segmentationData = this.props.segmentationData
         let segmentationAlpha = this.props.segmentationAlpha
 
+        let renderWidth = 700
+        if(this.props.windowWidth != null){
+            // We need to set the render width smaller than the window width to account for the controls around it.
+            // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
+            // become larger as the window becomes larger
+            // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
+            renderWidth = (this.props.windowWidth/12) * 5.5
+        } 
+
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, renderWidth)}}
             />
         )
     }

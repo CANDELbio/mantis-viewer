@@ -21,6 +21,9 @@ export class ImageStore {
     }
 
     private canvasImageData:ImageData | null = null
+
+    @observable windowWidth: number | null
+    @observable windowHeight: number | null
     
     @observable.ref imageData: IMCData | null
 
@@ -82,6 +85,11 @@ export class ImageStore {
         }
         return (ret)
     })
+
+    @action setWindowDimensions = (width: number, height: number) => {
+        this.windowWidth = width
+        this.windowHeight = height
+    }
 
     @action toggleLayerVisibility = (idx: number) => {
         console.log(this.labelsLayers[idx].visible)

@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 const Select = require("react-select")
 
 export interface ChannelControlsProps {
-
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
@@ -15,6 +14,7 @@ export interface ChannelControlsProps {
     selectValue: string | null
     onSelectChange: ((x: {value:string, label:string}) => void)
 
+    windowWidth: number | null
 }
 
 @observer
@@ -25,6 +25,10 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
     }
 
     render() {
+        // TODO: Feels a bit hacky. Find a better solution.
+        // Dereferencing here so we re-render on resize
+        let windowWidth = this.props.windowWidth
+
         return(
             <div>
                 <Select

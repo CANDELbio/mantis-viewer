@@ -56,6 +56,10 @@ electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, fileNam
     imageStore.selectSegmentationFile(fileName)
 })
 
+electron.ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
+    imageStore.setWindowDimensions(width, height)
+})
+
 electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => {
     console.log(fileName)
     let input = fs.readFileSync(fileName)
@@ -63,7 +67,6 @@ electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => 
     console.log(image)
     imageStore.selectFile(fileName)
 })
-
 
 ReactDOM.render(
     <div>

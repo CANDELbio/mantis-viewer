@@ -34,7 +34,8 @@ export class PlotlyPlot extends React.Component<PlotlyPlotProps, undefined> {
                 return(ret)
                 
             })
-            Plotly.newPlot(el, plotData)
+            // Using react instead of newPlot as it's much more efficient when overwriting plots.
+            Plotly.react(el, plotData)
         }
 
     }
