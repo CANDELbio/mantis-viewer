@@ -11,6 +11,7 @@ import { quantile } from "../lib/utils"
 import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
+import * as Shortid from 'shortid'
 
 export interface IMCImageProps {
 
@@ -29,10 +30,11 @@ export interface IMCImageProps {
 }
 
 export interface IMCImageROI {
+    id: string
     selectedRegionLayer: PIXI.Graphics
     selectedCentroidsLayer: PIXI.Graphics
     selectedCentroids: PixelLocation[]
-    name: string | null
+    name: string
     notes: string | null
 }
 
@@ -300,6 +302,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             if(this.selecting){
                 if(selectionGraphics != null && centroidGraphics != null && selectedCentroids != null) {
                     let region = {
+                        id: Shortid.generate(),
                         selectedRegionLayer: selectionGraphics,
                         selectedCentroidsLayer: centroidGraphics,
                         selectedCentroids: selectedCentroids,

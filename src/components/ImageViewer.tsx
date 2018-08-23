@@ -8,15 +8,42 @@ import { ViewPort } from "../components/ViewPort"
 import { SelectedData } from "../components/SelectedData"
 import { SegmentationControls } from "../components/SegmentationControls"
 import { ScatterPlot } from "../components/ScatterPlot";
+import { SelectedRegions } from "../components/SelectedRegions";
+import { Button, Collapse } from "@blueprintjs/core"
+
 
 export interface ImageViewerProps { 
     store: ImageStore
 }
 
+interface ImageViewerState { 
+    channelsOpen: boolean,
+    regionsOpen: boolean,
+    segmentationOpen: boolean}
+
 @observer
-export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
+export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     constructor(props: ImageViewerProps) {
         super(props)
+    }
+
+    public state = {
+        channelsOpen: true,
+        regionsOpen: true,
+        segmentationOpen: false
+    }
+
+
+    handleChannelClick = () => {
+        this.setState({channelsOpen: !this.state.channelsOpen})
+    }
+
+    handleRegionsClick = () => {
+        this.setState({regionsOpen: !this.state.regionsOpen})
+    }
+
+    handleSegmentationClick = () => {
+        this.setState({segmentationOpen: !this.state.segmentationOpen})
     }
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
@@ -45,6 +72,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         let channelControls = null
         let scatterPlot = null
         let segmentationControls = null
+        let selectedRegions = null
 
         if(this.props.store.selectedFile || this.props.store.selectedDirectory) {
             selectedData = <SelectedData
@@ -113,6 +141,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     setSelectedStatistic = {this.onPlotMetricSelect}
                     scatterPlotData = {this.props.store.scatterPlotData}
                 />
+
+                if (this.props.store.regionsOfInterest != null){
+                    selectedRegions = <SelectedRegions
+                        regions = {this.props.store.regionsOfInterest}
+                        updateName = {this.props.store.updateRegionOfInterestName}
+                        updateNotes = {this.props.store.updateRegionOfInterestNotes}
+                        deleteRegion = {this.props.store.deleteRegionOfInterest}
+                        />
+                }
             } 
         }
      
@@ -122,14 +159,30 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     <Row>
                         <Col lg={2}>
                             {selectedData}
-                            {channelControls}
+                            <Button onClick={this.handleChannelClick}>
+                                {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
+                            </Button>
+                            <Collapse isOpen={this.state.channelsOpen}>
+                                {channelControls}
+                            </Collapse>
                         </Col>
                         <Col lg={7}>
                             {viewPort}
                         </Col>
                         <Col lg={3}>
-                            {segmentationControls}
-                            {scatterPlot}
+                            <Button onClick={this.handleRegionsClick}>
+                                {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions
+                            </Button>
+                            <Collapse isOpen={this.state.regionsOpen}>
+                                {selectedRegions}
+                            </Collapse>
+                            <Button onClick={this.handleSegmentationClick}>
+                                {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
+                            </Button>
+                            <Collapse isOpen={this.state.segmentationOpen}>
+                                {segmentationControls}
+                                {scatterPlot}
+                            </Collapse>
                         </Col>
                     </Row>
                 </Grid>

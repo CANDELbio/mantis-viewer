@@ -32,6 +32,7 @@
         "./src/components/LabelLayerView.tsx",
         "./src/components/LayerTable.tsx",
         "./src/components/SegmentationControls.tsx",
-        "./src/components/ScatterPlot.tsx"
+        "./src/components/ScatterPlot.tsx",
+        "./src/components/SelectedRegions.tsx"
     ]
 }

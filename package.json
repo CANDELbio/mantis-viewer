@@ -42,6 +42,8 @@
     "@types/pixi.js": "^4.7.5",
     "@types/react": "^15.0.14",
     "@types/react-dom": "^0.14.23",
+    "@types/react-select": "^1.0.45",
+    "@types/shortid": "0.0.29",
     "@types/underscore": "^1.8.0",
     "css-loader": "^0.27.3",
     "cwise": "^1.0.10",
@@ -56,7 +58,6 @@
   "dependencies": {
     "@blueprintjs/core": "^1.11.1",
     "@blueprintjs/table": "^1.19.0",
-    "@types/react-select": "^1.0.45",
     "d3-array": "^1.1.1",
     "d3-brush": "^1.0.4",
     "d3-scale": "^1.0.5",
@@ -71,6 +72,7 @@
     "react-dom": "^15.4.2",
     "react-flexbox-grid": "^1.0.2",
     "react-select": "^1.0.0-rc.3",
+    "shortid": "^2.2.13",
     "tiff": "^3.0.0",
     "underscore": "^1.8.3"
   }

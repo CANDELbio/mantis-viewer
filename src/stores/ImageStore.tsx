@@ -30,7 +30,7 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    @observable.ref regionsOfInterest: Array<IMCImageROI> | null
+    @observable regionsOfInterest: Array<IMCImageROI> | null
 
     @observable.ref scatterPlotData: ScatterPlotData | null
     @observable.ref scatterPlotStatistic: PlotStatistic = "median"
@@ -141,6 +141,40 @@ export class ImageStore {
     @action addRegionOfInterest = (region: IMCImageROI) => {
         if (this.regionsOfInterest == null) this.regionsOfInterest = new Array<IMCImageROI>()
         this.regionsOfInterest.push(region)
+    }
+
+    @action deleteRegionOfInterest = (id: string) => {
+        if(this.regionsOfInterest != null){
+            this.regionsOfInterest = this.regionsOfInterest.filter(region => region.id != id);
+        }
+    }
+
+    @action updateRegionOfInterestName = (id: string, newName:string) => {
+        if(this.regionsOfInterest != null){
+            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
+                if(region.id == id){
+                    region.name = newName
+                    return region
+                }
+                else {
+                    return region
+                }
+            })
+        }
+    }
+
+    @action updateRegionOfInterestNotes = (id: string, newNotes:string) => {
+        if(this.regionsOfInterest != null){
+            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
+                if(region.id == id){
+                    region.notes = newNotes
+                    return region
+                }
+                else {
+                    return region
+                }
+            })
+        }
     }
 
     @action setChannelDomain = (name: ChannelName) => {
