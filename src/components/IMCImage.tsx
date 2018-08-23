@@ -32,8 +32,8 @@ export interface IMCImageProps {
 export interface IMCImageROI {
     id: string
     selectedRegionLayer: PIXI.Graphics
-    selectedCentroidsLayer: PIXI.Graphics
-    selectedCentroids: PixelLocation[]
+    selectedCentroidsLayer: PIXI.Graphics | null
+    selectedCentroids: PixelLocation[] | null
     name: string
     notes: string | null
 }
@@ -218,8 +218,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
-        let selectedSegments = new Array<PixelLocation>()
         if(this.segmentationData != null){
+            let selectedSegments = new Array<PixelLocation>()
             for(let segment in this.segmentationData.centroidMap){
                 let centroid = this.segmentationData.centroidMap[segment]
                 let x = (centroid.x * this.stage.scale.x) + this.stage.position.x
@@ -229,20 +229,26 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                     selectedSegments.push(centroid)
                 }
             } 
+            return selectedSegments
+        } else {
+            return null
         }
-        return selectedSegments
     }
 
-    drawSelectedCentroids(selectedCentroids:PixelLocation[], color: number){
-        let centroidGraphics = new PIXI.Graphics()
-        centroidGraphics.beginFill(color)
-        for(let centroid of selectedCentroids){
-            this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
+    drawSelectedCentroids(selectedCentroids:PixelLocation[]|null, color: number){
+        if (selectedCentroids!=null) {
+            let centroidGraphics = new PIXI.Graphics()
+            centroidGraphics.beginFill(color)
+            for(let centroid of selectedCentroids){
+                this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
+            }
+            centroidGraphics.endFill()
+            this.stage.addChild(centroidGraphics)
+            this.renderer.render(this.rootContainer)
+            return centroidGraphics
+        } else {
+            return null
         }
-        centroidGraphics.endFill()
-        this.stage.addChild(centroidGraphics)
-        this.renderer.render(this.rootContainer)
-        return centroidGraphics
     }
 
     drawSelection(selection:number[], color:number, alpha:number){
@@ -300,7 +306,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                if(selectionGraphics != null && centroidGraphics != null && selectedCentroids != null) {
+                if(selectionGraphics != null) {
                     let region = {
                         id: Shortid.generate(),
                         selectedRegionLayer: selectionGraphics,
@@ -502,7 +508,16 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         if(regionsOfInterest != null) {
             for(let g of regionsOfInterest) {
                 this.stage.addChild(g.selectedRegionLayer)
-                this.stage.addChild(g.selectedCentroidsLayer)
+                // Calculated selected centroids/regions
+                // If this region of interest doesn't have any selected centroid data saved
+                // (i.e. segementation data wasn't loaded when selected)
+                if(g.selectedCentroids == null && segmentationData!= null) {
+                    let selectedCentroids = this.segmentCentroidsInSelection(g.selectedRegionLayer)
+                    g.selectedCentroidsLayer = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+                }
+                if(g.selectedCentroidsLayer != null) {
+                    this.stage.addChild(g.selectedCentroidsLayer)
+                }
             }
         }
 

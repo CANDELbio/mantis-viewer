@@ -141,16 +141,17 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                     setSelectedStatistic = {this.onPlotMetricSelect}
                     scatterPlotData = {this.props.store.scatterPlotData}
                 />
+            }
 
-                if (this.props.store.regionsOfInterest != null){
-                    selectedRegions = <SelectedRegions
-                        regions = {this.props.store.regionsOfInterest}
-                        updateName = {this.props.store.updateRegionOfInterestName}
-                        updateNotes = {this.props.store.updateRegionOfInterestNotes}
-                        deleteRegion = {this.props.store.deleteRegionOfInterest}
-                        />
-                }
-            } 
+            if (this.props.store.regionsOfInterest != null){
+                selectedRegions = <SelectedRegions
+                    regions = {this.props.store.regionsOfInterest}
+                    updateName = {this.props.store.updateRegionOfInterestName}
+                    updateNotes = {this.props.store.updateRegionOfInterestNotes}
+                    deleteRegion = {this.props.store.deleteRegionOfInterest}
+                    />
+            }
+
         }
      
         return(
