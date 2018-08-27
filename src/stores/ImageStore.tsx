@@ -32,8 +32,8 @@ export class ImageStore {
 
     @observable regionsOfInterest: Array<IMCImageROI> | null
 
-    @observable.ref scatterPlotData: ScatterPlotData | null
-    @observable.ref scatterPlotStatistic: PlotStatistic = "median"
+    @observable scatterPlotData: ScatterPlotData | null
+    @observable scatterPlotStatistic: PlotStatistic = "median"
 
     @observable.ref extraData: Uint8ClampedArray | null = null
 
@@ -141,11 +141,13 @@ export class ImageStore {
     @action addRegionOfInterest = (region: IMCImageROI) => {
         if (this.regionsOfInterest == null) this.regionsOfInterest = new Array<IMCImageROI>()
         this.regionsOfInterest.push(region)
+        this.refreshScatterPlotData()
     }
 
     @action deleteRegionOfInterest = (id: string) => {
         if(this.regionsOfInterest != null){
             this.regionsOfInterest = this.regionsOfInterest.filter(region => region.id != id);
+            this.refreshScatterPlotData()
         }
     }
 
@@ -160,6 +162,7 @@ export class ImageStore {
                     return region
                 }
             })
+            this.refreshScatterPlotData()
         }
     }
 
@@ -215,7 +218,13 @@ export class ImageStore {
             let ch1 = this.selectedPlotChannels[0]
             let ch2 = this.selectedPlotChannels[1]
             if(this.imageData != null && this.segmentationData != null){
-                this.scatterPlotData = new ScatterPlotData(ch1, ch2, this.imageData, this.segmentationData, this.scatterPlotStatistic)
+                this.scatterPlotData = new ScatterPlotData(ch1,
+                    ch2,
+                    this.imageData,
+                    this.segmentationData,
+                    this.scatterPlotStatistic,
+                    this.regionsOfInterest
+                )
             }
         } else {
             this.scatterPlotData = null

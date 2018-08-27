@@ -2,6 +2,7 @@ import * as React from "react"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
+import { observer } from "mobx-react"
 
 
 let Plotly = require("../lib/plotly-latest.min")
@@ -17,6 +18,7 @@ interface ScatterPlotProps {
     scatterPlotData: ScatterPlotData | null
 }
 
+@observer
 export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
     
     channelSelectOptions: {value: string, label:string}[]
@@ -30,7 +32,7 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
 
     mountPlot(el:HTMLElement | null) {
         if(el != null && this.props.scatterPlotData != null) {
-            Plotly.newPlot(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
+            Plotly.react(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
         }
     }
 

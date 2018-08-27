@@ -143,15 +143,12 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 />
             }
 
-            if (this.props.store.regionsOfInterest != null){
-                selectedRegions = <SelectedRegions
-                    regions = {this.props.store.regionsOfInterest}
-                    updateName = {this.props.store.updateRegionOfInterestName}
-                    updateNotes = {this.props.store.updateRegionOfInterestNotes}
-                    deleteRegion = {this.props.store.deleteRegionOfInterest}
-                    />
-            }
-
+            selectedRegions = <SelectedRegions
+                regions = {this.props.store.regionsOfInterest}
+                updateName = {this.props.store.updateRegionOfInterestName}
+                updateNotes = {this.props.store.updateRegionOfInterestNotes}
+                deleteRegion = {this.props.store.deleteRegionOfInterest}
+                />
         }
      
         return(
@@ -167,10 +164,10 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                                 {channelControls}
                             </Collapse>
                         </Col>
-                        <Col lg={7}>
+                        <Col lg={6}>
                             {viewPort}
                         </Col>
-                        <Col lg={3}>
+                        <Col lg={4}>
                             <Button onClick={this.handleRegionsClick}>
                                 {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions
                             </Button>

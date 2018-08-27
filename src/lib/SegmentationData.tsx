@@ -23,13 +23,13 @@ export class SegmentationData {
     height: number
     segmentSprite : PIXI.Sprite
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
-    pixelMap:  {[key:string] : number}
+    pixelMap: {[key:string] : number}
     // Mapping of a segmentId to pixel indices.
     segmentIndexMap: {[key:number] : Array<number>}
     // Mapping of a segmentId to pixel locations (x, y)
     segmentLocationMap: {[key:number] : Array<PixelLocation>}
     // Mapping of segmentId to the pixel that represents the centroid
-    centroidMap: {[key:number] :  PixelLocation} 
+    centroidMap: {[key:number] : PixelLocation}
 
     private static getPixelColor(segmentId:number, colors: RGBColorCollection){
         if(!(segmentId in colors)){
@@ -109,8 +109,8 @@ export class SegmentationData {
     // Generates the pixelMap (key of x_y to segmentId) and segmentMap (key of segmentId to an array of pixels contained in that segment)
     private static generateMaps(v: Float32Array | Uint16Array, width: number, height: number) {
         let pixelMap:{[key:string] : number} = {}
-        let segmentLocationMap:{[key:number] :  Array<PixelLocation>} = {}
-        let segmentIndexMap:{[key:number] :  Array<number>} = {}
+        let segmentLocationMap:{[key:number] : Array<PixelLocation>} = {}
+        let segmentIndexMap:{[key:number] : Array<number>} = {}
         
         for(let i = 0; i < v.length; ++i) {
             let segmentId = v[i]
@@ -140,7 +140,7 @@ export class SegmentationData {
 
     // Calculates the centroid of a segment by taking the average of the coordinates of all of the pixels in that segment
     private static calculateCentroids(segmentMap: {[key:number] : Array<PixelLocation>}) {
-        let centroidMap:{[key:number] :  PixelLocation} = {}
+        let centroidMap:{[key:number] : PixelLocation} = {}
 
         for(let segmentId in segmentMap){
             let xSum = 0

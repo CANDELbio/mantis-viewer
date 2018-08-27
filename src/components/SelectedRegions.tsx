@@ -4,7 +4,7 @@ import { EditableText, Button } from "@blueprintjs/core"
 import { observer } from "mobx-react"
 
 interface SelectedDataProps {
-    regions: Array<IMCImageROI>
+    regions: Array<IMCImageROI>|null
     updateName: ((id: string, name: string) => void)
     updateNotes: ((id: string, notes: string) => void)
     deleteRegion: ((id: string) => void)
@@ -47,8 +47,23 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
         }
     }
 
-    render() {
+    regionRows() {
         let regions = this.props.regions
+        if(regions!= null){
+            return regions.map((region) => {
+                return <this.TableRowItem
+                    key={region.id}
+                    region={region}
+                    updateName={this.props.updateName}
+                    updateNotes={this.props.updateNotes}
+                    deleteRegion={this.props.deleteRegion}
+                />
+                })
+            }
+        return null
+    }
+
+    render() {
         return(
             <div>
                 Selected Regions:
@@ -58,16 +73,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
                         <th>Notes</th> 
                         <th></th>
                     </tr>
-                    { regions.map((region) => {
-                        return <this.TableRowItem 
-                            key={region.id}
-                            region={region}
-                            updateName={this.props.updateName}
-                            updateNotes={this.props.updateNotes}
-                            deleteRegion={this.props.deleteRegion}
-                        />
-                        })
-                    }
+                    { this.regionRows() }
                 </tbody></table>
             </div>
         )

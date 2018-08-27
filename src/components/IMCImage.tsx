@@ -33,7 +33,8 @@ export interface IMCImageROI {
     id: string
     selectedRegionLayer: PIXI.Graphics
     selectedCentroidsLayer: PIXI.Graphics | null
-    selectedCentroids: PixelLocation[] | null
+    // A map of segment numbers to pixel locations of the centroids for the selected segments/centroids.
+    selectedCentroids: {[key:number] : PixelLocation} | null
     name: string
     notes: string | null
 }
@@ -219,14 +220,14 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
         if(this.segmentationData != null){
-            let selectedSegments = new Array<PixelLocation>()
+            let selectedSegments:{[key:number] : PixelLocation}  = {}
             for(let segment in this.segmentationData.centroidMap){
                 let centroid = this.segmentationData.centroidMap[segment]
                 let x = (centroid.x * this.stage.scale.x) + this.stage.position.x
                 let y = (centroid.y * this.stage.scale.y) + this.stage.position.y
                 let centridPoint = new PIXI.Point(x, y)
                 if(selectionGraphics.containsPoint(centridPoint)){
-                    selectedSegments.push(centroid)
+                    selectedSegments[segment] = centroid
                 }
             } 
             return selectedSegments
@@ -235,11 +236,12 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    drawSelectedCentroids(selectedCentroids:PixelLocation[]|null, color: number){
+    drawSelectedCentroids(selectedCentroids:{[key:number] : PixelLocation}|null, color: number){
         if (selectedCentroids!=null) {
             let centroidGraphics = new PIXI.Graphics()
             centroidGraphics.beginFill(color)
-            for(let centroid of selectedCentroids){
+            for(let segment in selectedCentroids){
+                let centroid = selectedCentroids[segment]
                 this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
             }
             centroidGraphics.endFill()
@@ -269,7 +271,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // Graphics object storing the selected area
         let selectionGraphics: PIXI.Graphics|null = null
         // Array of PixelLocations of the selected centroids
-        let selectedCentroids: PixelLocation[]|null = null
+        let selectedCentroids: {[key:number] : PixelLocation}|null = null
         //Graphics object storing the selected centroids
         let centroidGraphics: PIXI.Graphics|null = null
 
@@ -554,7 +556,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
             // become larger as the window becomes larger
             // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/12) * 5.5
+            renderWidth = (this.props.windowWidth/12) * 4.75
         } 
 
         return(
