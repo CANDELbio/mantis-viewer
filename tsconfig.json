@@ -31,6 +31,7 @@
         "./src/components/ViewPort.tsx",
         "./src/components/LabelLayerView.tsx",
         "./src/components/LayerTable.tsx",
-        "./src/components/SegmentationControls.tsx"
+        "./src/components/SegmentationControls.tsx",
+        "./src/components/ScatterPlot.tsx"
     ]
 }

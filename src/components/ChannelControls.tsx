@@ -3,7 +3,6 @@ import { RangeSlider } from "@blueprintjs/core"
 import { observer } from "mobx-react"
 const Select = require("react-select")
 
-
 export interface ChannelControlsProps {
 
     sliderMin: number

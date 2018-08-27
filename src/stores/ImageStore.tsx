@@ -1,20 +1,16 @@
 import { observable, 
     computed, 
-    action, 
-    autorun, 
-    createTransformer, 
-    ObservableMap } from "mobx"
-import { IMCData, IMCDataObject } from "../lib/IMCData"
+    action } from "mobx"
+import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData"
+import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
-import * as d3 from "d3-array"
-import { ChannelName, 
+import { ChannelName,
+    PlotStatistic, 
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import { keepAlive, IDisposer } from "mobx-utils"
-import * as querystring from "querystring"
-import * as http from "http"
 
 export class ImageStore {
 
@@ -27,9 +23,11 @@ export class ImageStore {
     private canvasImageData:ImageData | null = null
     
     @observable.ref imageData: IMCData | null
-    @observable.ref plotData: IMCDataObject | null
 
     @observable.ref segmentationData: SegmentationData | null
+
+    @observable.ref scatterPlotData: ScatterPlotData | null
+    @observable.ref scatterPlotStatistic: PlotStatistic = "median"
 
     @observable.ref extraData: Uint8ClampedArray | null = null
 
@@ -37,6 +35,7 @@ export class ImageStore {
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
     @observable.ref selectedPlotChannels: string[] = []
+    
     @observable channelDomain: Record<ChannelName, [number, number]> = {
         rChannel: [0, 100],
         gChannel: [0, 100],
@@ -91,13 +90,6 @@ export class ImageStore {
         this.labelsLayers[idx].visible = !this.labelsLayers[idx].visible
     }
 
-    @action updatePlotData() {
-        console.log("Updating plot data")
-        let data = this.selectedData.get()
-        if (data != null)
-            this.plotData = _.pick(data, this.selectedPlotChannels)
-    }
-
     @action setCurrentSelection(extent: D3BrushExtent) {
         this.currentSelection = {
             x: [extent[0][0], extent[1][0]],
@@ -130,6 +122,8 @@ export class ImageStore {
             this.selectedSegmentationFile = null
             this.segmentationData = null
             this.segmentationAlpha = 5
+            this.selectedPlotChannels = []
+            this.scatterPlotData = null
         })
     }
 
@@ -166,9 +160,29 @@ export class ImageStore {
         })
     }
 
+    @action refreshScatterPlotData = () => {
+        if(this.selectedPlotChannels.length == 2){
+            let ch1 = this.selectedPlotChannels[0]
+            let ch2 = this.selectedPlotChannels[1]
+            if(this.imageData != null && this.segmentationData != null){
+                this.scatterPlotData = new ScatterPlotData(ch1, ch2, this.imageData, this.segmentationData, this.scatterPlotStatistic)
+            }
+        } else {
+            this.scatterPlotData = null
+        }
+    }
+
     @action setSelectedPlotChannels = (x: SelectOption[]) => {
         this.selectedPlotChannels = _.pluck(x, "value")
+        this.refreshScatterPlotData()
     }
+
+    @action setScatterPlotStatistic = (x: SelectOption) => {
+        if (x != null){
+            this.scatterPlotStatistic = x.value as PlotStatistic
+            this.refreshScatterPlotData()
+        }
+    }    
 
     @action selectFile = (fName: string) => {
         this.selectedFile = fName

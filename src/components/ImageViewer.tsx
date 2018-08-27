@@ -1,17 +1,13 @@
 import * as React from "react"
-import { RangeSlider } from "@blueprintjs/core"
-import { Button } from "@blueprintjs/core"
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
-import { IMCImage } from "../components/IMCImage"
 import { observer } from "mobx-react"
 import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
 import { ViewPort } from "../components/ViewPort"
-import { LayerTable } from "../components/LayerTable"
 import { SelectedData } from "../components/SelectedData"
 import { SegmentationControls } from "../components/SegmentationControls"
-const Select = require("react-select")
+import { ScatterPlot } from "../components/ScatterPlot";
 
 export interface ImageViewerProps { 
     store: ImageStore
@@ -27,9 +23,10 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         this.props.store.setCurrentSelection(e)
     }
 
-    updatePlotData = () => this.props.store.updatePlotData()
+    // updatePlotData = () => this.props.store.updatePlotData()
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
+    onPlotMetricSelect = (x: SelectOption) => this.props.store.setScatterPlotStatistic(x)
 
     getChannelMin = (s:ChannelName) => {
         let channelMarker = this.props.store.channelMarker[s]
@@ -52,8 +49,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
 
         let selectedData = null
         let channelControls = null
-        let plotChannelSelect = null
-        let histogram = null
+        let scatterPlot = null
         let segmentationControls = null
 
         if(this.props.store.selectedFile || this.props.store.selectedDirectory) {
@@ -64,13 +60,12 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
         }
 
         if(this.props.store.imageData != null) {
-  
-            let channelSelectOptions =  this.props.store.imageData.channelNames.map((s) => {
-                    return({value: s, label: s})
-            })
-
             let width = this.props.store.imageData.width
             let height = this.props.store.imageData.height
+
+            let channelSelectOptions =  this.props.store.imageData.channelNames.map((s) => {
+                return({value: s, label: s})
+            })
                 
             viewPort = <ViewPort 
                 imageData = {this.props.store.imageData}
@@ -106,43 +101,38 @@ export class ImageViewer extends React.Component<ImageViewerProps, undefined> {
                     onSliderChange = {this.props.store.setSegmentationSliderValue()}
                     onButtonClick = {this.props.store.clearSegmentationData()}
                 />
-            }
-            
-            plotChannelSelect = 
-                <Select
-                    value = {this.props.store.selectedPlotChannels}
-                    options = {channelSelectOptions}
-                    onChange = {this.onPlotChannelSelect}
-                    multi = {true}
+
+                let statisticOptions = [
+                    {label: "Median", value: "median"},
+                    {label: "Mean", value: "mean"}
+                ]
+
+                scatterPlot = <ScatterPlot 
+                    channelSelectOptions = {channelSelectOptions}
+                    selectedPlotChannels = {this.props.store.selectedPlotChannels}
+                    setSelectedPlotChannels = {this.onPlotChannelSelect}
+                    statisticSelectOptions = {statisticOptions}
+                    selectedStatistic= {this.props.store.scatterPlotStatistic}
+                    setSelectedStatistic = {this.onPlotMetricSelect}
+                    scatterPlotData = {this.props.store.scatterPlotData}
                 />
+            } 
         }
      
         return(
             <div>
                 <Grid fluid>
-                    {selectedData}
                     <Row>
                         <Col lg={3}>
+                            {selectedData}
                             {channelControls}
-                            
-                            {segmentationControls}
-
-                            {/* {plotChannelSelect}
-                            <Button
-                                text = {"Plot"}
-                                onClick = {this.updatePlotData}
-                            />
-                            <Button
-                                text = {"Segment"}
-                                onClick = {this.props.store.doSegmentation}
-                            />
-                            <LayerTable 
-                                data = {this.props.store.labelsLayers}
-                                onToggleLayerVisbile = {this.props.store.toggleLayerVisibility}
-                            /> */}
                         </Col>
-                        <Col lg={9}>
+                        <Col lg={6}>
                             {viewPort}
+                        </Col>
+                        <Col lg={3}>
+                            {segmentationControls}
+                            {scatterPlot}
                         </Col>
                     </Row>
                 </Grid>
