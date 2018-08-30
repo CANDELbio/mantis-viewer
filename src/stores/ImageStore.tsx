@@ -6,6 +6,7 @@ import { IMCImageROI } from "../components/IMCIMage"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
+import * as fs from 'fs'
 import { ChannelName,
     PlotStatistic, 
     D3BrushExtent, 
@@ -30,7 +31,7 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    @observable regionsOfInterest: Array<IMCImageROI> | null
+    @observable.ref regionsOfInterest: Array<IMCImageROI> | null
 
     @observable scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic = "median"
@@ -177,6 +178,60 @@ export class ImageStore {
                     return region
                 }
             })
+        }
+    }
+
+    @action updateRegionOfInterest = (updatedRegion:IMCImageROI) => {
+        if(this.regionsOfInterest != null){
+            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
+                if(region.id == updatedRegion.id){
+                    return updatedRegion
+                }
+                else {
+                    return region
+                }
+            })
+        }
+    }
+
+    @action exportRegionsOfInterest = (filename:string) => {
+        if(this.regionsOfInterest != null){
+            let exportingJson = this.regionsOfInterest.map(function(region) {
+                return({
+                    id: region.id,
+                    name: region.name,
+                    notes: region.notes,
+                    selectedRegion: region.selectedRegion
+                })
+            })
+            let exportingContent = JSON.stringify(exportingJson)
+            fs.writeFile(filename, exportingContent, 'utf8', function (err) {
+                if (err) {
+                    console.log("An error occured while writing regions of interest to file.");
+                    return console.log(err);
+                }
+             
+                console.log("Regions of interest file has been saved.");
+            })
+        }
+    }
+
+    @action importRegionsOfInterest = (filename:string) => {
+        if(this.regionsOfInterest == null || this.regionsOfInterest.length == 0) {
+            let importingContent = fs.readFileSync(filename, 'utf8')
+            let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[]}> = JSON.parse(importingContent)
+            let importedRegions = importingJson.map(function(region){
+                return({
+                    id: region.id,
+                    name: region.name,
+                    notes: region.notes,
+                    selectedRegion: region.selectedRegion,
+                    selectedCentroids: null,
+                    selectedRegionLayer: null,
+                    selectedCentroidsLayer:null
+                })
+            })
+            this.regionsOfInterest = importedRegions
         }
     }
 

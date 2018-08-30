@@ -27,7 +27,8 @@ let menuTemplate = [{
         if(mainWindow != null)
           mainWindow.webContents.send("open-file", fileNames[0])
       })
-    }}, */{
+    }}, */
+  {
     label: "Open folder",
     click: () => {
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
@@ -43,9 +44,27 @@ let menuTemplate = [{
     dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
       if(mainWindow != null && fileNames != null)
         mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-    })
-  }
-}
+      })
+    }
+  },
+  {
+    label: "Import selected regions",
+    click: () => {
+      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
+        if(mainWindow != null && fileNames != null)
+          mainWindow.webContents.send("import-selected-regions", fileNames[0])
+        })
+      }
+    },
+  {
+    label: "Export selected regions",
+    click: () => {
+      dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
+        if(mainWindow != null && filename != null)
+          mainWindow.webContents.send("export-selected-regions", filename)
+        })
+      }
+    },
 ]
 }]
 

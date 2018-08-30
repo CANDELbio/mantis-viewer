@@ -52,8 +52,16 @@ electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string)
     imageStore.selectDirectory(dirName)
 })
 
-electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, fileName:string) => {
-    imageStore.selectSegmentationFile(fileName)
+electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
+    imageStore.selectSegmentationFile(filename)
+})
+
+electron.ipcRenderer.on("import-selected-regions", (event:Electron.Event, filename:string) => {
+    imageStore.importRegionsOfInterest(filename)
+})
+
+electron.ipcRenderer.on("export-selected-regions", (event:Electron.Event, filename:string) => {
+    imageStore.exportRegionsOfInterest(filename)
 })
 
 electron.ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {

@@ -12,6 +12,7 @@ import { SelectionLayer } from "./SelectionLayer"
 import { BrushEventHandler } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import * as Shortid from 'shortid'
+import { Cell } from "@blueprintjs/table";
 
 export interface IMCImageProps {
 
@@ -26,13 +27,12 @@ export interface IMCImageProps {
     windowWidth: number | null,
     regionsOfInterest: Array<IMCImageROI> | null,
     addRegionOfInterest: ((region: IMCImageROI) => void)
-
 }
 
 export interface IMCImageROI {
     id: string
-    selectedRegionLayer: PIXI.Graphics
-    selectedCentroidsLayer: PIXI.Graphics | null
+    // The coordinates of the selected region. In PIXI polygon format [x1, y1, x2, y2, ...]
+    selectedRegion: number[]
     // A map of segment numbers to pixel locations of the centroids for the selected segments/centroids.
     selectedCentroids: {[key:number] : PixelLocation} | null
     name: string
@@ -47,7 +47,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     renderer: PIXI.WebGLRenderer
     rootContainer: PIXI.Container
     stage: PIXI.Container
-
+    
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
     // The width at which the stage should be fixed.
@@ -211,22 +211,13 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         })
     }
 
-    drawSelectedArea(selectionGraphics:PIXI.Graphics, selection:number[], color:number, alpha: number){
-        selectionGraphics.beginFill(color)
-        selectionGraphics.drawPolygon(selection)
-        selectionGraphics.endFill()
-        selectionGraphics.alpha = alpha
-    }
-
     segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
         if(this.segmentationData != null){
             let selectedSegments:{[key:number] : PixelLocation}  = {}
             for(let segment in this.segmentationData.centroidMap){
                 let centroid = this.segmentationData.centroidMap[segment]
-                let x = (centroid.x * this.stage.scale.x) + this.stage.position.x
-                let y = (centroid.y * this.stage.scale.y) + this.stage.position.y
-                let centridPoint = new PIXI.Point(x, y)
-                if(selectionGraphics.containsPoint(centridPoint)){
+                let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
+                if(selectionGraphics.containsPoint(centroidPoint)){
                     selectedSegments[segment] = centroid
                 }
             } 
@@ -236,28 +227,27 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    drawSelectedCentroids(selectedCentroids:{[key:number] : PixelLocation}|null, color: number){
-        if (selectedCentroids!=null) {
-            let centroidGraphics = new PIXI.Graphics()
-            centroidGraphics.beginFill(color)
-            for(let segment in selectedCentroids){
-                let centroid = selectedCentroids[segment]
-                this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
-            }
-            centroidGraphics.endFill()
-            this.stage.addChild(centroidGraphics)
-            this.renderer.render(this.rootContainer)
-            return centroidGraphics
-        } else {
-            return null
+    drawSelectedCentroids(selectedCentroids:{[key:number] : PixelLocation}, color: number){
+        let centroidGraphics = new PIXI.Graphics()
+        centroidGraphics.beginFill(color)
+        for(let segment in selectedCentroids){
+            let centroid = selectedCentroids[segment]
+            this.drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
         }
+        centroidGraphics.endFill()
+        return centroidGraphics
     }
 
-    drawSelection(selection:number[], color:number, alpha:number){
+    drawSelectedRegion(selection:number[], color:number, alpha:number){
+        console.log("Drawing selected region...")
+        console.log("Color: " + color.toString())
+        console.log("Alpha: " + alpha.toString())
+        console.log("Selection: " + selection.toString())
         let selectionGraphics = new PIXI.Graphics()
-        this.drawSelectedArea(selectionGraphics, selection, color, alpha)
-        this.stage.addChild(selectionGraphics)
-        this.renderer.render(this.rootContainer)
+        selectionGraphics.beginFill(color)
+        selectionGraphics.drawPolygon(selection)
+        selectionGraphics.endFill()
+        selectionGraphics.alpha = alpha
         return selectionGraphics
     }
 
@@ -299,9 +289,16 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                     selectionGraphics.destroy()
                 }
 
-                selectionGraphics = this.drawSelection(selection, 0xf1c40f, 0.5)
+                selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
+                this.stage.addChild(selectionGraphics)
+
                 selectedCentroids = this.segmentCentroidsInSelection(selectionGraphics)
-                centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+
+                if(selectedCentroids != null){
+                    centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+                    this.stage.addChild(centroidGraphics)
+                }
+                this.renderer.render(this.rootContainer)
             }
         })
 
@@ -313,6 +310,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                         id: Shortid.generate(),
                         selectedRegionLayer: selectionGraphics,
                         selectedCentroidsLayer: centroidGraphics,
+                        selectedRegion: selection,
                         selectedCentroids: selectedCentroids,
                         name: this.newROIName(),
                         notes: null
@@ -398,7 +396,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         ])
     }
 
-    drawSegmentCentroids(segmentationData: SegmentationData, color: number) {
+    drawSegmentCentroids(stage: PIXI.Container, segmentationData: SegmentationData, color: number) {
         let graphics = new PIXI.Graphics()
         let centroids = segmentationData.centroidMap
 
@@ -409,7 +407,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.drawCross(graphics, centroid.x, centroid.y, 2, 0.5)
         }
         graphics.endFill()
-        this.stage.addChild(graphics)
+        stage.addChild(graphics)
     }
 
     // Checks the stage scale factor and x,y position to make sure we aren't too zoomed out
@@ -459,6 +457,48 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.addSelect(this.el)
     }
 
+    renderChannel(curChannel:ChannelName,
+        imcData: IMCData,
+        channelMarker: Record<ChannelName, string | null>,
+        channelDomain: Record<ChannelName, [number, number]> ){
+
+        let curMarker = channelMarker[curChannel] 
+        if(curMarker != null) {
+            let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+            let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
+            let sprite = imcData.sprites[curMarker]
+            // Delete sprite filters so they get cleared from memory before adding new ones
+            sprite.filters = null
+            sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+            this.stage.addChild(sprite)
+        }
+    }
+
+    // Add segmentation data to the stage.
+    renderSegmentationData(stage:PIXI.Container, segmentationData: SegmentationData, segmentationAlpha: number){
+            let sprite = segmentationData.segmentSprite
+            sprite.alpha = segmentationAlpha/10
+            stage.addChild(sprite)
+            this.drawSegmentCentroids(stage, segmentationData, 0xf1c40f) // fill yellow
+    }
+
+    // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
+    renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageROI>, segmentationData: SegmentationData | null){
+        console.log("Rendering regions of interest...")
+        for(let region of regionsOfInterest) {
+            console.log("Rendering region " + region.name + "...")
+            console.log(region.selectedRegion)
+            let selectedRegionGraphics = this.drawSelectedRegion(region.selectedRegion, 0xf1c40f, 0.5)
+            this.stage.addChild(selectedRegionGraphics)
+            let selectedCentroids = this.segmentCentroidsInSelection(selectedRegionGraphics)
+            if(selectedCentroids!=null){
+                // TODO: Save selected centroids to the store.
+                let selectedCentroidsLayer = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+                this.stage.addChild(selectedCentroidsLayer)
+            }
+        }
+    }
+
     renderImage(el: HTMLDivElement, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -485,42 +525,16 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // For each channel setting the brightness and color filters
         for (let s of ["rChannel", "gChannel", "bChannel"]) {
             let curChannel = s as ChannelName
-            let curMarker = channelMarker[curChannel] 
-            if(curMarker != null) {
-                let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
-                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
-                let sprite = imcData.sprites[curMarker]
-                // Delete sprite filters so they get cleared from memory before adding new ones
-                sprite.filters = null
-                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-                this.stage.addChild(sprite)
-            }
+            this.renderChannel(curChannel, imcData, channelMarker, channelDomain)
         }
 
-        // If we have segmentation data then draw the segmentation sprite and render the centroids.
         if(segmentationData != null){
             this.segmentationData = segmentationData
-            let sprite = segmentationData.segmentSprite
-            sprite.alpha = segmentationAlpha/10
-            this.stage.addChild(sprite)
-            this.drawSegmentCentroids(segmentationData, 0xf1c40f) // fill yellowv
+            this.renderSegmentationData(this.stage, segmentationData, segmentationAlpha)
         }
 
-        // Add the selected ROIs to the stage
         if(regionsOfInterest != null) {
-            for(let g of regionsOfInterest) {
-                this.stage.addChild(g.selectedRegionLayer)
-                // Calculated selected centroids/regions
-                // If this region of interest doesn't have any selected centroid data saved
-                // (i.e. segementation data wasn't loaded when selected)
-                if(g.selectedCentroids == null && segmentationData!= null) {
-                    let selectedCentroids = this.segmentCentroidsInSelection(g.selectedRegionLayer)
-                    g.selectedCentroidsLayer = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
-                }
-                if(g.selectedCentroidsLayer != null) {
-                    this.stage.addChild(g.selectedCentroidsLayer)
-                }
-            }
+            this.renderRegionsOfInterest(this.stage, regionsOfInterest, segmentationData)
         }
 
         this.renderer.render(this.rootContainer)
