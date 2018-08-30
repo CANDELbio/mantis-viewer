@@ -1,7 +1,7 @@
 import { IMCData } from "../lib/IMCData"
-import { SegmentationData } from "../lib/SegmentationData";
+import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import { PlotStatistic } from "../interfaces/UIDefinitions"
-import { IMCImageROI } from "../components/IMCIMage"
+import { IMCImageSelection } from "../components/IMCIMage"
 
 interface Marker {
     size: number
@@ -35,12 +35,15 @@ export class ScatterPlotData {
     layout: ScatterPlotLayout
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.
-    static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageROI>|null) {
+    static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageSelection>|null,
+        selectedSegments: {[key:string] : number[]} | null) {
+
         let map:{[key:string] : Array<string>}  = {}
         if(regionsOfInterest != null){
             for(let region of regionsOfInterest){
-                if(region.selectedCentroids != null){
-                    for(let segment in region.selectedCentroids){
+                if(selectedSegments != null){
+                    let regionSelectedSegments = selectedSegments[region.id]
+                    for(let segment of regionSelectedSegments){
                         if(!(segment in map)) map[segment] = new Array<string>()
                         map[segment].push(region.name)
                     }
@@ -55,12 +58,13 @@ export class ScatterPlotData {
         imcData:IMCData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
-        regionsOfInterest: Array<IMCImageROI>|null) {
+        regionsOfInterest: Array<IMCImageSelection>|null,
+        selectedSegments: {[key:string] : number[]} | null) {
 
         let defaultSelection = 'All Segments'
 
         // A map of the data to be used in the plot.
-        // Maps selection name (either all segments or the name of an ROI) to a set of data.
+        // Maps selection name (either all segments or the name of a selected region) to a set of data.
         let plotData:{
             [key:string] : {
                 x: Array<number>,
@@ -68,7 +72,7 @@ export class ScatterPlotData {
                 text: Array<string>}
             } = {}
 
-        let regionMap = this.buildRegionOfInterestMap(regionsOfInterest)
+        let regionMap = this.buildRegionOfInterestMap(regionsOfInterest, selectedSegments)
 
         // Iterate through all of the segments/cells in the segmentation data
         for(let segment in segmentationData.segmentIndexMap){
@@ -131,11 +135,13 @@ export class ScatterPlotData {
         imcData:IMCData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
-        regionsOfInterest: Array<IMCImageROI>|null) {
+        regionsOfInterest: Array<IMCImageSelection>|null,
+        selectedSegments: {[key:string] : number[]} | null
+    ) {
 
         this.ch1 = ch1
         this.ch2 = ch2
-        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, regionsOfInterest)
+        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, regionsOfInterest, selectedSegments)
         this.layout = {title: ch1 + ' versus ' + ch2, xaxis: {title: ch1}, yaxis: {title: ch2}}
     }
 

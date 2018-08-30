@@ -1,17 +1,17 @@
 import * as React from "react";
-import { IMCImageROI } from "../components/IMCIMage"
+import { IMCImageSelection } from "../components/IMCIMage"
 import { EditableText, Button } from "@blueprintjs/core"
 import { observer } from "mobx-react"
 
 interface SelectedDataProps {
-    regions: Array<IMCImageROI>|null
+    regions: Array<IMCImageSelection>|null
     updateName: ((id: string, name: string) => void)
     updateNotes: ((id: string, notes: string) => void)
     deleteRegion: ((id: string) => void)
 }
 
 interface SelectedDataRowProps {
-    region: IMCImageROI,
+    region: IMCImageSelection,
     updateName: ((id: string, name: string) => void)
     updateNotes: ((id: string, notes: string) => void)
     deleteRegion: ((id: string) => void)
@@ -47,7 +47,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
         }
     }
 
-    regionRows(regions: IMCImageROI[] | null) {
+    regionRows(regions: IMCImageSelection[] | null) {
         if(regions!= null){
             return regions.map((region) => {
                 return <this.TableRowItem

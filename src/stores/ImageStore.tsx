@@ -2,8 +2,8 @@ import { observable,
     computed, 
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
-import { IMCImageROI } from "../components/IMCIMage"
-import { SegmentationData } from "../lib/SegmentationData"
+import { IMCImageSelection } from "../components/IMCIMage"
+import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 import * as fs from 'fs'
@@ -31,7 +31,9 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    @observable.ref regionsOfInterest: Array<IMCImageROI> | null
+    @observable.ref selectedRegions: Array<IMCImageSelection> | null
+    // Map of selected region id to a map of segment id to centroid pixel location.
+    @observable.ref selectedSegments: {[key:string] : number[]} | null
 
     @observable scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic = "median"
@@ -139,22 +141,34 @@ export class ImageStore {
         })
     }
 
-    @action addRegionOfInterest = (region: IMCImageROI) => {
-        if (this.regionsOfInterest == null) this.regionsOfInterest = new Array<IMCImageROI>()
-        this.regionsOfInterest = this.regionsOfInterest.concat([region])
+    @action addSelectedSegments = (regionId:string, segmentIds:number[]) => {
+        if (this.selectedSegments == null) this.selectedSegments = {}
+        this.selectedSegments[regionId] = segmentIds
         this.refreshScatterPlotData()
     }
 
-    @action deleteRegionOfInterest = (id: string) => {
-        if(this.regionsOfInterest != null){
-            this.regionsOfInterest = this.regionsOfInterest.filter(region => region.id != id);
-            this.refreshScatterPlotData()
+    @action deleteSelectedSegments = (regionId:string) => {
+        if (this.selectedSegments != null){
+            delete this.selectedSegments[regionId]
+        }
+        this.refreshScatterPlotData()
+    }
+
+    @action addSelectedRegion = (region: IMCImageSelection) => {
+        if (this.selectedRegions == null) this.selectedRegions = new Array<IMCImageSelection>()
+        this.selectedRegions = this.selectedRegions.concat([region])
+    }
+
+    @action deleteSelectedRegion = (id: string) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
+            this.deleteSelectedSegments(id)
         }
     }
 
-    @action updateRegionOfInterestName = (id: string, newName:string) => {
-        if(this.regionsOfInterest != null){
-            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
+    @action updateSelectedRegionName = (id: string, newName:string) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
                 if(region.id == id){
                     region.name = newName
                     return region
@@ -167,9 +181,9 @@ export class ImageStore {
         }
     }
 
-    @action updateRegionOfInterestNotes = (id: string, newNotes:string) => {
-        if(this.regionsOfInterest != null){
-            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
+    @action updateSelectedRegionNotes = (id: string, newNotes:string) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
                 if(region.id == id){
                     region.notes = newNotes
                     return region
@@ -181,22 +195,9 @@ export class ImageStore {
         }
     }
 
-    @action updateRegionOfInterest = (updatedRegion:IMCImageROI) => {
-        if(this.regionsOfInterest != null){
-            this.regionsOfInterest = this.regionsOfInterest.map(function(region) {
-                if(region.id == updatedRegion.id){
-                    return updatedRegion
-                }
-                else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action exportRegionsOfInterest = (filename:string) => {
-        if(this.regionsOfInterest != null){
-            let exportingJson = this.regionsOfInterest.map(function(region) {
+    @action exportSelectedRegions = (filename:string) => {
+        if(this.selectedRegions != null){
+            let exportingJson = this.selectedRegions.map(function(region) {
                 return({
                     id: region.id,
                     name: region.name,
@@ -216,8 +217,8 @@ export class ImageStore {
         }
     }
 
-    @action importRegionsOfInterest = (filename:string) => {
-        if(this.regionsOfInterest == null || this.regionsOfInterest.length == 0) {
+    @action importSelectedRegions = (filename:string) => {
+        if(this.selectedRegions == null || this.selectedRegions.length == 0) {
             let importingContent = fs.readFileSync(filename, 'utf8')
             let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[]}> = JSON.parse(importingContent)
             let importedRegions = importingJson.map(function(region){
@@ -231,7 +232,7 @@ export class ImageStore {
                     selectedCentroidsLayer:null
                 })
             })
-            this.regionsOfInterest = importedRegions
+            this.selectedRegions = importedRegions
         }
     }
 
@@ -278,7 +279,8 @@ export class ImageStore {
                     this.imageData,
                     this.segmentationData,
                     this.scatterPlotStatistic,
-                    this.regionsOfInterest
+                    this.selectedRegions,
+                    this.selectedSegments
                 )
             }
         } else {

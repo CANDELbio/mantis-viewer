@@ -99,8 +99,9 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 canvasHeight = {height}
                 windowWidth = {this.props.store.windowWidth}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
-                addRegionOfInterest = {this.props.store.addRegionOfInterest}
-                regionsOfInterest = {this.props.store.regionsOfInterest}
+                addRegionOfInterest = {this.props.store.addSelectedRegion}
+                addSelectedSegments = {this.props.store.addSelectedSegments}
+                regionsOfInterest = {this.props.store.selectedRegions}
                 labelsLayers = {this.props.store.labelsLayers}
             />
  
@@ -144,10 +145,10 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
             }
 
             selectedRegions = <SelectedRegions
-                regions = {this.props.store.regionsOfInterest}
-                updateName = {this.props.store.updateRegionOfInterestName}
-                updateNotes = {this.props.store.updateRegionOfInterestNotes}
-                deleteRegion = {this.props.store.deleteRegionOfInterest}
+                regions = {this.props.store.selectedRegions}
+                updateName = {this.props.store.updateSelectedRegionName}
+                updateNotes = {this.props.store.updateSelectedRegionNotes}
+                deleteRegion = {this.props.store.deleteSelectedRegion}
                 />
         }
      

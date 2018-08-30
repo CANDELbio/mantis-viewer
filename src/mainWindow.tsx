@@ -57,11 +57,11 @@ electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filenam
 })
 
 electron.ipcRenderer.on("import-selected-regions", (event:Electron.Event, filename:string) => {
-    imageStore.importRegionsOfInterest(filename)
+    imageStore.importSelectedRegions(filename)
 })
 
 electron.ipcRenderer.on("export-selected-regions", (event:Electron.Event, filename:string) => {
-    imageStore.exportRegionsOfInterest(filename)
+    imageStore.exportSelectedRegions(filename)
 })
 
 electron.ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {

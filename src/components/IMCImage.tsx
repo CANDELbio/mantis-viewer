@@ -1,18 +1,11 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
-import * as d3Array from "d3-array"
-import * as fs from "fs"
 import * as PIXI from "pixi.js"
-import { ImageStore } from "../stores/ImageStore"
 import { observer } from "mobx-react"
 import { IMCData } from "../lib/IMCData"
 import { ChannelName } from "../interfaces/UIDefinitions"
-import { quantile } from "../lib/utils"
-import { SelectionLayer } from "./SelectionLayer"
-import { BrushEventHandler } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import * as Shortid from 'shortid'
-import { Cell } from "@blueprintjs/table";
+import { select } from "d3-selection";
 
 export interface IMCImageProps {
 
@@ -25,16 +18,15 @@ export interface IMCImageProps {
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
     windowWidth: number | null,
-    regionsOfInterest: Array<IMCImageROI> | null,
-    addRegionOfInterest: ((region: IMCImageROI) => void)
+    regionsOfInterest: Array<IMCImageSelection> | null,
+    addRegionOfInterest: ((region: IMCImageSelection) => void)
+    addSelectedSegments: ((regionId:string, segmentIds:number[]) => void)
 }
 
-export interface IMCImageROI {
+export interface IMCImageSelection {
     id: string
     // The coordinates of the selected region. In PIXI polygon format [x1, y1, x2, y2, ...]
     selectedRegion: number[]
-    // A map of segment numbers to pixel locations of the centroids for the selected segments/centroids.
-    selectedCentroids: {[key:number] : PixelLocation} | null
     name: string
     notes: string | null
 }
@@ -113,7 +105,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    addRegionOfInterest = (region: IMCImageROI) => this.props.addRegionOfInterest(region)
+    addRegionOfInterest = (region: IMCImageSelection) => this.props.addRegionOfInterest(region)
+    addSelectedSegments = (regionId:string, segmentIds:number[]) => this.props.addSelectedSegments(regionId, segmentIds)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -211,14 +204,15 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         })
     }
 
+    // Returns a map of segmentId to centroid for the segments/centroids that collide with the selection in selectionGraphics
     segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
         if(this.segmentationData != null){
             let selectedSegments:{[key:number] : PixelLocation}  = {}
-            for(let segment in this.segmentationData.centroidMap){
-                let centroid = this.segmentationData.centroidMap[segment]
+            for(let segmentId in this.segmentationData.centroidMap){
+                let centroid = this.segmentationData.centroidMap[segmentId]
                 let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
                 if(selectionGraphics.containsPoint(centroidPoint)){
-                    selectedSegments[segment] = centroid
+                    selectedSegments[segmentId] = centroid
                 }
             } 
             return selectedSegments
@@ -304,15 +298,20 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 if(selectionGraphics != null) {
                     let region = {
                         id: Shortid.generate(),
-                        selectedRegionLayer: selectionGraphics,
-                        selectedCentroidsLayer: centroidGraphics,
                         selectedRegion: selection,
-                        selectedCentroids: selectedCentroids,
                         name: this.newROIName(),
                         notes: null
                     }
                     // Add to the global collection of selected layers
                     this.addRegionOfInterest(region)
+
+                    let selectedSegments = []
+                    if (selectedCentroids != null) {
+                        for(let segmentId in selectedCentroids){
+                            selectedSegments.push(Number(segmentId))
+                        }
+                    }
+                    this.addSelectedSegments(region.id, selectedSegments)
                 }
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
@@ -479,15 +478,22 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageROI>, segmentationData: SegmentationData | null){
+    renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageSelection>, segmentationData: SegmentationData | null){
         for(let region of regionsOfInterest) {
             let selectedRegionGraphics = this.drawSelectedRegion(region.selectedRegion, 0xf1c40f, 0.5)
             this.stage.addChild(selectedRegionGraphics)
             let selectedCentroids = this.segmentCentroidsInSelection(selectedRegionGraphics)
             if(selectedCentroids!=null){
-                // TODO: Save selected centroids to the store.
                 let selectedCentroidsLayer = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
                 this.stage.addChild(selectedCentroidsLayer)
+
+                let selectedSegments = []
+                if (selectedCentroids != null) {
+                    for(let segmentId in selectedCentroids){
+                        selectedSegments.push(Number(segmentId))
+                    }
+                }
+                this.addSelectedSegments(region.id, selectedSegments)
             }
         }
     }
@@ -498,7 +504,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
-        regionsOfInterest: Array<IMCImageROI> | null,
+        regionsOfInterest: Array<IMCImageSelection> | null,
         windowWidth: number) {
 
         if(el == null)
