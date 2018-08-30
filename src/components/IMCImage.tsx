@@ -40,7 +40,33 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     rootContainer: PIXI.Container
     stage: PIXI.Container
     
+    // Color filters to use so that the sprites display as the desired color
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
+
+    // Sprites for the current channels.
+    channelSprites: Record<ChannelName, PIXI.Sprite | null> = {
+        rChannel: null,
+        gChannel: null,
+        bChannel: null
+    }
+
+    // Mapping of channelName to channelMarker (i.e. filename of the selected channel)
+    // Stored locally so that we can compare to the channelMarker being passed in
+    // to see what channelSprites need to be replaced
+    channelMarker: Record<ChannelName, string | null> = {
+        rChannel: null,
+        gChannel: null,
+        bChannel: null
+    }
+
+    // Mapping of channelName to channelDomain (i.e. min/max selected brightness values)
+    // Stored locally so we can compare to the channelDomain being passed in from the store
+    // to see which sprites need to have their filters updated (to change brightness)
+    channelDomain: Record<ChannelName, [number, number] | null> = {
+        rChannel: null,
+        gChannel: null,
+        bChannel: null
+    }
 
     // The width at which the stage should be fixed.
     rendererWidth: number
@@ -49,7 +75,19 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
 
+    // Segmentation data stored locally for two reasons:
+    // 1) Calculation of segments/centroids in selected regions
+    // 2) If segmentation data being passed in from store are different. If they are
+    // We re-render the segmentationSprite and segmentationCentroidGraphics below.
     segmentationData: SegmentationData | null
+    segmentationSprite: PIXI.Sprite | null
+    segmentationCentroidGraphics: PIXI.Graphics | null
+
+    // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
+    // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
+    // selectedRegionGraphics below
+    selectedRegions: Array<IMCImageSelection> | null
+    selectedRegionGraphics: Array<PIXI.Graphics> | null
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     dragging: boolean
@@ -266,13 +304,10 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
 
         selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
-        stage.addChild(selectionGraphics)
-
         selectedCentroids = this.findSegmentCentroidsInSelection(selectionGraphics, this.segmentationData)
 
         if(selectedCentroids != null){
             centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
-            stage.addChild(centroidGraphics)
         }
 
         return {selectionGraphics: selectionGraphics, selectedCentroids: selectedCentroids, centroidGraphics: centroidGraphics}
@@ -321,6 +356,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedCentroids = toUnpack.selectedCentroids
                 centroidGraphics = toUnpack.centroidGraphics
+
+                this.stage.addChild(selectionGraphics)
+                if(centroidGraphics != null) this.stage.addChild(centroidGraphics)
 
                 this.renderer.render(this.rootContainer)
             }
@@ -419,7 +457,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         ])
     }
 
-    drawSegmentCentroids(stage: PIXI.Container, segmentationData: SegmentationData, color: number) {
+    drawSegmentCentroids(segmentationData: SegmentationData, color: number) {
         let graphics = new PIXI.Graphics()
         let centroids = segmentationData.centroidMap
 
@@ -430,7 +468,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
             this.drawCross(graphics, centroid.x, centroid.y, 2, 0.5)
         }
         graphics.endFill()
-        stage.addChild(graphics)
+        return graphics
     }
 
     // Checks the stage scale factor and x,y position to make sure we aren't too zoomed out
@@ -480,36 +518,83 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         this.addSelect(this.el)
     }
 
-    renderChannel(curChannel:ChannelName,
+    loadChannelGraphics(curChannel:ChannelName,
         imcData: IMCData,
-        channelMarker: Record<ChannelName, string | null>,
-        channelDomain: Record<ChannelName, [number, number]> ){
+        channelMarker: Record<ChannelName, string | null> ){
 
         let curMarker = channelMarker[curChannel] 
         if(curMarker != null) {
-            let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
-            let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
-            let sprite = imcData.sprites[curMarker]
-            // Delete sprite filters so they get cleared from memory before adding new ones
-            sprite.filters = null
-            sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-            this.stage.addChild(sprite)
+            if(this.channelMarker[curChannel] != curMarker){
+                this.channelMarker[curChannel] = curMarker
+                this.channelSprites[curChannel] = imcData.sprites[curMarker]
+            }
+        }
+    }
+
+    loadChannelFilters(curChannel:ChannelName,
+        imcData: IMCData,
+        channelMarker: Record<ChannelName, string | null>,
+        channelDomain: Record<ChannelName, [number, number]> ){
+        
+        let sprite = this.channelSprites[curChannel] 
+        if(sprite != null){
+            if(this.channelDomain[curChannel] != channelDomain[curChannel]){
+                this.channelDomain[curChannel] = channelDomain[curChannel]
+                let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+                let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
+                // Delete sprite filters so they get cleared from memory before adding new ones
+                sprite.filters = null
+                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                this.channelSprites[curChannel] = sprite
+            }
         }
     }
 
     // Add segmentation data to the stage.
-    renderSegmentationData(stage:PIXI.Container, segmentationData: SegmentationData, segmentationAlpha: number){
-            let sprite = segmentationData.segmentSprite
-            sprite.alpha = segmentationAlpha/10
-            stage.addChild(sprite)
-            this.drawSegmentCentroids(stage, segmentationData, 0xf1c40f) // fill yellow
+    loadSegmentationGraphics(segmentationData: SegmentationData){
+        if(segmentationData != this.segmentationData){
+            this.segmentationData = segmentationData
+            this.segmentationSprite = segmentationData.segmentSprite
+            this.segmentationCentroidGraphics = this.drawSegmentCentroids(segmentationData, 0xf1c40f) // fill yellow
+        }
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageSelection>, segmentationData: SegmentationData | null){
-        for(let region of regionsOfInterest) {
-            let toUnpack = this.selectRegion(this.stage, region.selectedRegion, null, null, null)
-            this.addSelectedCentroidsToStore(region.id, toUnpack.selectedCentroids)
+    loadSelectedRegionGraphics(selectedRegions:Array<IMCImageSelection>){
+        if(selectedRegions != this.selectedRegions){
+            this.selectedRegions = selectedRegions
+            this.selectedRegionGraphics = []
+            for(let region of selectedRegions) {
+                let toUnpack = this.selectRegion(this.stage, region.selectedRegion, null, null, null)
+                this.addSelectedCentroidsToStore(region.id, toUnpack.selectedCentroids)
+                this.selectedRegionGraphics.push(toUnpack.selectionGraphics)
+                if(toUnpack.centroidGraphics != null)this.selectedRegionGraphics.push(toUnpack.centroidGraphics)
+            }
+        }
+    }
+
+    addGraphicsToStage(segmentationAlpha:number){
+        // Add channel sprites to stage
+        for (let s of ["rChannel", "gChannel", "bChannel"]) {
+            let curChannel = s as ChannelName
+            let curSprite = this.channelSprites[curChannel]
+            if(curSprite != null) this.stage.addChild(curSprite)
+        }
+
+        // Add segmentation cells
+        if(this.segmentationSprite!=null){
+            this.segmentationSprite.alpha = segmentationAlpha/10
+            this.stage.addChild(this.segmentationSprite)
+        }
+
+        // Add segmentation centroids
+        if(this.segmentationCentroidGraphics!=null) this.stage.addChild(this.segmentationCentroidGraphics)
+
+        // Add all of the selected regions and their centroids
+        if(this.selectedRegionGraphics != null){
+            for(let graphics of this.selectedRegionGraphics){
+                this.stage.addChild(graphics)
+            }
         }
     }
 
@@ -519,7 +604,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
-        regionsOfInterest: Array<IMCImageSelection> | null,
+        selectedRegions: Array<IMCImageSelection> | null,
         windowWidth: number) {
 
         if(el == null)
@@ -539,18 +624,19 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // For each channel setting the brightness and color filters
         for (let s of ["rChannel", "gChannel", "bChannel"]) {
             let curChannel = s as ChannelName
-            this.renderChannel(curChannel, imcData, channelMarker, channelDomain)
+            this.loadChannelGraphics(curChannel, imcData, channelMarker)
+            this.loadChannelFilters(curChannel, imcData, channelMarker, channelDomain)
         }
 
         if(segmentationData != null){
-            this.segmentationData = segmentationData
-            this.renderSegmentationData(this.stage, segmentationData, segmentationAlpha)
+            this.loadSegmentationGraphics(segmentationData)
         }
 
-        if(regionsOfInterest != null) {
-            this.renderRegionsOfInterest(this.stage, regionsOfInterest, segmentationData)
+        if(selectedRegions != null) {
+            this.loadSelectedRegionGraphics(selectedRegions)
         }
 
+        this.addGraphicsToStage(segmentationAlpha)
         this.renderer.render(this.rootContainer)
         
     }

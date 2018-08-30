@@ -35,7 +35,7 @@ export class ImageStore {
     // Map of selected region id to a map of segment id to centroid pixel location.
     @observable.ref selectedSegments: {[key:string] : number[]} | null
 
-    @observable scatterPlotData: ScatterPlotData | null
+    @observable.ref scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic = "median"
 
     @observable.ref extraData: Uint8ClampedArray | null = null

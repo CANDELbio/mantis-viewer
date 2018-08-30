@@ -43,9 +43,11 @@ export class ScatterPlotData {
             for(let region of regionsOfInterest){
                 if(selectedSegments != null){
                     let regionSelectedSegments = selectedSegments[region.id]
-                    for(let segment of regionSelectedSegments){
-                        if(!(segment in map)) map[segment] = new Array<string>()
-                        map[segment].push(region.name)
+                    if(regionSelectedSegments != null){
+                        for(let segment of regionSelectedSegments){
+                            if(!(segment in map)) map[segment] = new Array<string>()
+                            map[segment].push(region.name)
+                        }
                     }
                 }
             }
