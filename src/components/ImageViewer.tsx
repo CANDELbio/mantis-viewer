@@ -99,9 +99,9 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 canvasHeight = {height}
                 windowWidth = {this.props.store.windowWidth}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
-                addRegionOfInterest = {this.props.store.addSelectedRegion}
+                addSelectedRegion = {this.props.store.addSelectedRegion}
                 addSelectedSegments = {this.props.store.addSelectedSegments}
-                regionsOfInterest = {this.props.store.selectedRegions}
+                selectedRegions = {this.props.store.selectedRegions}
                 labelsLayers = {this.props.store.labelsLayers}
             />
  

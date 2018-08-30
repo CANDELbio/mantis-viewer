@@ -18,8 +18,8 @@ export interface IMCImageProps {
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
     windowWidth: number | null,
-    regionsOfInterest: Array<IMCImageSelection> | null,
-    addRegionOfInterest: ((region: IMCImageSelection) => void)
+    selectedRegions: Array<IMCImageSelection> | null,
+    addSelectedRegion: ((region: IMCImageSelection) => void)
     addSelectedSegments: ((regionId:string, segmentIds:number[]) => void)
 }
 
@@ -105,7 +105,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    addRegionOfInterestToStore = (region: IMCImageSelection) => this.props.addRegionOfInterest(region)
+    addSelectedRegionToStore = (region: IMCImageSelection) => this.props.addSelectedRegion(region)
     addSelectedSegmentsToStore = (regionId:string, segmentIds:number[]) => this.props.addSelectedSegments(regionId, segmentIds)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
@@ -242,8 +242,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     newROIName(){
-        if (this.props.regionsOfInterest == null) return "Selection 1"
-        return "Selection " + (this.props.regionsOfInterest.length + 1).toString()
+        if (this.props.selectedRegions == null) return "Selection 1"
+        return "Selection " + (this.props.selectedRegions.length + 1).toString()
     }
 
     // Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
@@ -337,7 +337,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                         notes: null
                     }
                     // Add to the global collection of selected layers
-                    this.addRegionOfInterestToStore(region)
+                    this.addSelectedRegionToStore(region)
 
                     this.addSelectedCentroidsToStore(region.id, selectedCentroids)
                 }
@@ -576,7 +576,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         let segmentationData = this.props.segmentationData
         let segmentationAlpha = this.props.segmentationAlpha
 
-        let rois = this.props.regionsOfInterest
+        let regions = this.props.selectedRegions
 
         let renderWidth = 700
         if(this.props.windowWidth != null){
@@ -589,7 +589,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, rois, renderWidth)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, regions, renderWidth)}}
             />
         )
     }
