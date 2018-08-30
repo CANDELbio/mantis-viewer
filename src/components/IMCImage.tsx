@@ -205,7 +205,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     // Returns a map of segmentId to centroid for the segments/centroids that collide with the selection in selectionGraphics
-    segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics, segmentationData:SegmentationData|null){
+    findSegmentCentroidsInSelection(selectionGraphics:PIXI.Graphics, segmentationData:SegmentationData|null){
         if(segmentationData != null){
             let selectedSegments:{[key:number] : PixelLocation}  = {}
             for(let segmentId in segmentationData.centroidMap){
@@ -246,6 +246,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return "Selection " + (this.props.regionsOfInterest.length + 1).toString()
     }
 
+    // Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
+    // Then draws a new selectionGraphics of the region, finds the segments and their centroids in that selectionGraphics, and draws the selectedCentroids.
+    // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
     selectRegion(stage: PIXI.Container,
         selection:number[],
         selectionGraphics:PIXI.Graphics|null,
@@ -265,7 +268,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
         stage.addChild(selectionGraphics)
 
-        selectedCentroids = this.segmentCentroidsInSelection(selectionGraphics, this.segmentationData)
+        selectedCentroids = this.findSegmentCentroidsInSelection(selectionGraphics, this.segmentationData)
 
         if(selectedCentroids != null){
             centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
@@ -275,6 +278,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return {selectionGraphics: selectionGraphics, selectedCentroids: selectedCentroids, centroidGraphics: centroidGraphics}
     }
 
+    // Converts a selectedCentroids map (segmentId to centroid PixelLocation) to an array of segmentIds and adds to the store.
     addSelectedCentroidsToStore(regionId: string, selectedCentroids: {[key:number] : PixelLocation}|null){
         let selectedSegments = []
         if (selectedCentroids != null) {
