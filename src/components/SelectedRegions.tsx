@@ -47,8 +47,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
         }
     }
 
-    regionRows() {
-        let regions = this.props.regions
+    regionRows(regions: IMCImageROI[] | null) {
         if(regions!= null){
             return regions.map((region) => {
                 return <this.TableRowItem
@@ -64,6 +63,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
     }
 
     render() {
+        let regions = this.props.regions
         return(
             <div>
                 Selected Regions:
@@ -73,7 +73,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, undefine
                         <th>Notes</th> 
                         <th></th>
                     </tr>
-                    { this.regionRows() }
+                    { this.regionRows(regions) }
                 </tbody></table>
             </div>
         )

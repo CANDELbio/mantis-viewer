@@ -141,7 +141,7 @@ export class ImageStore {
 
     @action addRegionOfInterest = (region: IMCImageROI) => {
         if (this.regionsOfInterest == null) this.regionsOfInterest = new Array<IMCImageROI>()
-        this.regionsOfInterest.push(region)
+        this.regionsOfInterest = this.regionsOfInterest.concat([region])
         this.refreshScatterPlotData()
     }
 

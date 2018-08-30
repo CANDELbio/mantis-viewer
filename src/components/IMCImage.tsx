@@ -239,10 +239,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     drawSelectedRegion(selection:number[], color:number, alpha:number){
-        console.log("Drawing selected region...")
-        console.log("Color: " + color.toString())
-        console.log("Alpha: " + alpha.toString())
-        console.log("Selection: " + selection.toString())
         let selectionGraphics = new PIXI.Graphics()
         selectionGraphics.beginFill(color)
         selectionGraphics.drawPolygon(selection)
@@ -484,10 +480,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
     renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageROI>, segmentationData: SegmentationData | null){
-        console.log("Rendering regions of interest...")
         for(let region of regionsOfInterest) {
-            console.log("Rendering region " + region.name + "...")
-            console.log(region.selectedRegion)
             let selectedRegionGraphics = this.drawSelectedRegion(region.selectedRegion, 0xf1c40f, 0.5)
             this.stage.addChild(selectedRegionGraphics)
             let selectedCentroids = this.segmentCentroidsInSelection(selectedRegionGraphics)
