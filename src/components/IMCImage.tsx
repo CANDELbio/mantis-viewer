@@ -105,8 +105,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    addRegionOfInterest = (region: IMCImageSelection) => this.props.addRegionOfInterest(region)
-    addSelectedSegments = (regionId:string, segmentIds:number[]) => this.props.addSelectedSegments(regionId, segmentIds)
+    addRegionOfInterestToStore = (region: IMCImageSelection) => this.props.addRegionOfInterest(region)
+    addSelectedSegmentsToStore = (regionId:string, segmentIds:number[]) => this.props.addSelectedSegments(regionId, segmentIds)
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -205,11 +205,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     }
 
     // Returns a map of segmentId to centroid for the segments/centroids that collide with the selection in selectionGraphics
-    segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics){
-        if(this.segmentationData != null){
+    segmentCentroidsInSelection(selectionGraphics:PIXI.Graphics, segmentationData:SegmentationData|null){
+        if(segmentationData != null){
             let selectedSegments:{[key:number] : PixelLocation}  = {}
-            for(let segmentId in this.segmentationData.centroidMap){
-                let centroid = this.segmentationData.centroidMap[segmentId]
+            for(let segmentId in segmentationData.centroidMap){
+                let centroid = segmentationData.centroidMap[segmentId]
                 let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
                 if(selectionGraphics.containsPoint(centroidPoint)){
                     selectedSegments[segmentId] = centroid
@@ -246,6 +246,45 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         return "Selection " + (this.props.regionsOfInterest.length + 1).toString()
     }
 
+    selectRegion(stage: PIXI.Container,
+        selection:number[],
+        selectionGraphics:PIXI.Graphics|null,
+        selectedCentroids: {[key:number] : PixelLocation}|null,
+        centroidGraphics: PIXI.Graphics|null = null){
+
+        if(selectionGraphics != null){
+            stage.removeChild(selectionGraphics)
+            selectionGraphics.destroy()
+        }
+
+        if(centroidGraphics != null){
+            stage.removeChild(centroidGraphics)
+            centroidGraphics.destroy()
+        }
+
+        selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
+        stage.addChild(selectionGraphics)
+
+        selectedCentroids = this.segmentCentroidsInSelection(selectionGraphics, this.segmentationData)
+
+        if(selectedCentroids != null){
+            centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+            stage.addChild(centroidGraphics)
+        }
+
+        return {selectionGraphics: selectionGraphics, selectedCentroids: selectedCentroids, centroidGraphics: centroidGraphics}
+    }
+
+    addSelectedCentroidsToStore(regionId: string, selectedCentroids: {[key:number] : PixelLocation}|null){
+        let selectedSegments = []
+        if (selectedCentroids != null) {
+            for(let segmentId in selectedCentroids){
+                selectedSegments.push(Number(segmentId))
+            }
+        }
+        this.addSelectedSegmentsToStore(regionId, selectedSegments)
+    }
+
     addSelect(el:HTMLDivElement){
         let selection:number[] = []
         // Graphics object storing the selected area
@@ -274,20 +313,11 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                if(selectionGraphics != null){
-                    this.stage.removeChild(selectionGraphics)
-                    selectionGraphics.destroy()
-                }
+                let toUnpack = this.selectRegion(this.stage, selection, selectionGraphics, selectedCentroids, centroidGraphics)
+                selectionGraphics = toUnpack.selectionGraphics
+                selectedCentroids = toUnpack.selectedCentroids
+                centroidGraphics = toUnpack.centroidGraphics
 
-                selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
-                this.stage.addChild(selectionGraphics)
-
-                selectedCentroids = this.segmentCentroidsInSelection(selectionGraphics)
-
-                if(selectedCentroids != null){
-                    centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
-                    this.stage.addChild(centroidGraphics)
-                }
                 this.renderer.render(this.rootContainer)
             }
         })
@@ -303,15 +333,9 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                         notes: null
                     }
                     // Add to the global collection of selected layers
-                    this.addRegionOfInterest(region)
+                    this.addRegionOfInterestToStore(region)
 
-                    let selectedSegments = []
-                    if (selectedCentroids != null) {
-                        for(let segmentId in selectedCentroids){
-                            selectedSegments.push(Number(segmentId))
-                        }
-                    }
-                    this.addSelectedSegments(region.id, selectedSegments)
+                    this.addSelectedCentroidsToStore(region.id, selectedCentroids)
                 }
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
@@ -480,21 +504,8 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
     renderRegionsOfInterest(stage:PIXI.Container, regionsOfInterest:Array<IMCImageSelection>, segmentationData: SegmentationData | null){
         for(let region of regionsOfInterest) {
-            let selectedRegionGraphics = this.drawSelectedRegion(region.selectedRegion, 0xf1c40f, 0.5)
-            this.stage.addChild(selectedRegionGraphics)
-            let selectedCentroids = this.segmentCentroidsInSelection(selectedRegionGraphics)
-            if(selectedCentroids!=null){
-                let selectedCentroidsLayer = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
-                this.stage.addChild(selectedCentroidsLayer)
-
-                let selectedSegments = []
-                if (selectedCentroids != null) {
-                    for(let segmentId in selectedCentroids){
-                        selectedSegments.push(Number(segmentId))
-                    }
-                }
-                this.addSelectedSegments(region.id, selectedSegments)
-            }
+            let toUnpack = this.selectRegion(this.stage, region.selectedRegion, null, null, null)
+            this.addSelectedCentroidsToStore(region.id, toUnpack.selectedCentroids)
         }
     }
 
