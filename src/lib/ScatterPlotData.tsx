@@ -18,7 +18,7 @@ export class ScatterPlotData {
     ch1: string
     ch2: string
     data: Array<Plotly.Data>
-    layout: ScatterPlotLayout
+    layout: ScatterPlotLayout // Plotly.layout
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.
     static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageSelection>|null,

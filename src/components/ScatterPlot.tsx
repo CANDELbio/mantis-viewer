@@ -4,6 +4,7 @@ const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
+import createPlotlyComponent from 'react-plotly.js'
 
 interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
@@ -48,13 +49,18 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
         let scatterPlot = null
         let statisticControls = null
         if (this.props.scatterPlotData != null) {
-            scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
             statisticControls = <Select
                 value = {this.props.selectedStatistic}
                 options = {this.props.statisticSelectOptions}
                 onChange = {this.onStatisticSelect}
                 clearable = {false}
             />
+            scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
+            // Reference this: https://github.com/plotly/react-plotly.js-demo-app/blob/master/src/App.js
+            // scatterPlot = new createPlotlyComponent({
+            //     data: {this.props.scatterPlotData.data},
+            //     layout: {this.props.scatterPlotData.layout}
+            // })
         }
 
         return(
