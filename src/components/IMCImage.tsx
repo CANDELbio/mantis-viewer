@@ -5,7 +5,6 @@ import { IMCData } from "../lib/IMCData"
 import { ChannelName } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import * as Shortid from 'shortid'
-import { select } from "d3-selection";
 
 export interface IMCImageProps {
 
@@ -42,31 +41,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
     
     // Color filters to use so that the sprites display as the desired color
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
-
-    // Sprites for the current channels.
-    channelSprites: Record<ChannelName, PIXI.Sprite | null> = {
-        rChannel: null,
-        gChannel: null,
-        bChannel: null
-    }
-
-    // Mapping of channelName to channelMarker (i.e. filename of the selected channel)
-    // Stored locally so that we can compare to the channelMarker being passed in
-    // to see what channelSprites need to be replaced
-    channelMarker: Record<ChannelName, string | null> = {
-        rChannel: null,
-        gChannel: null,
-        bChannel: null
-    }
-
-    // Mapping of channelName to channelDomain (i.e. min/max selected brightness values)
-    // Stored locally so we can compare to the channelDomain being passed in from the store
-    // to see which sprites need to have their filters updated (to change brightness)
-    channelDomain: Record<ChannelName, [number, number] | null> = {
-        rChannel: null,
-        gChannel: null,
-        bChannel: null
-    }
 
     // The width at which the stage should be fixed.
     rendererWidth: number
@@ -520,43 +494,35 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
 
     loadChannelGraphics(curChannel:ChannelName,
         imcData: IMCData,
-        channelMarker: Record<ChannelName, string | null> ){
-
-        let curMarker = channelMarker[curChannel] 
-        if(curMarker != null) {
-            if(this.channelMarker[curChannel] != curMarker){
-                this.channelMarker[curChannel] = curMarker
-                this.channelSprites[curChannel] = imcData.sprites[curMarker]
-            }
-        }
-    }
-
-    loadChannelFilters(curChannel:ChannelName,
-        imcData: IMCData,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]> ){
         
-        let sprite = this.channelSprites[curChannel] 
-        if(sprite != null){
-            if(this.channelDomain[curChannel] != channelDomain[curChannel]){
-                this.channelDomain[curChannel] = channelDomain[curChannel]
+            let curMarker = channelMarker[curChannel]
+            if(curMarker != null){
+                let sprite = imcData.sprites[curMarker]
                 let brightnessFilterCode = this.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 // Delete sprite filters so they get cleared from memory before adding new ones
-                sprite.filters = null
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-                this.channelSprites[curChannel] = sprite
+                this.stage.addChild(sprite)
             }
-        }
     }
 
     // Add segmentation data to the stage.
-    loadSegmentationGraphics(segmentationData: SegmentationData){
+    loadSegmentationGraphics(segmentationData: SegmentationData, segmentationAlpha:number){
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite
             this.segmentationCentroidGraphics = this.drawSegmentCentroids(segmentationData, 0xf1c40f) // fill yellow
         }
+        // Add segmentation cells
+        if(this.segmentationSprite!=null){
+            this.segmentationSprite.alpha = segmentationAlpha/10
+            this.stage.addChild(this.segmentationSprite)
+        }
+
+        // Add segmentation centroids
+        if(this.segmentationCentroidGraphics!=null) this.stage.addChild(this.segmentationCentroidGraphics)
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
@@ -571,26 +537,6 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
                 if(toUnpack.centroidGraphics != null)this.selectedRegionGraphics.push(toUnpack.centroidGraphics)
             }
         }
-    }
-
-    addGraphicsToStage(segmentationAlpha:number){
-        // Add channel sprites to stage
-        for (let s of ["rChannel", "gChannel", "bChannel"]) {
-            let curChannel = s as ChannelName
-            let curSprite = this.channelSprites[curChannel]
-            if(curSprite != null) this.stage.addChild(curSprite)
-        }
-
-        // Add segmentation cells
-        if(this.segmentationSprite!=null){
-            this.segmentationSprite.alpha = segmentationAlpha/10
-            this.stage.addChild(this.segmentationSprite)
-        }
-
-        // Add segmentation centroids
-        if(this.segmentationCentroidGraphics!=null) this.stage.addChild(this.segmentationCentroidGraphics)
-
-        // Add all of the selected regions and their centroids
         if(this.selectedRegionGraphics != null){
             for(let graphics of this.selectedRegionGraphics){
                 this.stage.addChild(graphics)
@@ -624,19 +570,17 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         // For each channel setting the brightness and color filters
         for (let s of ["rChannel", "gChannel", "bChannel"]) {
             let curChannel = s as ChannelName
-            this.loadChannelGraphics(curChannel, imcData, channelMarker)
-            this.loadChannelFilters(curChannel, imcData, channelMarker, channelDomain)
+            this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
         }
 
         if(segmentationData != null){
-            this.loadSegmentationGraphics(segmentationData)
+            this.loadSegmentationGraphics(segmentationData, segmentationAlpha)
         }
 
         if(selectedRegions != null) {
             this.loadSelectedRegionGraphics(selectedRegions)
         }
 
-        this.addGraphicsToStage(segmentationAlpha)
         this.renderer.render(this.rootContainer)
         
     }

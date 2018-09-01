@@ -1,12 +1,7 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import * as IMCImage from "./IMCImage"
-import * as SelectionLayer from "./SelectionLayer"
-import { BrushEventHandler } from "../interfaces/UIDefinitions"
-import { IObservableArray } from "mobx"
 import { LabelLayerView } from "./LabelLayerView"
-import { LabelLayer } from "../interfaces/UIDefinitions"
 import { ImageStore } from "../stores/ImageStore"
 
 
@@ -47,12 +42,6 @@ export class ViewPort extends React.Component<ViewPortProps, undefined> {
             <div className = "viewport">
                 <IMCImage.IMCImage {...this.props}/>
                 {/* {labelLayers} */}
-                {/* <SelectionLayer.SelectionLayer
-                canvasWidth = {this.props.canvasWidth}
-                canvasHeight = {this.props.canvasHeight}
-                onBrushEnd = {this.onBrushEnd}
-                handleWheel = {this.handleWheel}
-                /> */}
             </div>
         )
     }
