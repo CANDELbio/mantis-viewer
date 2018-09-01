@@ -17,7 +17,7 @@ interface LayerTableProps {
 }
 
 @observer
-export class LayerTable extends React.Component<LayerTableProps, undefined> {
+export class LayerTable extends React.Component<LayerTableProps, {}> {
  
     render() {
         let nRows = this.props.data.length

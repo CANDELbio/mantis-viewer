@@ -31,7 +31,7 @@ export class ScatterPlotData {
 
     ch1: string
     ch2: string
-    data: Array<ScatterPlotDatum>
+    data: Array<ScatterPlotDatum> // If we start using @type/plotly.js change this to Array<Plotly.Data>
     layout: ScatterPlotLayout
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.

@@ -9,7 +9,7 @@ interface BoxplotProps {
 }
 
 
-export class Boxplot extends React.Component<BoxplotProps, undefined> {
+export class Boxplot extends React.Component<BoxplotProps, {}> {
     constructor(props: BoxplotProps) {
         super(props)
     }

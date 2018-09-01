@@ -31,7 +31,7 @@ export interface IMCImageSelection {
 }
 
 @observer
-export class IMCImage extends React.Component<IMCImageProps, undefined> {
+export class IMCImage extends React.Component<IMCImageProps, {}> {
 
     el:HTMLDivElement | null = null
 
@@ -544,7 +544,7 @@ export class IMCImage extends React.Component<IMCImageProps, undefined> {
         }
     }
 
-    renderImage(el: HTMLDivElement, 
+    renderImage(el: HTMLDivElement|null, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>, 

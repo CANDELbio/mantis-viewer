@@ -13,7 +13,7 @@ export interface SegmentationControlsProps {
 }
 
 @observer
-export class SegmentationControls extends React.Component<SegmentationControlsProps, undefined> {
+export class SegmentationControls extends React.Component<SegmentationControlsProps, {}> {
 
     constructor(props: SegmentationControlsProps) {
         super(props)

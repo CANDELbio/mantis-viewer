@@ -8,7 +8,7 @@ import { LabelLayer } from "../interfaces/UIDefinitions"
 type LabelLayerProps = LabelLayer
 
 @observer
-export class LabelLayerView extends React.Component<LabelLayerProps, undefined> {
+export class LabelLayerView extends React.Component<LabelLayerProps, {}> {
     
     
     renderLayer(el: HTMLCanvasElement | null, data: Uint8ClampedArray) {

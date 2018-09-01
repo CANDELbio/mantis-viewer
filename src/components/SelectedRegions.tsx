@@ -18,13 +18,13 @@ interface SelectedDataRowProps {
 }
 
 @observer
-export class SelectedRegions extends React.Component<SelectedDataProps, undefined> {
+export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
 
     constructor(props:SelectedDataProps) {
         super(props)
     }
 
-    TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, undefined> {
+    TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, {}> {
         deleteRegion = () => {
             this.props.deleteRegion(this.props.region.id)
         }

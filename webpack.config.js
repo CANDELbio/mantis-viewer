@@ -1,10 +1,11 @@
 module.exports = {
+    mode: 'development',
     entry: {
         mainWindow: "./src/mainWindow.tsx",
         plotWindow: "./src/plotWindow.tsx",
     },
     output: {
-        path: "./app",
+        path: __dirname + "/app",
         filename: "[name].js",
     },
     // Enable sourcemaps for debugging webpack's output.
@@ -59,5 +60,5 @@ module.exports = {
         "react-dom": "ReactDOM"//,
         //"plotly.js": "Plotly"
     },
-    target: "electron"
+    target: "electron-main"
 };

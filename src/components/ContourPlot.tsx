@@ -9,7 +9,7 @@ interface CountourPlotProps {
     data: {[x:string]: number[]}
 }
 
-export class CountourPlot extends React.Component<CountourPlotProps, undefined> {
+export class CountourPlot extends React.Component<CountourPlotProps, {}> {
     
     constructor(props: CountourPlotProps) {
         super(props)

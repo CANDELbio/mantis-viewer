@@ -4,8 +4,8 @@ const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 
-
 let Plotly = require("../lib/plotly-latest.min")
+
 
 
 interface ScatterPlotProps {
@@ -19,7 +19,7 @@ interface ScatterPlotProps {
 }
 
 @observer
-export class ScatterPlot extends React.Component<ScatterPlotProps, undefined> {
+export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
     
     channelSelectOptions: {value: string, label:string}[]
 

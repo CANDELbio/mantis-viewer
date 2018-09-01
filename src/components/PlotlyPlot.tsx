@@ -12,7 +12,7 @@ interface PlotlyPlotProps {
 }
 
 
-export class PlotlyPlot extends React.Component<PlotlyPlotProps, undefined> {
+export class PlotlyPlot extends React.Component<PlotlyPlotProps, {}> {
     constructor(props: PlotlyPlotProps) {
         super(props)
     }

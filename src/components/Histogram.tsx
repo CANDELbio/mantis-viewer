@@ -9,7 +9,7 @@ interface HistogramProps {
 }
 
 
-export class Histogram extends React.Component<HistogramProps, undefined> {
+export class Histogram extends React.Component<HistogramProps, {}> {
     constructor(props: HistogramProps) {
         super(props)
     }

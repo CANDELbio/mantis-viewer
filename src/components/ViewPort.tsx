@@ -15,7 +15,7 @@ type ViewPortProps = IMCImage.IMCImageProps & ViewPortSpecificProps
 
 
 @observer
-export class ViewPort extends React.Component<ViewPortProps, undefined> {
+export class ViewPort extends React.Component<ViewPortProps, {}> {
 
     render() {
 
