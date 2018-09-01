@@ -28,6 +28,11 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /(node_modules)/
             },
+            // For Plotly https://github.com/plotly/plotly.js/blob/master/BUILDING.md
+            {
+                test: /\.js$/,
+                loader: 'ify-loader'
+            },
             /*
             {
                 test: /node_modules/,
@@ -57,8 +62,7 @@ module.exports = {
     // dependencies, which allows browsers to cache those libraries between builds.
     externals: {
         "react": "React",
-        "react-dom": "ReactDOM"//,
-        //"plotly.js": "Plotly"
+        "react-dom": "ReactDOM",
     },
     target: "electron-main"
 };

@@ -1,21 +1,7 @@
 import { IMCData } from "../lib/IMCData"
-import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
+import { SegmentationData } from "../lib/SegmentationData";
 import { PlotStatistic } from "../interfaces/UIDefinitions"
 import { IMCImageSelection } from "../components/IMCIMage"
-
-interface Marker {
-    size: number
-}
-
-interface ScatterPlotDatum {
-    x: number[]
-    y: number[]
-    mode: string
-    type: string
-    text: string[]
-    name: string
-    marker: Marker
-}
 
 interface ScatterPlotLayout {
     title: string
@@ -31,7 +17,7 @@ export class ScatterPlotData {
 
     ch1: string
     ch2: string
-    data: Array<ScatterPlotDatum> // If we start using @type/plotly.js change this to Array<Plotly.Data>
+    data: Array<Plotly.Data>
     layout: ScatterPlotLayout
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.
@@ -106,7 +92,7 @@ export class ScatterPlotData {
             }
         }
 
-        let scatterPlotData = new Array<ScatterPlotDatum>()
+        let scatterPlotData = Array<Plotly.Data>()
 
         // Sort the keys so they appear in the same order in the graph key between refreshes.
         let sorted:string[] = []

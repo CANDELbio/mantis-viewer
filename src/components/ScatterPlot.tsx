@@ -3,10 +3,7 @@ import { ScatterPlotData } from "../lib/ScatterPlotData"
 const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
-
-let Plotly = require("../lib/plotly-latest.min")
-
-
+import * as Plotly from 'plotly.js'
 
 interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
