@@ -3,7 +3,7 @@ import { Grid, Row, Col } from 'react-flexbox-grid'
 import { ImageStore } from "../stores/ImageStore"
 import { ChannelControls } from "../components/ChannelControls"
 import { observer } from "mobx-react"
-import { ChannelName, BrushEventHandler, SelectOption } from "../interfaces/UIDefinitions"
+import { ChannelName, SelectOption } from "../interfaces/UIDefinitions"
 import { ViewPort } from "../components/ViewPort"
 import { SelectedData } from "../components/SelectedData"
 import { SegmentationControls } from "../components/SegmentationControls"
@@ -100,7 +100,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 windowWidth = {this.props.store.windowWidth}
                 onCanvasDataLoaded = {this.props.store.setCanvasImageData}
                 addSelectedRegion = {this.props.store.addSelectedRegion}
-                addSelectedSegments = {this.props.store.addSelectedSegments}
+                addSelectedSegments = {this.props.store.addSelectedSegmentsInRegion}
                 selectedRegions = {this.props.store.selectedRegions}
                 labelsLayers = {this.props.store.labelsLayers}
             />
@@ -140,6 +140,8 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                     statisticSelectOptions = {statisticOptions}
                     selectedStatistic= {this.props.store.scatterPlotStatistic}
                     setSelectedStatistic = {this.onPlotMetricSelect}
+                    setSelectedPoints = {this.props.store.setSegmentsSelectedOnGraph}
+                    clearSelectedPoints = {this.props.store.clearSegmentsSelectedOnGraph}
                     scatterPlotData = {this.props.store.scatterPlotData}
                 />
             }

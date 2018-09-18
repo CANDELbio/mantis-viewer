@@ -32,8 +32,10 @@ export class ImageStore {
     @observable.ref segmentationData: SegmentationData | null
 
     @observable.ref selectedRegions: Array<IMCImageSelection> | null
-    // Map of selected region id to a map of segment id to centroid pixel location.
-    @observable.ref selectedSegments: {[key:string] : number[]} | null
+    // Map of selected region id to a an array of segment ids in that selected region.
+    @observable.ref segmentsSelectedInRegions: {[key:string] : number[]} | null
+
+    @observable segmentsSelectedOnGraph: number[] = []
 
     @observable.ref scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic = "median"
@@ -141,15 +143,15 @@ export class ImageStore {
         })
     }
 
-    @action addSelectedSegments = (regionId:string, segmentIds:number[]) => {
-        if (this.selectedSegments == null) this.selectedSegments = {}
-        this.selectedSegments[regionId] = segmentIds
+    @action addSelectedSegmentsInRegion = (regionId:string, segmentIds:number[]) => {
+        if (this.segmentsSelectedInRegions == null) this.segmentsSelectedInRegions = {}
+        this.segmentsSelectedInRegions[regionId] = segmentIds
         this.refreshScatterPlotData()
     }
 
-    @action deleteSelectedSegments = (regionId:string) => {
-        if (this.selectedSegments != null){
-            delete this.selectedSegments[regionId]
+    @action deleteSelectedSegmentsInRegion = (regionId:string) => {
+        if (this.segmentsSelectedInRegions != null){
+            delete this.segmentsSelectedInRegions[regionId]
         }
         this.refreshScatterPlotData()
     }
@@ -162,7 +164,7 @@ export class ImageStore {
     @action deleteSelectedRegion = (id: string) => {
         if(this.selectedRegions != null){
             this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
-            this.deleteSelectedSegments(id)
+            this.deleteSelectedSegmentsInRegion(id)
         }
     }
 
@@ -236,6 +238,27 @@ export class ImageStore {
         }
     }
 
+    // Data comes from a Plotly event.
+    // Points are the selected points.
+    // No custom fields, so we are getting the segment id from the title text for the point.
+    // Title text with segment id generated in ScatterPlotData.
+    @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
+        let selectedSegments:number[] = []
+        if(data != null) {
+            for (let point of data.points){
+                let pointText = point.text
+                let splitText:string[] = pointText.split(" ")
+                let segmentId = parseInt(splitText[splitText.length - 1])
+                selectedSegments.push(segmentId)
+            }
+        }
+        this.segmentsSelectedOnGraph = selectedSegments
+    }
+
+    @action clearSegmentsSelectedOnGraph = () => {
+        this.segmentsSelectedOnGraph = []
+    }
+
     @action setChannelDomain = (name: ChannelName) => {
         return action((value: [number, number]) => {
             this.channelDomain[name] = value
@@ -280,7 +303,7 @@ export class ImageStore {
                     this.segmentationData,
                     this.scatterPlotStatistic,
                     this.selectedRegions,
-                    this.selectedSegments
+                    this.segmentsSelectedInRegions
                 )
             }
         } else {

@@ -2,6 +2,7 @@ import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData";
 import { PlotStatistic } from "../interfaces/UIDefinitions"
 import { IMCImageSelection } from "../components/IMCIMage"
+import * as Plotly from 'plotly.js';
 
 interface ScatterPlotLayout {
     title: string
@@ -18,7 +19,7 @@ export class ScatterPlotData {
     ch1: string
     ch2: string
     data: Array<Plotly.Data>
-    layout: ScatterPlotLayout // Plotly.layout
+    layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.
     static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageSelection>|null,
@@ -84,6 +85,9 @@ export class ScatterPlotData {
             }
 
             // Add the intensities to the data map for each selection the segment is in.
+            // Being able to select points on the plot relies on the text being formatted
+            // as a space delimited string with the last element being the segment id
+            // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
             for(let selection of selections){
                 if(!(selection in plotData)) plotData[selection] = {x: [], y:[], text:[]}
                 if(x != null) plotData[selection].x.push(x)

@@ -4,7 +4,9 @@ const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
-import createPlotlyComponent from 'react-plotly.js'
+import PlotlyChart from './PlotlyChart';
+
+// const Plot = new createPlotlyComponent(plotly)
 
 interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
@@ -13,6 +15,8 @@ interface ScatterPlotProps {
     statisticSelectOptions: {value: string, label:string}[]
     selectedStatistic: string
     setSelectedStatistic: ((x: SelectOption) => void)
+    setSelectedPoints: ((data: {points:any, event:any}) => void)
+    clearSelectedPoints: (() => void)
     scatterPlotData: ScatterPlotData | null
 }
 
@@ -27,6 +31,8 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(x)
     onStatisticSelect = (x: SelectOption) => this.props.setSelectedStatistic(x)
+    onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedPoints(data)
+    onPlotDeselect = () => this.props.clearSelectedPoints()
 
     mountPlot(el:HTMLElement | null) {
         if(el != null && this.props.scatterPlotData != null) {
@@ -55,12 +61,11 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
                 onChange = {this.onStatisticSelect}
                 clearable = {false}
             />
-            scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
-            // Reference this: https://github.com/plotly/react-plotly.js-demo-app/blob/master/src/App.js
-            // scatterPlot = new createPlotlyComponent({
-            //     data: {this.props.scatterPlotData.data},
-            //     layout: {this.props.scatterPlotData.layout}
-            // })
+
+            scatterPlot =  <PlotlyChart data={this.props.scatterPlotData.data}
+                     layout={this.props.scatterPlotData.layout}
+                     onSelected={this.onPlotSelected}
+                     onDeselect={this.onPlotDeselect} />
         }
 
         return(

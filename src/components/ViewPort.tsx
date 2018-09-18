@@ -21,8 +21,6 @@ export class ViewPort extends React.Component<ViewPortProps, {}> {
 
         let labelLayers:JSX.Element[] = []
 
-        
-
         this.props.labelsLayers
             //.filter((d) => {d.visible})
             .forEach((d, i) => {
