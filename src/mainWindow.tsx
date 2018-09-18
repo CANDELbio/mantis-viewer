@@ -7,7 +7,7 @@ const tiff = require("tiff")
 import * as fs from "fs"
 import { ScatterPlotData } from "./lib/ScatterPlotData"
 
-Mobx.useStrict(true)
+Mobx.configure({ enforceActions: 'always' })
 
 const electron = require("electron")
 const path = require('path')

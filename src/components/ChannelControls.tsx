@@ -1,7 +1,7 @@
 import * as React from "react";
 import { RangeSlider } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-const Select = require("react-select")
+import Select from 'react-select';
 
 export interface ChannelControlsProps {
     sliderMin: number
@@ -32,7 +32,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         return(
             <div>
                 <Select
-                    value = {this.props.selectValue}
+                    value = {(this.props.selectValue == null) ? undefined : this.props.selectValue}
                     options = {this.props.selectOptions}
                     onChange = {this.props.onSelectChange}
                 />

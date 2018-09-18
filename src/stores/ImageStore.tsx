@@ -20,6 +20,7 @@ export class ImageStore {
 
     constructor() {
         this.selectedDataDisposer = keepAlive(this.selectedData)
+        this.initialize()
     }
 
     private canvasImageData:ImageData | null = null
@@ -35,43 +36,31 @@ export class ImageStore {
     // Map of selected region id to a an array of segment ids in that selected region.
     @observable.ref segmentsSelectedInRegions: {[key:string] : number[]} | null
 
-    @observable segmentsSelectedOnGraph: number[] = []
+    @observable segmentsSelectedOnGraph: number[]
 
     @observable.ref scatterPlotData: ScatterPlotData | null
-    @observable scatterPlotStatistic: PlotStatistic = "median"
+    @observable scatterPlotStatistic: PlotStatistic
 
-    @observable.ref extraData: Uint8ClampedArray | null = null
+    @observable.ref extraData: Uint8ClampedArray | null
 
     @observable selectedFile: string | null
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
-    @observable.ref selectedPlotChannels: string[] = []
+    @observable.ref selectedPlotChannels: string[]
     
-    @observable channelDomain: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
-    }
-    @observable channelSliderValue: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
-    }
+    @observable channelDomain: Record<ChannelName, [number, number]> 
+    @observable channelSliderValue: Record<ChannelName, [number, number]>
 
-    @observable segmentationAlpha: number = 5
+    @observable segmentationAlpha: number
 
-    @observable channelMarker: Record<ChannelName, string | null> = {
-        rChannel: null,
-        gChannel: null,
-        bChannel: null
-    }
+    @observable channelMarker: Record<ChannelName, string | null>
 
     @observable currentSelection: {
         x: [number, number]
         y: [number, number]
-    } | null = null
+    } | null
 
-    labelsLayers = observable.shallowArray<LabelLayer>()
+    labelsLayers = observable.array(Array<LabelLayer>(), {deep:false})
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -93,6 +82,28 @@ export class ImageStore {
         }
         return (ret)
     })
+
+    @action initialize = () => {
+        this.segmentsSelectedOnGraph = []
+        this.scatterPlotStatistic = "median"
+        this.selectedPlotChannels = []
+        this.channelDomain = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100]
+        }
+        this.channelSliderValue = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100]
+        }
+        this.segmentationAlpha = 5
+        this.channelMarker = {
+            rChannel: null,
+            gChannel: null,
+            bChannel: null
+        }
+    }
 
     @action setWindowDimensions = (width: number, height: number) => {
         this.windowWidth = width

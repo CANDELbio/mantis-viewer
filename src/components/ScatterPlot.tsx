@@ -2,7 +2,7 @@
 // Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
-const Select = require("react-select")
+import Select from 'react-select'
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
