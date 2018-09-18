@@ -19,7 +19,9 @@ export interface IMCImageProps {
     windowWidth: number | null,
     selectedRegions: Array<IMCImageSelection> | null,
     addSelectedRegion: ((region: IMCImageSelection) => void)
+    segmentsSelectedOnGraph: number[]
     addSelectedSegments: ((regionId:string, segmentIds:number[]) => void)
+
 }
 
 export interface IMCImageSelection {
@@ -62,6 +64,10 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
     // selectedRegionGraphics below
     selectedRegions: Array<IMCImageSelection> | null
     selectedRegionGraphics: Array<PIXI.Graphics> | null
+
+    // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
+    selectedSegmentsFromGraph: number[] = []
+    selectedSegmentsFromGraphGraphics: PIXI.Graphics | null
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     dragging: boolean
@@ -544,6 +550,20 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
     }
 
+    loadSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[]){
+        if(selectedSegments != this.selectedSegmentsFromGraph){
+            this.selectedSegmentsFromGraph = selectedSegments
+            let selectedSegmentMap:{[key:number] : PixelLocation} = {}
+            for(let segmentId of selectedSegments){
+                selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
+            }
+            this.selectedSegmentsFromGraphGraphics = this.drawSelectedCentroids(selectedSegmentMap, 0xff0000)
+        }
+        if(this.selectedSegmentsFromGraphGraphics != null){
+            this.stage.addChild(this.selectedSegmentsFromGraphGraphics)
+        }
+    }
+
     renderImage(el: HTMLDivElement|null, 
         imcData: IMCData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -551,6 +571,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
         selectedRegions: Array<IMCImageSelection> | null,
+        selectedSegmentsFromGraph: number[],
         windowWidth: number) {
 
         if(el == null)
@@ -581,6 +602,10 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
             this.loadSelectedRegionGraphics(selectedRegions)
         }
 
+        if(segmentationData != null){
+            this.loadSelectedSegmentGraphics(segmentationData, selectedSegmentsFromGraph)
+        }
+
         this.renderer.render(this.rootContainer)
         
     }
@@ -608,6 +633,8 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         let regions = this.props.selectedRegions
 
+        let selectedSegmentsFromGraph = this.props.segmentsSelectedOnGraph
+
         let renderWidth = 700
         if(this.props.windowWidth != null){
             // We need to set the render width smaller than the window width to account for the controls around it.
@@ -619,7 +646,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, regions, renderWidth)}}
+                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, regions, selectedSegmentsFromGraph, renderWidth)}}
             />
         )
     }

@@ -54,7 +54,6 @@ class PlotlyChart extends React.Component<IPlotlyChartProps, any> {
     if (this.container) {
       // plotly.react will not destroy the old plot: https://plot.ly/javascript/plotlyjs-function-reference/#plotlyreact
       this.container = await plotly.react(this.container, data, Object.assign({}, layout), config);
-      this.attachListeners();
     }
   };
 

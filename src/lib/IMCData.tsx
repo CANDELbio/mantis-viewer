@@ -205,10 +205,10 @@ export class IMCData {
             let length = values.length
             if(length % 2 == 0){
                 // If even take the average of the two middle intensity values
-                return (values[length/2] + values[(length/2) + 1])/2
+                return (values[(length/2) - 1] + values[length/2])/2
             } else {
                 // If odd return the middle intensity value
-                return values[Math.ceil(length/2)]
+                return values[Math.ceil(length/2) - 1]
             }
         }
         else {

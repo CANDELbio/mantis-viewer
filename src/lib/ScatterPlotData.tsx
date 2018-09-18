@@ -25,15 +25,18 @@ export class ScatterPlotData {
     static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageSelection>|null,
         selectedSegments: {[key:string] : number[]} | null) {
 
-        let map:{[key:string] : Array<string>}  = {}
+        let map:{[key:number] : Array<string>}  = {}
         if(regionsOfInterest != null){
+            // Iterate through the regions of interest
             for(let region of regionsOfInterest){
                 if(selectedSegments != null){
+                    // Get the segment ids selected in this region
                     let regionSelectedSegments = selectedSegments[region.id]
                     if(regionSelectedSegments != null){
-                        for(let segment of regionSelectedSegments){
-                            if(!(segment in map)) map[segment] = new Array<string>()
-                            map[segment].push(region.name)
+                        // Iterate over the segmentIds selected in the region
+                        for(let segmentId of regionSelectedSegments){
+                            if(!(segmentId in map)) map[segmentId] = new Array<string>()
+                            map[segmentId].push(region.name)
                         }
                     }
                 }
@@ -90,9 +93,12 @@ export class ScatterPlotData {
             // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
             for(let selection of selections){
                 if(!(selection in plotData)) plotData[selection] = {x: [], y:[], text:[]}
-                if(x != null) plotData[selection].x.push(x)
-                if(y != null) plotData[selection].y.push(y)
-                plotData[selection].text.push("Segment " + segment)
+                if(x != null && y != null){
+                    plotData[selection].x.push(x)
+                    plotData[selection].y.push(y)
+                    plotData[selection].text.push("Segment " + segment)
+                }
+                 
             }
         }
 

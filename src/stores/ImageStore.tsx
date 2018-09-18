@@ -248,7 +248,7 @@ export class ImageStore {
             for (let point of data.points){
                 let pointText = point.text
                 let splitText:string[] = pointText.split(" ")
-                let segmentId = parseInt(splitText[splitText.length - 1])
+                let segmentId = Number(splitText[splitText.length - 1])
                 selectedSegments.push(segmentId)
             }
         }
