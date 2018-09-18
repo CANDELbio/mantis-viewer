@@ -293,6 +293,9 @@ export class ImageStore {
     }
 
     @action refreshScatterPlotData = () => {
+        // Clear segments selected on graph since the graph is re-rendered without any selection when data is regenerated.
+        // We might be able to avoid doing this if this is ever fixed https://github.com/plotly/plotly.js/issues/1848
+        this.segmentsSelectedOnGraph = []
         if(this.selectedPlotChannels.length == 2){
             let ch1 = this.selectedPlotChannels[0]
             let ch2 = this.selectedPlotChannels[1]

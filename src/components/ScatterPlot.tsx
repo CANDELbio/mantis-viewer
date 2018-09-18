@@ -1,12 +1,11 @@
+// Draws some inspiration from https://github.com/plotly/react-plotly.js/
+// Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 const Select = require("react-select")
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
-import PlotlyChart from './PlotlyChart';
-
-// const Plot = new createPlotlyComponent(plotly)
 
 interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
@@ -22,6 +21,7 @@ interface ScatterPlotProps {
 
 @observer
 export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
+    public container: Plotly.PlotlyHTMLElement | null = null;
     
     channelSelectOptions: {value: string, label:string}[]
 
@@ -34,9 +34,19 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedPoints(data)
     onPlotDeselect = () => this.props.clearSelectedPoints()
 
-    mountPlot(el:HTMLElement | null) {
+    public componentWillUnmount() {
+        if (this.container) Plotly.purge(this.container)
+    }
+
+    mountPlot = async (el:HTMLElement | null) => {
         if(el != null && this.props.scatterPlotData != null) {
-            Plotly.react(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
+            let firstRender = (this.container == null)
+            this.container = await Plotly.react(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
+            // Adding listeners for plotly events. Not doing this during componentDidMount because the element probably doesn't exist.
+            if(firstRender){
+                this.container!.on('plotly_selected', this.onPlotSelected)
+                this.container!.on('plotly_deselect', this.onPlotDeselect)
+            }
         }
     }
 
@@ -62,10 +72,7 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
                 clearable = {false}
             />
 
-            scatterPlot =  <PlotlyChart data={this.props.scatterPlotData.data}
-                     layout={this.props.scatterPlotData.layout}
-                     onSelected={this.onPlotSelected}
-                     onDeselect={this.onPlotDeselect} />
+            scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
         }
 
         return(
