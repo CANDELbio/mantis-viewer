@@ -100,6 +100,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 selectedRegions = {this.props.store.selectedRegions}
                 hightlightedRegions = {this.props.store.highlightedRegions}
                 segmentsSelectedOnGraph = {this.props.store.segmentsSelectedOnGraph}
+                highlightedSegmentsFromGraph = {this.props.store.segmentsHoveredOnGraph}
                 labelsLayers = {this.props.store.labelsLayers}
             />
  
@@ -139,6 +140,8 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                     setSelectedTransform = {this.props.store.setScatterPlotTransform}
                     setSelectedPoints = {this.props.store.setSegmentsSelectedOnGraph}
                     clearSelectedPoints = {this.props.store.clearSegmentsSelectedOnGraph}
+                    setHoveredPoints = {this.props.store.setSegmentsHoveredOnGraph}
+                    setUnHoveredPoints = {this.props.store.clearSegmentsHoveredOnGraph}
                     scatterPlotData = {this.props.store.scatterPlotData}
                 />
             }

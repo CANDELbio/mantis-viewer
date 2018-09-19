@@ -41,7 +41,11 @@ export class ImageStore {
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
     @observable.ref highlightedRegions: string[]
 
+    // Array of segment IDs that have been selected on the graph.
     @observable segmentsSelectedOnGraph: number[]
+
+    // Array of segment IDs that have been hovered on the graph.
+    @observable segmentsHoveredOnGraph: number[]
 
     @observable.ref scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic
@@ -92,7 +96,6 @@ export class ImageStore {
     })
 
     @action initialize = () => {
-        this.segmentsSelectedOnGraph = []
         this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
         this.selectedPlotChannels = []
@@ -114,6 +117,8 @@ export class ImageStore {
             bChannel: null
         }
         this.highlightedRegions = []
+        this.segmentsSelectedOnGraph = []
+        this.segmentsHoveredOnGraph = []
     }
 
     @action setWindowDimensions = (width: number, height: number) => {
@@ -278,7 +283,7 @@ export class ImageStore {
     // Points are the selected points.
     // No custom fields, so we are getting the segment id from the title text for the point.
     // Title text with segment id generated in ScatterPlotData.
-    @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
+    parsePlotlyEventData = (data: {points:any, event:any}) => {
         let selectedSegments:number[] = []
         if(data != null) {
             for (let point of data.points){
@@ -288,11 +293,23 @@ export class ImageStore {
                 selectedSegments.push(segmentId)
             }
         }
-        this.segmentsSelectedOnGraph = selectedSegments
+        return selectedSegments
+    }
+
+    @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
+        this.segmentsSelectedOnGraph = this.parsePlotlyEventData(data)
     }
 
     @action clearSegmentsSelectedOnGraph = () => {
         this.segmentsSelectedOnGraph = []
+    }
+
+    @action setSegmentsHoveredOnGraph = (data: {points: any, event:any}) => {
+        this.segmentsHoveredOnGraph = this.parsePlotlyEventData(data)
+    }
+
+    @action clearSegmentsHoveredOnGraph = () => {
+        this.segmentsHoveredOnGraph = []
     }
 
     @action setChannelDomain = (name: ChannelName) => {

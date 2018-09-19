@@ -1,4 +1,4 @@
-// Draws some inspiration from https://github.com/plotly/react-plotly.js/
+// Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
@@ -19,6 +19,8 @@ interface ScatterPlotProps {
     setSelectedTransform: ((x: SelectOption) => void)
     setSelectedPoints: ((data: {points:any, event:any}) => void)
     clearSelectedPoints: (() => void)
+    setHoveredPoints: ((data: {points:any, event:any}) => void)
+    setUnHoveredPoints: (() => void)
     scatterPlotData: ScatterPlotData | null
     windowWidth: number | null
 }
@@ -37,6 +39,8 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
     onStatisticSelect = (x: SelectOption) => this.props.setSelectedStatistic(x)
     onTransformSelect = (x: SelectOption) => this.props.setSelectedTransform(x)
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedPoints(data)
+    onHover = (data: {points:any, event:any}) => this.props.setHoveredPoints(data)
+    onUnHover = () => this.props.setUnHoveredPoints()
     onPlotDeselect = () => this.props.clearSelectedPoints()
 
     public componentWillUnmount() {
@@ -61,6 +65,8 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
             if(firstRender){
                 this.container!.on('plotly_selected', this.onPlotSelected)
                 this.container!.on('plotly_deselect', this.onPlotDeselect)
+                this.container!.on('plotly_hover', this.onHover);
+                this.container!.on('plotly_unhover', this.onUnHover);
             }
         }
     }

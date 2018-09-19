@@ -2,7 +2,11 @@ import * as React from "react"
 import * as PIXI from "pixi.js"
 import { observer } from "mobx-react"
 import { IMCData } from "../lib/IMCData"
-import { ChannelName, SelectedRegionAlpha, HighlightedSelectedRegionAlpha } from "../interfaces/UIDefinitions"
+import { ChannelName,
+    SelectedRegionAlpha,
+    HighlightedSelectedRegionAlpha,
+    SelectedCentroidColor,
+    UnselectedCentroidColor } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import * as Shortid from 'shortid'
 
@@ -22,6 +26,7 @@ export interface IMCImageProps {
     addSelectedRegion: ((region: IMCImageSelection) => void)
     hightlightedRegions: string[]
     segmentsSelectedOnGraph: number[]
+    highlightedSegmentsFromGraph: number[]
     addSelectedSegments: ((regionId:string, segmentIds:number[]) => void)
 
 }
@@ -291,7 +296,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         selectedCentroids = this.findSegmentCentroidsInSelection(selectionGraphics, this.segmentationData)
 
         if(selectedCentroids != null){
-            centroidGraphics = this.drawSelectedCentroids(selectedCentroids, 0xffffff)
+            centroidGraphics = this.drawSelectedCentroids(selectedCentroids, SelectedCentroidColor)
         }
 
         return {selectionGraphics: selectionGraphics, selectedCentroids: selectedCentroids, centroidGraphics: centroidGraphics}
@@ -523,7 +528,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite
-            this.segmentationCentroidGraphics = this.drawSegmentCentroids(segmentationData, 0xf1c40f) // fill yellow
+            this.segmentationCentroidGraphics = this.drawSegmentCentroids(segmentationData, UnselectedCentroidColor)
         }
         // Add segmentation cells
         if(this.segmentationSprite!=null){
@@ -562,17 +567,28 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
     }
 
+    generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[]) {
+        let selectedSegmentMap:{[key:number] : PixelLocation} = {}
+        for(let segmentId of selectedSegments){
+            selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
+        }
+        return this.drawSelectedCentroids(selectedSegmentMap, SelectedCentroidColor)
+    }
+
     loadSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[]){
         if(selectedSegments != this.selectedSegmentsFromGraph){
             this.selectedSegmentsFromGraph = selectedSegments
-            let selectedSegmentMap:{[key:number] : PixelLocation} = {}
-            for(let segmentId of selectedSegments){
-                selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
-            }
-            this.selectedSegmentsFromGraphGraphics = this.drawSelectedCentroids(selectedSegmentMap, 0xff0000)
+            this.selectedSegmentsFromGraphGraphics = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments)
         }
         if(this.selectedSegmentsFromGraphGraphics != null){
             this.stage.addChild(this.selectedSegmentsFromGraphGraphics)
+        }
+    }
+
+    loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
+        if(highlightedSegments.length > 0){
+            let graphics = this.generateSelectedSegmentGraphics(segmentationData, highlightedSegments)
+            this.stage.addChild(graphics)
         }
     }
 
@@ -586,6 +602,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         selectedRegions: Array<IMCImageSelection> | null,
         highlightedRegions: string[],
         selectedSegmentsFromGraph: number[],
+        highlightedSegmentsFromGraph: number[],
         windowWidth: number) {
 
         if(el == null)
@@ -618,6 +635,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         if(segmentationData != null){
             this.loadSelectedSegmentGraphics(segmentationData, selectedSegmentsFromGraph)
+            this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
         }
 
         this.renderer.render(this.rootContainer)
@@ -651,6 +669,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         let highlightedRegions = this.props.hightlightedRegions
 
         let selectedSegmentsFromGraph = this.props.segmentsSelectedOnGraph
+        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
 
         let renderWidth = 700
         if(this.props.windowWidth != null){
@@ -673,6 +692,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
                                                 regions,
                                                 highlightedRegions,
                                                 selectedSegmentsFromGraph,
+                                                highlightedSegmentsFromGraph,
                                                 renderWidth
                                                 )
                     }}
