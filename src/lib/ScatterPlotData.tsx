@@ -1,6 +1,6 @@
 import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData";
-import { PlotStatistic } from "../interfaces/UIDefinitions"
+import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { IMCImageSelection } from "../components/IMCIMage"
 import * as Plotly from 'plotly.js';
 
@@ -50,6 +50,7 @@ export class ScatterPlotData {
         imcData:IMCData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
+        plotTransform: PlotTransform,
         regionsOfInterest: Array<IMCImageSelection>|null,
         selectedSegments: {[key:string] : number[]} | null) {
 
@@ -82,9 +83,20 @@ export class ScatterPlotData {
             if(plotStatistic == "mean") {
                 x = imcData.meanPixelIntensity(ch1, pixels)
                 y = imcData.meanPixelIntensity(ch2, pixels)
-            } else if (plotStatistic == "median") {
+            } else if(plotStatistic == "median") {
                 x = imcData.medianPixelIntensity(ch1, pixels)
                 y = imcData.medianPixelIntensity(ch2, pixels)
+            }
+
+            // If the user has selected a transform, apply it.
+            if(x != null && y != null){
+                if(plotTransform == "arcsinh"){
+                    x = Math.asinh(x)
+                    y = Math.asinh(y)
+                } else if(plotTransform == "log"){
+                    x = Math.log10(x)
+                    y = Math.log10(y)
+                }
             }
 
             // Add the intensities to the data map for each selection the segment is in.
@@ -133,13 +145,14 @@ export class ScatterPlotData {
         imcData:IMCData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
+        plotTransform: PlotTransform,
         regionsOfInterest: Array<IMCImageSelection>|null,
         selectedSegments: {[key:string] : number[]} | null
     ) {
 
         this.ch1 = ch1
         this.ch2 = ch2
-        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, regionsOfInterest, selectedSegments)
+        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, plotTransform, regionsOfInterest, selectedSegments)
         this.layout = {title: ch1 + ' versus ' + ch2, xaxis: {title: ch1}, yaxis: {title: ch2}}
     }
 

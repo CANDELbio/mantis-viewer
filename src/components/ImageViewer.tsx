@@ -129,18 +129,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                     onButtonClick = {this.props.store.clearSegmentationData()}
                 />
 
-                let statisticOptions = [
-                    {label: "Median", value: "median"},
-                    {label: "Mean", value: "mean"}
-                ]
-
                 scatterPlot = <ScatterPlot 
+                    windowWidth = {this.props.store.windowWidth}
                     channelSelectOptions = {channelSelectOptions}
                     selectedPlotChannels = {this.props.store.selectedPlotChannels}
                     setSelectedPlotChannels = {this.onPlotChannelSelect}
-                    statisticSelectOptions = {statisticOptions}
                     selectedStatistic= {this.props.store.scatterPlotStatistic}
                     setSelectedStatistic = {this.onPlotMetricSelect}
+                    selectedTransform = {this.props.store.scatterPlotTransform}
+                    setSelectedTransform = {this.props.store.setScatterPlotTransform}
                     setSelectedPoints = {this.props.store.setSegmentsSelectedOnGraph}
                     clearSelectedPoints = {this.props.store.clearSegmentsSelectedOnGraph}
                     scatterPlotData = {this.props.store.scatterPlotData}

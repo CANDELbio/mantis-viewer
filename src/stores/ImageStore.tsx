@@ -3,12 +3,15 @@ import { observable,
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
 import { IMCImageSelection } from "../components/IMCIMage"
-import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
+import { SegmentationData } from "../lib/SegmentationData";
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 import * as fs from 'fs'
 import { ChannelName,
-    PlotStatistic, 
+    PlotStatistic,
+    PlotStatisticOptions,
+    PlotTransform,
+    PlotTransformOptions,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
@@ -40,6 +43,7 @@ export class ImageStore {
 
     @observable.ref scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic
+    @observable scatterPlotTransform: PlotTransform
 
     @observable.ref extraData: Uint8ClampedArray | null
 
@@ -85,7 +89,8 @@ export class ImageStore {
 
     @action initialize = () => {
         this.segmentsSelectedOnGraph = []
-        this.scatterPlotStatistic = "median"
+        this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
+        this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
         this.selectedPlotChannels = []
         this.channelDomain = {
             rChannel: [0, 100],
@@ -316,6 +321,7 @@ export class ImageStore {
                     this.imageData,
                     this.segmentationData,
                     this.scatterPlotStatistic,
+                    this.scatterPlotTransform,
                     this.selectedRegions,
                     this.segmentsSelectedInRegions
                 )
@@ -333,6 +339,13 @@ export class ImageStore {
     @action setScatterPlotStatistic = (x: SelectOption) => {
         if (x != null){
             this.scatterPlotStatistic = x.value as PlotStatistic
+            this.refreshScatterPlotData()
+        }
+    }
+
+    @action setScatterPlotTransform = (x: SelectOption) => {
+        if (x != null){
+            this.scatterPlotTransform = x.value as PlotTransform
             this.refreshScatterPlotData()
         }
     }    

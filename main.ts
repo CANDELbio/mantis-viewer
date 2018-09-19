@@ -94,8 +94,8 @@ function createWindow () {
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
 
-  // Use throttle so that when we resize we only send the window size every 250 ms
-  mainWindow.on('resize', _.throttle(sendWindowSize, 250))
+  // Use throttle so that when we resize we only send the window size every 333 ms
+  mainWindow.on('resize', _.throttle(sendWindowSize, 333))
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

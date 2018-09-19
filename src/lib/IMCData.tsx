@@ -39,7 +39,11 @@ export class IMCData {
     height: number
 
     get channelNames() : string[] {
-        return(_.keys(this.data))
+        // Remove X and Y from the channelNames before returning
+        let channelNames = _.keys(this.data)
+        channelNames.splice(channelNames.indexOf("X"), 1)
+        channelNames.splice(channelNames.indexOf("Y"), 1)
+        return(channelNames)
     }
 
     static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {

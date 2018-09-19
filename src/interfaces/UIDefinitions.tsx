@@ -1,10 +1,24 @@
 import { observable } from "mobx"
 
 export type ChannelName = "rChannel" | "gChannel" | "bChannel"
-export type PlotStatistic = "mean" | "median"
 export type D3BrushExtent = [[number, number], [number, number]]
 export type BrushEventHandler = ((extent: D3BrushExtent) => void)
 export type SelectOption = {label: string, value: string}
+
+export const PlotStatisticOptions = [
+    {label: "Median", value: "median"},
+    {label: "Mean", value: "mean"}
+]
+
+export type PlotStatistic = "mean" | "median"
+
+export const PlotTransformOptions = [
+    {label: "No Tranformation", value: "none"},
+    {label: "ArcSinh", value: "arcsinh"},
+    {label: "Log10", value: "log"},
+]
+
+export type PlotTransform = "none" | "arcsinh" | "log"
 
 /*
 export interface LabelLayer {
