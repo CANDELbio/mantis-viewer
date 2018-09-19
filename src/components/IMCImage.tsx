@@ -63,10 +63,10 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
+    // selectedRegionGraphics is a map of regionId to Graphics
     // selectedRegionGraphics below
     selectedRegions: Array<IMCImageSelection> | null
-    selectedRegionGraphics: Array<PIXI.Graphics> | null
-    highlightedRegions: string[]
+    selectedRegionGraphics:{[key:string] : {region: PIXI.Graphics, centroids: PIXI.Graphics|null}} | null
 
     // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
     selectedSegmentsFromGraph: number[] = []
@@ -123,8 +123,6 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         this.dragging = false
         this.selecting = false
-
-        this.highlightedRegions = []
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -539,22 +537,27 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
     loadSelectedRegionGraphics(selectedRegions:Array<IMCImageSelection>, highlightedRegions: string[]){
-        // TODO: make this more efficient and only set the alpha for each layer based on highlighted regions instead of rerendering.
-        if(selectedRegions != this.selectedRegions || this.highlightedRegions != highlightedRegions){
+        // Regenerate the region graphics and the centroids they contain if the selectedRegions have changed
+        if(selectedRegions != this.selectedRegions){
             this.selectedRegions = selectedRegions
-            this.highlightedRegions = highlightedRegions
-            this.selectedRegionGraphics = []
+            this.selectedRegionGraphics = {}
             for(let region of selectedRegions) {
-                let alpha = (highlightedRegions.indexOf(region.id) > -1) ? HighlightedSelectedRegionAlpha : SelectedRegionAlpha
-                let toUnpack = this.selectRegion(this.stage, region.selectedRegion, alpha, null, null, null)
+                let toUnpack = this.selectRegion(this.stage, region.selectedRegion, SelectedRegionAlpha, null, null, null)
                 this.addSelectedCentroidsToStore(region.id, toUnpack.selectedCentroids)
-                this.selectedRegionGraphics.push(toUnpack.selectionGraphics)
-                if(toUnpack.centroidGraphics != null)this.selectedRegionGraphics.push(toUnpack.centroidGraphics)
+                this.selectedRegionGraphics[region.id] = {region: toUnpack.selectionGraphics, centroids: null}
+                if(toUnpack.centroidGraphics != null) this.selectedRegionGraphics[region.id].centroids = toUnpack.centroidGraphics
             }
         }
+        // Add them to the stage
         if(this.selectedRegionGraphics != null){
-            for(let graphics of this.selectedRegionGraphics){
-                this.stage.addChild(graphics)
+            for(let regionId in this.selectedRegionGraphics){
+                let curGraphics = this.selectedRegionGraphics[regionId]
+                // Highlight regions that need to be highlighted
+                let alpha = (highlightedRegions.indexOf(regionId) > -1) ? HighlightedSelectedRegionAlpha : SelectedRegionAlpha
+                let regionGraphics = curGraphics.region
+                regionGraphics.alpha = alpha
+                this.stage.addChild(regionGraphics)
+                if (curGraphics.centroids != null) this.stage.addChild(curGraphics.centroids)
             }
         }
     }
