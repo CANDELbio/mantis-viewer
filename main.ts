@@ -34,6 +34,7 @@ let menuTemplate = [{
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
         if(mainWindow != null && dirName != null)
           mainWindow.webContents.send("open-directory", dirName[0])
+          // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
           sendWindowSize()
       })
     }
@@ -62,9 +63,15 @@ let menuTemplate = [{
       dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
         if(mainWindow != null && filename != null)
           mainWindow.webContents.send("export-selected-regions", filename)
-        })
+      })
+    }
+  },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit()
       }
-    },
+    }
 ]
 }]
 
