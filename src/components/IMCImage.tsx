@@ -2,7 +2,7 @@ import * as React from "react"
 import * as PIXI from "pixi.js"
 import { observer } from "mobx-react"
 import { IMCData } from "../lib/IMCData"
-import { ChannelName } from "../interfaces/UIDefinitions"
+import { ChannelName, SelectedRegionAlpha, HighlightedSelectedRegionAlpha } from "../interfaces/UIDefinitions"
 import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
 import * as Shortid from 'shortid'
 
@@ -20,6 +20,7 @@ export interface IMCImageProps {
     windowWidth: number | null,
     selectedRegions: Array<IMCImageSelection> | null,
     addSelectedRegion: ((region: IMCImageSelection) => void)
+    hightlightedRegions: string[]
     segmentsSelectedOnGraph: number[]
     addSelectedSegments: ((regionId:string, segmentIds:number[]) => void)
 
@@ -65,6 +66,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
     // selectedRegionGraphics below
     selectedRegions: Array<IMCImageSelection> | null
     selectedRegionGraphics: Array<PIXI.Graphics> | null
+    highlightedRegions: string[]
 
     // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
     selectedSegmentsFromGraph: number[] = []
@@ -121,6 +123,8 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         this.dragging = false
         this.selecting = false
+
+        this.highlightedRegions = []
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
@@ -270,6 +274,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
     // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
     selectRegion(stage: PIXI.Container,
         selection:number[],
+        alpha: number,
         selectionGraphics:PIXI.Graphics|null,
         selectedCentroids: {[key:number] : PixelLocation}|null,
         centroidGraphics: PIXI.Graphics|null = null){
@@ -284,7 +289,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
             centroidGraphics.destroy()
         }
 
-        selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, 0.5)
+        selectionGraphics = this.drawSelectedRegion(selection, 0xf1c40f, alpha)
         selectedCentroids = this.findSegmentCentroidsInSelection(selectionGraphics, this.segmentationData)
 
         if(selectedCentroids != null){
@@ -333,7 +338,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                let toUnpack = this.selectRegion(this.stage, selection, selectionGraphics, selectedCentroids, centroidGraphics)
+                let toUnpack = this.selectRegion(this.stage, selection, SelectedRegionAlpha, selectionGraphics, selectedCentroids, centroidGraphics)
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedCentroids = toUnpack.selectedCentroids
                 centroidGraphics = toUnpack.centroidGraphics
@@ -533,12 +538,15 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    loadSelectedRegionGraphics(selectedRegions:Array<IMCImageSelection>){
-        if(selectedRegions != this.selectedRegions){
+    loadSelectedRegionGraphics(selectedRegions:Array<IMCImageSelection>, highlightedRegions: string[]){
+        // TODO: make this more efficient and only set the alpha for each layer based on highlighted regions instead of rerendering.
+        if(selectedRegions != this.selectedRegions || this.highlightedRegions != highlightedRegions){
             this.selectedRegions = selectedRegions
+            this.highlightedRegions = highlightedRegions
             this.selectedRegionGraphics = []
             for(let region of selectedRegions) {
-                let toUnpack = this.selectRegion(this.stage, region.selectedRegion, null, null, null)
+                let alpha = (highlightedRegions.indexOf(region.id) > -1) ? HighlightedSelectedRegionAlpha : SelectedRegionAlpha
+                let toUnpack = this.selectRegion(this.stage, region.selectedRegion, alpha, null, null, null)
                 this.addSelectedCentroidsToStore(region.id, toUnpack.selectedCentroids)
                 this.selectedRegionGraphics.push(toUnpack.selectionGraphics)
                 if(toUnpack.centroidGraphics != null)this.selectedRegionGraphics.push(toUnpack.centroidGraphics)
@@ -573,6 +581,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         segmentationAlpha: number,
         segmentationCentroidsVisible: boolean,
         selectedRegions: Array<IMCImageSelection> | null,
+        highlightedRegions: string[],
         selectedSegmentsFromGraph: number[],
         windowWidth: number) {
 
@@ -601,7 +610,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
 
         if(selectedRegions != null) {
-            this.loadSelectedRegionGraphics(selectedRegions)
+            this.loadSelectedRegionGraphics(selectedRegions, highlightedRegions)
         }
 
         if(segmentationData != null){
@@ -636,6 +645,8 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         let regions = this.props.selectedRegions
 
+        let highlightedRegions = this.props.hightlightedRegions
+
         let selectedSegmentsFromGraph = this.props.segmentsSelectedOnGraph
 
         let renderWidth = 700
@@ -657,6 +668,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
                                                 segmentationAlpha,
                                                 segmentationCentroidsVisible,
                                                 regions,
+                                                highlightedRegions,
                                                 selectedSegmentsFromGraph,
                                                 renderWidth
                                                 )

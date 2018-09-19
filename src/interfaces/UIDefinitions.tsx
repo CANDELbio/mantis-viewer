@@ -18,6 +18,9 @@ export const PlotTransformOptions = [
     {label: "Log10", value: "log"},
 ]
 
+export const SelectedRegionAlpha = 0.3
+export const HighlightedSelectedRegionAlpha = 0.5
+
 export type PlotTransform = "none" | "arcsinh" | "log"
 
 /*

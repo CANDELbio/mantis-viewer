@@ -38,6 +38,8 @@ export class ImageStore {
     @observable.ref selectedRegions: Array<IMCImageSelection> | null
     // Map of selected region id to a an array of segment ids in that selected region.
     @observable.ref segmentsSelectedInRegions: {[key:string] : number[]} | null
+    // ID of a region to be highlighted. Used when mousing over in list of selected regions.
+    @observable.ref highlightedRegions: string[]
 
     @observable segmentsSelectedOnGraph: number[]
 
@@ -111,6 +113,7 @@ export class ImageStore {
             gChannel: null,
             bChannel: null
         }
+        this.highlightedRegions = []
     }
 
     @action setWindowDimensions = (width: number, height: number) => {
@@ -191,6 +194,14 @@ export class ImageStore {
             this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
             this.deleteSelectedSegmentsInRegion(id)
         }
+    }
+
+    @action highlightSelectedRegion = (id: string) => {
+        this.highlightedRegions = this.highlightedRegions.concat([id])
+    }
+
+    @action unhighlightSelectedRegion = (id: string) => {
+        this.highlightedRegions = this.highlightedRegions.filter(regionId => regionId != id)
     }
 
     @action updateSelectedRegionName = (id: string, newName:string) => {

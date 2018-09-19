@@ -98,6 +98,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 addSelectedRegion = {this.props.store.addSelectedRegion}
                 addSelectedSegments = {this.props.store.addSelectedSegmentsInRegion}
                 selectedRegions = {this.props.store.selectedRegions}
+                hightlightedRegions = {this.props.store.highlightedRegions}
                 segmentsSelectedOnGraph = {this.props.store.segmentsSelectedOnGraph}
                 labelsLayers = {this.props.store.labelsLayers}
             />
@@ -147,6 +148,8 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 updateName = {this.props.store.updateSelectedRegionName}
                 updateNotes = {this.props.store.updateSelectedRegionNotes}
                 deleteRegion = {this.props.store.deleteSelectedRegion}
+                highlightRegion = {this.props.store.highlightSelectedRegion}
+                unhighlightRegion = {this.props.store.unhighlightSelectedRegion}
                 />
         }
      
@@ -180,7 +183,6 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                             <Collapse isOpen={this.state.regionsOpen}>
                                 {selectedRegions}
                             </Collapse>
-                            <br></br>
                             <Button onClick={this.handleGraphClick}>
                                 {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
                             </Button>
