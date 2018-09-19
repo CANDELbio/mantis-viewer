@@ -57,6 +57,8 @@ export class ImageStore {
 
     @observable segmentationAlpha: number
 
+    @observable segmentationCentroidsVisible: boolean
+
     @observable channelMarker: Record<ChannelName, string | null>
 
     @observable currentSelection: {
@@ -103,6 +105,7 @@ export class ImageStore {
             bChannel: [0, 100]
         }
         this.segmentationAlpha = 5
+        this.segmentationCentroidsVisible = true
         this.channelMarker = {
             rChannel: null,
             gChannel: null,
@@ -146,6 +149,12 @@ export class ImageStore {
     @action setSegmentationSliderValue = () => {
         return action((value: number) => {
             this.segmentationAlpha = value
+        })
+    }
+
+    @action setCentroidVisibility = () => {
+        return action((event: React.FormEvent<HTMLInputElement>) => {
+            this.segmentationCentroidsVisible = event.currentTarget.checked
         })
     }
 

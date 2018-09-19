@@ -11,7 +11,6 @@ import { ScatterPlot } from "../components/ScatterPlot";
 import { SelectedRegions } from "../components/SelectedRegions";
 import { Button, Collapse } from "@blueprintjs/core"
 
-
 export interface ImageViewerProps { 
     store: ImageStore
 }
@@ -19,7 +18,9 @@ export interface ImageViewerProps {
 interface ImageViewerState { 
     channelsOpen: boolean,
     regionsOpen: boolean,
-    segmentationOpen: boolean}
+    segmentationOpen: boolean,
+    graphOpen: boolean
+}
 
 @observer
 export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
@@ -30,21 +31,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
     public state = {
         channelsOpen: true,
         regionsOpen: true,
-        segmentationOpen: false
+        segmentationOpen: false,
+        graphOpen: false
     }
 
 
-    handleChannelClick = () => {
-        this.setState({channelsOpen: !this.state.channelsOpen})
-    }
-
-    handleRegionsClick = () => {
-        this.setState({regionsOpen: !this.state.regionsOpen})
-    }
-
-    handleSegmentationClick = () => {
-        this.setState({segmentationOpen: !this.state.segmentationOpen})
-    }
+    handleChannelClick = () => this.setState({channelsOpen: !this.state.channelsOpen})
+    handleRegionsClick = () => this.setState({regionsOpen: !this.state.regionsOpen})
+    handleSegmentationClick = () => this.setState({segmentationOpen: !this.state.segmentationOpen})
+    handleGraphClick = () => this.setState({graphOpen: !this.state.graphOpen})
 
     onPlotChannelSelect = (x: SelectOption[]) => this.props.store.setSelectedPlotChannels(x)
     onPlotMetricSelect = (x: SelectOption) => this.props.store.setScatterPlotStatistic(x)
@@ -93,6 +88,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 imageData = {this.props.store.imageData}
                 segmentationData = {this.props.store.segmentationData}
                 segmentationAlpha = {this.props.store.segmentationAlpha}
+                segmentationCentroidsVisible = {this.props.store.segmentationCentroidsVisible}
                 channelDomain = {this.props.store.channelDomain}
                 channelMarker = {this.props.store.channelMarker}
                 canvasWidth = {width}
@@ -124,9 +120,11 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
             if (this.props.store.selectedSegmentationFile != null) {
                 segmentationControls = <SegmentationControls
                     segmentationPath = {this.props.store.selectedSegmentationFile}
-                    sliderValue = {this.props.store.segmentationAlpha}
-                    onSliderChange = {this.props.store.setSegmentationSliderValue()}
-                    onButtonClick = {this.props.store.clearSegmentationData()}
+                    segmentationAlpha = {this.props.store.segmentationAlpha}
+                    onAlphaChange = {this.props.store.setSegmentationSliderValue()}
+                    centroidsVisible = {this.props.store.segmentationCentroidsVisible}
+                    onVisibilityChange = {this.props.store.setCentroidVisibility()}
+                    onClearSegmentation = {this.props.store.clearSegmentationData()}
                 />
 
                 scatterPlot = <ScatterPlot 
@@ -164,6 +162,13 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                             <Collapse isOpen={this.state.channelsOpen}>
                                 {channelControls}
                             </Collapse>
+                            <br></br>
+                            <Button onClick={this.handleSegmentationClick}>
+                                {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
+                            </Button>
+                            <Collapse isOpen={this.state.segmentationOpen}>
+                                {segmentationControls}
+                            </Collapse>
                         </Col>
                         <Col lg={6}>
                             {viewPort}
@@ -175,11 +180,11 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                             <Collapse isOpen={this.state.regionsOpen}>
                                 {selectedRegions}
                             </Collapse>
-                            <Button onClick={this.handleSegmentationClick}>
-                                {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
+                            <br></br>
+                            <Button onClick={this.handleGraphClick}>
+                                {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
                             </Button>
-                            <Collapse isOpen={this.state.segmentationOpen}>
-                                {segmentationControls}
+                            <Collapse isOpen={this.state.graphOpen}>
                                 {scatterPlot}
                             </Collapse>
                         </Col>

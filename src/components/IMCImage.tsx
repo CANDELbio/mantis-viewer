@@ -11,6 +11,7 @@ export interface IMCImageProps {
     imageData: IMCData,
     segmentationData: SegmentationData | null
     segmentationAlpha: number
+    segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
     canvasWidth: number
@@ -515,7 +516,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
     }
 
     // Add segmentation data to the stage.
-    loadSegmentationGraphics(segmentationData: SegmentationData, segmentationAlpha:number){
+    loadSegmentationGraphics(segmentationData: SegmentationData, segmentationAlpha:number, centroidsVisible:boolean){
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite
@@ -528,7 +529,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
 
         // Add segmentation centroids
-        if(this.segmentationCentroidGraphics!=null) this.stage.addChild(this.segmentationCentroidGraphics)
+        if(this.segmentationCentroidGraphics!=null && centroidsVisible) this.stage.addChild(this.segmentationCentroidGraphics)
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
@@ -570,6 +571,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
+        segmentationCentroidsVisible: boolean,
         selectedRegions: Array<IMCImageSelection> | null,
         selectedSegmentsFromGraph: number[],
         windowWidth: number) {
@@ -595,7 +597,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
 
         if(segmentationData != null){
-            this.loadSegmentationGraphics(segmentationData, segmentationAlpha)
+            this.loadSegmentationGraphics(segmentationData, segmentationAlpha, segmentationCentroidsVisible)
         }
 
         if(selectedRegions != null) {
@@ -630,6 +632,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         let segmentationData = this.props.segmentationData
         let segmentationAlpha = this.props.segmentationAlpha
+        let segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
 
         let regions = this.props.selectedRegions
 
@@ -646,7 +649,18 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         return(
             <div className="imcimage"
-                    ref={(el) => {this.renderImage(el, imcData, channelMarker, channelDomain, segmentationData, segmentationAlpha, regions, selectedSegmentsFromGraph, renderWidth)}}
+                    ref={(el) => {this.renderImage(el,
+                                                imcData,
+                                                channelMarker,
+                                                channelDomain,
+                                                segmentationData,
+                                                segmentationAlpha,
+                                                segmentationCentroidsVisible,
+                                                regions,
+                                                selectedSegmentsFromGraph,
+                                                renderWidth
+                                                )
+                    }}
             />
         )
     }
