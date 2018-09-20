@@ -7,7 +7,8 @@ import { ChannelName,
     HighlightedSelectedRegionAlpha,
     SelectedCentroidColor,
     UnselectedCentroidColor } from "../interfaces/UIDefinitions"
-import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
+import { SegmentationData } from "../lib/SegmentationData";
+import { PixelLocation, GraphicsHelper } from "../lib/GraphicsHelper"
 import * as Shortid from 'shortid'
 
 export interface IMCImageProps {
@@ -567,28 +568,37 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
         }
     }
 
-    generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[]) {
+    generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], color:number) {
         let selectedSegmentMap:{[key:number] : PixelLocation} = {}
         for(let segmentId of selectedSegments){
             selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
         }
-        return this.drawSelectedCentroids(selectedSegmentMap, SelectedCentroidColor)
+        return this.drawSelectedCentroids(selectedSegmentMap, color)
     }
 
     loadSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[]){
         if(selectedSegments != this.selectedSegmentsFromGraph){
             this.selectedSegmentsFromGraph = selectedSegments
-            this.selectedSegmentsFromGraphGraphics = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments)
+            this.selectedSegmentsFromGraphGraphics = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments, SelectedCentroidColor)
         }
         if(this.selectedSegmentsFromGraphGraphics != null){
             this.stage.addChild(this.selectedSegmentsFromGraphGraphics)
         }
     }
 
-    loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
+    // Generates white, semi-transparent segments and red centroids for highlighted segments
+    // TODO: Clean up. Constant values for rgba stuff and other colors.
+    // TODO: Maybe pregenerate or cache sprite? Seems to be pretty fast to generate on the fly though.
+    loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[], width: number, height: number){
         if(highlightedSegments.length > 0){
-            let graphics = this.generateSelectedSegmentGraphics(segmentationData, highlightedSegments)
-            this.stage.addChild(graphics)
+            let pixels:PixelLocation[] = []
+            for(let segment of highlightedSegments){
+                pixels = pixels.concat(segmentationData.segmentLocationMap[segment])
+            }
+            let segmentSprite = GraphicsHelper.generateSpriteFromPixels(pixels, {r: 255, g: 255, b: 255, a: 190}, width, height)
+            let centroidGraphics = this.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, 0xff0000)
+            this.stage.addChild(segmentSprite)
+            this.stage.addChild(centroidGraphics)
         }
     }
 
@@ -635,7 +645,7 @@ export class IMCImage extends React.Component<IMCImageProps, {}> {
 
         if(segmentationData != null){
             this.loadSelectedSegmentGraphics(segmentationData, selectedSegmentsFromGraph)
-            this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
+            this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph, imcData.width, imcData.height)
         }
 
         this.renderer.render(this.rootContainer)
