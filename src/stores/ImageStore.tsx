@@ -2,7 +2,7 @@ import { observable,
     computed, 
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
-import { IMCImageSelection } from "../components/IMCIMage"
+import { ImageSelection } from "../components/IMCIMage"
 import { SegmentationData } from "../lib/SegmentationData";
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
@@ -15,6 +15,7 @@ import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
+import * as Shortid from 'shortid'
 import { keepAlive, IDisposer } from "mobx-utils"
 
 export class ImageStore {
@@ -35,14 +36,10 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    @observable.ref selectedRegions: Array<IMCImageSelection> | null
-    // Map of selected region id to a an array of segment ids in that selected region.
-    @observable.ref segmentsSelectedInRegions: {[key:string] : number[]} | null
+    // An array of the regions selected.
+    @observable.ref selectedRegions: ImageSelection[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
     @observable.ref highlightedRegions: string[]
-
-    // Array of segment IDs that have been selected on the graph.
-    @observable segmentsSelectedOnGraph: number[]
 
     // Array of segment IDs that have been hovered on the graph.
     @observable segmentsHoveredOnGraph: number[]
@@ -116,8 +113,8 @@ export class ImageStore {
             gChannel: null,
             bChannel: null
         }
+        this.selectedRegions = new Array<ImageSelection>()
         this.highlightedRegions = []
-        this.segmentsSelectedOnGraph = []
         this.segmentsHoveredOnGraph = []
     }
 
@@ -176,28 +173,27 @@ export class ImageStore {
         })
     }
 
-    @action addSelectedSegmentsInRegion = (regionId:string, segmentIds:number[]) => {
-        if (this.segmentsSelectedInRegions == null) this.segmentsSelectedInRegions = {}
-        this.segmentsSelectedInRegions[regionId] = segmentIds
-        this.refreshScatterPlotData()
+    newROIName(){
+        if (this.selectedRegions == null) return "Selection 1"
+        return "Selection " + (this.selectedRegions.length + 1).toString()
     }
 
-    @action deleteSelectedSegmentsInRegion = (regionId:string) => {
-        if (this.segmentsSelectedInRegions != null){
-            delete this.segmentsSelectedInRegions[regionId]
+    @action addSelectedRegion = (selectedRegion: number[]|null, selectedSegments: number[]) => {
+        let newRegion = {
+            id: Shortid.generate(),
+            selectedRegion: selectedRegion,
+            selectedSegments: selectedSegments,
+            name: this.newROIName(),
+            notes: null
         }
+        this.selectedRegions = this.selectedRegions.concat([newRegion])
         this.refreshScatterPlotData()
-    }
-
-    @action addSelectedRegion = (region: IMCImageSelection) => {
-        if (this.selectedRegions == null) this.selectedRegions = new Array<IMCImageSelection>()
-        this.selectedRegions = this.selectedRegions.concat([region])
     }
 
     @action deleteSelectedRegion = (id: string) => {
         if(this.selectedRegions != null){
             this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
-            this.deleteSelectedSegmentsInRegion(id)
+            this.refreshScatterPlotData()
         }
     }
 
@@ -245,7 +241,8 @@ export class ImageStore {
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
-                    selectedRegion: region.selectedRegion
+                    selectedRegion: region.selectedRegion,
+                    selectedSegments: region.selectedSegments
                 })
             })
             let exportingContent = JSON.stringify(exportingJson)
@@ -263,16 +260,14 @@ export class ImageStore {
     @action importSelectedRegions = (filename:string) => {
         if(this.selectedRegions == null || this.selectedRegions.length == 0) {
             let importingContent = fs.readFileSync(filename, 'utf8')
-            let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[]}> = JSON.parse(importingContent)
+            let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[], selectedSegments: number[]}> = JSON.parse(importingContent)
             let importedRegions = importingJson.map(function(region){
                 return({
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
                     selectedRegion: region.selectedRegion,
-                    selectedCentroids: null,
-                    selectedRegionLayer: null,
-                    selectedCentroidsLayer:null
+                    selectedSegments: region.selectedSegments
                 })
             })
             this.selectedRegions = importedRegions
@@ -297,11 +292,8 @@ export class ImageStore {
     }
 
     @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
-        this.segmentsSelectedOnGraph = this.parsePlotlyEventData(data)
-    }
-
-    @action clearSegmentsSelectedOnGraph = () => {
-        this.segmentsSelectedOnGraph = []
+        let selectedSegments = this.parsePlotlyEventData(data)
+        this.addSelectedRegion(null, selectedSegments)
     }
 
     @action setSegmentsHoveredOnGraph = (data: {points: any, event:any}) => {
@@ -346,9 +338,6 @@ export class ImageStore {
     }
 
     @action refreshScatterPlotData = () => {
-        // Clear segments selected on graph since the graph is re-rendered without any selection when data is regenerated.
-        // We might be able to avoid doing this if this is ever fixed https://github.com/plotly/plotly.js/issues/1848
-        this.segmentsSelectedOnGraph = []
         if(this.selectedPlotChannels.length == 2){
             let ch1 = this.selectedPlotChannels[0]
             let ch2 = this.selectedPlotChannels[1]
@@ -359,8 +348,7 @@ export class ImageStore {
                     this.segmentationData,
                     this.scatterPlotStatistic,
                     this.scatterPlotTransform,
-                    this.selectedRegions,
-                    this.segmentsSelectedInRegions
+                    this.selectedRegions
                 )
             }
         } else {

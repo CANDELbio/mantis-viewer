@@ -18,7 +18,6 @@ interface ScatterPlotProps {
     selectedTransform: string
     setSelectedTransform: ((x: SelectOption) => void)
     setSelectedPoints: ((data: {points:any, event:any}) => void)
-    clearSelectedPoints: (() => void)
     setHoveredPoints: ((data: {points:any, event:any}) => void)
     setUnHoveredPoints: (() => void)
     scatterPlotData: ScatterPlotData | null
@@ -41,7 +40,6 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedPoints(data)
     onHover = (data: {points:any, event:any}) => this.props.setHoveredPoints(data)
     onUnHover = () => this.props.setUnHoveredPoints()
-    onPlotDeselect = () => this.props.clearSelectedPoints()
 
     public componentWillUnmount() {
         this.cleanupPlotly()
@@ -64,7 +62,6 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
             // Adding listeners for plotly events. Not doing this during componentDidMount because the element probably doesn't exist.
             if(firstRender){
                 this.container!.on('plotly_selected', this.onPlotSelected)
-                this.container!.on('plotly_deselect', this.onPlotDeselect)
                 this.container!.on('plotly_hover', this.onHover);
                 this.container!.on('plotly_unhover', this.onUnHover);
             }

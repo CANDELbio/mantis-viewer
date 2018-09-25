@@ -1,6 +1,6 @@
 import * as fs from "fs"
 import * as PIXI from "pixi.js"
-import { PixelLocation } from "./GraphicsHelper"
+import { PixelLocation } from "./ImageHelper"
 
 const tiff = require("tiff")
 

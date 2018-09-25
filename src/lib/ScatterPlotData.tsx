@@ -1,7 +1,7 @@
 import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData";
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
-import { IMCImageSelection } from "../components/IMCIMage"
+import { ImageSelection } from "../components/IMCIMage"
 import * as Plotly from 'plotly.js';
 
 interface ScatterPlotLayout {
@@ -22,22 +22,17 @@ export class ScatterPlotData {
     layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
 
     // Builds a map of segment id/number to an array the regions of interest names it belongs to.
-    static buildRegionOfInterestMap(regionsOfInterest: Array<IMCImageSelection>|null,
-        selectedSegments: {[key:string] : number[]} | null) {
-
+    static buildRegionOfInterestMap(selectedRegion: Array<ImageSelection>|null) {
         let map:{[key:number] : Array<string>}  = {}
-        if(regionsOfInterest != null){
+        if(selectedRegion != null){
             // Iterate through the regions of interest
-            for(let region of regionsOfInterest){
-                if(selectedSegments != null){
-                    // Get the segment ids selected in this region
-                    let regionSelectedSegments = selectedSegments[region.id]
-                    if(regionSelectedSegments != null){
-                        // Iterate over the segmentIds selected in the region
-                        for(let segmentId of regionSelectedSegments){
-                            if(!(segmentId in map)) map[segmentId] = new Array<string>()
-                            map[segmentId].push(region.name)
-                        }
+            for(let region of selectedRegion){
+                let regionSelectedSegments = region.selectedSegments
+                if(regionSelectedSegments != null){
+                    // Iterate over the segmentIds selected in the region
+                    for(let segmentId of regionSelectedSegments){
+                        if(!(segmentId in map)) map[segmentId] = new Array<string>()
+                        map[segmentId].push(region.name)
                     }
                 }
             }
@@ -51,8 +46,7 @@ export class ScatterPlotData {
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        regionsOfInterest: Array<IMCImageSelection>|null,
-        selectedSegments: {[key:string] : number[]} | null) {
+        selectedRegions: Array<ImageSelection>|null) {
 
         let defaultSelection = 'All Segments'
 
@@ -65,7 +59,7 @@ export class ScatterPlotData {
                 text: Array<string>}
             } = {}
 
-        let regionMap = this.buildRegionOfInterestMap(regionsOfInterest, selectedSegments)
+        let regionMap = this.buildRegionOfInterestMap(selectedRegions)
 
         // Iterate through all of the segments/cells in the segmentation data
         for(let segment in segmentationData.segmentIndexMap){
@@ -146,13 +140,12 @@ export class ScatterPlotData {
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        regionsOfInterest: Array<IMCImageSelection>|null,
-        selectedSegments: {[key:string] : number[]} | null
+        selectedRegions: ImageSelection[]|null
     ) {
 
         this.ch1 = ch1
         this.ch2 = ch2
-        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, plotTransform, regionsOfInterest, selectedSegments)
+        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, plotTransform, selectedRegions)
         this.layout = {title: ch1 + ' versus ' + ch2, xaxis: {title: ch1}, yaxis: {title: ch2}}
     }
 

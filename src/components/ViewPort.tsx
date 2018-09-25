@@ -10,7 +10,7 @@ type ViewPortSpecificProps  = {
     labelsLayers: ImageStore["labelsLayers"]
 }
 
-type ViewPortProps = IMCImage.IMCImageProps & ViewPortSpecificProps
+type ViewPortProps = IMCImage.ImageProps & ViewPortSpecificProps
 
 
 
