@@ -1,5 +1,6 @@
 import * as fs from "fs"
 import * as PIXI from "pixi.js"
+import { PixelLocation } from "./ImageHelper"
 
 const tiff = require("tiff")
 
@@ -13,11 +14,6 @@ interface RGBColorCollection {
     [key: string] : RGBColor
 }
 
-export interface PixelLocation {
-    x: number,
-    y: number
-}
-
 export class SegmentationData {
     width: number
     height: number
@@ -25,9 +21,9 @@ export class SegmentationData {
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
     pixelMap: {[key:string] : number}
     // Mapping of a segmentId to pixel indices.
-    segmentIndexMap: {[key:number] : Array<number>}
+    segmentIndexMap: {[key:number] : number[]}
     // Mapping of a segmentId to pixel locations (x, y)
-    segmentLocationMap: {[key:number] : Array<PixelLocation>}
+    segmentLocationMap: {[key:number] : PixelLocation[]}
     // Mapping of segmentId to the pixel that represents the centroid
     centroidMap: {[key:number] : PixelLocation}
 

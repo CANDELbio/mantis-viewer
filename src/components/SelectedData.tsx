@@ -6,7 +6,7 @@ export interface SelectedDataProps {
     selectedDirectory: string | null
 }
 
-export class SelectedData extends React.Component<SelectedDataProps, undefined> {
+export class SelectedData extends React.Component<SelectedDataProps, {}> {
 
     constructor(props:SelectedDataProps) {
         super(props)

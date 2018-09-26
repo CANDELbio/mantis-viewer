@@ -2,16 +2,21 @@ import { observable,
     computed, 
     action } from "mobx"
 import { IMCData } from "../lib/IMCData"
-import { IMCImageSelection } from "../components/IMCIMage"
-import { SegmentationData, PixelLocation } from "../lib/SegmentationData";
+import { ImageSelection } from "../components/IMCIMage"
+import { SegmentationData } from "../lib/SegmentationData";
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 import * as fs from 'fs'
 import { ChannelName,
-    PlotStatistic, 
+    PlotStatistic,
+    PlotStatisticOptions,
+    PlotTransform,
+    PlotTransformOptions,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
+import { SelectedRegionColor } from "../interfaces/UIDefinitions"
+import * as Shortid from 'shortid'
 import { keepAlive, IDisposer } from "mobx-utils"
 
 export class ImageStore {
@@ -20,6 +25,7 @@ export class ImageStore {
 
     constructor() {
         this.selectedDataDisposer = keepAlive(this.selectedData)
+        this.initialize()
     }
 
     private canvasImageData:ImageData | null = null
@@ -31,45 +37,40 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    @observable.ref selectedRegions: Array<IMCImageSelection> | null
-    // Map of selected region id to a map of segment id to centroid pixel location.
-    @observable.ref selectedSegments: {[key:string] : number[]} | null
+    // An array of the regions selected.
+    @observable.ref selectedRegions: ImageSelection[]
+    // ID of a region to be highlighted. Used when mousing over in list of selected regions.
+    @observable.ref highlightedRegions: string[]
+
+    // Array of segment IDs that have been hovered on the graph.
+    @observable segmentsHoveredOnGraph: number[]
 
     @observable.ref scatterPlotData: ScatterPlotData | null
-    @observable scatterPlotStatistic: PlotStatistic = "median"
+    @observable scatterPlotStatistic: PlotStatistic
+    @observable scatterPlotTransform: PlotTransform
 
-    @observable.ref extraData: Uint8ClampedArray | null = null
+    @observable.ref extraData: Uint8ClampedArray | null
 
     @observable selectedFile: string | null
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
-    @observable.ref selectedPlotChannels: string[] = []
+    @observable.ref selectedPlotChannels: string[]
     
-    @observable channelDomain: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
-    }
-    @observable channelSliderValue: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 100],
-        gChannel: [0, 100],
-        bChannel: [0, 100]
-    }
+    @observable channelDomain: Record<ChannelName, [number, number]> 
+    @observable channelSliderValue: Record<ChannelName, [number, number]>
 
-    @observable segmentationAlpha: number = 5
+    @observable segmentationAlpha: number
 
-    @observable channelMarker: Record<ChannelName, string | null> = {
-        rChannel: null,
-        gChannel: null,
-        bChannel: null
-    }
+    @observable segmentationCentroidsVisible: boolean
+
+    @observable channelMarker: Record<ChannelName, string | null>
 
     @observable currentSelection: {
         x: [number, number]
         y: [number, number]
-    } | null = null
+    } | null
 
-    labelsLayers = observable.shallowArray<LabelLayer>()
+    labelsLayers = observable.array(Array<LabelLayer>(), {deep:false})
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -91,6 +92,32 @@ export class ImageStore {
         }
         return (ret)
     })
+
+    @action initialize = () => {
+        this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
+        this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
+        this.selectedPlotChannels = []
+        this.channelDomain = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100]
+        }
+        this.channelSliderValue = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100]
+        }
+        this.segmentationAlpha = 5
+        this.segmentationCentroidsVisible = true
+        this.channelMarker = {
+            rChannel: null,
+            gChannel: null,
+            bChannel: null
+        }
+        this.selectedRegions = new Array<ImageSelection>()
+        this.highlightedRegions = []
+        this.segmentsHoveredOnGraph = []
+    }
 
     @action setWindowDimensions = (width: number, height: number) => {
         this.windowWidth = width
@@ -131,6 +158,12 @@ export class ImageStore {
         })
     }
 
+    @action setCentroidVisibility = () => {
+        return action((event: React.FormEvent<HTMLInputElement>) => {
+            this.segmentationCentroidsVisible = event.currentTarget.checked
+        })
+    }
+
     @action clearSegmentationData = () => {
         return action(() => {
             this.selectedSegmentationFile = null
@@ -141,29 +174,37 @@ export class ImageStore {
         })
     }
 
-    @action addSelectedSegments = (regionId:string, segmentIds:number[]) => {
-        if (this.selectedSegments == null) this.selectedSegments = {}
-        this.selectedSegments[regionId] = segmentIds
-        this.refreshScatterPlotData()
+    newROIName(){
+        if (this.selectedRegions == null) return "Selection 1"
+        return "Selection " + (this.selectedRegions.length + 1).toString()
     }
 
-    @action deleteSelectedSegments = (regionId:string) => {
-        if (this.selectedSegments != null){
-            delete this.selectedSegments[regionId]
+    @action addSelectedRegion = (selectedRegion: number[]|null, selectedSegments: number[]) => {
+        let newRegion = {
+            id: Shortid.generate(),
+            selectedRegion: selectedRegion,
+            selectedSegments: selectedSegments,
+            name: this.newROIName(),
+            notes: null,
+            color: SelectedRegionColor
         }
+        this.selectedRegions = this.selectedRegions.concat([newRegion])
         this.refreshScatterPlotData()
-    }
-
-    @action addSelectedRegion = (region: IMCImageSelection) => {
-        if (this.selectedRegions == null) this.selectedRegions = new Array<IMCImageSelection>()
-        this.selectedRegions = this.selectedRegions.concat([region])
     }
 
     @action deleteSelectedRegion = (id: string) => {
         if(this.selectedRegions != null){
             this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
-            this.deleteSelectedSegments(id)
+            this.refreshScatterPlotData()
         }
+    }
+
+    @action highlightSelectedRegion = (id: string) => {
+        this.highlightedRegions = this.highlightedRegions.concat([id])
+    }
+
+    @action unhighlightSelectedRegion = (id: string) => {
+        this.highlightedRegions = this.highlightedRegions.filter(regionId => regionId != id)
     }
 
     @action updateSelectedRegionName = (id: string, newName:string) => {
@@ -195,6 +236,21 @@ export class ImageStore {
         }
     }
 
+    @action updateSelectedRegionColor = (id: string, color: number) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
+                if(region.id == id){
+                    region.color = color
+                    return region
+                }
+                else {
+                    return region
+                }
+            })
+            this.refreshScatterPlotData()
+        }
+    }
+
     @action exportSelectedRegions = (filename:string) => {
         if(this.selectedRegions != null){
             let exportingJson = this.selectedRegions.map(function(region) {
@@ -202,7 +258,9 @@ export class ImageStore {
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
-                    selectedRegion: region.selectedRegion
+                    color: region.color,
+                    selectedRegion: region.selectedRegion,
+                    selectedSegments: region.selectedSegments
                 })
             })
             let exportingContent = JSON.stringify(exportingJson)
@@ -220,20 +278,49 @@ export class ImageStore {
     @action importSelectedRegions = (filename:string) => {
         if(this.selectedRegions == null || this.selectedRegions.length == 0) {
             let importingContent = fs.readFileSync(filename, 'utf8')
-            let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[]}> = JSON.parse(importingContent)
+            let importingJson:Array<{id: string, name:string, notes: string, color: number, selectedRegion: number[], selectedSegments: number[]}> = JSON.parse(importingContent)
             let importedRegions = importingJson.map(function(region){
                 return({
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
                     selectedRegion: region.selectedRegion,
-                    selectedCentroids: null,
-                    selectedRegionLayer: null,
-                    selectedCentroidsLayer:null
+                    selectedSegments: region.selectedSegments,
+                    color: region.color
                 })
             })
             this.selectedRegions = importedRegions
         }
+    }
+
+    // Data comes from a Plotly event.
+    // Points are the selected points.
+    // No custom fields, so we are getting the segment id from the title text for the point.
+    // Title text with segment id generated in ScatterPlotData.
+    parsePlotlyEventData = (data: {points:any, event:any}) => {
+        let selectedSegments:number[] = []
+        if(data != null) {
+            for (let point of data.points){
+                let pointText = point.text
+                let splitText:string[] = pointText.split(" ")
+                let segmentId = Number(splitText[splitText.length - 1])
+                selectedSegments.push(segmentId)
+            }
+        }
+        return selectedSegments
+    }
+
+    @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
+        let selectedSegments = this.parsePlotlyEventData(data)
+        this.addSelectedRegion(null, selectedSegments)
+    }
+
+    @action setSegmentsHoveredOnGraph = (data: {points: any, event:any}) => {
+        this.segmentsHoveredOnGraph = this.parsePlotlyEventData(data)
+    }
+
+    @action clearSegmentsHoveredOnGraph = () => {
+        this.segmentsHoveredOnGraph = []
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -279,8 +366,8 @@ export class ImageStore {
                     this.imageData,
                     this.segmentationData,
                     this.scatterPlotStatistic,
-                    this.selectedRegions,
-                    this.selectedSegments
+                    this.scatterPlotTransform,
+                    this.selectedRegions
                 )
             }
         } else {
@@ -296,6 +383,13 @@ export class ImageStore {
     @action setScatterPlotStatistic = (x: SelectOption) => {
         if (x != null){
             this.scatterPlotStatistic = x.value as PlotStatistic
+            this.refreshScatterPlotData()
+        }
+    }
+
+    @action setScatterPlotTransform = (x: SelectOption) => {
+        if (x != null){
+            this.scatterPlotTransform = x.value as PlotTransform
             this.refreshScatterPlotData()
         }
     }    

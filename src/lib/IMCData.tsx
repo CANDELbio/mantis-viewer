@@ -39,7 +39,11 @@ export class IMCData {
     height: number
 
     get channelNames() : string[] {
-        return(_.keys(this.data))
+        // Remove X and Y from the channelNames before returning
+        let channelNames = _.keys(this.data)
+        channelNames.splice(channelNames.indexOf("X"), 1)
+        channelNames.splice(channelNames.indexOf("Y"), 1)
+        return(channelNames)
     }
 
     static calculateMinMax(v: Float32Array | Uint16Array) : MinMax {
@@ -205,10 +209,10 @@ export class IMCData {
             let length = values.length
             if(length % 2 == 0){
                 // If even take the average of the two middle intensity values
-                return (values[length/2] + values[(length/2) + 1])/2
+                return (values[(length/2) - 1] + values[length/2])/2
             } else {
                 // If odd return the middle intensity value
-                return values[Math.ceil(length/2)]
+                return values[Math.ceil(length/2) - 1]
             }
         }
         else {

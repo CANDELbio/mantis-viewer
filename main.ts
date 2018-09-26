@@ -34,6 +34,7 @@ let menuTemplate = [{
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
         if(mainWindow != null && dirName != null)
           mainWindow.webContents.send("open-directory", dirName[0])
+          // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
           sendWindowSize()
       })
     }
@@ -62,9 +63,15 @@ let menuTemplate = [{
       dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
         if(mainWindow != null && filename != null)
           mainWindow.webContents.send("export-selected-regions", filename)
-        })
+      })
+    }
+  },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit()
       }
-    },
+    }
 ]
 }]
 
@@ -94,8 +101,8 @@ function createWindow () {
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
 
-  // Use throttle so that when we resize we only send the window size every 250 ms
-  mainWindow.on('resize', _.throttle(sendWindowSize, 250))
+  // Use throttle so that when we resize we only send the window size every 333 ms
+  mainWindow.on('resize', _.throttle(sendWindowSize, 333))
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

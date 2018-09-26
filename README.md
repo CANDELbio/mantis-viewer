@@ -46,7 +46,7 @@ When this completes, you should have executables built for Mac, Windows, and Lin
 
 ## Technologies ##
 
-The IMC.js Viewer is build using Electron, Typescript, React, Redux, and PIXI.js.
+The IMC.js Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
 
 ## License ##
 The IMC.js viewer is distributed under a GPLv3 license.

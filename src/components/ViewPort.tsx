@@ -10,18 +10,16 @@ type ViewPortSpecificProps  = {
     labelsLayers: ImageStore["labelsLayers"]
 }
 
-type ViewPortProps = IMCImage.IMCImageProps & ViewPortSpecificProps
+type ViewPortProps = IMCImage.ImageProps & ViewPortSpecificProps
 
 
 
 @observer
-export class ViewPort extends React.Component<ViewPortProps, undefined> {
+export class ViewPort extends React.Component<ViewPortProps, {}> {
 
     render() {
 
         let labelLayers:JSX.Element[] = []
-
-        
 
         this.props.labelsLayers
             //.filter((d) => {d.visible})
