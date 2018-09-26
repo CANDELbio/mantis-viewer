@@ -15,6 +15,7 @@ import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
+import { SelectedRegionColor } from "../interfaces/UIDefinitions"
 import * as Shortid from 'shortid'
 import { keepAlive, IDisposer } from "mobx-utils"
 
@@ -184,7 +185,8 @@ export class ImageStore {
             selectedRegion: selectedRegion,
             selectedSegments: selectedSegments,
             name: this.newROIName(),
-            notes: null
+            notes: null,
+            color: SelectedRegionColor
         }
         this.selectedRegions = this.selectedRegions.concat([newRegion])
         this.refreshScatterPlotData()
@@ -234,6 +236,21 @@ export class ImageStore {
         }
     }
 
+    @action updateSelectedRegionColor = (id: string, color: number) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
+                if(region.id == id){
+                    region.color = color
+                    return region
+                }
+                else {
+                    return region
+                }
+            })
+            this.refreshScatterPlotData()
+        }
+    }
+
     @action exportSelectedRegions = (filename:string) => {
         if(this.selectedRegions != null){
             let exportingJson = this.selectedRegions.map(function(region) {
@@ -241,6 +258,7 @@ export class ImageStore {
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
+                    color: region.color,
                     selectedRegion: region.selectedRegion,
                     selectedSegments: region.selectedSegments
                 })
@@ -260,14 +278,15 @@ export class ImageStore {
     @action importSelectedRegions = (filename:string) => {
         if(this.selectedRegions == null || this.selectedRegions.length == 0) {
             let importingContent = fs.readFileSync(filename, 'utf8')
-            let importingJson:Array<{id: string, name:string, notes: string, selectedRegion: number[], selectedSegments: number[]}> = JSON.parse(importingContent)
+            let importingJson:Array<{id: string, name:string, notes: string, color: number, selectedRegion: number[], selectedSegments: number[]}> = JSON.parse(importingContent)
             let importedRegions = importingJson.map(function(region){
                 return({
                     id: region.id,
                     name: region.name,
                     notes: region.notes,
                     selectedRegion: region.selectedRegion,
-                    selectedSegments: region.selectedSegments
+                    selectedSegments: region.selectedSegments,
+                    color: region.color
                 })
             })
             this.selectedRegions = importedRegions

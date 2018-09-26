@@ -9,7 +9,8 @@ import { SelectedData } from "../components/SelectedData"
 import { SegmentationControls } from "../components/SegmentationControls"
 import { ScatterPlot } from "../components/ScatterPlot";
 import { SelectedRegions } from "../components/SelectedRegions";
-import { Button, Collapse } from "@blueprintjs/core"
+import { Collapse } from 'react-collapse';
+import { Button } from "@blueprintjs/core"
 
 export interface ImageViewerProps { 
     store: ImageStore
@@ -147,6 +148,7 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                 regions = {this.props.store.selectedRegions}
                 updateName = {this.props.store.updateSelectedRegionName}
                 updateNotes = {this.props.store.updateSelectedRegionNotes}
+                updateColor = {this.props.store.updateSelectedRegionColor}
                 deleteRegion = {this.props.store.deleteSelectedRegion}
                 highlightRegion = {this.props.store.highlightSelectedRegion}
                 unhighlightRegion = {this.props.store.unhighlightSelectedRegion}
@@ -162,15 +164,15 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                             <Button onClick={this.handleChannelClick}>
                                 {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
                             </Button>
-                            <Collapse isOpen={this.state.channelsOpen}>
-                                {channelControls}
+                            <Collapse isOpened={this.state.channelsOpen}>
+                                <div style={{zIndex:1, position:'relative'}}>{channelControls}</div>
                             </Collapse>
                             <br></br>
                             <Button onClick={this.handleSegmentationClick}>
                                 {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
                             </Button>
-                            <Collapse isOpen={this.state.segmentationOpen}>
-                                {segmentationControls}
+                            <Collapse isOpened={this.state.segmentationOpen}>
+                               {segmentationControls}
                             </Collapse>
                         </Col>
                         <Col lg={6}>
@@ -180,13 +182,13 @@ export class ImageViewer extends React.Component<ImageViewerProps, ImageViewerSt
                             <Button onClick={this.handleRegionsClick}>
                                 {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions
                             </Button>
-                            <Collapse isOpen={this.state.regionsOpen}>
+                            <Collapse isOpened={this.state.regionsOpen}>
                                 {selectedRegions}
                             </Collapse>
                             <Button onClick={this.handleGraphClick}>
                                 {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
                             </Button>
-                            <Collapse isOpen={this.state.graphOpen}>
+                            <Collapse isOpened={this.state.graphOpen}>
                                 {scatterPlot}
                             </Collapse>
                         </Col>

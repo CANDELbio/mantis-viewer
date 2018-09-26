@@ -8,8 +8,7 @@ import { ChannelName,
     UnselectedCentroidColor,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
 import { SegmentationData } from "../lib/SegmentationData";
-import { PixelLocation, ImageHelper } from "../lib/ImageHelper"
-import * as Shortid from 'shortid'
+import { ImageHelper } from "../lib/ImageHelper"
 
 export interface ImageProps {
 
@@ -36,6 +35,7 @@ export interface ImageSelection {
     selectedSegments: number[]
     name: string
     notes: string | null
+    color: number
 }
 
 @observer
@@ -374,9 +374,9 @@ export class IMCImage extends React.Component<ImageProps, {}> {
         this.selectedRegionGraphics = {}
         for(let region of selectedRegions) {
             this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
-            if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, SelectedRegionColor, SelectedRegionAlpha)
+            if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
             if(region.selectedSegments != null && this.segmentationData != null) {
-                let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, this.imageData)
+                let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
                 this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
                 this.selectedRegionGraphics[region.id].segments = toUnpack.segments
             }
@@ -420,7 +420,7 @@ export class IMCImage extends React.Component<ImageProps, {}> {
 
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = ImageHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, this.imageData)
+            let graphics = ImageHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
             this.stage.addChild(graphics.segments)
             this.stage.addChild(graphics.centroids)
         }

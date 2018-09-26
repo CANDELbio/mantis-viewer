@@ -2,28 +2,22 @@ import { IMCData } from "../lib/IMCData"
 import { SegmentationData } from "../lib/SegmentationData";
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { ImageSelection } from "../components/IMCIMage"
+import { ImageHelper } from "./ImageHelper"
 import * as Plotly from 'plotly.js';
 
-interface ScatterPlotLayout {
-    title: string
-    xaxis: ScatterPlotAxis
-    yaxis: ScatterPlotAxis
-}
-
-interface ScatterPlotAxis {
-    title: string
-}
-
 export class ScatterPlotData {
-
     ch1: string
     ch2: string
     data: Array<Plotly.Data>
     layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
 
-    // Builds a map of segment id/number to an array the regions of interest names it belongs to.
-    static buildRegionOfInterestMap(selectedRegion: Array<ImageSelection>|null) {
-        let map:{[key:number] : Array<string>}  = {}
+    static defaultSelectionId = "DEFAULT_SELECTION_ID"
+    static defaultSelectionName = "All Segments"
+    static defaultSelectionColor = 0x4286f4
+
+    // Builds a map of segment id/number to an array the regions of interest id it belongs to.
+    static buildSegmentToSelectedRegionMap(selectedRegion: Array<ImageSelection>|null) {
+        let map:{[key:number] : string[]}  = {}
         if(selectedRegion != null){
             // Iterate through the regions of interest
             for(let region of selectedRegion){
@@ -31,13 +25,80 @@ export class ScatterPlotData {
                 if(regionSelectedSegments != null){
                     // Iterate over the segmentIds selected in the region
                     for(let segmentId of regionSelectedSegments){
-                        if(!(segmentId in map)) map[segmentId] = new Array<string>()
-                        map[segmentId].push(region.name)
+                        if(!(segmentId in map)) map[segmentId] = []
+                        map[segmentId].push(region.id)
                     }
                 }
             }
         }
         return map
+    }
+
+    // Builds a map of regionId to the region it belongs to.
+    static buildSelectedRegionMap(selectedRegion: Array<ImageSelection>|null){
+        let map:{[key:string] : ImageSelection} = {}
+        if(selectedRegion != null){
+            for(let region of selectedRegion){
+                map[region.id] = region
+            }
+        }
+        return map
+    }
+
+    static getPixelIntensity(plotStatistic: string, channel:string, pixels:number[], plotTransform: string, imcData: IMCData){
+        let result:number
+
+        // Get the mean or median depending on what the user selected.
+        if(plotStatistic == "mean") {
+            result = imcData.meanPixelIntensity(channel, pixels)
+        } else {
+            result = imcData.medianPixelIntensity(channel, pixels)
+        }
+
+        // If the user has selected a transform, apply it.
+        if(plotTransform == "arcsinh"){
+            result = Math.asinh(result)
+        } else if(plotTransform == "log"){
+            result = Math.log10(result)
+        }
+
+        return result
+    }
+
+    static getSelectionIdsSortedByName(selectedRegion: Array<ImageSelection>|null){
+        let selectionIds = [this.defaultSelectionId]
+        if(selectedRegion != null){
+            let sortedRegions = selectedRegion.sort((a: ImageSelection, b:ImageSelection) => {
+                return a.name.localeCompare(b.name)
+            })
+            sortedRegions.map((value: ImageSelection) => {
+                selectionIds.push(value.id)
+            })
+        }
+        return selectionIds
+    }
+
+    static getSelectionName(selectionId: string, selectedRegionMap: {[key: string]: ImageSelection}){
+        if(selectionId == this.defaultSelectionId){
+            return this.defaultSelectionName
+        } else{
+            return selectedRegionMap[selectionId].name
+        }
+    }
+
+    static getSelectionColor(selectionId: string, selectedRegionMap: {[key: string]: ImageSelection}){
+        let color:number
+        if(selectionId == this.defaultSelectionId){
+            color = this.defaultSelectionColor
+        } else{
+            color = selectedRegionMap[selectionId].color
+        }
+        return this.hexToRGB(color)
+    }
+
+    static hexToRGB(hex:number){
+        let rgb = ImageHelper.hexToRGB(hex)
+        return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")"
     }
 
     static calculateScatterPlotData(ch1: string,
@@ -48,8 +109,6 @@ export class ScatterPlotData {
         plotTransform: PlotTransform,
         selectedRegions: Array<ImageSelection>|null) {
 
-        let defaultSelection = 'All Segments'
-
         // A map of the data to be used in the plot.
         // Maps selection name (either all segments or the name of a selected region) to a set of data.
         let plotData:{
@@ -59,50 +118,32 @@ export class ScatterPlotData {
                 text: Array<string>}
             } = {}
 
-        let regionMap = this.buildRegionOfInterestMap(selectedRegions)
+        let regionMap = this.buildSegmentToSelectedRegionMap(selectedRegions)
 
         // Iterate through all of the segments/cells in the segmentation data
         for(let segment in segmentationData.segmentIndexMap){
             let pixels = segmentationData.segmentIndexMap[segment]
 
             // Generate a list of all of the selections/ROIs that this segment is in.
-            let selections = [defaultSelection]
+            let selections = [this.defaultSelectionId]
             if(segment in regionMap){
                 selections = selections.concat(regionMap[segment])
             }
 
             // Calculate the mean or median intensity of the pixels in the segment
-            let x:number|null = null
-            let y:number|null = null
-            if(plotStatistic == "mean") {
-                x = imcData.meanPixelIntensity(ch1, pixels)
-                y = imcData.meanPixelIntensity(ch2, pixels)
-            } else if(plotStatistic == "median") {
-                x = imcData.medianPixelIntensity(ch1, pixels)
-                y = imcData.medianPixelIntensity(ch2, pixels)
-            }
-
-            // If the user has selected a transform, apply it.
-            if(x != null && y != null){
-                if(plotTransform == "arcsinh"){
-                    x = Math.asinh(x)
-                    y = Math.asinh(y)
-                } else if(plotTransform == "log"){
-                    x = Math.log10(x)
-                    y = Math.log10(y)
-                }
-            }
+            let x = this.getPixelIntensity(plotStatistic, ch1, pixels, plotTransform, imcData)
+            let y = this.getPixelIntensity(plotStatistic, ch2, pixels, plotTransform, imcData)
 
             // Add the intensities to the data map for each selection the segment is in.
             // Being able to select points on the plot relies on the text being formatted
             // as a space delimited string with the last element being the segment id
             // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
-            for(let selection of selections){
-                if(!(selection in plotData)) plotData[selection] = {x: [], y:[], text:[]}
+            for(let selectionId of selections){
+                if(!(selectionId in plotData)) plotData[selectionId] = {x: [], y:[], text:[]}
                 if(x != null && y != null){
-                    plotData[selection].x.push(x)
-                    plotData[selection].y.push(y)
-                    plotData[selection].text.push("Segment " + segment)
+                    plotData[selectionId].x.push(x)
+                    plotData[selectionId].y.push(y)
+                    plotData[selectionId].text.push("Segment " + segment)
                 }
                  
             }
@@ -110,24 +151,24 @@ export class ScatterPlotData {
 
         let scatterPlotData = Array<Plotly.Data>()
 
-        // Sort the keys so they appear in the same order in the graph key between refreshes.
-        let sorted:string[] = []
-        for(let key in plotData) {
-            sorted.push(key)
-        }
-        sorted.sort()
+        // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
+        let sortedSelectionIds = this.getSelectionIdsSortedByName(selectedRegions)
+        // Builds a map of selected region ids to their regions.
+        // We use this to get the names and colors to use for graphing.
+        let selectedRegionMap = this.buildSelectedRegionMap(selectedRegions)
 
         // Converting from the plotData map to an array of the format that can be passed to Plotly.
-        for (let selection of sorted){
-            let data = plotData[selection]
+        for (let selectionId of sortedSelectionIds){
+            let data = plotData[selectionId]
+
             scatterPlotData.push({
                 x: data.x,
                 y: data.y,
                 mode: 'markers',
                 type: 'scattergl',
                 text: data.text,
-                name: selection,
-                marker: { size: 8 }
+                name: this.getSelectionName(selectionId, selectedRegionMap),
+                marker: { size: 8, color: this.getSelectionColor(selectionId, selectedRegionMap)}
             })
         }
 

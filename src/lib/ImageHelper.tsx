@@ -146,7 +146,7 @@ export class ImageHelper {
         let selectedSegments:number[] = []
         if(segmentationData != null){
             selectedSegments = ImageHelper.findSegmentsInSelection(selectionGraphics, segmentationData)
-            let toUnpack = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments, imageData)
+            let toUnpack = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments, SelectedRegionColor, imageData)
             centroidGraphics = toUnpack.centroids
             segmentSprite = toUnpack.segments
         }
@@ -160,7 +160,7 @@ export class ImageHelper {
     // Generates yellow, semi-transparent segments and white centroids for highlighted segments
     // TODO: Clean up. Constant values for rgba stuff and other colors.
     // TODO: Maybe pregenerate or cache sprite? Seems to be pretty fast to generate on the fly though.
-    public static generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], imcData: IMCData) {
+    public static generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], segmentColor:number, imcData: IMCData) {
         let selectedSegmentMap:{[key:number] : PixelLocation} = {}
         let pixels:PixelLocation[] = []
         for(let segmentId of selectedSegments){
@@ -168,7 +168,7 @@ export class ImageHelper {
             pixels = pixels.concat(segmentationData.segmentLocationMap[segmentId])
         }
         let centroidGraphics = ImageHelper.drawCentroids(selectedSegmentMap, SelectedCentroidColor)
-        let segmentSprite = ImageHelper.generateSpriteFromPixels(pixels, SelectedRegionColor, SelectedRegionAlpha, imcData.width, imcData.height)
+        let segmentSprite = ImageHelper.generateSpriteFromPixels(pixels, segmentColor, SelectedRegionAlpha, imcData.width, imcData.height)
         return {centroids: centroidGraphics, segments: segmentSprite}
     }
 
