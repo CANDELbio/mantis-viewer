@@ -17,14 +17,11 @@ import { ChannelName,
     LabelLayer } from "../interfaces/UIDefinitions"
 import { SelectedRegionColor } from "../interfaces/UIDefinitions"
 import * as Shortid from 'shortid'
-import { keepAlive, IDisposer } from "mobx-utils"
 
 export class ImageStore {
 
-    selectedDataDisposer: IDisposer
 
     constructor() {
-        this.selectedDataDisposer = keepAlive(this.selectedData)
         this.initialize()
     }
 
@@ -45,7 +42,6 @@ export class ImageStore {
     // Array of segment IDs that have been hovered on the graph.
     @observable segmentsHoveredOnGraph: number[]
 
-    @observable.ref scatterPlotData: ScatterPlotData | null
     @observable scatterPlotStatistic: PlotStatistic
     @observable scatterPlotTransform: PlotTransform
 
@@ -70,25 +66,22 @@ export class ImageStore {
         y: [number, number]
     } | null
 
-    selectedData = computed(() => {
-        console.log("Selecting data")
-        let ret: { [x: string]: number[] } = {}
-
-        if (this.imageData != null && this.currentSelection != null) {
-            let data = this.imageData.data
-            let channelNames = this.imageData.channelNames
-            ret = { X: [], Y: [] }
-            channelNames.forEach((s) => ret![s] = [])
-
-            for (let i = 0; i < data.X.length; ++i) {
-                let x = data.X[i]
-                let y = data.Y[i]
-                if (x >= this.currentSelection.x[0] && x <= this.currentSelection.x[1])
-                    if (y >= this.currentSelection.y[0] && y <= this.currentSelection.y[1])
-                        channelNames.forEach((s) => ret![s].push(data[s][i]))
+    scatterPlotData = computed(() => {
+        if(this.selectedPlotChannels.length == 2){
+            let ch1 = this.selectedPlotChannels[0]
+            let ch2 = this.selectedPlotChannels[1]
+            if(this.imageData != null && this.segmentationData != null){
+                return new ScatterPlotData(ch1,
+                    ch2,
+                    this.imageData,
+                    this.segmentationData,
+                    this.scatterPlotStatistic,
+                    this.scatterPlotTransform,
+                    this.selectedRegions
+                )
             }
         }
-        return (ret)
+        return null
     })
 
     @action initialize = () => {
@@ -161,7 +154,6 @@ export class ImageStore {
             this.segmentationData = null
             this.segmentationAlpha = 5
             this.selectedPlotChannels = []
-            this.scatterPlotData = null
         })
     }
 
@@ -181,13 +173,11 @@ export class ImageStore {
             visible: true
         }
         this.selectedRegions = this.selectedRegions.concat([newRegion])
-        this.refreshScatterPlotData()
     }
 
     @action deleteSelectedRegion = (id: string) => {
         if(this.selectedRegions != null){
             this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
-            this.refreshScatterPlotData()
         }
     }
 
@@ -210,7 +200,6 @@ export class ImageStore {
                     return region
                 }
             })
-            this.refreshScatterPlotData()
         }
     }
 
@@ -239,7 +228,6 @@ export class ImageStore {
                     return region
                 }
             })
-            this.refreshScatterPlotData()
         }
     }
 
@@ -352,41 +340,19 @@ export class ImageStore {
         })
     }
 
-    @action refreshScatterPlotData = () => {
-        if(this.selectedPlotChannels.length == 2){
-            let ch1 = this.selectedPlotChannels[0]
-            let ch2 = this.selectedPlotChannels[1]
-            if(this.imageData != null && this.segmentationData != null){
-                this.scatterPlotData = new ScatterPlotData(ch1,
-                    ch2,
-                    this.imageData,
-                    this.segmentationData,
-                    this.scatterPlotStatistic,
-                    this.scatterPlotTransform,
-                    this.selectedRegions
-                )
-            }
-        } else {
-            this.scatterPlotData = null
-        }
-    }
-
     @action setSelectedPlotChannels = (x: SelectOption[]) => {
         this.selectedPlotChannels = _.pluck(x, "value")
-        this.refreshScatterPlotData()
     }
 
     @action setScatterPlotStatistic = (x: SelectOption) => {
         if (x != null){
             this.scatterPlotStatistic = x.value as PlotStatistic
-            this.refreshScatterPlotData()
         }
     }
 
     @action setScatterPlotTransform = (x: SelectOption) => {
         if (x != null){
             this.scatterPlotTransform = x.value as PlotTransform
-            this.refreshScatterPlotData()
         }
     }    
 

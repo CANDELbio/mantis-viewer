@@ -137,7 +137,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setSelectedPoints = {this.props.store.setSegmentsSelectedOnGraph}
                     setHoveredPoints = {this.props.store.setSegmentsHoveredOnGraph}
                     setUnHoveredPoints = {this.props.store.clearSegmentsHoveredOnGraph}
-                    scatterPlotData = {this.props.store.scatterPlotData}
+                    scatterPlotData = {this.props.store.scatterPlotData.get()}
                 />
             }
         }
