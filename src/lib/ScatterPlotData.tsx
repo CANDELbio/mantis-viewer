@@ -1,7 +1,7 @@
-import { IMCData } from "../lib/IMCData"
+import { ImageData } from "./ImageData"
 import { SegmentationData } from "../lib/SegmentationData";
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
-import { ImageSelection } from "../components/IMCIMage"
+import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { ImageHelper } from "./ImageHelper"
 import * as Plotly from 'plotly.js';
 
@@ -45,7 +45,7 @@ export class ScatterPlotData {
         return map
     }
 
-    static getPixelIntensity(plotStatistic: string, channel:string, pixels:number[], plotTransform: string, imcData: IMCData){
+    static getPixelIntensity(plotStatistic: string, channel:string, pixels:number[], plotTransform: string, imcData: ImageData){
         let result:number
 
         // Get the mean or median depending on what the user selected.
@@ -103,7 +103,7 @@ export class ScatterPlotData {
 
     static calculateScatterPlotData(ch1: string,
         ch2: string,
-        imcData:IMCData,
+        imcData:ImageData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
@@ -177,7 +177,7 @@ export class ScatterPlotData {
 
     constructor(ch1: string,
         ch2: string,
-        imcData:IMCData,
+        imcData:ImageData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,

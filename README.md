@@ -1,6 +1,6 @@
-# IMC.js Viewer #
+# Mantis Viewer #
 
-The IMC.js Viewer is an application for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support large images (>100 MB per channel).
+Mantis Viewer is an application for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support large images (>100 MB per channel).
 
 ## Downloading ##
 If you just want to use the application head to the [releases](https://github.com/ParkerICI/imc-viewer-js/releases) page! Otherwise continue reading if you want to build the project yourself or to contribute to this project.
@@ -46,8 +46,8 @@ When this completes, you should have executables built for Mac, Windows, and Lin
 
 ## Technologies ##
 
-The IMC.js Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
+Mantis Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
 
 ## License ##
-The IMC.js viewer is distributed under a GPLv3 license.
+Mantis Viewer is distributed under a GPLv3 license.
 

@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { ImageViewer } from "./components/ImageViewer"
+import { MainApp } from "./components/MainApp"
 import * as Mobx from 'mobx'
 import { ImageStore } from "./stores/ImageStore"
 const tiff = require("tiff")
@@ -78,7 +78,7 @@ electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => 
 
 ReactDOM.render(
     <div>
-        <ImageViewer  store={imageStore} />
+        <MainApp  store={imageStore} />
     </div>,
     document.getElementById("example")
 );

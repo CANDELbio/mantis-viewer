@@ -1,16 +1,12 @@
 import * as PIXI from "pixi.js"
 import { SegmentationData } from "./SegmentationData";
-import { IMCData } from "./IMCData"
+import { ImageData } from "./ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
     SelectedCentroidColor,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
 
-
-export interface PixelLocation {
-    x: number,
-    y: number,
-}
+import { PixelLocation } from "../interfaces/ImageInterfaces"
 
 export class ImageHelper {
 
@@ -137,7 +133,7 @@ export class ImageHelper {
     // Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
     // Then draws a new selectionGraphics of the region, finds the segments and their centroids in that selectionGraphics, and draws the selectedCentroids.
     // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
-    public static selectRegion(selection:number[], segmentationData: SegmentationData|null, imageData: IMCData){
+    public static selectRegion(selection:number[], segmentationData: SegmentationData|null, imageData: ImageData){
 
         let selectionGraphics = ImageHelper.drawSelectedRegion(selection, SelectedRegionColor, SelectedRegionAlpha)
         let segmentSprite:PIXI.Sprite|null = null
@@ -160,7 +156,7 @@ export class ImageHelper {
     // Generates yellow, semi-transparent segments and white centroids for highlighted segments
     // TODO: Clean up. Constant values for rgba stuff and other colors.
     // TODO: Maybe pregenerate or cache sprite? Seems to be pretty fast to generate on the fly though.
-    public static generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], segmentColor:number, imcData: IMCData) {
+    public static generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], segmentColor:number, imcData: ImageData) {
         let selectedSegmentMap:{[key:number] : PixelLocation} = {}
         let pixels:PixelLocation[] = []
         for(let segmentId of selectedSegments){
@@ -176,7 +172,7 @@ export class ImageHelper {
     // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
     public static generateBrightnessFilterCode = ( 
         channelName:ChannelName,
-        imcData:IMCData, 
+        imcData:ImageData,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain:  Record<ChannelName, [number, number]>) => {
 

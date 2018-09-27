@@ -1,4 +1,3 @@
-import { CountourPlot } from "./components/ContourPlot"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { ScatterPlotData } from "./lib/ScatterPlotData"

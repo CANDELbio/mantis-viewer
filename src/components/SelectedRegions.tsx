@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ImageSelection } from "../components/IMCIMage"
+import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { EditableText, Button } from "@blueprintjs/core"
 import { observer } from "mobx-react"
 import { CompactPicker } from 'react-color'

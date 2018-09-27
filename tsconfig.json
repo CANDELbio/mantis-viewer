@@ -25,11 +25,9 @@
         "./src/mainWindow.tsx",
         "./src/plotWindow.tsx",
         "./src/stores/ImageStore.tsx",
-        "./src/components/IMCImage.tsx",
         "./src/components/ImageViewer.tsx",
+        "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",
-        "./src/components/ViewPort.tsx",
-        "./src/components/LabelLayerView.tsx",
         "./src/components/SegmentationControls.tsx",
         "./src/components/ScatterPlot.tsx",
         "./src/components/SelectedRegions.tsx"

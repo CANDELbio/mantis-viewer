@@ -3,36 +3,21 @@ import * as fs from "fs"
 import * as path from "path"
 import * as PIXI from "pixi.js"
 import * as d3Scale from "d3-scale"
+import { ImageDataObject } from "../interfaces/ImageInterfaces"
 
 const tiff = require("tiff")
-
-interface IMCDataStats {
-    X: [number, number]
-    Y: [number, number]
-    [key: string] : [number, number]
-}
 
 interface MinMax {
     min: number
     max: number
 }
 
-export interface IMCMinMax {
-    [key: string] : MinMax
-}
+export type ImageDataInputType = "TIFF" | "folder"
 
-export interface IMCDataObject   {
-    X: Float32Array | Uint16Array
-    Y: Float32Array | Uint16Array
-    [key: string] : Float32Array | Uint16Array
-}
+export class ImageData {
 
-export type IMCDataInputType = "TIFF" | "folder"
-
-export class IMCData {
-
-    data: IMCDataObject
-    minmax: IMCMinMax
+    data: ImageDataObject
+    minmax: {[key: string] : MinMax}
     sprites: {[key:string] : PIXI.Sprite}
 
     width: number
@@ -110,8 +95,8 @@ export class IMCData {
                 this.width = tiffData.width
                 this.height = tiffData.height
                 this.data[chName] = tiffData.data
-                this.minmax[chName] = IMCData.calculateMinMax(tiffData.data)
-                this.sprites[chName] = new PIXI.Sprite(IMCData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
+                this.minmax[chName] = ImageData.calculateMinMax(tiffData.data)
+                this.sprites[chName] = new PIXI.Sprite(ImageData.textureFromData(tiffData.data, this.width, this.height, this.minmax[chName]))
             }
         })
 
@@ -220,7 +205,7 @@ export class IMCData {
         }
     }
 
-    constructor(path:string, inputType:IMCDataInputType) {
+    constructor(path:string, inputType:ImageDataInputType) {
         this.data = {X: new Float32Array(0), Y: new Float32Array(0)}
         this.minmax = {}
         this.sprites = {}

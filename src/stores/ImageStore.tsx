@@ -1,8 +1,8 @@
 import { observable, 
     computed, 
     action } from "mobx"
-import { IMCData } from "../lib/IMCData"
-import { ImageSelection } from "../components/IMCIMage"
+import { ImageData } from "../lib/ImageData"
+import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData";
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
@@ -33,7 +33,7 @@ export class ImageStore {
     @observable windowWidth: number | null
     @observable windowHeight: number | null
     
-    @observable.ref imageData: IMCData | null
+    @observable.ref imageData: ImageData | null
 
     @observable.ref segmentationData: SegmentationData | null
 
@@ -69,8 +69,6 @@ export class ImageStore {
         x: [number, number]
         y: [number, number]
     } | null
-
-    labelsLayers = observable.array(Array<LabelLayer>(), {deep:false})
 
     selectedData = computed(() => {
         console.log("Selecting data")
@@ -124,13 +122,6 @@ export class ImageStore {
         this.windowHeight = height
     }
 
-    @action toggleLayerVisibility = (idx: number) => {
-        console.log(this.labelsLayers[idx].visible)
-
-        console.log(idx)
-        this.labelsLayers[idx].visible = !this.labelsLayers[idx].visible
-    }
-
     @action setCurrentSelection(extent: D3BrushExtent) {
         this.currentSelection = {
             x: [extent[0][0], extent[1][0]],
@@ -140,7 +131,7 @@ export class ImageStore {
 
     @action updateImageData() {
         if (this.selectedDirectory != null) {
-            this.imageData = new IMCData(this.selectedDirectory, "folder")
+            this.imageData = new ImageData(this.selectedDirectory, "folder")
         }
         
         console.log(this.imageData)
@@ -429,7 +420,7 @@ export class ImageStore {
                     layer.height = this.canvasImageData!.height
                     layer.name = "test segmentation"
                     layer.visible = true
-                    this.labelsLayers.push(layer)
+                    // this.labelsLayers.push(layer)
                     //this.labelsLayers = [v]
                     console.log(v)
                 }
