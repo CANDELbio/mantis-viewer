@@ -177,7 +177,8 @@ export class ImageStore {
             selectedSegments: selectedSegments,
             name: this.newROIName(),
             notes: null,
-            color: SelectedRegionColor
+            color: SelectedRegionColor,
+            visible: true
         }
         this.selectedRegions = this.selectedRegions.concat([newRegion])
         this.refreshScatterPlotData()
@@ -242,19 +243,33 @@ export class ImageStore {
         }
     }
 
+    @action updateSelectedRegionVisibility = (id: string, visible:boolean) => {
+        console.log("Updating visibility of " + id + " to " + visible)
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
+                if(region.id == id){
+                    region.visible = visible
+                    return region
+                }
+                else {
+                    return region
+                }
+            })
+        }
+    }
+
+    @action setAllSelectedRegionVisibility = (visible:boolean) => {
+        if(this.selectedRegions != null){
+            this.selectedRegions = this.selectedRegions.map(function(region) {
+                region.visible = visible
+                return region
+            })
+        }
+    }
+
     @action exportSelectedRegions = (filename:string) => {
         if(this.selectedRegions != null){
-            let exportingJson = this.selectedRegions.map(function(region) {
-                return({
-                    id: region.id,
-                    name: region.name,
-                    notes: region.notes,
-                    color: region.color,
-                    selectedRegion: region.selectedRegion,
-                    selectedSegments: region.selectedSegments
-                })
-            })
-            let exportingContent = JSON.stringify(exportingJson)
+            let exportingContent = JSON.stringify(this.selectedRegions)
             fs.writeFile(filename, exportingContent, 'utf8', function (err) {
                 if (err) {
                     console.log("An error occured while writing regions of interest to file.");
@@ -269,17 +284,7 @@ export class ImageStore {
     @action importSelectedRegions = (filename:string) => {
         if(this.selectedRegions == null || this.selectedRegions.length == 0) {
             let importingContent = fs.readFileSync(filename, 'utf8')
-            let importingJson:Array<{id: string, name:string, notes: string, color: number, selectedRegion: number[], selectedSegments: number[]}> = JSON.parse(importingContent)
-            let importedRegions = importingJson.map(function(region){
-                return({
-                    id: region.id,
-                    name: region.name,
-                    notes: region.notes,
-                    selectedRegion: region.selectedRegion,
-                    selectedSegments: region.selectedSegments,
-                    color: region.color
-                })
-            })
+            let importedRegions:ImageSelection[] = JSON.parse(importingContent)
             this.selectedRegions = importedRegions
         }
     }

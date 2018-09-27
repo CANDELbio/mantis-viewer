@@ -11,6 +11,7 @@ export interface ImageSelection {
     name: string
     notes: string | null
     color: number
+    visible: boolean
 }
 
 export interface ImageDataObject   {

@@ -1,27 +1,26 @@
 import * as React from "react";
 import { ImageSelection } from "../interfaces/ImageInterfaces"
-import { EditableText, Button } from "@blueprintjs/core"
+import { EditableText, Button, Checkbox } from "@blueprintjs/core"
 import { observer } from "mobx-react"
 import { CompactPicker } from 'react-color'
 
-interface SelectedDataProps {
-    regions: Array<ImageSelection>|null
+interface SelectedProps {
     updateName: ((id: string, name: string) => void)
     updateNotes: ((id: string, notes: string) => void)
     updateColor: ((id: string, color: number) => void)
+    updateVisibility: ((id:string, visibility: boolean) => void)
     deleteRegion: ((id: string) => void)
     highlightRegion: ((id: string) => void)
     unhighlightRegion: ((id: string) => void)
 }
 
-interface SelectedDataRowProps {
+interface SelectedDataProps extends SelectedProps {
+    regions: Array<ImageSelection>|null
+    setAllVisibility: ((visibility: boolean) => void)
+}
+
+interface SelectedDataRowProps extends SelectedProps {
     region: ImageSelection,
-    updateName: ((id: string, name: string) => void)
-    updateNotes: ((id: string, notes: string) => void)
-    updateColor: ((id: string, color: number) => void)
-    deleteRegion: ((id: string) => void)
-    highlightRegion: ((id: string) => void)
-    unhighlightRegion: ((id: string) => void)
 }
 
 interface TableRowState {
@@ -56,6 +55,10 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
             this.props.updateColor(this.props.region.id, color)
         }
 
+        updateVisibility = (event: React.FormEvent<HTMLInputElement>) => {
+            this.props.updateVisibility(this.props.region.id, event.currentTarget.checked)
+        }
+
         highlightRegion = (event: React.MouseEvent<HTMLTableRowElement>) => {
             this.props.highlightRegion(this.props.region.id)
         }
@@ -88,6 +91,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
                         </div>
                     ) }</td>
                     <td><EditableText defaultValue={thisNotes} onConfirm={this.updateNotes}/></td>
+                    <td><Checkbox checked={this.props.region.visible} onChange={this.updateVisibility} /></td>
                     <td><Button text={"Delete"} onClick={this.deleteRegion}/></td>
                 </tr>)
         }
@@ -103,12 +107,38 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
                     updateNotes={this.props.updateNotes}
                     deleteRegion={this.props.deleteRegion}
                     updateColor={this.props.updateColor}
+                    updateVisibility={this.props.updateVisibility}
                     highlightRegion={this.props.highlightRegion}
                     unhighlightRegion={this.props.unhighlightRegion}
                 />
                 })
             }
         return null
+    }
+
+    setVisibility = (event: React.FormEvent<HTMLInputElement>) => {
+        this.props.setAllVisibility(event.currentTarget.checked)
+    }
+
+    anyVisible(){
+        if(this.props.regions != null){
+            for(let region of this.props.regions){
+                if(region.visible) { return true }
+            }
+            return false
+        } else {
+            return true
+        }
+    }
+
+    visibleDisabled(){
+        if(this.props.regions == null){
+            return true
+        }else if(this.props.regions.length == 0){
+            return true
+        } else{
+            return false
+        }
     }
 
     render() {
@@ -121,6 +151,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
                             <th>Name</th>
                             <th>Color</th>
                             <th>Notes</th>
+                            <th><Checkbox checked={this.anyVisible()} onChange={this.setVisibility} label="Visible" disabled={this.visibleDisabled()} /></th>
                             <th> </th>
                         </tr>
                     </thead>

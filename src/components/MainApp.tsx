@@ -147,7 +147,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             updateName = {this.props.store.updateSelectedRegionName}
             updateNotes = {this.props.store.updateSelectedRegionNotes}
             updateColor = {this.props.store.updateSelectedRegionColor}
+            updateVisibility = {this.props.store.updateSelectedRegionVisibility}
             deleteRegion = {this.props.store.deleteSelectedRegion}
+            setAllVisibility = {this.props.store.setAllSelectedRegionVisibility}
             highlightRegion = {this.props.store.highlightSelectedRegion}
             unhighlightRegion = {this.props.store.unhighlightSelectedRegion}
         />
