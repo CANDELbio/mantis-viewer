@@ -364,12 +364,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selectedRegions = selectedRegions
         this.selectedRegionGraphics = {}
         for(let region of selectedRegions) {
-            this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
-            if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
-            if(region.selectedSegments != null && this.segmentationData != null) {
-                let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
-                this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
-                this.selectedRegionGraphics[region.id].segments = toUnpack.segments
+            if(region.visible){
+                this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
+                if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
+                if(region.selectedSegments != null && this.segmentationData != null) {
+                    let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
+                    this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
+                    this.selectedRegionGraphics[region.id].segments = toUnpack.segments
+                }
             }
         }
     }

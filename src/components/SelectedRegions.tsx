@@ -131,7 +131,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
         }
     }
 
-    visibleDisabled(){
+    visibleCheckboxDisabled(){
         if(this.props.regions == null){
             return true
         }else if(this.props.regions.length == 0){
@@ -151,7 +151,7 @@ export class SelectedRegions extends React.Component<SelectedDataProps, {}> {
                             <th>Name</th>
                             <th>Color</th>
                             <th>Notes</th>
-                            <th><Checkbox checked={this.anyVisible()} onChange={this.setVisibility} label="Visible" disabled={this.visibleDisabled()} /></th>
+                            <th><Checkbox checked={this.anyVisible()} onChange={this.setVisibility} label="Visible" disabled={this.visibleCheckboxDisabled()} /></th>
                             <th> </th>
                         </tr>
                     </thead>
