@@ -13,7 +13,7 @@ export class ImageData {
     height: number
 
     get channelNames() : string[] {
-        let channelNames = _.keys(this.data)
+        let channelNames = _.keys(this.data).sort()
         return(channelNames)
     }
 

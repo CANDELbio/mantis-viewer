@@ -30,6 +30,7 @@
         "./src/components/ChannelControls.tsx",
         "./src/components/SegmentationControls.tsx",
         "./src/components/ScatterPlot.tsx",
-        "./src/components/SelectedRegions.tsx"
+        "./src/components/SelectedRegions.tsx",
+        "./src/typings/custom.d.ts"
     ]
 }
