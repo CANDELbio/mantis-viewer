@@ -21,11 +21,11 @@
     //accept the decorator syntax. Hopefully this will be fixed in the future
     "files": [
         "./main.ts",
-        "./renderer.ts",
-        "./src/mainWindow.tsx",
-        "./src/plotWindow.tsx",
+        "./src/app/mainWindow.tsx",
+        "./src/app/plotWindow.tsx",
         "./src/stores/ImageStore.tsx",
         "./src/components/ImageViewer.tsx",
+        "./src/components/ImageLoader.tsx",
         "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",
         "./src/components/SegmentationControls.tsx",

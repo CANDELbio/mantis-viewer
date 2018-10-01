@@ -15,7 +15,10 @@ export interface ImageSelection {
 }
 
 export interface ImageDataObject   {
-    X: Float32Array | Uint16Array
-    Y: Float32Array | Uint16Array
     [key: string] : Float32Array | Uint16Array
+}
+
+export interface MinMax {
+    min: number
+    max: number
 }

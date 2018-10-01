@@ -1,19 +1,15 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { MainApp } from "./components/MainApp"
+import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
-import { ImageStore } from "./stores/ImageStore"
-const tiff = require("tiff")
-import * as fs from "fs"
-import { ScatterPlotData } from "./lib/ScatterPlotData"
+import { ImageStore } from "../stores/ImageStore"
+import { ipcRenderer } from 'electron'
+import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ImageDataLoader } from "../lib/ImageDataLoader"
 
 Mobx.configure({ enforceActions: 'always' })
 
-const electron = require("electron")
-const path = require('path')
-const url = require('url')
-
-const { BrowserWindow } = electron.remote
+const tiff = require("tiff")
 const imageStore = new ImageStore()
 
 
@@ -46,34 +42,29 @@ const imageStore = new ImageStore()
 //     }
 // })
 
-electron.ipcRenderer.on("open-directory", (event:Electron.Event, dirName:string) => {
+ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     console.log(dirName)
-
+    imageStore.setImageDataLoading(true)
     imageStore.selectDirectory(dirName)
+
+    let loader = new ImageDataLoader()
+    loader.loadFolder(dirName, (data) => imageStore.setImageData(data))
 })
 
-electron.ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
     imageStore.selectSegmentationFile(filename)
 })
 
-electron.ipcRenderer.on("import-selected-regions", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("import-selected-regions", (event:Electron.Event, filename:string) => {
     imageStore.importSelectedRegions(filename)
 })
 
-electron.ipcRenderer.on("export-selected-regions", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("export-selected-regions", (event:Electron.Event, filename:string) => {
     imageStore.exportSelectedRegions(filename)
 })
 
-electron.ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
+ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
     imageStore.setWindowDimensions(width, height)
-})
-
-electron.ipcRenderer.on("open-file", (event:Electron.Event, fileName:string) => {
-    console.log(fileName)
-    let input = fs.readFileSync(fileName)
-    let image = tiff.decode(input)
-    console.log(image)
-    imageStore.selectFile(fileName)
 })
 
 ReactDOM.render(

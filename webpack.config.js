@@ -1,8 +1,8 @@
 module.exports = {
     mode: 'development',
     entry: {
-        mainWindow: "./src/mainWindow.tsx",
-        plotWindow: "./src/plotWindow.tsx",
+        mainWindow: "./src/app/mainWindow.tsx",
+        plotWindow: "./src/app/plotWindow.tsx",
     },
     output: {
         path: __dirname + "/app",

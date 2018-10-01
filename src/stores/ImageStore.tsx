@@ -20,17 +20,17 @@ import * as Shortid from 'shortid'
 
 export class ImageStore {
 
-
     constructor() {
         this.initialize()
     }
-
+    
     private canvasImageData:ImageData | null = null
 
     @observable windowWidth: number | null
     @observable windowHeight: number | null
     
     @observable.ref imageData: ImageData | null
+    @observable imageDataLoading: boolean
 
     @observable.ref segmentationData: SegmentationData | null
 
@@ -47,7 +47,6 @@ export class ImageStore {
 
     @observable.ref extraData: Uint8ClampedArray | null
 
-    @observable selectedFile: string | null
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
     @observable.ref selectedPlotChannels: string[]
@@ -108,6 +107,8 @@ export class ImageStore {
         this.selectedRegions = new Array<ImageSelection>()
         this.highlightedRegions = []
         this.segmentsHoveredOnGraph = []
+
+        this.imageDataLoading = false
     }
 
     @action setWindowDimensions = (width: number, height: number) => {
@@ -122,12 +123,13 @@ export class ImageStore {
         }
     }
 
-    @action updateImageData() {
-        if (this.selectedDirectory != null) {
-            this.imageData = new ImageData(this.selectedDirectory, "folder")
-        }
-        
-        console.log(this.imageData)
+    @action setImageDataLoading(status: boolean){
+        this.imageDataLoading = status
+    }
+
+    @action setImageData(data: ImageData){
+        this.imageData = data
+        this.setImageDataLoading(false)
     }
 
     @action updateSegmentationData() {
@@ -356,14 +358,9 @@ export class ImageStore {
         }
     }    
 
-    @action selectFile = (fName: string) => {
-        this.selectedFile = fName
-        this.updateImageData()
-    }
 
     @action selectDirectory = (dirName : string) => {
         this.selectedDirectory = dirName
-        this.updateImageData()
     }
 
     @action selectSegmentationFile = (fName: string) => {

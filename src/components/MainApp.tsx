@@ -5,6 +5,7 @@ import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
 import { ChannelName, SelectOption } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
+import {ImageLoader } from "./ImageLoader"
 import { SelectedData } from "./SelectedData"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot";
@@ -68,9 +69,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let scatterPlot = null
         let segmentationControls = null
 
-        if(this.props.store.selectedFile || this.props.store.selectedDirectory) {
+        if(this.props.store.selectedDirectory) {
             selectedData = <SelectedData
-                selectedFile = {this.props.store.selectedFile}
                 selectedDirectory = {this.props.store.selectedDirectory}
             />
         }
@@ -142,6 +142,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             }
         }
         
+        let imageLoading = <ImageLoader imageDataLoading = {this.props.store.imageDataLoading}/>
+
         let selectedRegions = <SelectedRegions
             regions = {this.props.store.selectedRegions}
             updateName = {this.props.store.updateSelectedRegionName}
@@ -175,7 +177,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             </Collapse>
                         </Col>
                         <Col lg={6}>
-                            {imageViewer}
+                            {imageLoading}{imageViewer}
                         </Col>
                         <Col lg={4}>
                             <Button onClick={this.handleRegionsClick}>

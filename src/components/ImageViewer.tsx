@@ -132,8 +132,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if(this.stage.position.y > 0) this.stage.position.y = 0
 
         // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
-        let minX = this.rendererWidth - (this.props.imageData.width * this.stage.scale.x)
-        let minY = this.scaledHeight - (this.props.imageData.height * this.stage.scale.y)
+        let minX = this.rendererWidth - (this.imageData.width * this.stage.scale.x)
+        let minY = this.scaledHeight - (this.imageData.height * this.stage.scale.y)
 
         // Not able to scroll past the bottom right corner
         if(this.stage.position.x < minX) this.stage.position.x = minX
