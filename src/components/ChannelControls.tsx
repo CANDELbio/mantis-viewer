@@ -1,7 +1,7 @@
-import * as React from "react";
+import * as React from "react"
 import { RangeSlider } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-import Select from 'react-select';
+import Select from 'react-select'
 
 export interface ChannelControlsProps {
     sliderMin: number

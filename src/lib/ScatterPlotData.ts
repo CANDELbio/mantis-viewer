@@ -1,9 +1,9 @@
 import { ImageData } from "./ImageData"
-import { SegmentationData } from "./SegmentationData";
+import { SegmentationData } from "./SegmentationData"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { ImageHelper } from "./ImageHelper"
-import * as Plotly from 'plotly.js';
+import * as Plotly from 'plotly.js'
 
 export class ScatterPlotData {
     ch1: string

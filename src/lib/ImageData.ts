@@ -1,13 +1,13 @@
 import * as _ from "underscore"
 import * as PIXI from "pixi.js"
 
-import { ImageDataObject, MinMax } from "../interfaces/ImageInterfaces"
+import { TiffDataMap, MinMaxMap, SpriteMap, ImageBitmapMap } from "../interfaces/ImageInterfaces"
 
 export class ImageData {
 
-    data: ImageDataObject
-    minmax: {[key: string] : MinMax}
-    sprites: {[key:string] : PIXI.Sprite}
+    data: TiffDataMap
+    minmax: MinMaxMap
+    sprites: SpriteMap
 
     width: number
     height: number
@@ -17,7 +17,7 @@ export class ImageData {
         return(channelNames)
     }
 
-    meanPixelIntensity(chName:string, pixels:Array<number>):number {
+    meanPixelIntensity(chName:string, pixels:number[]):number {
         if(chName in this.data) {
             let chData = this.data[chName]
             let sum = 0
@@ -29,11 +29,11 @@ export class ImageData {
             return sum/count
         }
         else {
-            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString());
+            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString())
         }
     }
 
-    medianPixelIntensity(chName:string, pixels:Array<number>):number {
+    medianPixelIntensity(chName:string, pixels:number[]):number {
         if(chName in this.data) {
             let chData = this.data[chName]
             let values = []
@@ -52,12 +52,12 @@ export class ImageData {
             }
         }
         else {
-            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString());
+            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString())
         }
     }
 
-    imageBitmapsToSprites(bitmaps: {[key:string] : ImageBitmap}) {
-        let sprites:{[key:string] : PIXI.Sprite} = {}
+    imageBitmapsToSprites(bitmaps: ImageBitmapMap) {
+        let sprites:SpriteMap = {}
         for(let chName in bitmaps){
             let bitmap = bitmaps[chName]
             let offScreen = document.createElement("canvas")
@@ -72,7 +72,7 @@ export class ImageData {
         return sprites
     }
 
-    constructor(data: ImageDataObject, minmax: {[key: string] : MinMax}, bitmaps: {[key:string] : ImageBitmap}, width: number, height: number) {
+    constructor(data: TiffDataMap, minmax: MinMaxMap, bitmaps: ImageBitmapMap, width: number, height: number) {
         this.data = data
         this.minmax = minmax
         this.sprites = this.imageBitmapsToSprites(bitmaps)

@@ -3,7 +3,7 @@ import { observable,
     action } from "mobx"
 import { ImageData } from "../lib/ImageData"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
-import { SegmentationData } from "../lib/SegmentationData";
+import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 import * as fs from 'fs'
@@ -179,7 +179,7 @@ export class ImageStore {
 
     @action deleteSelectedRegion = (id: string) => {
         if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.filter(region => region.id != id);
+            this.selectedRegions = this.selectedRegions.filter(region => region.id != id)
         }
     }
 
@@ -262,11 +262,11 @@ export class ImageStore {
             let exportingContent = JSON.stringify(this.selectedRegions)
             fs.writeFile(filename, exportingContent, 'utf8', function (err) {
                 if (err) {
-                    console.log("An error occured while writing regions of interest to file.");
-                    return console.log(err);
+                    console.log("An error occured while writing regions of interest to file.")
+                    return console.log(err)
                 }
              
-                console.log("Regions of interest file has been saved.");
+                console.log("Regions of interest file has been saved.")
             })
         }
     }

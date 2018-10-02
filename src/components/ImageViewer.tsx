@@ -7,7 +7,7 @@ import { ChannelName,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
-import { SegmentationData } from "../lib/SegmentationData";
+import { SegmentationData } from "../lib/SegmentationData"
 import { ImageHelper } from "../lib/ImageHelper"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
 

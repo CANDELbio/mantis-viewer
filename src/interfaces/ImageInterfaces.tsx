@@ -14,11 +14,32 @@ export interface ImageSelection {
     visible: boolean
 }
 
-export interface ImageDataObject   {
+export interface TiffDataMap   {
     [key: string] : Float32Array | Uint16Array
 }
 
 export interface MinMax {
     min: number
     max: number
+}
+
+export interface MinMaxMap {
+    [key: string] : MinMax
+}
+
+export interface ImageBitmapMap {
+    [key:string] : ImageBitmap
+}
+
+export interface SpriteMap {
+    [key:string] : PIXI.Sprite
+}
+
+export interface ImageDataWorkerResult {
+    chName: string,
+    width: number,
+    height: number,
+    data: Float32Array | Uint16Array,
+    bitmap: ImageBitmap,
+    minmax: MinMax
 }

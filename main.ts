@@ -68,7 +68,7 @@ function sendWindowSize() {
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1540, height: 740, show: false, webPreferences: { experimentalCanvasFeatures: true, nodeIntegrationInWorker: true }})
+  mainWindow = new BrowserWindow({width: 1540, height: 740, show: false, webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true }})
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   

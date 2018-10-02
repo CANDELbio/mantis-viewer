@@ -19,7 +19,7 @@ ipc.on('plotData', (event: Electron.Event, scatterPlotData:ScatterPlotData) => {
                 {/* <CountourPlot data = {message} /> */}
             </div>,
             domNode
-        );
+        )
     }
 })
 

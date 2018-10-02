@@ -30,10 +30,10 @@ export class SegmentationData {
     private static getPixelColor(segmentId:number, colors: RGBColorCollection){
         if(!(segmentId in colors)){
             // Generate a random color
-            let num = Math.round(0xffffff * Math.random());
-            let r = num >> 16;
-            let g = num >> 8 & 255;
-            let b = num & 255;
+            let num = Math.round(0xffffff * Math.random())
+            let r = num >> 16
+            let g = num >> 8 & 255
+            let b = num & 255
             let color = {r: r, g: g, b: b}
 
             // Store that color in the colors hash and then return in.

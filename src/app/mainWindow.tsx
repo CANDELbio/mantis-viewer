@@ -72,7 +72,4 @@ ReactDOM.render(
         <MainApp  store={imageStore} />
     </div>,
     document.getElementById("example")
-);
-
-
-
+)

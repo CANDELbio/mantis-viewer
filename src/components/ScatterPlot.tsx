@@ -26,7 +26,7 @@ interface ScatterPlotProps {
 
 @observer
 export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
-    public container: Plotly.PlotlyHTMLElement | null = null;
+    public container: Plotly.PlotlyHTMLElement | null = null
     
     channelSelectOptions: {value: string, label:string}[]
 
@@ -58,12 +58,12 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
             this.container = await Plotly.react(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
             // Resize the plot to fit the container
             // Might need to remove. Seems that if this fires too much can cause weirdness with WebGL contexts.
-            Plotly.Plots.resize(this.container);
+            Plotly.Plots.resize(this.container)
             // Adding listeners for plotly events. Not doing this during componentDidMount because the element probably doesn't exist.
             if(firstRender){
                 this.container!.on('plotly_selected', this.onPlotSelected)
-                this.container!.on('plotly_hover', this.onHover);
-                this.container!.on('plotly_unhover', this.onUnHover);
+                this.container!.on('plotly_hover', this.onHover)
+                this.container!.on('plotly_unhover', this.onUnHover)
             }
         }
     }

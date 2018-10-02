@@ -8,9 +8,9 @@ import { ImageViewer } from "./ImageViewer"
 import {ImageLoader } from "./ImageLoader"
 import { SelectedData } from "./SelectedData"
 import { SegmentationControls } from "./SegmentationControls"
-import { ScatterPlot } from "./ScatterPlot";
-import { SelectedRegions } from "./SelectedRegions";
-import { Collapse } from 'react-collapse';
+import { ScatterPlot } from "./ScatterPlot"
+import { SelectedRegions } from "./SelectedRegions"
+import { Collapse } from 'react-collapse'
 import { Button } from "@blueprintjs/core"
 
 export interface MainAppProps { 

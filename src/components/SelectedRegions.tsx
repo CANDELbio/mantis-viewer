@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { EditableText, Button, Checkbox } from "@blueprintjs/core"
 import { observer } from "mobx-react"

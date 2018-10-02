@@ -1,15 +1,16 @@
+//Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any;
 
 import * as d3Scale from "d3-scale"
-import { MinMax } from "../interfaces/ImageInterfaces"
+import { ImageDataWorkerResult, MinMax } from "../interfaces/ImageInterfaces"
 import * as fs from "fs"
 import * as path from "path"
 
 const tiff = require("tiff")
 
-async function textureFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
+async function bitmapFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
     // @ts-ignore
-    let offScreen = new OffscreenCanvas(width, height);
+    let offScreen = new OffscreenCanvas(width, height)
 
     let ctx = offScreen.getContext("2d")
     if(ctx) {
@@ -30,6 +31,8 @@ async function textureFromData(v: Float32Array | Uint16Array, width: number, hei
 
         }
 
+        // tiff data (v) has one value per pixel whereas a canvas has four (rgba)
+        // iterating through the values in the tiff and setting them in the canvas
         for(let i = 0; i < v.length; ++i) {
             let x = colorScale(v[i])
             canvasData[dataIdx[i]] = x
@@ -54,24 +57,29 @@ function calculateMinMax(v: Float32Array | Uint16Array) {
     return({min: min, max: max})
 }
 
-async function loadFile(filepath: string) {
-    let data = fs.readFileSync(filepath)
+async function loadFile(filepath: string):Promise<ImageDataWorkerResult> {
     let chName = path.basename(filepath, ".tiff")
+    //Decode tiff data
+    let data = fs.readFileSync(filepath)
     let tiffData = tiff.decode(data)[0]
 
     let width = tiffData.width
     let height = tiffData.height
-
     let minmax = calculateMinMax(tiffData.data)
-    let bitmap = await textureFromData(tiffData.data, width, height, minmax)
+    // Generate an ImageBitmap from the tiffData
+    // ImageBitmaps are rendered canvases can be passed between processes
+    let bitmap = await bitmapFromData(tiffData.data, width, height, minmax)
 
     return({chName: chName, width: width, height: height, data: tiffData.data, bitmap: bitmap, minmax: minmax})
 }
 
 ctx.addEventListener('message', (message) => {
-    var data = message.data;
-    loadFile(data.filepath).then((value) => {
-        ctx.postMessage(value)
+    var data = message.data
+    loadFile(data.filepath).then((message) => {
+        // Send the message and then specify the large data array and bitmap as transferrables
+        // Using transferrables dramatically speeds up transfer back to the main thread
+        // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
+        ctx.postMessage(message, [message.data.buffer, message.bitmap])
     })
-}, false);
+}, false)
 

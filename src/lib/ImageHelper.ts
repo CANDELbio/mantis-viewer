@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import { SegmentationData } from "./SegmentationData";
+import { SegmentationData } from "./SegmentationData"
 import { ImageData } from "./ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
@@ -12,9 +12,9 @@ export class ImageHelper {
 
     // Gets RGB values from a hex number representing a color.
     public static hexToRGB(hex: number){
-        let r = (hex >> 16) & 255;
-        let g = (hex >> 8) & 255;
-        let b = hex & 255;
+        let r = (hex >> 16) & 255
+        let g = (hex >> 8) & 255
+        let b = hex & 255
         return {r: r, g: g, b: b}
     }
     
