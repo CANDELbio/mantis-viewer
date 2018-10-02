@@ -21,23 +21,16 @@ async function bitmapFromData(v: Float32Array | Uint16Array, width: number, heig
                 .domain([minmax.min, minmax.max])
                 .range([0, 255])
 
-        let dataIdx = new Array(v.length)
-
-        for(let i = 0; i < v.length ; ++i) {
-            //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
-            let idx = i << 2
-            dataIdx[i] = idx
-            canvasData[idx + 3] = 255
-
-        }
-
-        // tiff data (v) has one value per pixel whereas a canvas has four (rgba)
         // iterating through the values in the tiff and setting them in the canvas
         for(let i = 0; i < v.length; ++i) {
             let x = colorScale(v[i])
-            canvasData[dataIdx[i]] = x
-            canvasData[dataIdx[i] + 1] = x
-            canvasData[dataIdx[i] + 2] = x
+            // tiff data (v) has one value per pixel whereas a canvas has four (rgba)
+            // Bitshift by 2 (same as multiplying by 4) to get the starting index on the canvas
+            let canvasIndex = i << 2
+            canvasData[canvasIndex] = x       // r
+            canvasData[canvasIndex + 1] = x   // g
+            canvasData[canvasIndex + 2] = x   // b
+            canvasData[canvasIndex + 3] = 255 // a
         }
         ctx.putImageData(imageData, 0, 0)
     }
