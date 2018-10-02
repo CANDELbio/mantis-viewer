@@ -497,13 +497,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
 
-        let renderWidth = 700
+        let renderWidth = 500
         if(this.props.windowWidth != null){
             // We need to set the render width smaller than the window width to account for the controls around it.
             // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
             // become larger as the window becomes larger
             // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/12) * 4.75
+            renderWidth = (this.props.windowWidth/1540) * 550
         } 
 
         return(

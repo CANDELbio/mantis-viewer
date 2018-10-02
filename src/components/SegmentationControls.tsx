@@ -28,7 +28,8 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
 
         return(
             <div>
-                <div>Selected segmentation file {segmentationFileString}</div>
+                <div>Selected segmentation file:</div>
+                <div>{segmentationFileString}</div>
                 <br></br>
                 <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.props.onVisibilityChange} />
                 Segmentation Cell Alpha

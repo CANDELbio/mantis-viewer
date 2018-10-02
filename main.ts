@@ -87,6 +87,8 @@ function createWindow () {
 
   // Use throttle so that when we resize we only send the window size every 333 ms
   mainWindow.on('resize', _.throttle(sendWindowSize, 333))
+  mainWindow.on('enter-full-screen', sendWindowSize)
+  mainWindow.on('leave-full-screen', sendWindowSize)
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

@@ -8,29 +8,17 @@ interface ImageLoaderProps {
     imageDataLoading: boolean
 }
 
-const override = css`
-    display: block;
-    margin: 0 auto;
-    border-color: red;
-`;
-
-
 @observer
 export class ImageLoader extends React.Component<ImageLoaderProps, {}> {
     
     render() {
-        let loading = this.props.imageDataLoading
-        let message = "ImageLoader Rerender. Image loading status: " + loading
-        console.log(message)
-
         return(
             <div>
-                {message}
                 <ClipLoader
                     sizeUnit={"px"}
                     size={150}
                     color={'#123abc'}
-                    loading={loading}
+                    loading={this.props.imageDataLoading}
                 />
             </div>
         )
