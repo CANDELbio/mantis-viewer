@@ -5,7 +5,7 @@ import * as Mobx from 'mobx'
 import { ImageStore } from "../stores/ImageStore"
 import { ipcRenderer } from 'electron'
 import { ScatterPlotData } from "../lib/ScatterPlotData"
-import { ImageDataLoader } from "../lib/ImageDataLoader"
+import { ImageData } from "../lib/ImageData"
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -47,8 +47,8 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
     imageStore.setImageDataLoading(true)
     imageStore.selectDirectory(dirName)
 
-    let loader = new ImageDataLoader()
-    loader.loadFolder(dirName, (data) => imageStore.setImageData(data))
+    let imageData = new ImageData()
+    imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
 })
 
 ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {

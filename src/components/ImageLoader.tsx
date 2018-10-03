@@ -1,8 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { ClipLoader } from 'react-spinners'
-import { css } from 'react-emotion'
-
 
 interface ImageLoaderProps {
     imageDataLoading: boolean

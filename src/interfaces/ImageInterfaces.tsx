@@ -27,10 +27,6 @@ export interface MinMaxMap {
     [key: string] : MinMax
 }
 
-export interface ImageBitmapMap {
-    [key:string] : ImageBitmap
-}
-
 export interface SpriteMap {
     [key:string] : PIXI.Sprite
 }
