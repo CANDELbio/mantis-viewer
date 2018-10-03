@@ -1,13 +1,13 @@
 import * as React from "react"
 import * as Path from "path"
 
-export interface SelectedDataProps {
+export interface SelectedDirectoryProps {
     selectedDirectory: string | null
 }
 
-export class SelectedData extends React.Component<SelectedDataProps, {}> {
+export class SelectedDirectory extends React.Component<SelectedDirectoryProps, {}> {
 
-    constructor(props:SelectedDataProps) {
+    constructor(props:SelectedDirectoryProps) {
         super(props)
     }
 

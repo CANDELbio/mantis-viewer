@@ -4,7 +4,7 @@ import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
 import { ChannelName, SelectOption } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
-import { SelectedData } from "./SelectedData"
+import { SelectedDirectory } from "./SelectedDirectory"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot"
 import { SelectedRegions } from "./SelectedRegions"
@@ -63,13 +63,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     render() {
         let imageViewer = null
-        let selectedData =  null
+        let selectedDirectory =  null
         let channelControls = null
         let scatterPlot = null
         let segmentationControls = null
 
         if(this.props.store.selectedDirectory) {
-            selectedData = <SelectedData
+            selectedDirectory = <SelectedDirectory
                 selectedDirectory = {this.props.store.selectedDirectory}
             />
         }
@@ -170,7 +170,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
                         </Button>
                         <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
-                            <div>{selectedData}</div>
+                            <div>{selectedDirectory}</div>
                             <div>{channelControls}</div>
                         </UnmountClosed>
                         <br></br>
