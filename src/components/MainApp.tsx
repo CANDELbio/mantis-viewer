@@ -4,13 +4,13 @@ import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
 import { ChannelName, SelectOption } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
-import {ImageLoader } from "./ImageLoader"
 import { SelectedData } from "./SelectedData"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot"
 import { SelectedRegions } from "./SelectedRegions"
 import { UnmountClosed } from 'react-collapse'
 import { Button } from "@blueprintjs/core"
+import { ClipLoader } from 'react-spinners'
 import Flexbox from 'flexbox-react'
 
 export interface MainAppProps { 
@@ -141,7 +141,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             }
         }
         
-        let imageLoading = <ImageLoader imageDataLoading = {this.props.store.imageDataLoading}/>
+        let imageLoading = <ClipLoader
+            sizeUnit={"px"}
+            size={150}
+            color={'#123abc'}
+            loading={this.props.store.imageDataLoading}
+        />
 
         let selectedRegions = <SelectedRegions
             regions = {this.props.store.selectedRegions}
