@@ -2,7 +2,7 @@ import { ImageData } from "./ImageData"
 import { SegmentationData } from "./SegmentationData"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
-import { ImageHelper } from "./ImageHelper"
+import { GraphicsHelper } from "./GraphicsHelper"
 import * as Plotly from 'plotly.js'
 
 export class ScatterPlotData {
@@ -97,7 +97,7 @@ export class ScatterPlotData {
     }
 
     static hexToRGB(hex:number){
-        let rgb = ImageHelper.hexToRGB(hex)
+        let rgb = GraphicsHelper.hexToRGB(hex)
         return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")"
     }
 

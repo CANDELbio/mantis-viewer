@@ -109,7 +109,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onSliderRelease = {this.props.store.setChannelDomain(s)}
                     selectOptions = {channelSelectOptions}
                     selectValue = {this.props.store.channelMarker[s]}
-                    onSelectChange = {this.props.store.setChannelMarker(s)}
+                    onSelectChange = {this.props.store.setChannelMarkerFromSelect(s)}
                     windowWidth = {this.props.store.windowWidth}
                 />
             )

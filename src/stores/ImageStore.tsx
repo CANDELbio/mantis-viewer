@@ -16,6 +16,7 @@ import { ChannelName,
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import { SelectedRegionColor } from "../interfaces/UIDefinitions"
+import { ConfigurationHelper } from "../lib/ConfigurationHelper"
 import * as Shortid from 'shortid'
 
 export class ImageStore {
@@ -44,8 +45,6 @@ export class ImageStore {
 
     @observable scatterPlotStatistic: PlotStatistic
     @observable scatterPlotTransform: PlotTransform
-
-    @observable.ref extraData: Uint8ClampedArray | null
 
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
@@ -129,6 +128,7 @@ export class ImageStore {
 
     @action setImageData(data: ImageData){
         this.imageData = data
+        this.setChannelMarkerDefaults()
         this.setImageDataLoading(false)
     }
 
@@ -321,25 +321,44 @@ export class ImageStore {
         })
     }
 
-    @action setChannelMarker = (name: ChannelName) => {
+    @action unsetChannelMarker = (channelName: ChannelName) => {
+        this.channelMarker[channelName] = null
+        this.channelDomain[channelName] = [0, 100]
+        this.channelSliderValue[channelName] = [0, 100]
+    }
+
+    @action setChannelMarker = (channelName: ChannelName, markerName: string) => {
+        this.channelMarker[channelName] = markerName
+        // Setting the default slider/domain values to the min/max values from the image
+        if(this.imageData != null){
+            let min = this.imageData.minmax[markerName].min
+            let max = this.imageData.minmax[markerName].max
+            this.channelDomain[channelName] = [min, max]
+            this.channelSliderValue[channelName] = [min, max]
+        }
+    }
+
+    @action setChannelMarkerFromSelect = (name: ChannelName) => {
         return action((x: SelectOption) => {
             // If the SelectOption has a value.
             if(x != null){
-                this.channelMarker[name] = x.value
-                // Setting the default slider/domain values to the min/max values from the image
-                if(this.imageData != null){
-                    let min = this.imageData.minmax[x.value].min
-                    let max = this.imageData.minmax[x.value].max
-                    this.channelDomain[name] = [min, max]
-                    this.channelSliderValue[name] = [min, max]
-                }
+                this.setChannelMarker(name, x.value)
             // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
             } else {
-                this.channelMarker[name] = null
-                this.channelDomain[name] = [0, 100]
-                this.channelSliderValue[name] = [0, 100]
+                this.unsetChannelMarker(name)
             }
         })
+    }
+
+    @action setChannelMarkerDefaults = () => {
+        if(this.imageData != null) {
+            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(this.imageData.channelNames)
+            for (let v in defaultValues) {
+                let channelName = v as ChannelName
+                let markerName = defaultValues[channelName]
+                if(markerName != null) this.setChannelMarker(channelName, markerName)
+            }
+        }
     }
 
     @action setSelectedPlotChannels = (x: SelectOption[]) => {
@@ -357,7 +376,6 @@ export class ImageStore {
             this.scatterPlotTransform = x.value as PlotTransform
         }
     }    
-
 
     @action selectDirectory = (dirName : string) => {
         this.selectedDirectory = dirName

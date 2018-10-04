@@ -75,4 +75,3 @@ ctx.addEventListener('message', (message) => {
         ctx.postMessage(message, [message.data.buffer, message.bitmap])
     })
 }, false)
-

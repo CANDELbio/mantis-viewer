@@ -8,7 +8,7 @@ import { ChannelName,
 
 import { PixelLocation } from "../interfaces/ImageInterfaces"
 
-export class ImageHelper {
+export class GraphicsHelper {
 
     // Gets RGB values from a hex number representing a color.
     public static hexToRGB(hex: number){
@@ -19,7 +19,7 @@ export class ImageHelper {
     }
     
     // Given a list of pixel locations to draw, draws those pixels on a canvas of width and height with the passed in rgba color.
-    public static generateSpriteFromPixels(pixels: PixelLocation[], color: number, alpha: number, width: number, height: number) {
+    private static generateSpriteFromPixels(pixels: PixelLocation[], color: number, alpha: number, width: number, height: number) {
         let offScreen = document.createElement("canvas")
         offScreen.width = width
         offScreen.height = height
@@ -58,7 +58,7 @@ export class ImageHelper {
     //
     //      (9) *      * (8)
     //
-    public static drawCross(graphics:PIXI.Graphics, x:number, y:number, armLength: number, armHalfWidth: number){
+    private static drawCross(graphics:PIXI.Graphics, x:number, y:number, armLength: number, armHalfWidth: number){
         graphics.drawPolygon([
             x - armHalfWidth, y + armHalfWidth, //1
             x - armHalfWidth, y + armHalfWidth + armLength,
@@ -100,7 +100,7 @@ export class ImageHelper {
     }
 
     // Returns an array of segmentIds whose centroids collide with the selection in selectionGraphics
-    public static findSegmentsInSelection(selectionGraphics:PIXI.Graphics, segmentationData:SegmentationData){
+    private static findSegmentsInSelection(selectionGraphics:PIXI.Graphics, segmentationData:SegmentationData){
         let selectedSegments:number[] = []
         for(let segmentId in segmentationData.centroidMap){
             let centroid = segmentationData.centroidMap[segmentId]
@@ -135,13 +135,13 @@ export class ImageHelper {
     // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
     public static selectRegion(selection:number[], segmentationData: SegmentationData|null, imageData: ImageData){
 
-        let selectionGraphics = ImageHelper.drawSelectedRegion(selection, SelectedRegionColor, SelectedRegionAlpha)
+        let selectionGraphics = this.drawSelectedRegion(selection, SelectedRegionColor, SelectedRegionAlpha)
         let segmentSprite:PIXI.Sprite|null = null
         let centroidGraphics: PIXI.Graphics|null = null
         
         let selectedSegments:number[] = []
         if(segmentationData != null){
-            selectedSegments = ImageHelper.findSegmentsInSelection(selectionGraphics, segmentationData)
+            selectedSegments = this.findSegmentsInSelection(selectionGraphics, segmentationData)
             let toUnpack = this.generateSelectedSegmentGraphics(segmentationData, selectedSegments, SelectedRegionColor, imageData)
             centroidGraphics = toUnpack.centroids
             segmentSprite = toUnpack.segments
@@ -163,8 +163,8 @@ export class ImageHelper {
             selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
             pixels = pixels.concat(segmentationData.segmentLocationMap[segmentId])
         }
-        let centroidGraphics = ImageHelper.drawCentroids(selectedSegmentMap, SelectedCentroidColor)
-        let segmentSprite = ImageHelper.generateSpriteFromPixels(pixels, segmentColor, SelectedRegionAlpha, imcData.width, imcData.height)
+        let centroidGraphics = this.drawCentroids(selectedSegmentMap, SelectedCentroidColor)
+        let segmentSprite = this.generateSpriteFromPixels(pixels, segmentColor, SelectedRegionAlpha, imcData.width, imcData.height)
         return {centroids: centroidGraphics, segments: segmentSprite}
     }
 

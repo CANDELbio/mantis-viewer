@@ -8,7 +8,7 @@ import { ChannelName,
     UnselectedCentroidColor,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
 import { SegmentationData } from "../lib/SegmentationData"
-import { ImageHelper } from "../lib/ImageHelper"
+import { GraphicsHelper } from "../lib/GraphicsHelper"
 import { ImageSelection } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {
@@ -250,8 +250,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                ImageHelper.cleanUpStage(this.stage, selectionGraphics, segmentSprite, centroidGraphics)
-                let toUnpack = ImageHelper.selectRegion(selection,this.segmentationData,this.imageData)
+                GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentSprite, centroidGraphics)
+                let toUnpack = GraphicsHelper.selectRegion(selection,this.segmentationData,this.imageData)
 
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
@@ -334,7 +334,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             let curMarker = channelMarker[curChannel]
             if(curMarker != null){
                 let sprite = imcData.sprites[curMarker]
-                let brightnessFilterCode = ImageHelper.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+                let brightnessFilterCode = GraphicsHelper.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 // Delete sprite filters so they get cleared from memory before adding new ones
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
@@ -347,7 +347,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite
-            this.segmentationCentroidGraphics = ImageHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
+            this.segmentationCentroidGraphics = GraphicsHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
         }
         // Add segmentation cells
         if(this.segmentationSprite!=null){
@@ -366,9 +366,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         for(let region of selectedRegions) {
             if(region.visible){
                 this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
-                if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
+                if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = GraphicsHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
                 if(region.selectedSegments != null && this.segmentationData != null) {
-                    let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
+                    let toUnpack = GraphicsHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
                     this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
                     this.selectedRegionGraphics[region.id].segments = toUnpack.segments
                 }
@@ -413,7 +413,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = ImageHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
+            let graphics = GraphicsHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
             this.stage.addChild(graphics.segments)
             this.stage.addChild(graphics.centroids)
         }

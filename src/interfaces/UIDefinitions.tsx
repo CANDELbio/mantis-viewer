@@ -26,14 +26,6 @@ export const SelectedRegionColor = 0xf1c40f // yellow
 
 export type PlotTransform = "none" | "arcsinh" | "log"
 
-/*
-export interface LabelLayer {
-    name: string
-    width: number
-    height: number
-    data: Uint8ClampedArray
-}*/
-
 export class LabelLayer {
     @observable name:string
     @observable visible: boolean
