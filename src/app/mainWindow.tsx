@@ -47,6 +47,7 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
     imageStore.setImageDataLoading(true)
     imageStore.selectDirectory(dirName)
 
+    imageStore.clearImageData()
     let imageData = new ImageData()
     imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
 })

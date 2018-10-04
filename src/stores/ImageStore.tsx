@@ -103,7 +103,7 @@ export class ImageStore {
             gChannel: null,
             bChannel: null
         }
-        this.selectedRegions = new Array<ImageSelection>()
+        this.selectedRegions = []
         this.highlightedRegions = []
         this.segmentsHoveredOnGraph = []
 
@@ -132,6 +132,16 @@ export class ImageStore {
         this.setImageDataLoading(false)
     }
 
+    @action clearImageData(){
+        for(let s of ['rChannel', 'bChannel', 'gChannel']){
+            let curChannel = s as ChannelName
+            this.unsetChannelMarker(curChannel)
+        }
+        this.clearSegmentationData()
+        this.selectedRegions = []
+        this.imageData = null
+    }
+
     @action updateSegmentationData() {
         if (this.selectedSegmentationFile != null) {
             this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
@@ -151,12 +161,16 @@ export class ImageStore {
     }
 
     @action clearSegmentationData = () => {
-        return action(() => {
-            this.selectedSegmentationFile = null
-            this.segmentationData = null
-            this.segmentationAlpha = 5
-            this.selectedPlotChannels = []
-        })
+        this.selectedSegmentationFile = null
+        this.segmentationData = null
+        this.segmentationAlpha = 5
+        this.selectedPlotChannels = []
+    }
+
+
+
+    @action clearSegmentationDataCallback = () => {
+        return this.clearSegmentationData
     }
 
     newROIName(){
@@ -286,11 +300,13 @@ export class ImageStore {
     parsePlotlyEventData = (data: {points:any, event:any}) => {
         let selectedSegments:number[] = []
         if(data != null) {
-            for (let point of data.points){
-                let pointText = point.text
-                let splitText:string[] = pointText.split(" ")
-                let segmentId = Number(splitText[splitText.length - 1])
-                selectedSegments.push(segmentId)
+            if(data.points != null && data.points.length > 0){
+                for (let point of data.points){
+                    let pointText = point.text
+                    let splitText:string[] = pointText.split(" ")
+                    let segmentId = Number(splitText[splitText.length - 1])
+                    selectedSegments.push(segmentId)
+                }
             }
         }
         return selectedSegments

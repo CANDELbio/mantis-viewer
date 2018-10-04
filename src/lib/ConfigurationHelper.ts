@@ -5,18 +5,18 @@ export class ConfigurationHelper {
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
     private static defaultChannelMarkers:Record<ChannelName, string[]> = {
         rChannel : [
-            'CD8',
-            'CD4',
-            'CD20',
-            'CD68',
-            'catenin'
-        ],
-        gChannel: [
             'catenin',
             'CD8',
             'CD4',
             'CD20',
             'CD68'
+        ],
+        gChannel: [
+            'CD8',
+            'CD4',
+            'CD20',
+            'CD68',
+            'catenin'
         ],
         bChannel: [
             '191 Ir',
@@ -28,7 +28,7 @@ export class ConfigurationHelper {
         ]
     }
 
-    private static channelSelectionOrder:ChannelName[] = ['bChannel', 'rChannel', 'gChannel']
+    private static channelSelectionOrder:ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
     private static useAnyChannelIfNoMatch = true
 

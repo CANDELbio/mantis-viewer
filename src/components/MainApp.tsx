@@ -121,7 +121,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onAlphaChange = {this.props.store.setSegmentationSliderValue()}
                     centroidsVisible = {this.props.store.segmentationCentroidsVisible}
                     onVisibilityChange = {this.props.store.setCentroidVisibility()}
-                    onClearSegmentation = {this.props.store.clearSegmentationData()}
+                    onClearSegmentation = {this.props.store.clearSegmentationDataCallback()}
                 />
 
                 scatterPlot = <ScatterPlot 
