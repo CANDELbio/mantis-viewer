@@ -33,20 +33,29 @@ let menuTemplate = [{
     }
   },
   {
-    label: "Import selected regions",
+    label: "Add populations from CSV",
+    click: () => {
+      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
+        if(mainWindow != null && fileNames != null)
+          mainWindow.webContents.send("add-populations-csv", fileNames[0])
+      })
+    }
+  },
+  {
+    label: "Import selected populations",
     click: () => {
       dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
         if(mainWindow != null && fileNames != null)
-          mainWindow.webContents.send("import-selected-regions", fileNames[0])
+          mainWindow.webContents.send("import-selected-populations", fileNames[0])
         })
       }
     },
   {
-    label: "Export selected regions",
+    label: "Export selected populations",
     click: () => {
       dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
         if(mainWindow != null && filename != null)
-          mainWindow.webContents.send("export-selected-regions", filename)
+          mainWindow.webContents.send("export-selected-populations", filename)
       })
     }
   },

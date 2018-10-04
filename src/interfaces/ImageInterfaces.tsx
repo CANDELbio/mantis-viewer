@@ -3,10 +3,11 @@ export interface PixelLocation {
     y: number,
 }
 
-export interface ImageSelection {
+export interface SelectedPopulation {
     id: string
     // The coordinates of the selected region. In PIXI polygon format [x1, y1, x2, y2, ...]
     selectedRegion: number[]|null
+    // The IDs of the selected segments
     selectedSegments: number[]
     name: string
     notes: string | null

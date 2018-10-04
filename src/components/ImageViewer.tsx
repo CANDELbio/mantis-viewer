@@ -9,7 +9,7 @@ import { ChannelName,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
 import { SegmentationData } from "../lib/SegmentationData"
 import { GraphicsHelper } from "../lib/GraphicsHelper"
-import { ImageSelection } from "../interfaces/ImageInterfaces"
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {
 
@@ -23,7 +23,7 @@ export interface ImageProps {
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
     windowWidth: number | null,
-    selectedRegions: Array<ImageSelection> | null,
+    selectedRegions: Array<SelectedPopulation> | null,
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
     hightlightedRegions: string[]
     highlightedSegmentsFromGraph: number[]
@@ -62,7 +62,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
     // selectedRegionGraphics below
-    selectedRegions: Array<ImageSelection> | null
+    selectedRegions: Array<SelectedPopulation> | null
     selectedRegionGraphics:{[key:string] : {region: PIXI.Graphics|null, centroids: PIXI.Graphics|null, segments: PIXI.Sprite|null}} | null
 
     // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
@@ -360,7 +360,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Generates the graphics objects for regions or segment/cell populations selected by users.
-    generateSelectedRegionGraphics(selectedRegions:Array<ImageSelection>){
+    generateSelectedRegionGraphics(selectedRegions:Array<SelectedPopulation>){
         this.selectedRegions = selectedRegions
         this.selectedRegionGraphics = {}
         for(let region of selectedRegions) {
@@ -402,7 +402,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    loadSelectedRegionGraphics(selectedRegions:Array<ImageSelection>, highlightedRegions: string[]){
+    loadSelectedRegionGraphics(selectedRegions:Array<SelectedPopulation>, highlightedRegions: string[]){
         // Regenerate the region graphics and the centroids they contain if the selectedRegions have changed
         if(selectedRegions != this.selectedRegions){
             this.generateSelectedRegionGraphics(selectedRegions)
@@ -426,7 +426,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
         segmentationCentroidsVisible: boolean,
-        selectedRegions: Array<ImageSelection> | null,
+        selectedRegions: Array<SelectedPopulation> | null,
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
         windowWidth: number) {

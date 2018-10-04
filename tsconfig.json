@@ -23,13 +23,14 @@
         "./main.ts",
         "./src/app/mainWindow.tsx",
         "./src/app/plotWindow.tsx",
-        "./src/stores/ImageStore.tsx",
+        "./src/stores/ImageStore.ts",
+        "./src/stores/PopulationStore.ts",
         "./src/components/ImageViewer.tsx",
         "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",
         "./src/components/SegmentationControls.tsx",
         "./src/components/ScatterPlot.tsx",
-        "./src/components/SelectedRegions.tsx",
+        "./src/components/SelectedPopulations.tsx",
         "./src/typings/custom.d.ts"
     ]
 }

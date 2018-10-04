@@ -6,11 +6,13 @@ import { ImageStore } from "../stores/ImageStore"
 import { ipcRenderer } from 'electron'
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import { ImageData } from "../lib/ImageData"
+import { PopulationStore } from "../stores/PopulationStore";
 
 Mobx.configure({ enforceActions: 'always' })
 
 const tiff = require("tiff")
-const imageStore = new ImageStore()
+const populationStore = new PopulationStore()
+const imageStore = new ImageStore(populationStore)
 
 
 //Set up the separate plotting window
@@ -56,12 +58,16 @@ ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string)
     imageStore.selectSegmentationFile(filename)
 })
 
-ipcRenderer.on("import-selected-regions", (event:Electron.Event, filename:string) => {
-    imageStore.importSelectedRegions(filename)
+ipcRenderer.on("import-selected-populations", (event:Electron.Event, filename:string) => {
+    populationStore.importSelectedPopulations(filename)
 })
 
-ipcRenderer.on("export-selected-regions", (event:Electron.Event, filename:string) => {
-    imageStore.exportSelectedRegions(filename)
+ipcRenderer.on("export-selected-populations", (event:Electron.Event, filename:string) => {
+    populationStore.exportSelectedPopulations(filename)
+})
+
+ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) => {
+    populationStore.addPopulationsFromCSV(filename)
 })
 
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
@@ -70,7 +76,7 @@ ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: numbe
 
 ReactDOM.render(
     <div>
-        <MainApp  store={imageStore} />
+        <MainApp  imageStore={imageStore} populationStore={populationStore}/>
     </div>,
     document.getElementById("example")
 )

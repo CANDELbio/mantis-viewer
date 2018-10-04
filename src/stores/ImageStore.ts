@@ -2,11 +2,10 @@ import { observable,
     computed, 
     action } from "mobx"
 import { ImageData } from "../lib/ImageData"
-import { ImageSelection } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
-import * as fs from 'fs'
+
 import { ChannelName,
     PlotStatistic,
     PlotStatisticOptions,
@@ -15,17 +14,18 @@ import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
-import { SelectedRegionColor } from "../interfaces/UIDefinitions"
 import { ConfigurationHelper } from "../lib/ConfigurationHelper"
-import * as Shortid from 'shortid'
+import { PopulationStore } from "./PopulationStore";
 
 export class ImageStore {
 
-    constructor() {
-        this.initialize()
+    constructor(populationStore: PopulationStore) {
+        this.initialize(populationStore)
     }
     
     private canvasImageData:ImageData | null = null
+
+    @observable.ref populationStore: PopulationStore
 
     @observable windowWidth: number | null
     @observable windowHeight: number | null
@@ -34,11 +34,6 @@ export class ImageStore {
     @observable imageDataLoading: boolean
 
     @observable.ref segmentationData: SegmentationData | null
-
-    // An array of the regions selected.
-    @observable.ref selectedRegions: ImageSelection[]
-    // ID of a region to be highlighted. Used when mousing over in list of selected regions.
-    @observable.ref highlightedRegions: string[]
 
     // Array of segment IDs that have been hovered on the graph.
     @observable segmentsHoveredOnGraph: number[]
@@ -75,14 +70,15 @@ export class ImageStore {
                     this.segmentationData,
                     this.scatterPlotStatistic,
                     this.scatterPlotTransform,
-                    this.selectedRegions
+                    this.populationStore.selectedPopulations
                 )
             }
         }
         return null
     })
 
-    @action initialize = () => {
+    @action initialize = (populationStore: PopulationStore) => {
+        this.populationStore = populationStore
         this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
         this.selectedPlotChannels = []
@@ -103,8 +99,6 @@ export class ImageStore {
             gChannel: null,
             bChannel: null
         }
-        this.selectedRegions = []
-        this.highlightedRegions = []
         this.segmentsHoveredOnGraph = []
 
         this.imageDataLoading = false
@@ -138,7 +132,7 @@ export class ImageStore {
             this.unsetChannelMarker(curChannel)
         }
         this.clearSegmentationData()
-        this.selectedRegions = []
+        this.populationStore.clearSelectedPopulations()
         this.imageData = null
     }
 
@@ -167,130 +161,8 @@ export class ImageStore {
         this.selectedPlotChannels = []
     }
 
-
-
     @action clearSegmentationDataCallback = () => {
         return this.clearSegmentationData
-    }
-
-    newROIName(){
-        if (this.selectedRegions == null) return "Selection 1"
-        return "Selection " + (this.selectedRegions.length + 1).toString()
-    }
-
-    @action addSelectedRegion = (selectedRegion: number[]|null, selectedSegments: number[]) => {
-        let newRegion = {
-            id: Shortid.generate(),
-            selectedRegion: selectedRegion,
-            selectedSegments: selectedSegments,
-            name: this.newROIName(),
-            notes: null,
-            color: SelectedRegionColor,
-            visible: true
-        }
-        this.selectedRegions = this.selectedRegions.concat([newRegion])
-    }
-
-    @action deleteSelectedRegion = (id: string) => {
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.filter(region => region.id != id)
-        }
-    }
-
-    @action highlightSelectedRegion = (id: string) => {
-        this.highlightedRegions = this.highlightedRegions.concat([id])
-    }
-
-    @action unhighlightSelectedRegion = (id: string) => {
-        this.highlightedRegions = this.highlightedRegions.filter(regionId => regionId != id)
-    }
-
-    @action updateSelectedRegionName = (id: string, newName:string) => {
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.map(function(region) {
-                if(region.id == id){
-                    region.name = newName
-                    return region
-                }
-                else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action updateSelectedRegionNotes = (id: string, newNotes:string) => {
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.map(function(region) {
-                if(region.id == id){
-                    region.notes = newNotes
-                    return region
-                }
-                else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action updateSelectedRegionColor = (id: string, color: number) => {
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.map(function(region) {
-                if(region.id == id){
-                    region.color = color
-                    return region
-                }
-                else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action updateSelectedRegionVisibility = (id: string, visible:boolean) => {
-        console.log("Updating visibility of " + id + " to " + visible)
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.map(function(region) {
-                if(region.id == id){
-                    region.visible = visible
-                    return region
-                }
-                else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action setAllSelectedRegionVisibility = (visible:boolean) => {
-        if(this.selectedRegions != null){
-            this.selectedRegions = this.selectedRegions.map(function(region) {
-                region.visible = visible
-                return region
-            })
-        }
-    }
-
-    @action exportSelectedRegions = (filename:string) => {
-        if(this.selectedRegions != null){
-            let exportingContent = JSON.stringify(this.selectedRegions)
-            fs.writeFile(filename, exportingContent, 'utf8', function (err) {
-                if (err) {
-                    console.log("An error occured while writing regions of interest to file.")
-                    return console.log(err)
-                }
-             
-                console.log("Regions of interest file has been saved.")
-            })
-        }
-    }
-
-    @action importSelectedRegions = (filename:string) => {
-        if(this.selectedRegions == null || this.selectedRegions.length == 0) {
-            let importingContent = fs.readFileSync(filename, 'utf8')
-            let importedRegions:ImageSelection[] = JSON.parse(importingContent)
-            this.selectedRegions = importedRegions
-        }
     }
 
     // Data comes from a Plotly event.
@@ -314,7 +186,7 @@ export class ImageStore {
 
     @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
         let selectedSegments = this.parsePlotlyEventData(data)
-        this.addSelectedRegion(null, selectedSegments)
+        this.populationStore.addSelectedPopulation(null, selectedSegments)
     }
 
     @action setSegmentsHoveredOnGraph = (data: {points: any, event:any}) => {
