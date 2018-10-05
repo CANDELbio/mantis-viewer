@@ -1,17 +1,5 @@
-import * as Electron from "electron"
-
-
-
-
-const shell = Electron.shell
-const Menu = Electron.Menu
-
-// Module to control application life.
-const app = Electron.app
-// Module to create native browser window.
-const BrowserWindow = Electron.BrowserWindow
-const dialog = Electron.dialog
-
+import {Menu, app, dialog, BrowserWindow} from "electron"
+import * as _ from "underscore"
 
 const path = require('path')
 const url = require('url')
@@ -21,22 +9,17 @@ const url = require('url')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null
 
-
 let menuTemplate = [{
   label: "File",
-  submenu: [/*{
-    label: "Open",
-    click: () => {
-      dialog.showOpenDialog((fileNames:string[]) => {
-        if(mainWindow != null)
-          mainWindow.webContents.send("open-file", fileNames[0])
-      })
-    }}, */{
+  submenu: [
+  {
     label: "Open folder",
     click: () => {
       dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
         if(mainWindow != null && dirName != null)
           mainWindow.webContents.send("open-directory", dirName[0])
+          // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
+          sendWindowSize()
       })
     }
   },
@@ -46,18 +29,61 @@ let menuTemplate = [{
     dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
       if(mainWindow != null && fileNames != null)
         mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-    })
-  }
-}
+      })
+    }
+  },
+  {
+    label: "Add populations from CSV",
+    click: () => {
+      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
+        if(mainWindow != null && fileNames != null)
+          mainWindow.webContents.send("add-populations-csv", fileNames[0])
+      })
+    }
+  },
+  {
+    label: "Import selected populations",
+    click: () => {
+      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
+        if(mainWindow != null && fileNames != null)
+          mainWindow.webContents.send("import-selected-populations", fileNames[0])
+        })
+      }
+    },
+  {
+    label: "Export selected populations",
+    click: () => {
+      dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
+        if(mainWindow != null && filename != null)
+          mainWindow.webContents.send("export-selected-populations", filename)
+      })
+    }
+  },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit()
+      }
+    }
 ]
 }]
 
+function sendWindowSize() {
+  if(mainWindow != null){
+    let dimensions = mainWindow.getSize()
+    mainWindow.webContents.send("window-size", dimensions[0], dimensions[1])
+  }
+}
+
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 2395, height: 1032})
+  mainWindow = new BrowserWindow({width: 1540, height: 740, show: false, webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true }})
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
   
+  // TODO: Set to 1280 x 720 when not using DevTools.
+  mainWindow.setMinimumSize(1540, 740)
+
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'app', 'mainWindow.html'),
@@ -68,12 +94,21 @@ function createWindow () {
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
 
+  // Use throttle so that when we resize we only send the window size every 333 ms
+  mainWindow.on('resize', _.throttle(sendWindowSize, 333))
+  mainWindow.on('enter-full-screen', sendWindowSize)
+  mainWindow.on('leave-full-screen', sendWindowSize)
+
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
+  })
+
+  mainWindow.on('ready-to-show', () => {
+    if(mainWindow != null) mainWindow.show()
   })
 }
 

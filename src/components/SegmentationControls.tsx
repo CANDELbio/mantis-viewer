@@ -1,36 +1,45 @@
-import * as React from "react";
-import { Button, Slider } from "@blueprintjs/core"
+import * as React from "react"
+import { Button, Slider, Checkbox } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-const Select = require("react-select")
-
+import * as Path from "path"
 
 export interface SegmentationControlsProps {
-    segmentationPath: string | null
+    segmentationPath: string
 
-    sliderValue: number
-    onSliderChange: ((value: number) => void)
+    segmentationAlpha: number
+    onAlphaChange: ((value: number) => void)
 
-    onButtonClick: (() => void)
+    centroidsVisible: boolean
+    onVisibilityChange: ((event: React.FormEvent<HTMLInputElement>) => void)
+
+    onClearSegmentation: (() => void)
 }
 
 @observer
-export class SegmentationControls extends React.Component<SegmentationControlsProps, undefined> {
+export class SegmentationControls extends React.Component<SegmentationControlsProps, {}> {
 
     constructor(props: SegmentationControlsProps) {
         super(props)
     }
 
     render() {
+        let splitPath = this.props.segmentationPath.split(Path.sep)
+        let segmentationFileString = "..." + Path.sep + splitPath[splitPath.length - 2] + Path.sep + splitPath[splitPath.length - 1]
+
         return(
             <div>
-                <div>Selected segmentation file {this.props.segmentationPath}</div>
+                <div>Selected segmentation file:</div>
+                <div>{segmentationFileString}</div>
+                <br></br>
+                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.props.onVisibilityChange} />
+                Segmentation Cell Alpha
                 <Slider
-                    value = {this.props.sliderValue}
-                    onChange = {this.props.onSliderChange}
+                    value = {this.props.segmentationAlpha}
+                    onChange = {this.props.onAlphaChange}
                 />
                 <Button
                     text = {"Clear Segmentation"}
-                    onClick = {this.props.onButtonClick}
+                    onClick = {this.props.onClearSegmentation}
                 />
             </div>
         )

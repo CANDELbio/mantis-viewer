@@ -1,10 +1,11 @@
 module.exports = {
+    mode: 'development',
     entry: {
-        mainWindow: "./src/mainWindow.tsx",
-        plotWindow: "./src/plotWindow.tsx",
+        mainWindow: "./src/app/mainWindow.tsx",
+        plotWindow: "./src/app/plotWindow.tsx",
     },
     output: {
-        path: "./app",
+        path: __dirname + "/app",
         filename: "[name].js",
     },
     // Enable sourcemaps for debugging webpack's output.
@@ -26,6 +27,11 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
                 exclude: /(node_modules)/
+            },
+            // For Plotly https://github.com/plotly/plotly.js/blob/master/BUILDING.md
+            {
+                test: /\.js$/,
+                loader: 'ify-loader'
             },
             /*
             {
@@ -56,8 +62,7 @@ module.exports = {
     // dependencies, which allows browsers to cache those libraries between builds.
     externals: {
         "react": "React",
-        "react-dom": "ReactDOM"//,
-        //"plotly.js": "Plotly"
+        "react-dom": "ReactDOM",
     },
-    target: "electron"
+    target: "electron-main"
 };

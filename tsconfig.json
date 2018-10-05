@@ -14,24 +14,23 @@
         //"noUnusedLocals": true,
         //"noUnusedParameters": true,
         "strictNullChecks": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true
     },
     //Adding files here individually is required to have VisualStudio Code 
     //accept the decorator syntax. Hopefully this will be fixed in the future
     "files": [
         "./main.ts",
-        "./renderer.ts",
-        "./src/mainWindow.tsx",
-        "./src/plotWindow.tsx",
-        "./src/stores/ImageStore.tsx",
-        "./src/components/IMCImage.tsx",
+        "./src/app/mainWindow.tsx",
+        "./src/app/plotWindow.tsx",
+        "./src/stores/ImageStore.ts",
+        "./src/stores/PopulationStore.ts",
         "./src/components/ImageViewer.tsx",
+        "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",
-        "./src/components/Histogram.tsx",
-        "./src/components/ViewPort.tsx",
-        "./src/components/LabelLayerView.tsx",
-        "./src/components/LayerTable.tsx",
         "./src/components/SegmentationControls.tsx",
-        "./src/components/ScatterPlot.tsx"
+        "./src/components/ScatterPlot.tsx",
+        "./src/components/SelectedPopulations.tsx",
+        "./src/typings/custom.d.ts"
     ]
 }

@@ -1,10 +1,9 @@
-import * as React from "react";
+import * as React from "react"
 import { RangeSlider } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-const Select = require("react-select")
+import Select from 'react-select'
 
 export interface ChannelControlsProps {
-
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
@@ -15,20 +14,25 @@ export interface ChannelControlsProps {
     selectValue: string | null
     onSelectChange: ((x: {value:string, label:string}) => void)
 
+    windowWidth: number | null
 }
 
 @observer
-export class ChannelControls extends React.Component<ChannelControlsProps, undefined> {
+export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
     constructor(props: ChannelControlsProps) {
         super(props)
     }
 
     render() {
+        // TODO: Feels a bit hacky. Find a better solution.
+        // Dereferencing here so we re-render on resize
+        let windowWidth = this.props.windowWidth
+
         return(
             <div>
                 <Select
-                    value = {this.props.selectValue}
+                    value = {(this.props.selectValue == null) ? undefined : this.props.selectValue}
                     options = {this.props.selectOptions}
                     onChange = {this.props.onSelectChange}
                 />
@@ -36,7 +40,8 @@ export class ChannelControls extends React.Component<ChannelControlsProps, undef
                     min = {this.props.sliderMin}
                     max = {this.props.sliderMax}
                     value = {this.props.sliderValue}
-                    labelStepSize = {Math.round(this.props.sliderMax/10)}
+                    labelStepSize = {Math.round(this.props.sliderMax/5)}
+                    labelPrecision = {1}
                     stepSize = {this.props.sliderMax/1000} // Might want to change the number/size of steps. Seemed like a good starting point.
                     onRelease = {this.props.onSliderRelease}
                     onChange = {this.props.onSliderChange}
