@@ -2,7 +2,8 @@ import { observable,
     action } from "mobx"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import * as fs from 'fs'
-import * as Shortid from 'shortid'
+import * as shortId from 'shortid'
+import * as csvParse from 'csv-parse'
 
 import { SelectedRegionColor } from "../interfaces/UIDefinitions"
 
@@ -26,17 +27,18 @@ export class PopulationStore {
         return "Selection " + (this.selectedPopulations.length + 1).toString()
     }
 
-    @action addSelectedPopulation = (selectedRegion: number[]|null, selectedSegments: number[]) => {
+    @action addSelectedPopulation = (selectedRegion: number[]|null, selectedSegments: number[], name?: string) => {
         let newRegion = {
-            id: Shortid.generate(),
+            id: shortId.generate(),
             selectedRegion: selectedRegion,
             selectedSegments: selectedSegments,
-            name: this.newROIName(),
+            name: name ? name : this.newROIName(),
             notes: null,
             color: SelectedRegionColor,
             visible: true
         }
         this.selectedPopulations = this.selectedPopulations.concat([newRegion])
+        return newRegion
     }
 
     @action deleteSelectedPopulation = (id: string) => {
@@ -146,7 +148,29 @@ export class PopulationStore {
     }
 
     @action addPopulationsFromCSV = (filename:string) => {
-        console.log("Add populations from " + filename)        
+        console.log("Add populations from " + filename)
+
+        let input = fs.readFileSync(filename, 'utf8')
+
+        let populations:Record<string, number[]>  = {}
+
+        // Currently we expect the input to be a csv of the format segmentId,populationName
+        csvParse(input, {delimiter: ','}, function(err, output:string[][]){
+            for(let row of output){
+                let segmentId = Number(row[0])
+                let populationName = row[1]
+                // Check to make sure segmentId is a proper number and populationName is not empty or null.
+                if(!isNaN(segmentId) && populationName){
+                    if(!(populationName in populations)) populations[populationName] = []
+                    populations[populationName].push(segmentId)
+                }
+            }
+        }).on('end', () => {
+            for(let population in populations){
+                this.addSelectedPopulation(null, populations[population], population)
+            }
+        })
+
     }
 
 }
