@@ -30,10 +30,10 @@ export class SegmentationData {
     private static getPixelColor(segmentId:number, colors: RGBColorCollection){
         if(!(segmentId in colors)){
             // Generate a random color
-            let num = Math.round(0xffffff * Math.random());
-            let r = num >> 16;
-            let g = num >> 8 & 255;
-            let b = num & 255;
+            let num = Math.round(0xffffff * Math.random())
+            let r = num >> 16
+            let g = num >> 8 & 255
+            let b = num & 255
             let color = {r: r, g: g, b: b}
 
             // Store that color in the colors hash and then return in.
@@ -45,19 +45,22 @@ export class SegmentationData {
         return colors[segmentId]
     }
 
-    private static drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uint8ClampedArray, dataIdx: any[]){
+    private static drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uint8ClampedArray){
+        // Tiff data is an array with one index per pixel whereas canvasas have four indexes per pixel (r, g, b, a)
+        // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
+        let canvasasIndex = pixel << 2
         if(segmentId === 0){
-            canvasData[dataIdx[pixel]] = 0
-            canvasData[dataIdx[pixel] + 1] = 0
-            canvasData[dataIdx[pixel] + 2] = 0
-            canvasData[dataIdx[pixel] + 3] = 0
+            canvasData[canvasasIndex] = 0
+            canvasData[canvasasIndex + 1] = 0
+            canvasData[canvasasIndex + 2] = 0
+            canvasData[canvasasIndex + 3] = 0
         }
         else{
             let color = this.getPixelColor(segmentId, colors)
-            canvasData[dataIdx[pixel]] = color['r']
-            canvasData[dataIdx[pixel] + 1] = color['g']
-            canvasData[dataIdx[pixel] + 2] = color['b']
-            canvasData[dataIdx[pixel] + 3] = 255
+            canvasData[canvasasIndex] = color['r']
+            canvasData[canvasasIndex + 1] = color['g']
+            canvasData[canvasasIndex + 2] = color['b']
+            canvasData[canvasasIndex + 3] = 255
         }
     }
 
@@ -77,19 +80,10 @@ export class SegmentationData {
             let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
             let canvasData = imageData.data
 
-            let dataIdx = new Array(v.length)
-
-            // tiff data is an array with one index per pixel whereas canvasas have four indexes per pixel (r, g, b, a)
-            for(let i = 0; i < v.length ; ++i) {
-                //setup the dataIdx array by multiplying by 4 (i.e. bitshifting by 2)
-                let idx = i << 2
-                dataIdx[i] = idx
-            }
-
             // Here we're iterating through the segmentation data and setting all canvas pixels that have no cell as transparent
             // or setting all of the pixels belonging to a cell to the same random color with 50% alpha (transparency)
             for(let i = 0; i < v.length; ++i) {
-                this.drawPixel(v[i], colors, i, canvasData, dataIdx)
+                this.drawPixel(v[i], colors, i, canvasData)
             }
 
             ctx.putImageData(imageData, 0, 0)

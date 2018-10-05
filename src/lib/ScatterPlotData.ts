@@ -1,9 +1,9 @@
 import { ImageData } from "./ImageData"
-import { SegmentationData } from "../lib/SegmentationData";
+import { SegmentationData } from "./SegmentationData"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
-import { ImageSelection } from "../interfaces/ImageInterfaces"
-import { ImageHelper } from "./ImageHelper"
-import * as Plotly from 'plotly.js';
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
+import { GraphicsHelper } from "./GraphicsHelper"
+import * as Plotly from 'plotly.js'
 
 export class ScatterPlotData {
     ch1: string
@@ -16,7 +16,7 @@ export class ScatterPlotData {
     static defaultSelectionColor = 0x4286f4
 
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.
-    static buildSegmentToSelectedRegionMap(selectedRegion: Array<ImageSelection>|null) {
+    static buildSegmentToSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null) {
         let map:{[key:number] : string[]}  = {}
         if(selectedRegion != null){
             // Iterate through the regions of interest
@@ -35,8 +35,8 @@ export class ScatterPlotData {
     }
 
     // Builds a map of regionId to the region it belongs to.
-    static buildSelectedRegionMap(selectedRegion: Array<ImageSelection>|null){
-        let map:{[key:string] : ImageSelection} = {}
+    static buildSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null){
+        let map:{[key:string] : SelectedPopulation} = {}
         if(selectedRegion != null){
             for(let region of selectedRegion){
                 map[region.id] = region
@@ -65,20 +65,20 @@ export class ScatterPlotData {
         return result
     }
 
-    static getSelectionIdsSortedByName(selectedRegion: Array<ImageSelection>|null){
+    static getSelectionIdsSortedByName(selectedRegion: Array<SelectedPopulation>|null){
         let selectionIds = [this.defaultSelectionId]
         if(selectedRegion != null){
-            let sortedRegions = selectedRegion.sort((a: ImageSelection, b:ImageSelection) => {
+            let sortedRegions = selectedRegion.sort((a: SelectedPopulation, b:SelectedPopulation) => {
                 return a.name.localeCompare(b.name)
             })
-            sortedRegions.map((value: ImageSelection) => {
+            sortedRegions.map((value: SelectedPopulation) => {
                 selectionIds.push(value.id)
             })
         }
         return selectionIds
     }
 
-    static getSelectionName(selectionId: string, selectedRegionMap: {[key: string]: ImageSelection}){
+    static getSelectionName(selectionId: string, selectedRegionMap: {[key: string]: SelectedPopulation}){
         if(selectionId == this.defaultSelectionId){
             return this.defaultSelectionName
         } else{
@@ -86,7 +86,7 @@ export class ScatterPlotData {
         }
     }
 
-    static getSelectionColor(selectionId: string, selectedRegionMap: {[key: string]: ImageSelection}){
+    static getSelectionColor(selectionId: string, selectedRegionMap: {[key: string]: SelectedPopulation}){
         let color:number
         if(selectionId == this.defaultSelectionId){
             color = this.defaultSelectionColor
@@ -97,7 +97,7 @@ export class ScatterPlotData {
     }
 
     static hexToRGB(hex:number){
-        let rgb = ImageHelper.hexToRGB(hex)
+        let rgb = GraphicsHelper.hexToRGB(hex)
         return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")"
     }
 
@@ -107,7 +107,7 @@ export class ScatterPlotData {
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: Array<ImageSelection>|null) {
+        selectedRegions: Array<SelectedPopulation>|null) {
 
         // A map of the data to be used in the plot.
         // Maps selection name (either all segments or the name of a selected region) to a set of data.
@@ -181,7 +181,7 @@ export class ScatterPlotData {
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: ImageSelection[]|null
+        selectedRegions: SelectedPopulation[]|null
     ) {
 
         this.ch1 = ch1

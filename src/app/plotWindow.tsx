@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { ScatterPlotData } from "./lib/ScatterPlotData"
+import { ScatterPlotData } from "../lib/ScatterPlotData"
 
 const electron = require('electron')
 
@@ -19,7 +19,7 @@ ipc.on('plotData', (event: Electron.Event, scatterPlotData:ScatterPlotData) => {
                 {/* <CountourPlot data = {message} /> */}
             </div>,
             domNode
-        );
+        )
     }
 })
 

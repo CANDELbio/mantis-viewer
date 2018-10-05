@@ -7,9 +7,9 @@ import { ChannelName,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
     SelectedRegionColor } from "../interfaces/UIDefinitions"
-import { SegmentationData } from "../lib/SegmentationData";
-import { ImageHelper } from "../lib/ImageHelper"
-import { ImageSelection } from "../interfaces/ImageInterfaces"
+import { SegmentationData } from "../lib/SegmentationData"
+import { GraphicsHelper } from "../lib/GraphicsHelper"
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {
 
@@ -23,7 +23,7 @@ export interface ImageProps {
     canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
     windowWidth: number | null,
-    selectedRegions: Array<ImageSelection> | null,
+    selectedRegions: Array<SelectedPopulation> | null,
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
     hightlightedRegions: string[]
     highlightedSegmentsFromGraph: number[]
@@ -62,7 +62,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
     // selectedRegionGraphics below
-    selectedRegions: Array<ImageSelection> | null
+    selectedRegions: Array<SelectedPopulation> | null
     selectedRegionGraphics:{[key:string] : {region: PIXI.Graphics|null, centroids: PIXI.Graphics|null, segments: PIXI.Sprite|null}} | null
 
     // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
@@ -132,8 +132,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if(this.stage.position.y > 0) this.stage.position.y = 0
 
         // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
-        let minX = this.rendererWidth - (this.props.imageData.width * this.stage.scale.x)
-        let minY = this.scaledHeight - (this.props.imageData.height * this.stage.scale.y)
+        let minX = this.rendererWidth - (this.imageData.width * this.stage.scale.x)
+        let minY = this.scaledHeight - (this.imageData.height * this.stage.scale.y)
 
         // Not able to scroll past the bottom right corner
         if(this.stage.position.x < minX) this.stage.position.x = minX
@@ -250,8 +250,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                ImageHelper.cleanUpStage(this.stage, selectionGraphics, segmentSprite, centroidGraphics)
-                let toUnpack = ImageHelper.selectRegion(selection,this.segmentationData,this.imageData)
+                GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentSprite, centroidGraphics)
+                let toUnpack = GraphicsHelper.selectRegion(selection,this.segmentationData,this.imageData)
 
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
@@ -334,7 +334,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             let curMarker = channelMarker[curChannel]
             if(curMarker != null){
                 let sprite = imcData.sprites[curMarker]
-                let brightnessFilterCode = ImageHelper.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+                let brightnessFilterCode = GraphicsHelper.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
                 let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
                 // Delete sprite filters so they get cleared from memory before adding new ones
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
@@ -347,7 +347,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite
-            this.segmentationCentroidGraphics = ImageHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
+            this.segmentationCentroidGraphics = GraphicsHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
         }
         // Add segmentation cells
         if(this.segmentationSprite!=null){
@@ -360,16 +360,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Generates the graphics objects for regions or segment/cell populations selected by users.
-    generateSelectedRegionGraphics(selectedRegions:Array<ImageSelection>){
+    generateSelectedRegionGraphics(selectedRegions:Array<SelectedPopulation>){
         this.selectedRegions = selectedRegions
         this.selectedRegionGraphics = {}
         for(let region of selectedRegions) {
-            this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
-            if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = ImageHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
-            if(region.selectedSegments != null && this.segmentationData != null) {
-                let toUnpack = ImageHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
-                this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
-                this.selectedRegionGraphics[region.id].segments = toUnpack.segments
+            if(region.visible){
+                this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
+                if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = GraphicsHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
+                if(region.selectedSegments != null && this.segmentationData != null) {
+                    let toUnpack = GraphicsHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
+                    this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
+                    this.selectedRegionGraphics[region.id].segments = toUnpack.segments
+                }
             }
         }
     }
@@ -400,7 +402,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    loadSelectedRegionGraphics(selectedRegions:Array<ImageSelection>, highlightedRegions: string[]){
+    loadSelectedRegionGraphics(selectedRegions:Array<SelectedPopulation>, highlightedRegions: string[]){
         // Regenerate the region graphics and the centroids they contain if the selectedRegions have changed
         if(selectedRegions != this.selectedRegions){
             this.generateSelectedRegionGraphics(selectedRegions)
@@ -411,7 +413,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = ImageHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
+            let graphics = GraphicsHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
             this.stage.addChild(graphics.segments)
             this.stage.addChild(graphics.centroids)
         }
@@ -424,7 +426,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         segmentationData: SegmentationData | null,
         segmentationAlpha: number,
         segmentationCentroidsVisible: boolean,
-        selectedRegions: Array<ImageSelection> | null,
+        selectedRegions: Array<SelectedPopulation> | null,
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
         windowWidth: number) {
@@ -495,13 +497,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
 
-        let renderWidth = 700
+        let renderWidth = 500
         if(this.props.windowWidth != null){
             // We need to set the render width smaller than the window width to account for the controls around it.
             // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
             // become larger as the window becomes larger
             // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/12) * 4.75
+            renderWidth = (this.props.windowWidth/1540) * 550
         } 
 
         return(
