@@ -1,4 +1,4 @@
-import {Menu, app, dialog, BrowserWindow} from "electron"
+import {Menu, app, dialog, BrowserWindow, ipcMain} from "electron"
 import * as _ from "underscore"
 
 const path = require('path')
@@ -9,64 +9,70 @@ const url = require('url')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null
 
-let menuTemplate = [{
-  label: "File",
-  submenu: [
-  {
-    label: "Open folder",
-    click: () => {
-      dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
-        if(mainWindow != null && dirName != null)
-          mainWindow.webContents.send("open-directory", dirName[0])
-          // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-          sendWindowSize()
-      })
-    }
-  },
-  {
-  label: "Open segmentation file",
-  click: () => {
-    dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
-      if(mainWindow != null && fileNames != null)
-        mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-      })
-    }
-  },
-  {
-    label: "Add populations from CSV",
-    click: () => {
-      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
-        if(mainWindow != null && fileNames != null)
-          mainWindow.webContents.send("add-populations-csv", fileNames[0])
-      })
-    }
-  },
-  {
-    label: "Import selected populations",
-    click: () => {
-      dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
-        if(mainWindow != null && fileNames != null)
-          mainWindow.webContents.send("import-selected-populations", fileNames[0])
+function generateMenuTemplate(imageLoaded: boolean) {
+  return [{
+    label: "File",
+    submenu: [
+    {
+      label: "Open folder",
+      click: () => {
+        dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
+          if(mainWindow != null && dirName != null)
+            mainWindow.webContents.send("open-directory", dirName[0])
+            // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
+            sendWindowSize()
         })
       }
     },
-  {
-    label: "Export selected populations",
-    click: () => {
-      dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
-        if(mainWindow != null && filename != null)
-          mainWindow.webContents.send("export-selected-populations", filename)
-      })
-    }
-  },
     {
-      label: "Quit",
-      click: () => {
-        app.quit()
+    label: "Open segmentation file",
+    enabled: imageLoaded,
+    click: () => {
+      dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
+        if(mainWindow != null && fileNames != null)
+          mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+        })
       }
-    }
-]
-}]
+    },
+    {
+      label: "Add populations from CSV",
+      enabled: imageLoaded,
+      click: () => {
+        dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
+          if(mainWindow != null && fileNames != null)
+            mainWindow.webContents.send("add-populations-csv", fileNames[0])
+        })
+      }
+    },
+    {
+      label: "Import selected populations",
+      enabled: imageLoaded,
+      click: () => {
+        dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
+          if(mainWindow != null && fileNames != null)
+            mainWindow.webContents.send("import-selected-populations", fileNames[0])
+          })
+        }
+      },
+    {
+      label: "Export selected populations",
+      enabled: imageLoaded,
+      click: () => {
+        dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
+          if(mainWindow != null && filename != null)
+            mainWindow.webContents.send("export-selected-populations", filename)
+        })
+      }
+    },
+      {
+        label: "Quit",
+        click: () => {
+          app.quit()
+        }
+      }
+    ]
+  }]
+}
 
 function sendWindowSize() {
   if(mainWindow != null){
@@ -75,11 +81,16 @@ function sendWindowSize() {
   }
 }
 
+function setMenu(imageLoaded = false) {
+  let menuTemplate = generateMenuTemplate(imageLoaded)
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+}
+
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 1540, height: 740, show: false, webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true }})
-  const menu = Menu.buildFromTemplate(menuTemplate)
-  Menu.setApplicationMenu(menu)
+  setMenu()
   
   // TODO: Set to 1280 x 720 when not using DevTools.
   mainWindow.setMinimumSize(1540, 740)
@@ -134,5 +145,6 @@ app.on('activate', function () {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
+  setMenu(imageLoaded)
+})

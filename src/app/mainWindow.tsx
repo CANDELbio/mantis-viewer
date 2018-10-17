@@ -52,6 +52,9 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
     imageStore.clearImageData()
     let imageData = new ImageData()
     imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
+
+    // Send a message to the main process to update the disabled menu items
+    ipcRenderer.send('update-menu', true)
 })
 
 ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
