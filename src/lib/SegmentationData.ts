@@ -3,6 +3,7 @@ import * as PIXI from "pixi.js"
 import * as concaveman from "concaveman"
 import { PixelLocation } from "../interfaces/ImageInterfaces"
 import { drawOutlines } from "../lib/GraphicsHelper"
+import { SegmentOutlineColor } from "../interfaces/UIDefinitions"
 
 const tiff = require("tiff")
 
@@ -172,12 +173,17 @@ export class SegmentationData {
         return SegmentationData.segmentationSpriteFromData(this.data, this.width, this.height)
     }
 
-    public segmentOutlineGraphics(){
+    public segmentOutlineGraphics(color = SegmentOutlineColor, segments?:number[]){
         let outlines = []
-        for(let segmentId in this.segmentOutlineMap){
-            outlines.push(this.segmentOutlineMap[Number(segmentId)])
+        for(let segment in this.segmentOutlineMap){
+            let segmentId = Number(segment)
+            if(segments){
+                if(segments.indexOf(segmentId) != -1) outlines.push(this.segmentOutlineMap[segmentId])
+            } else {
+                outlines.push(this.segmentOutlineMap[segmentId])
+            }
         }
-        return drawOutlines(outlines)
+        return drawOutlines(outlines, color)
     }
 
     constructor(fName:string) {

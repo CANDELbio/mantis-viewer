@@ -4,7 +4,7 @@ import { ImageData } from "./ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
     SelectedCentroidColor,
-    SelectedRegionColor } from "../interfaces/UIDefinitions"
+    DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
 
 import { PixelLocation } from "../interfaces/ImageInterfaces"
 
@@ -111,44 +111,32 @@ function findSegmentsInSelection(selectionGraphics:PIXI.Graphics, segmentationDa
 }
 
 // Cleans up the graphics/sprites passed in.
-export function cleanUpStage(stage: PIXI.Container, selectionGraphics:PIXI.Graphics|null, segmentSprite: PIXI.Sprite|null, centroidGraphics: PIXI.Graphics|null){
+export function cleanUpStage(stage: PIXI.Container, selectionGraphics:PIXI.Graphics|null, segmentOutlineGraphics: PIXI.Graphics|null){
     if(selectionGraphics != null){
         stage.removeChild(selectionGraphics)
         selectionGraphics.destroy()
     }
 
-    if(segmentSprite != null){
-        stage.removeChild(segmentSprite)
-        segmentSprite.destroy()
-    }
-
-    if(centroidGraphics != null){
-        stage.removeChild(centroidGraphics)
-        centroidGraphics.destroy()
+    if(segmentOutlineGraphics != null){
+        stage.removeChild(segmentOutlineGraphics)
+        segmentOutlineGraphics.destroy()
     }
 }
 
 // Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
 // Then draws a new selectionGraphics of the region, finds the segments and their centroids in that selectionGraphics, and draws the selectedCentroids.
 // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
-export function selectRegion(selection:number[], segmentationData: SegmentationData|null, imageData: ImageData){
+export function selectRegion(selection:number[], segmentationData: SegmentationData|null, color = DefaultSelectedRegionColor, alpha = SelectedRegionAlpha){
 
-    let selectionGraphics = drawSelectedRegion(selection, SelectedRegionColor, SelectedRegionAlpha)
-    let segmentSprite:PIXI.Sprite|null = null
-    let centroidGraphics: PIXI.Graphics|null = null
+    let selectionGraphics = drawSelectedRegion(selection, color, alpha)
     
     let selectedSegments:number[] = []
     if(segmentationData != null){
         selectedSegments = findSegmentsInSelection(selectionGraphics, segmentationData)
-        let toUnpack = generateSelectedSegmentGraphics(segmentationData, selectedSegments, SelectedRegionColor, imageData)
-        centroidGraphics = toUnpack.centroids
-        segmentSprite = toUnpack.segments
     }
 
     return {selectionGraphics: selectionGraphics,
-        selectedSegments: selectedSegments,
-        segmentSprite: segmentSprite,
-        centroidGraphics: centroidGraphics}
+        selectedSegments: selectedSegments}
 }
 
 // Generates yellow, semi-transparent segments and white centroids for highlighted segments
@@ -169,10 +157,12 @@ export function generateSelectedSegmentGraphics(segmentationData: SegmentationDa
 // Expects an array containing arrays of pixel locations.
 // Each array of pixel locations should be the coordinates of the outline.
 // The easiest way to get these is from the SegmentationData segmentOutlineMap
-export function drawOutlines(outlines: PixelLocation[][], width = 1, color =  0xFFFFFF, alpha = 1, alignment = 0.5){
+export function drawOutlines(outlines: PixelLocation[][], color: number, width = 1, alpha = 1, alignment = 0.5){
     let outlineGraphics = new PIXI.Graphics()
     outlineGraphics.lineStyle(width, color, alpha, alignment)
     for(let outline of outlines){
+        // Copy the outline array so we're not modifying the one being passed in
+        outline = outline.slice()
         let start = outline.shift()
         if(start){
             outlineGraphics.moveTo(start.x, start.y)

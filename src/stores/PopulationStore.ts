@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import * as shortId from 'shortid'
 import * as csvParse from 'csv-parse'
 
-import { SelectedRegionColor } from "../interfaces/UIDefinitions"
+import { DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
 
 export class PopulationStore {
 
@@ -34,7 +34,7 @@ export class PopulationStore {
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(),
             notes: null,
-            color: SelectedRegionColor,
+            color: DefaultSelectedRegionColor,
             visible: true
         }
         this.selectedPopulations = this.selectedPopulations.concat([newRegion])
