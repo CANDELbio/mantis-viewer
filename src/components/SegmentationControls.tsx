@@ -6,11 +6,14 @@ import * as Path from "path"
 export interface SegmentationControlsProps {
     segmentationPath: string
 
-    segmentationAlpha: number
-    onAlphaChange: ((value: number) => void)
+    fillAlpha: number
+    outlineAlpha: number
+
+    onFillAlphaChange: ((value: number) => void)
+    onOutlineAlphaChange: ((value: number) => void)
 
     centroidsVisible: boolean
-    onVisibilityChange: ((event: React.FormEvent<HTMLInputElement>) => void)
+    onCentroidVisibilityChange: ((event: React.FormEvent<HTMLInputElement>) => void)
 
     onClearSegmentation: (() => void)
 }
@@ -22,6 +25,11 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
         super(props)
     }
 
+    sliderMax = 10
+
+    onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value/this.sliderMax)
+    onOutlineAlphaSliderChange = (value:number) => this.props.onOutlineAlphaChange(value/this.sliderMax)
+
     render() {
         let splitPath = this.props.segmentationPath.split(Path.sep)
         let segmentationFileString = "..." + Path.sep + splitPath[splitPath.length - 2] + Path.sep + splitPath[splitPath.length - 1]
@@ -31,11 +39,18 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
                 <div>Selected segmentation file:</div>
                 <div>{segmentationFileString}</div>
                 <br></br>
-                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.props.onVisibilityChange} />
-                Segmentation Cell Alpha
+                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.props.onCentroidVisibilityChange} />
+                Segmentation Outline Alpha
                 <Slider
-                    value = {this.props.segmentationAlpha}
-                    onChange = {this.props.onAlphaChange}
+                    value = {this.props.outlineAlpha * this.sliderMax}
+                    onChange = {this.onOutlineAlphaSliderChange}
+                    max = {this.sliderMax}
+                />
+                Segmentation Fill Alpha
+                <Slider
+                    value = {this.props.fillAlpha * this.sliderMax}
+                    onChange = {this.onFillAlphaSliderChange}
+                    max = {this.sliderMax}
                 />
                 <Button
                     text = {"Clear Segmentation"}

@@ -87,7 +87,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageViewer = <ImageViewer 
                 imageData = {this.props.imageStore.imageData}
                 segmentationData = {this.props.imageStore.segmentationData}
-                segmentationAlpha = {this.props.imageStore.segmentationAlpha}
+                segmentationFillAlpha = {this.props.imageStore.segmentationFillAlpha}
+                segmentationOutlineAlpha = {this.props.imageStore.segmentationOutlineAlpha}
                 segmentationCentroidsVisible = {this.props.imageStore.segmentationCentroidsVisible}
                 channelDomain = {this.props.imageStore.channelDomain}
                 channelMarker = {this.props.imageStore.channelMarker}
@@ -119,10 +120,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             if (this.props.imageStore.selectedSegmentationFile != null) {
                 segmentationControls = <SegmentationControls
                     segmentationPath = {this.props.imageStore.selectedSegmentationFile}
-                    segmentationAlpha = {this.props.imageStore.segmentationAlpha}
-                    onAlphaChange = {this.props.imageStore.setSegmentationSliderValue()}
+                    fillAlpha = {this.props.imageStore.segmentationFillAlpha}
+                    outlineAlpha = {this.props.imageStore.segmentationOutlineAlpha}
+                    onFillAlphaChange = {this.props.imageStore.setSegmentationFillAlpha}
+                    onOutlineAlphaChange = {this.props.imageStore.setSegmentationOutlineAlpha}
                     centroidsVisible = {this.props.imageStore.segmentationCentroidsVisible}
-                    onVisibilityChange = {this.props.imageStore.setCentroidVisibility()}
+                    onCentroidVisibilityChange = {this.props.imageStore.setCentroidVisibility()}
                     onClearSegmentation = {this.props.imageStore.clearSegmentationDataCallback()}
                 />
 

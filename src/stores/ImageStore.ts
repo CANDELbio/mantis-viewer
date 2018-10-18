@@ -48,9 +48,11 @@ export class ImageStore {
     @observable channelDomain: Record<ChannelName, [number, number]> 
     @observable channelSliderValue: Record<ChannelName, [number, number]>
 
-    @observable segmentationAlpha: number
-
+    @observable segmentationFillAlpha: number
+    @observable segmentationOutlineAlpha: number
     @observable segmentationCentroidsVisible: boolean
+
+    @observable segmentationOutlinesVisible: boolean
 
     @observable channelMarker: Record<ChannelName, string | null>
 
@@ -92,8 +94,11 @@ export class ImageStore {
             gChannel: [0, 100],
             bChannel: [0, 100]
         }
-        this.segmentationAlpha = 5
-        this.segmentationCentroidsVisible = true
+        this.segmentationFillAlpha = 0
+        this.segmentationOutlineAlpha = 1
+        this.segmentationCentroidsVisible = false
+        this.segmentationOutlinesVisible = true
+
         this.channelMarker = {
             rChannel: null,
             gChannel: null,
@@ -142,10 +147,12 @@ export class ImageStore {
         }
     }
 
-    @action setSegmentationSliderValue = () => {
-        return action((value: number) => {
-            this.segmentationAlpha = value
-        })
+    @action setSegmentationFillAlpha = (value: number) => {
+        this.segmentationFillAlpha = value
+    }
+
+    @action setSegmentationOutlineAlpha = (value: number) => {
+        this.segmentationOutlineAlpha = value
     }
 
     @action setCentroidVisibility = () => {
@@ -157,7 +164,7 @@ export class ImageStore {
     @action clearSegmentationData = () => {
         this.selectedSegmentationFile = null
         this.segmentationData = null
-        this.segmentationAlpha = 5
+        this.segmentationFillAlpha = 0
         this.selectedPlotChannels = []
     }
 

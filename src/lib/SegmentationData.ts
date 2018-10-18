@@ -1,6 +1,8 @@
 import * as fs from "fs"
 import * as PIXI from "pixi.js"
+import * as concaveman from "concaveman"
 import { PixelLocation } from "../interfaces/ImageInterfaces"
+import { drawOutlines } from "../lib/GraphicsHelper"
 
 const tiff = require("tiff")
 
@@ -17,15 +19,17 @@ interface RGBColorCollection {
 export class SegmentationData {
     width: number
     height: number
-    segmentSprite : PIXI.Sprite
+    data: Float32Array | Uint16Array
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
-    pixelMap: {[key:string] : number}
+    pixelMap: Record<string, number>
     // Mapping of a segmentId to pixel indices.
-    segmentIndexMap: {[key:number] : number[]}
+    segmentIndexMap: Record<number, number[]>
     // Mapping of a segmentId to pixel locations (x, y)
-    segmentLocationMap: {[key:number] : PixelLocation[]}
+    segmentLocationMap: Record<number, PixelLocation[]>
+    // Mapping of a segmentId to pixel locations (x, y) representing the convex hull
+    segmentOutlineMap: Record<number, PixelLocation[]>
     // Mapping of segmentId to the pixel that represents the centroid
-    centroidMap: {[key:number] : PixelLocation}
+    centroidMap: Record<number, PixelLocation>
 
     private static getPixelColor(segmentId:number, colors: RGBColorCollection){
         if(!(segmentId in colors)){
@@ -67,7 +71,7 @@ export class SegmentationData {
     // Generates a texture (to be used to create a PIXI sprite) from segmentation data.
     // Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
     // or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
-    private static segmentationTextureFromData(v: Float32Array | Uint16Array, width: number, height: number) {
+    private static segmentationSpriteFromData(v: Float32Array | Uint16Array, width: number, height: number) {
         let offScreen = document.createElement("canvas")
         offScreen.width = width
         offScreen.height = height
@@ -89,18 +93,29 @@ export class SegmentationData {
             ctx.putImageData(imageData, 0, 0)
 
         }
-        return(PIXI.Texture.fromCanvas(offScreen))
+        return(new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen)))
     }
 
     public static segmentMapKey(x: number, y: number){
         return ( x.toString() + "_" + y.toString() )
     }
 
+    private static generateOutlineMap(segmentLocationMap:Record<number, PixelLocation[]>){
+        let outlineMap:Record<number, PixelLocation[]> = {}
+        for(let segment in segmentLocationMap){
+            let segmentId = Number(segment)
+            let segmentLocations = segmentLocationMap[segmentId].map((value: PixelLocation) => {return [value.x, value.y]} )
+            let concavePolygon = concaveman(segmentLocations)
+            outlineMap[segmentId] = concavePolygon.map((value: number[]) => { return {x: value[0], y: value[1]} })
+        }
+        return outlineMap
+    }
+
     // Generates the pixelMap (key of x_y to segmentId) and segmentMap (key of segmentId to an array of pixels contained in that segment)
     private static generateMaps(v: Float32Array | Uint16Array, width: number, height: number) {
         let pixelMap:{[key:string] : number} = {}
-        let segmentLocationMap:{[key:number] : Array<PixelLocation>} = {}
-        let segmentIndexMap:{[key:number] : Array<number>} = {}
+        let segmentLocationMap:{[key:number] : PixelLocation[]} = {}
+        let segmentIndexMap:{[key:number] : number[]} = {}
         
         for(let i = 0; i < v.length; ++i) {
             let segmentId = v[i]
@@ -125,7 +140,11 @@ export class SegmentationData {
                 segmentIndexMap[segmentId].push(i)
             }
         }
-        return {pixelMap: pixelMap, segmentLocationMap: segmentLocationMap, segmentIndexMap: segmentIndexMap}
+        return {
+            pixelMap: pixelMap,
+            segmentLocationMap: segmentLocationMap,
+            segmentIndexMap: segmentIndexMap,
+        }
     }
 
     // Calculates the centroid of a segment by taking the average of the coordinates of all of the pixels in that segment
@@ -149,6 +168,18 @@ export class SegmentationData {
         return centroidMap
     }
 
+    public segmentSprite(){
+        return SegmentationData.segmentationSpriteFromData(this.data, this.width, this.height)
+    }
+
+    public segmentOutlineGraphics(){
+        let outlines = []
+        for(let segmentId in this.segmentOutlineMap){
+            outlines.push(this.segmentOutlineMap[Number(segmentId)])
+        }
+        return drawOutlines(outlines)
+    }
+
     constructor(fName:string) {
         console.log(fName)
         let input = fs.readFileSync(fName)
@@ -156,17 +187,16 @@ export class SegmentationData {
 
         this.width = tiffData.width
         this.height = tiffData.height
-
-        // Generating a PIXI sprite to vizualize the segmentation data
-        this.segmentSprite = new PIXI.Sprite(SegmentationData.segmentationTextureFromData(tiffData.data, tiffData.width, tiffData.height))
+        this.data = tiffData.data
         
         // Generating the pixelMap and segmentMaps that represent the segementation data
-        let {pixelMap: pixelMap, segmentLocationMap: segmentLocationMap, segmentIndexMap:segmentIndexMap} = SegmentationData.generateMaps(tiffData.data, tiffData.width, tiffData.height)
-        this.pixelMap = pixelMap
-        this.segmentLocationMap = segmentLocationMap
-        this.segmentIndexMap = segmentIndexMap
+        let maps = SegmentationData.generateMaps(tiffData.data, tiffData.width, tiffData.height)
+        this.pixelMap = maps.pixelMap
+        this.segmentLocationMap = maps.segmentLocationMap
+        this.segmentIndexMap = maps.segmentIndexMap
 
-        this.centroidMap = SegmentationData.calculateCentroids(segmentLocationMap)
+        this.segmentOutlineMap = SegmentationData.generateOutlineMap(maps.segmentLocationMap)
+        this.centroidMap = SegmentationData.calculateCentroids(maps.segmentLocationMap)
     }
 
 
