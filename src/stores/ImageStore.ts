@@ -1,6 +1,7 @@
 import { observable, 
     computed, 
-    action } from "mobx"
+    action, 
+    autorun} from "mobx"
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
@@ -16,16 +17,18 @@ import { ChannelName,
     LabelLayer } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 import { PopulationStore } from "./PopulationStore";
+import { PlotStore } from "./PlotStore";
 
 export class ImageStore {
 
-    constructor(populationStore: PopulationStore) {
-        this.initialize(populationStore)
+    constructor(populationStore: PopulationStore, plotStore: PlotStore) {
+        this.initialize(populationStore, plotStore)
     }
     
     private canvasImageData:ImageData | null = null
 
     @observable.ref populationStore: PopulationStore
+    @observable.ref plotStore: PlotStore
 
     @observable windowWidth: number | null
     @observable windowHeight: number | null
@@ -35,15 +38,9 @@ export class ImageStore {
 
     @observable.ref segmentationData: SegmentationData | null
 
-    // Array of segment IDs that have been hovered on the graph.
-    @observable segmentsHoveredOnGraph: number[]
-
-    @observable scatterPlotStatistic: PlotStatistic
-    @observable scatterPlotTransform: PlotTransform
-
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
-    @observable.ref selectedPlotChannels: string[]
+
     
     @observable channelDomain: Record<ChannelName, [number, number]> 
     @observable channelSliderValue: Record<ChannelName, [number, number]>
@@ -61,29 +58,34 @@ export class ImageStore {
         y: [number, number]
     } | null
 
-    scatterPlotData = computed(() => {
-        if(this.selectedPlotChannels.length == 2){
-            let ch1 = this.selectedPlotChannels[0]
-            let ch2 = this.selectedPlotChannels[1]
+    setScatterPlotData = autorun(() => {
+        if(this.plotStore && this.plotStore.selectedPlotChannels.length == 2){
+            let ch1 = this.plotStore.selectedPlotChannels[0]
+            let ch2 = this.plotStore.selectedPlotChannels[1]
             if(this.imageData != null && this.segmentationData != null){
-                return new ScatterPlotData(ch1,
+                this.plotStore.setScatterPlotData(new ScatterPlotData(ch1,
                     ch2,
                     this.imageData,
                     this.segmentationData,
-                    this.scatterPlotStatistic,
-                    this.scatterPlotTransform,
+                    this.plotStore.scatterPlotStatistic,
+                    this.plotStore.scatterPlotTransform,
                     this.populationStore.selectedPopulations
-                )
+                ))
             }
         }
-        return null
     })
 
-    @action initialize = (populationStore: PopulationStore) => {
+    addSelectedSegments = autorun(() => {
+        if(this.plotStore){
+            let selectedSegments = this.plotStore.segmentsSelectedOnPlot
+            if (selectedSegments.length > 0) this.populationStore.addSelectedPopulation(null, selectedSegments)
+        }
+    })
+
+    @action initialize = (populationStore: PopulationStore, plotStore: PlotStore) => {
         this.populationStore = populationStore
-        this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
-        this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
-        this.selectedPlotChannels = []
+        this.plotStore = plotStore
+
         this.channelDomain = {
             rChannel: [0, 100],
             gChannel: [0, 100],
@@ -104,7 +106,6 @@ export class ImageStore {
             gChannel: null,
             bChannel: null
         }
-        this.segmentsHoveredOnGraph = []
 
         this.imageDataLoading = false
     }
@@ -165,52 +166,11 @@ export class ImageStore {
         this.selectedSegmentationFile = null
         this.segmentationData = null
         this.segmentationFillAlpha = 0
-        this.selectedPlotChannels = []
+        this.plotStore.clearSelectedPlotChannels()
     }
 
     @action clearSegmentationDataCallback = () => {
         return this.clearSegmentationData
-    }
-
-    // Data comes from a Plotly event.
-    // Points are the selected points.
-    // No custom fields, so we are getting the segment id from the title text for the point.
-    // Title text with segment id generated in ScatterPlotData.
-    parsePlotlyEventData = (data: {points:any, event:any}) => {
-        let selectedSegments:number[] = []
-        if(data != null) {
-            console.log("Parsing plotly event...")
-            console.log(data)
-            if(data.points != null && data.points.length > 0){
-                for (let point of data.points){
-                    let pointRegionName = point.data.name
-                    // Check if the region name for the point is the default selection name
-                    // Sometimes plotly returns incorrect selected points if there are multiple selections
-                    // and the point being hovered/highlighted isn't in some of those selections.
-                    if(pointRegionName == DefaultSelectionName) {
-                        let pointText = point.text
-                        let splitText:string[] = pointText.split(" ")
-                        let segmentId = Number(splitText[splitText.length - 1])
-                        selectedSegments.push(segmentId)
-                    }
-                }
-            }
-        }
-        console.log("Found segments " + selectedSegments)
-        return selectedSegments
-    }
-
-    @action setSegmentsSelectedOnGraph = (data: {points:any, event:any}) => {
-        let selectedSegments = this.parsePlotlyEventData(data)
-        this.populationStore.addSelectedPopulation(null, selectedSegments)
-    }
-
-    @action setSegmentsHoveredOnGraph = (data: {points: any, event:any}) => {
-        this.segmentsHoveredOnGraph = this.parsePlotlyEventData(data)
-    }
-
-    @action clearSegmentsHoveredOnGraph = () => {
-        this.segmentsHoveredOnGraph = []
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -264,22 +224,6 @@ export class ImageStore {
             }
         }
     }
-
-    @action setSelectedPlotChannels = (x: SelectOption[]) => {
-        this.selectedPlotChannels = _.pluck(x, "value")
-    }
-
-    @action setScatterPlotStatistic = (x: SelectOption) => {
-        if (x != null){
-            this.scatterPlotStatistic = x.value as PlotStatistic
-        }
-    }
-
-    @action setScatterPlotTransform = (x: SelectOption) => {
-        if (x != null){
-            this.scatterPlotTransform = x.value as PlotTransform
-        }
-    }    
 
     @action selectDirectory = (dirName : string) => {
         this.selectedDirectory = dirName

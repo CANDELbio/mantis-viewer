@@ -3,45 +3,33 @@ import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ImageStore } from "../stores/ImageStore"
-import { ipcRenderer } from 'electron'
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ipcRenderer, BrowserWindow } from 'electron'
 import { ImageData } from "../lib/ImageData"
 import { PopulationStore } from "../stores/PopulationStore";
+import { PlotStore } from "../stores/PlotStore";
+
+const path = require('path')
+const url = require('url')
 
 Mobx.configure({ enforceActions: 'always' })
 
-const tiff = require("tiff")
 const populationStore = new PopulationStore()
-const imageStore = new ImageStore(populationStore)
-
+const plotStore = new PlotStore()
+const imageStore = new ImageStore(populationStore, plotStore)
 
 //Set up the separate plotting window
 // let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, height: 1200})
-//
-//
+
 // plotWindow.loadURL(url.format({
 //     pathname: path.join(__dirname, 'plotWindow.html'),
 //     protocol: 'file:',
 //     slashes: true
 //   }))
-//
+
 // plotWindow.webContents.openDevTools()
-//
+
 // plotWindow.on('closed', function () {
 //     plotWindow = null
-// })
-//
-// Mobx.autorun(() => {
-//     let imcData = imageStore.imageData
-//     let segmentationData = imageStore.segmentationData
-//     let ch1 = imageStore.channelMarker.rChannel
-//     let ch2 = imageStore.channelMarker.gChannel
-//     if(plotWindow != null && imcData != null && segmentationData != null && ch1 != null && ch2 != null){
-//         console.log("Generating plotData...")
-//         let scatterPlotData = new ScatterPlotData(ch1, ch2, imcData, segmentationData)
-//         console.log("Sending plotData...")
-//         plotWindow.webContents.send("plotData", scatterPlotData)
-//     }
 // })
 
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
@@ -79,7 +67,7 @@ ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: numbe
 
 ReactDOM.render(
     <div>
-        <MainApp  imageStore={imageStore} populationStore={populationStore}/>
+        <MainApp  imageStore={imageStore} populationStore={populationStore} plotStore={plotStore}/>
     </div>,
-    document.getElementById("example")
+    document.getElementById("main")
 )

@@ -13,10 +13,12 @@ import { Button } from "@blueprintjs/core"
 import { ClipLoader } from 'react-spinners'
 import Flexbox from 'flexbox-react'
 import { PopulationStore } from "../stores/PopulationStore";
+import { PlotStore } from "../stores/PlotStore";
 
 export interface MainAppProps { 
     imageStore: ImageStore
     populationStore: PopulationStore
+    plotStore: PlotStore
 }
 
 interface MainAppState { 
@@ -44,8 +46,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     handleSegmentationClick = () => this.setState({segmentationOpen: !this.state.segmentationOpen})
     handleGraphClick = () => this.setState({graphOpen: !this.state.graphOpen})
 
-    onPlotChannelSelect = (x: SelectOption[]) => this.props.imageStore.setSelectedPlotChannels(x)
-    onPlotMetricSelect = (x: SelectOption) => this.props.imageStore.setScatterPlotStatistic(x)
+    onPlotChannelSelect = (x: SelectOption[]) => this.props.plotStore.setSelectedPlotChannels(x)
+    onPlotMetricSelect = (x: SelectOption) => this.props.plotStore.setScatterPlotStatistic(x)
 
     getChannelMin = (s:ChannelName) => {
         let channelMarker = this.props.imageStore.channelMarker[s]
@@ -99,7 +101,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 addSelectedRegion = {this.props.populationStore.addSelectedPopulation}
                 selectedRegions = {this.props.populationStore.selectedPopulations}
                 hightlightedRegions = {this.props.populationStore.highlightedPopulations}
-                highlightedSegmentsFromGraph = {this.props.imageStore.segmentsHoveredOnGraph}
+                highlightedSegmentsFromGraph = {this.props.plotStore.segmentsHoveredOnPlot}
             />
  
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
@@ -132,16 +134,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 scatterPlot = <ScatterPlot 
                     windowWidth = {this.props.imageStore.windowWidth}
                     channelSelectOptions = {channelSelectOptions}
-                    selectedPlotChannels = {this.props.imageStore.selectedPlotChannels}
+                    selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
                     setSelectedPlotChannels = {this.onPlotChannelSelect}
-                    selectedStatistic= {this.props.imageStore.scatterPlotStatistic}
+                    selectedStatistic= {this.props.plotStore.scatterPlotStatistic}
                     setSelectedStatistic = {this.onPlotMetricSelect}
-                    selectedTransform = {this.props.imageStore.scatterPlotTransform}
-                    setSelectedTransform = {this.props.imageStore.setScatterPlotTransform}
-                    setSelectedPoints = {this.props.imageStore.setSegmentsSelectedOnGraph}
-                    setHoveredPoints = {this.props.imageStore.setSegmentsHoveredOnGraph}
-                    setUnHoveredPoints = {this.props.imageStore.clearSegmentsHoveredOnGraph}
-                    scatterPlotData = {this.props.imageStore.scatterPlotData.get()}
+                    selectedTransform = {this.props.plotStore.scatterPlotTransform}
+                    setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
+                    setSelectedPoints = {this.props.plotStore.setSegmentsSelectedOnPlot}
+                    setHoveredPoints = {this.props.plotStore.setSegmentsHoveredOnPlot}
+                    setUnHoveredPoints = {this.props.plotStore.clearSegmentsHoveredOnPlot}
+                    scatterPlotData = {this.props.plotStore.scatterPlotData}
                 />
             }
         }
