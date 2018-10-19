@@ -52,7 +52,7 @@
     "electron": "^3.0.2",
     "electron-builder": "^20.28.4",
     "ify-loader": "^1.1.0",
-    "source-map-loader": "^0.1.6",
+    "source-map-loader": "^0.2.4",
     "style-loader": "^0.16.0",
     "ts-loader": "^5.2.2",
     "typescript": "^3.1.1",
