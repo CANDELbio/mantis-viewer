@@ -1,12 +1,9 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ipcRenderer } from 'electron'
 
-const electron = require('electron')
-
-const ipc = electron.ipcRenderer
-
-ipc.on('plotData', (event: Electron.Event, scatterPlotData:ScatterPlotData) => {
+ipcRenderer.on('plotData', (event: Electron.Event, scatterPlotData:ScatterPlotData) => {
     console.log("Received plot data")
 
     let domNode = document.getElementById("plot")

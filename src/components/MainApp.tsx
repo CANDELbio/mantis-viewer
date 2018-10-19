@@ -81,10 +81,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if(this.props.imageStore.imageData != null) {
             let width = this.props.imageStore.imageData.width
             let height = this.props.imageStore.imageData.height
-
-            let channelSelectOptions =  this.props.imageStore.imageData.channelNames.map((s) => {
-                return({value: s, label: s})
-            })
                 
             imageViewer = <ImageViewer 
                 imageData = {this.props.imageStore.imageData}
@@ -112,7 +108,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     sliderValue = {this.props.imageStore.channelSliderValue[s]}
                     onSliderChange = {this.props.imageStore.setChannelSliderValue(s)}
                     onSliderRelease = {this.props.imageStore.setChannelDomain(s)}
-                    selectOptions = {channelSelectOptions}
+                    selectOptions = {this.props.imageStore.channelSelectOptions.get()}
                     selectValue = {this.props.imageStore.channelMarker[s]}
                     onSelectChange = {this.props.imageStore.setChannelMarkerFromSelect(s)}
                     windowWidth = {this.props.imageStore.windowWidth}
@@ -133,7 +129,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
                 scatterPlot = <ScatterPlot 
                     windowWidth = {this.props.imageStore.windowWidth}
-                    channelSelectOptions = {channelSelectOptions}
+                    channelSelectOptions = {this.props.imageStore.channelSelectOptions.get()}
                     selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
                     setSelectedPlotChannels = {this.onPlotChannelSelect}
                     selectedStatistic= {this.props.plotStore.scatterPlotStatistic}

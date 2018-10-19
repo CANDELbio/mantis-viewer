@@ -3,13 +3,10 @@ import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ImageStore } from "../stores/ImageStore"
-import { ipcRenderer, BrowserWindow } from 'electron'
+import { ipcRenderer } from 'electron'
 import { ImageData } from "../lib/ImageData"
-import { PopulationStore } from "../stores/PopulationStore";
-import { PlotStore } from "../stores/PlotStore";
-
-const path = require('path')
-const url = require('url')
+import { PopulationStore } from "../stores/PopulationStore"
+import { PlotStore } from "../stores/PlotStore"
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -17,19 +14,8 @@ const populationStore = new PopulationStore()
 const plotStore = new PlotStore()
 const imageStore = new ImageStore(populationStore, plotStore)
 
-//Set up the separate plotting window
-// let plotWindow: Electron.BrowserWindow | null = new BrowserWindow({width: 1600, height: 1200})
-
-// plotWindow.loadURL(url.format({
-//     pathname: path.join(__dirname, 'plotWindow.html'),
-//     protocol: 'file:',
-//     slashes: true
-//   }))
-
-// plotWindow.webContents.openDevTools()
-
-// plotWindow.on('closed', function () {
-//     plotWindow = null
+// Mobx.autorun(() => {
+//     ipcRenderer.send('update-plot-data', plotStore.scatterPlotData, imageStore.channelSelectOptions.get())
 // })
 
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {

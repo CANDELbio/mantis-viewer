@@ -1,17 +1,13 @@
 import { observable, 
-    computed, 
-    action, 
+    action,
+    computed,
     autorun} from "mobx"
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
-import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
+import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 
 import { ChannelName,
-    PlotStatistic,
-    PlotStatisticOptions,
-    PlotTransform,
-    PlotTransformOptions,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
@@ -79,6 +75,14 @@ export class ImageStore {
         if(this.plotStore){
             let selectedSegments = this.plotStore.segmentsSelectedOnPlot
             if (selectedSegments.length > 0) this.populationStore.addSelectedPopulation(null, selectedSegments)
+        }
+    })
+
+    channelSelectOptions = computed(() => {
+        if(this.imageData) {
+            return this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
+        } else {
+            return []
         }
     })
 

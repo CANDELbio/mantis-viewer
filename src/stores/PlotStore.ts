@@ -43,8 +43,6 @@ export class PlotStore {
     parsePlotlyEventData = (data: {points:any, event:any}) => {
         let selectedSegments:number[] = []
         if(data != null) {
-            console.log("Parsing plotly event...")
-            console.log(data)
             if(data.points != null && data.points.length > 0){
                 for (let point of data.points){
                     let pointRegionName = point.data.name
@@ -60,7 +58,6 @@ export class PlotStore {
                 }
             }
         }
-        console.log("Found segments " + selectedSegments)
         return selectedSegments
     }
 
