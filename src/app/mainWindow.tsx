@@ -4,8 +4,8 @@ import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ImageStore } from "../stores/ImageStore"
 import { ipcRenderer } from 'electron'
-import { ScatterPlotData } from "../lib/ScatterPlotData"
-import { ImageData } from "../lib/ImageData"
+import { ScatterPlotData } from "../lib/ScatterPlot"
+import { ImageData } from "../lib/Image"
 import { PopulationStore } from "../stores/PopulationStore";
 
 Mobx.configure({ enforceActions: 'always' })

@@ -1,7 +1,7 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ScatterPlotData } from "../lib/ScatterPlot"
 import Select from 'react-select'
 import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"

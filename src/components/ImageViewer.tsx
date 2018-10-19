@@ -1,14 +1,15 @@
 import * as React from "react"
 import * as PIXI from "pixi.js"
 import { observer } from "mobx-react"
-import { ImageData } from "../lib/ImageData"
+import { ImageData } from "../lib/Image"
 import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
-    DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
-import { SegmentationData } from "../lib/SegmentationData"
-import * as GraphicsHelper from "../lib/GraphicsHelper"
+    DefaultSelectedRegionColor,
+    HighlightedSegmentOutlineColor } from "../interfaces/UIDefinitions"
+import { SegmentationData } from "../lib/Segmentation"
+import * as GraphicsHelper from "../lib/Graphics"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {
@@ -413,9 +414,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Generates and adds segments highlighted/moused over on the graph.
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = GraphicsHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, DefaultSelectedRegionColor, this.imageData)
-            this.stage.addChild(graphics.segments)
-            this.stage.addChild(graphics.centroids)
+            let graphics = segmentationData.segmentOutlineGraphics(HighlightedSegmentOutlineColor, highlightedSegments)
+            this.stage.addChild(graphics)
         }
     }
 

@@ -2,7 +2,7 @@ import * as fs from "fs"
 import * as PIXI from "pixi.js"
 import * as concaveman from "concaveman"
 import { PixelLocation } from "../interfaces/ImageInterfaces"
-import { drawOutlines } from "../lib/GraphicsHelper"
+import { drawOutlines } from "./Graphics"
 import { SegmentOutlineColor } from "../interfaces/UIDefinitions"
 
 const tiff = require("tiff")

@@ -1,19 +1,19 @@
-import { ImageData } from "./ImageData"
-import { SegmentationData } from "./SegmentationData"
+import { ImageData } from "./Image"
+import { SegmentationData } from "./Segmentation"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
-import { hexToRGB } from "./GraphicsHelper"
+import { hexToRGB } from "./Graphics"
 import * as Plotly from 'plotly.js'
+
+export const DefaultSelectionName = "All Segments"
+export const DefaultSelectionId = "DEFAULT_SELECTION_ID"
+export const DefaultSelectionColor = 0x4286f4 // blue, color for "All Segments"
 
 export class ScatterPlotData {
     ch1: string
     ch2: string
     data: Array<Plotly.Data>
     layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
-
-    static defaultSelectionId = "DEFAULT_SELECTION_ID"
-    static defaultSelectionName = "All Segments"
-    static defaultSelectionColor = 0x4286f4
 
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.
     static buildSegmentToSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null) {
@@ -66,7 +66,7 @@ export class ScatterPlotData {
     }
 
     static getSelectionIdsSortedByName(selectedRegion: Array<SelectedPopulation>|null){
-        let selectionIds = [this.defaultSelectionId]
+        let selectionIds = [DefaultSelectionId]
         if(selectedRegion != null){
             let sortedRegions = selectedRegion.sort((a: SelectedPopulation, b:SelectedPopulation) => {
                 return a.name.localeCompare(b.name)
@@ -79,8 +79,8 @@ export class ScatterPlotData {
     }
 
     static getSelectionName(selectionId: string, selectedRegionMap: {[key: string]: SelectedPopulation}){
-        if(selectionId == this.defaultSelectionId){
-            return this.defaultSelectionName
+        if(selectionId == DefaultSelectionId){
+            return DefaultSelectionName
         } else{
             return selectedRegionMap[selectionId].name
         }
@@ -88,8 +88,8 @@ export class ScatterPlotData {
 
     static getSelectionColor(selectionId: string, selectedRegionMap: {[key: string]: SelectedPopulation}){
         let color:number
-        if(selectionId == this.defaultSelectionId){
-            color = this.defaultSelectionColor
+        if(selectionId == DefaultSelectionId){
+            color = DefaultSelectionColor
         } else{
             color = selectedRegionMap[selectionId].color
         }
@@ -125,7 +125,7 @@ export class ScatterPlotData {
             let pixels = segmentationData.segmentIndexMap[segment]
 
             // Generate a list of all of the selections/ROIs that this segment is in.
-            let selections = [this.defaultSelectionId]
+            let selections = [DefaultSelectionId]
             if(segment in regionMap){
                 selections = selections.concat(regionMap[segment])
             }

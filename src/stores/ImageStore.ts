@@ -1,9 +1,9 @@
 import { observable, 
     computed, 
     action } from "mobx"
-import { ImageData } from "../lib/ImageData"
-import { SegmentationData } from "../lib/SegmentationData"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ImageData } from "../lib/Image"
+import { SegmentationData } from "../lib/Segmentation"
+import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlot"
 import * as _ from "underscore"
 
 import { ChannelName,
@@ -14,7 +14,7 @@ import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
-import { ConfigurationHelper } from "../lib/ConfigurationHelper"
+import { ConfigurationHelper } from "../lib/Configuration"
 import { PopulationStore } from "./PopulationStore";
 
 export class ImageStore {
@@ -179,15 +179,24 @@ export class ImageStore {
     parsePlotlyEventData = (data: {points:any, event:any}) => {
         let selectedSegments:number[] = []
         if(data != null) {
+            console.log("Parsing plotly event...")
+            console.log(data)
             if(data.points != null && data.points.length > 0){
                 for (let point of data.points){
-                    let pointText = point.text
-                    let splitText:string[] = pointText.split(" ")
-                    let segmentId = Number(splitText[splitText.length - 1])
-                    selectedSegments.push(segmentId)
+                    let pointRegionName = point.data.name
+                    // Check if the region name for the point is the default selection name
+                    // Sometimes plotly returns incorrect selected points if there are multiple selections
+                    // and the point being hovered/highlighted isn't in some of those selections.
+                    if(pointRegionName == DefaultSelectionName) {
+                        let pointText = point.text
+                        let splitText:string[] = pointText.split(" ")
+                        let segmentId = Number(splitText[splitText.length - 1])
+                        selectedSegments.push(segmentId)
+                    }
                 }
             }
         }
+        console.log("Found segments " + selectedSegments)
         return selectedSegments
     }
 

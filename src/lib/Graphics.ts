@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
-import { SegmentationData } from "./SegmentationData"
-import { ImageData } from "./ImageData"
+import { SegmentationData } from "./Segmentation"
+import { ImageData } from "./Image"
 import { ChannelName,
     SelectedRegionAlpha,
     SelectedCentroidColor,

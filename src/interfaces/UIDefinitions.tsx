@@ -24,6 +24,7 @@ export const UnselectedCentroidColor = 0xf1c40f // yellow
 export const SelectedCentroidColor = 0xffffff // white
 export const DefaultSelectedRegionColor = 0xf1c40f // yellow
 export const SegmentOutlineColor = 0xffffff // white
+export const HighlightedSegmentOutlineColor = 0xff0000 // red
 
 export type PlotTransform = "none" | "arcsinh" | "log"
 
