@@ -1,15 +1,15 @@
 import * as React from "react"
 import * as PIXI from "pixi.js"
 import { observer } from "mobx-react"
-import { ImageData } from "../lib/Image"
+import { ImageData } from "../lib/ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
     DefaultSelectedRegionColor,
     HighlightedSegmentOutlineColor } from "../interfaces/UIDefinitions"
-import { SegmentationData } from "../lib/Segmentation"
-import * as GraphicsHelper from "../lib/Graphics"
+import { SegmentationData } from "../lib/SegmentationData"
+import * as GraphicsHelper from "../lib/GraphicsHelper"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {

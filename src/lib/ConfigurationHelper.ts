@@ -1,9 +1,7 @@
 import { ChannelName } from '../interfaces/UIDefinitions'
 
-export class ConfigurationHelper { 
-
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
-    private static defaultChannelMarkers:Record<ChannelName, string[]> = {
+    const defaultChannelMarkers:Record<ChannelName, string[]> = {
         rChannel : [
             'catenin',
             'CD8',
@@ -28,17 +26,17 @@ export class ConfigurationHelper {
         ]
     }
 
-    private static channelSelectionOrder:ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
+    const channelSelectionOrder:ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
-    private static useAnyChannelIfNoMatch = true
+    const useAnyChannelIfNoMatch = true
 
     // Not the fastest way to do this, but realistically the list of default values and incoming markerNames should be small.
     // If we want to optimize we could do one pass through all of the incoming markerNames and store highest priority hit from each channel.
-    public static getDefaultChannelMarkers(markerNames:string[]) {
+    export function getDefaultChannelMarkers(markerNames:string[]) {
         let defaultMarkers:Record<ChannelName, string|null> = {rChannel: null, gChannel: null, bChannel: null}
         // Iterate through the channels in the order they should be selected
-        for(let curChannel of this.channelSelectionOrder){
-            let channelDefaults:string[] = this.defaultChannelMarkers[curChannel]
+        for(let curChannel of channelSelectionOrder){
+            let channelDefaults:string[] = defaultChannelMarkers[curChannel]
             // Then iterate through the defaults 
             for(let curDefault of channelDefaults){
                 // Then iterate through the remaining markerNames
@@ -57,7 +55,7 @@ export class ConfigurationHelper {
         }
 
         // If useAnyChannelIfNoMatch, goes and fills the defaults with the first unused value in markerNames.
-        if(this.useAnyChannelIfNoMatch){
+        if(useAnyChannelIfNoMatch){
             for(let s in defaultMarkers){
                 let curChannel = s as ChannelName
                 if(defaultMarkers[curChannel] == null){
@@ -72,4 +70,3 @@ export class ConfigurationHelper {
 
         return defaultMarkers
     }
-}

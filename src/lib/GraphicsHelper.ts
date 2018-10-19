@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
-import { SegmentationData } from "./Segmentation"
-import { ImageData } from "./Image"
+import { SegmentationData } from "./SegmentationData"
+import { ImageData } from "./ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
     SelectedCentroidColor,
@@ -137,21 +137,6 @@ export function selectRegion(selection:number[], segmentationData: SegmentationD
 
     return {selectionGraphics: selectionGraphics,
         selectedSegments: selectedSegments}
-}
-
-// Generates yellow, semi-transparent segments and white centroids for highlighted segments
-// TODO: Clean up. Constant values for rgba stuff and other colors.
-// TODO: Maybe pregenerate or cache sprite? Seems to be pretty fast to generate on the fly though.
-export function generateSelectedSegmentGraphics(segmentationData: SegmentationData, selectedSegments: number[], segmentColor:number, imcData: ImageData) {
-    let selectedSegmentMap:{[key:number] : PixelLocation} = {}
-    let pixels:PixelLocation[] = []
-    for(let segmentId of selectedSegments){
-        selectedSegmentMap[segmentId] = segmentationData.centroidMap[segmentId]
-        pixels = pixels.concat(segmentationData.segmentLocationMap[segmentId])
-    }
-    let centroidGraphics = drawCentroids(selectedSegmentMap, SelectedCentroidColor)
-    let segmentSprite = generateSpriteFromPixels(pixels, segmentColor, SelectedRegionAlpha, imcData.width, imcData.height)
-    return {centroids: centroidGraphics, segments: segmentSprite}
 }
 
 // Expects an array containing arrays of pixel locations.

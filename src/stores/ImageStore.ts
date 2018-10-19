@@ -1,9 +1,9 @@
 import { observable, 
     computed, 
     action } from "mobx"
-import { ImageData } from "../lib/Image"
-import { SegmentationData } from "../lib/Segmentation"
-import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlot"
+import { ImageData } from "../lib/ImageData"
+import { SegmentationData } from "../lib/SegmentationData"
+import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
 
 import { ChannelName,
@@ -14,7 +14,7 @@ import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
-import { ConfigurationHelper } from "../lib/Configuration"
+import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 import { PopulationStore } from "./PopulationStore";
 
 export class ImageStore {

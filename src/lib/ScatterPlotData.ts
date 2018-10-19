@@ -1,8 +1,8 @@
-import { ImageData } from "./Image"
-import { SegmentationData } from "./Segmentation"
+import { ImageData } from "./ImageData"
+import { SegmentationData } from "./SegmentationData"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
-import { hexToRGB } from "./Graphics"
+import { hexToRGB } from "./GraphicsHelper"
 import * as Plotly from 'plotly.js'
 
 export const DefaultSelectionName = "All Segments"
