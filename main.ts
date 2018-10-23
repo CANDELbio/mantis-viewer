@@ -1,5 +1,6 @@
 import {Menu, app, dialog, BrowserWindow, ipcMain} from "electron"
 import * as _ from "underscore"
+import { plot } from "plotly.js";
 
 const path = require('path')
 const url = require('url')
@@ -20,6 +21,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
         dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
           if(mainWindow != null && dirName != null)
             mainWindow.webContents.send("open-directory", dirName[0])
+            if(plotWindow != null) plotWindow.webContents.send("open-directory", dirName[0])
             // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
             sendWindowSize()
         })
@@ -32,6 +34,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
       dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
         if(mainWindow != null && fileNames != null)
           mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+          if(plotWindow != null) plotWindow.webContents.send("open-segmentation-file", fileNames[0])
         })
       }
     },
@@ -78,7 +81,9 @@ function generateMenuTemplate(imageLoaded: boolean) {
   submenu: [
     {
       label: "Open Plot Window",
-      click: createPlotWindow
+      click: () => {
+        if(plotWindow != null) plotWindow.show()
+      }
     }
   ]
 }]
@@ -88,6 +93,10 @@ function sendWindowSize() {
   if(mainWindow != null){
     let dimensions = mainWindow.getSize()
     mainWindow.webContents.send("window-size", dimensions[0], dimensions[1])
+  }
+  if(plotWindow != null){
+    let dimensions = plotWindow.getSize()
+    plotWindow.webContents.send("window-size", dimensions[0], dimensions[1])
   }
 }
 
@@ -126,6 +135,7 @@ function createMainWindow () {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
+    plotWindow = null
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -134,7 +144,7 @@ function createMainWindow () {
 }
 
 function createPlotWindow() {
-  plotWindow = new BrowserWindow({width: 800, height: 800, show: false})
+  plotWindow = new BrowserWindow({width: 800, height: 800, show: false, webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true}})
 
   plotWindow.loadURL(url.format({
       pathname: path.join(__dirname, 'app', 'plotWindow.html'),
@@ -144,12 +154,9 @@ function createPlotWindow() {
 
   plotWindow.webContents.openDevTools()
 
-  plotWindow.on('closed', function () {
-      plotWindow = null
-  })
-
-  plotWindow.on('ready-to-show', () => {
-    if(plotWindow != null) plotWindow.show()
+  plotWindow.on('close', function (event: Electron.Event) {
+    event.preventDefault()
+    if(plotWindow != null) plotWindow.hide()
   })
 }
 
@@ -157,6 +164,7 @@ function createPlotWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createMainWindow)
+app.on('ready', createPlotWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

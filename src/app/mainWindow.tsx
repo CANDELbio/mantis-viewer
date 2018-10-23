@@ -2,9 +2,9 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
-import { ImageStore } from "../stores/ImageStore"
 import { ipcRenderer } from 'electron'
 import { ImageData } from "../lib/ImageData"
+import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
 import { PlotStore } from "../stores/PlotStore"
 
@@ -13,10 +13,6 @@ Mobx.configure({ enforceActions: 'always' })
 const populationStore = new PopulationStore()
 const plotStore = new PlotStore()
 const imageStore = new ImageStore(populationStore, plotStore)
-
-// Mobx.autorun(() => {
-//     ipcRenderer.send('update-plot-data', plotStore.scatterPlotData, imageStore.channelSelectOptions.get())
-// })
 
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     console.log(dirName)
