@@ -4,6 +4,8 @@ import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import * as fs from 'fs'
 import * as shortId from 'shortid'
 import * as csvParse from 'csv-parse'
+import * as _ from "underscore"
+
 
 import { DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
 
@@ -13,9 +15,9 @@ export class PopulationStore {
         this.initialize()
     }
     // An array of the regions selected.
-    @observable selectedPopulations: SelectedPopulation[]
+    @observable.ref selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
-    @observable highlightedPopulations: string[]
+    @observable.ref highlightedPopulations: string[]
 
     @action initialize = () => {
         this.selectedPopulations = []
@@ -25,6 +27,12 @@ export class PopulationStore {
     newROIName(){
         if (this.selectedPopulations == null) return "Selection 1"
         return "Selection " + (this.selectedPopulations.length + 1).toString()
+    }
+
+    @action setSelectedPopulations = (populations: SelectedPopulation[]) => {
+        if (!_.isEqual(populations, this.selectedPopulations)){
+            this.selectedPopulations = populations
+        }
     }
 
     @action addSelectedPopulation = (selectedRegion: number[]|null, selectedSegments: number[], name?: string) => {
@@ -98,7 +106,6 @@ export class PopulationStore {
     }
 
     @action updateSelectedPopulationVisibility = (id: string, visible:boolean) => {
-        console.log("Updating visibility of " + id + " to " + visible)
         if(this.selectedPopulations != null){
             this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
                 if(region.id == id){

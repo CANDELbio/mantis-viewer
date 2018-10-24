@@ -7,6 +7,7 @@ import { ImageData } from "../lib/ImageData"
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
 import { PlotStore } from "../stores/PlotStore"
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -45,6 +46,18 @@ ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) =>
 
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
     imageStore.setWindowDimensions(width, height)
+})
+
+ipcRenderer.on('add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
+    populationStore.addSelectedPopulation(null, segmentIds)
+})
+
+ipcRenderer.on('set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
+    plotStore.setSegmentsHoveredOnPlot(segmentIds)
+})
+
+Mobx.autorun(() =>{
+    ipcRenderer.send('set-plot-populations', populationStore.selectedPopulations)
 })
 
 ReactDOM.render(

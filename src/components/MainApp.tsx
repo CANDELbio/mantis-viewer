@@ -46,6 +46,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     handleSegmentationClick = () => this.setState({segmentationOpen: !this.state.segmentationOpen})
     handleGraphClick = () => this.setState({graphOpen: !this.state.graphOpen})
 
+    addSelectedPopulation = (segmentIds: number[]) => {
+        if (segmentIds.length > 0) this.props.populationStore.addSelectedPopulation(null, segmentIds)
+    }
+
     onPlotChannelSelect = (x: SelectOption[]) => this.props.plotStore.setSelectedPlotChannels(x)
     onPlotMetricSelect = (x: SelectOption) => this.props.plotStore.setScatterPlotStatistic(x)
 
@@ -136,9 +140,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setSelectedStatistic = {this.onPlotMetricSelect}
                     selectedTransform = {this.props.plotStore.scatterPlotTransform}
                     setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
-                    setSelectedPoints = {this.props.plotStore.setSegmentsSelectedOnPlot}
-                    setHoveredPoints = {this.props.plotStore.setSegmentsHoveredOnPlot}
-                    setUnHoveredPoints = {this.props.plotStore.clearSegmentsHoveredOnPlot}
+                    setSelectedSegments = {this.addSelectedPopulation}
+                    setHoveredSegments = {this.props.plotStore.setSegmentsHoveredOnPlot}
                     scatterPlotData = {this.props.plotStore.scatterPlotData}
                 />
             }

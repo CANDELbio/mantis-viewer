@@ -10,6 +10,8 @@ export interface PlotAppProps {
     imageStore: ImageStore
     populationStore: PopulationStore
     plotStore: PlotStore
+    addSelectedPopulation: ((segmentIds: number[]) => void)
+    setHoveredSegments: ((segmentIds: number[]) => void)
 }
 
 @observer
@@ -51,9 +53,8 @@ export class PlotApp extends React.Component<PlotAppProps, {}> {
                     setSelectedStatistic = {this.onPlotMetricSelect}
                     selectedTransform = {this.props.plotStore.scatterPlotTransform}
                     setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
-                    setSelectedPoints = {this.props.plotStore.setSegmentsSelectedOnPlot}
-                    setHoveredPoints = {this.props.plotStore.setSegmentsHoveredOnPlot}
-                    setUnHoveredPoints = {this.props.plotStore.clearSegmentsHoveredOnPlot}
+                    setSelectedSegments = {this.props.addSelectedPopulation}
+                    setHoveredSegments = {this.props.setHoveredSegments}
                     scatterPlotData = {this.props.plotStore.scatterPlotData}
                 />
             }

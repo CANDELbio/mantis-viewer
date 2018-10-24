@@ -71,13 +71,6 @@ export class ImageStore {
         }
     })
 
-    addSelectedSegments = autorun(() => {
-        if(this.plotStore){
-            let selectedSegments = this.plotStore.segmentsSelectedOnPlot
-            if (selectedSegments.length > 0) this.populationStore.addSelectedPopulation(null, selectedSegments)
-        }
-    })
-
     channelSelectOptions = computed(() => {
         if(this.imageData) {
             return this.imageData.channelNames.map((s) => { return({value: s, label: s}) })

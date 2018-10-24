@@ -1,6 +1,6 @@
 import {Menu, app, dialog, BrowserWindow, ipcMain} from "electron"
+import { SelectedPopulation } from "./src/interfaces/ImageInterfaces"
 import * as _ from "underscore"
-import { plot } from "plotly.js";
 
 const path = require('path')
 const url = require('url')
@@ -185,4 +185,16 @@ app.on('activate', function () {
 
 ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
   setMenu(imageLoaded)
+})
+
+ipcMain.on('set-plot-populations', (event:Electron.Event, populations:SelectedPopulation[]) => {
+  if(plotWindow != null) plotWindow.webContents.send("set-populations", populations)
+})
+
+ipcMain.on('add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
+  if(mainWindow != null) mainWindow.webContents.send('add-selected-population', segmentIds)
+})
+
+ipcMain.on('set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-hovered-segments', segmentIds)
 })
