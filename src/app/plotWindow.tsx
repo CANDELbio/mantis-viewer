@@ -10,6 +10,8 @@ let selectedStatistic: string | null
 let selectedTransform: string | null
 let scatterPlotData: ScatterPlotData | null
 
+
+// Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 let setSelectedPlotChannels = (channels: string[]) => {
     ipcRenderer.send('plotWindow-set-channels', channels)
 }
@@ -54,6 +56,7 @@ function render() {
     }
 }
 
+// Listener to receive data from the mainWindow relayed by the main thread to render ScatterPlot
 ipcRenderer.on('set-plot-data', (event:Electron.Event,
     selectOptions: { value: string, label: string}[],
     plotChannels: string[],

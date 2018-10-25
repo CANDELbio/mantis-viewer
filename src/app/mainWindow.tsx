@@ -14,6 +14,7 @@ const populationStore = new PopulationStore()
 const plotStore = new PlotStore()
 const imageStore = new ImageStore(populationStore, plotStore)
 
+// Listeners for menu items from the main thread.
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     console.log(dirName)
     imageStore.setImageDataLoading(true)
@@ -43,10 +44,12 @@ ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) =>
     populationStore.addPopulationsFromCSV(filename)
 })
 
+// Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
     imageStore.setWindowDimensions(width, height)
 })
 
+// Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) => {
     plotStore.setSelectedPlotChannels(channels)
 })
@@ -67,6 +70,7 @@ ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: n
     plotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
+// Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun(() =>{
     ipcRenderer.send('mainWindow-set-plot-data',
         imageStore.channelSelectOptions.get(),

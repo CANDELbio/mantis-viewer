@@ -152,6 +152,7 @@ function createPlotWindow() {
 
   plotWindow.webContents.openDevTools()
 
+  // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
   plotWindow.on('close', function (event: Electron.Event) {
     event.preventDefault()
     if(plotWindow != null) plotWindow.hide()
@@ -181,10 +182,12 @@ app.on('activate', function () {
   }
 })
 
+// Used to enable disabled menu items when images have been loaded.
 ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
   setMenu(imageLoaded)
 })
 
+// Functions to relay data from the mainWindow to the plotWindow
 ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
   selectOptions: { value: string, label: string}[],
   plotChannels: string[],
@@ -195,6 +198,7 @@ ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
   if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, plotData)
 })
 
+// Functions to relay data from the plotWindow to the mainWindow
 ipcMain.on('plotWindow-set-channels', (event:Electron.Event, channels: string[]) => {
   if(mainWindow != null) mainWindow.webContents.send('set-plot-channels', channels)
 })
