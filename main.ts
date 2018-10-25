@@ -3,6 +3,7 @@ import * as _ from "underscore"
 
 const path = require('path')
 const url = require('url')
+const isDev = require('electron-is-dev');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -121,7 +122,7 @@ function createMainWindow () {
   }))
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  if(isDev) mainWindow.webContents.openDevTools()
 
   // Use throttle so that when we resize we only send the window size every 333 ms
   mainWindow.on('resize', _.throttle(sendWindowSize, 333))
@@ -157,7 +158,7 @@ function createPlotWindow() {
       slashes: true
     }))
 
-  plotWindow.webContents.openDevTools()
+  if(isDev) plotWindow.webContents.openDevTools()
 
   // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
   plotWindow.on('close', function (event: Electron.Event) {
