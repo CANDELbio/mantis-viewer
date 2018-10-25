@@ -2,6 +2,10 @@
 
 Mantis Viewer is an application for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support large images (>100 MB per channel).
 
+## Using Mantis Viewer ##
+
+If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](docs/tutorial.md)!
+
 ## Downloading ##
 If you just want to use the application head to the [releases](https://github.com/ParkerICI/imc-viewer-js/releases) page! Otherwise continue reading if you want to build the project yourself or to contribute to this project.
 

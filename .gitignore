@@ -8,5 +8,4 @@ renderer.js.map
 app/*.js
 app/*.map
 *.pyc
-*.png
 *.DS_store
