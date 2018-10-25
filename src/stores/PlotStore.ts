@@ -23,15 +23,22 @@ export class PlotStore {
 
     @observable.ref selectedPlotChannels: string[]
 
+    @observable plotInMainWindow: boolean
+
     @action initialize = () => {
         this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
         this.selectedPlotChannels = []
         this.segmentsHoveredOnPlot = []
+        this.plotInMainWindow = true
     }
 
     @action setScatterPlotData = (data: ScatterPlotData) => {
         this.scatterPlotData = data
+    }
+
+    @action setPlotInMainWindow = (inWindow: boolean) => {
+        this.plotInMainWindow = inWindow
     }
 
     @action setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {

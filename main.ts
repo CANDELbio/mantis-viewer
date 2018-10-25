@@ -81,6 +81,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
       label: "Open Plot Window",
       click: () => {
         if(plotWindow != null) plotWindow.show()
+        if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
       }
     }
   ]
@@ -156,6 +157,7 @@ function createPlotWindow() {
   plotWindow.on('close', function (event: Electron.Event) {
     event.preventDefault()
     if(plotWindow != null) plotWindow.hide()
+    if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', true)
   })
 }
 

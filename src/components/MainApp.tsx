@@ -128,19 +128,21 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onClearSegmentation = {this.props.imageStore.clearSegmentationDataCallback()}
                 />
 
-                scatterPlot = <ScatterPlot 
-                    windowWidth = {this.props.imageStore.windowWidth}
-                    channelSelectOptions = {this.props.imageStore.channelSelectOptions.get()}
-                    selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
-                    setSelectedPlotChannels = {this.props.plotStore.setSelectedPlotChannels}
-                    selectedStatistic= {this.props.plotStore.scatterPlotStatistic}
-                    setSelectedStatistic = {this.props.plotStore.setScatterPlotStatistic}
-                    selectedTransform = {this.props.plotStore.scatterPlotTransform}
-                    setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
-                    setSelectedSegments = {this.addSelectedPopulation}
-                    setHoveredSegments = {this.props.plotStore.setSegmentsHoveredOnPlot}
-                    scatterPlotData = {this.props.plotStore.scatterPlotData}
-                />
+                if(this.props.plotStore.plotInMainWindow) {
+                    scatterPlot = <ScatterPlot
+                        windowWidth = {this.props.imageStore.windowWidth}
+                        channelSelectOptions = {this.props.imageStore.channelSelectOptions.get()}
+                        selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
+                        setSelectedPlotChannels = {this.props.plotStore.setSelectedPlotChannels}
+                        selectedStatistic= {this.props.plotStore.scatterPlotStatistic}
+                        setSelectedStatistic = {this.props.plotStore.setScatterPlotStatistic}
+                        selectedTransform = {this.props.plotStore.scatterPlotTransform}
+                        setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
+                        setSelectedSegments = {this.addSelectedPopulation}
+                        setHoveredSegments = {this.props.plotStore.setSegmentsHoveredOnPlot}
+                        scatterPlotData = {this.props.plotStore.scatterPlotData}
+                    />
+                }
             }
         }
         
@@ -195,14 +197,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
                             {selectedPopulations}
                         </UnmountClosed>
-                        {/* <Button onClick={this.handleGraphClick}  style={fullWidth}>
+                        <Button onClick={this.handleGraphClick}  style={fullWidth}>
                             {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
                         </Button>
                         <UnmountClosed isOpened={this.state.graphOpen} style={fullWidth}>
                             <Flexbox flexDirection="column" flex="flex-grow" minWidth="400px">
                                 {scatterPlot}
                             </Flexbox>
-                        </UnmountClosed> */}
+                        </UnmountClosed>
                     </Flexbox>
                 </Flexbox>
             </div>

@@ -49,6 +49,11 @@ ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: numbe
     imageStore.setWindowDimensions(width, height)
 })
 
+// Listener to turn on/off the plot in the main window if the plotWindow is open.
+ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
+    plotStore.setPlotInMainWindow(inMain)
+})
+
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) => {
     plotStore.setSelectedPlotChannels(channels)
