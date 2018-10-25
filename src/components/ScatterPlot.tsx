@@ -1,22 +1,26 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
-import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
+import * as _ from "underscore"
 import Select from 'react-select'
-import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
+
+import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
+import { SelectOption, PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { PlotStatisticOptions,
     PlotTransformOptions } from "../interfaces/UIDefinitions"
 
-interface ScatterPlotProps {
+
+
+export interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
     selectedPlotChannels: string[]
-    setSelectedPlotChannels: ((x: SelectOption[]) => void)
+    setSelectedPlotChannels: ((x: string[]) => void)
     selectedStatistic: string
-    setSelectedStatistic: ((x: SelectOption) => void)
+    setSelectedStatistic: ((x: PlotStatistic) => void)
     selectedTransform: string
-    setSelectedTransform: ((x: SelectOption) => void)
+    setSelectedTransform: ((x: PlotTransform) => void)
     setSelectedSegments: ((selectedSegments: number[]) => void)
     setHoveredSegments: ((selectedSegments: number[]) => void)
     scatterPlotData: ScatterPlotData | null
@@ -33,9 +37,13 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
         super(props)
     }
 
-    onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(x)
-    onStatisticSelect = (x: SelectOption) => this.props.setSelectedStatistic(x)
-    onTransformSelect = (x: SelectOption) => this.props.setSelectedTransform(x)
+    onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(_.pluck(x, "value"))
+    onStatisticSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
+    }
+    onTransformSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedTransform(x.value as PlotTransform)
+    }
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedSegments(this.parsePlotlyEventData(data))
     onHover = (data: {points:any, event:any}) => this.props.setHoveredSegments(this.parsePlotlyEventData(data))
     onUnHover = () => this.props.setHoveredSegments([])

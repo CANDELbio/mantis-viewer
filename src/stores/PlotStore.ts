@@ -1,13 +1,11 @@
 import { observable, 
     action } from "mobx"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
-import * as _ from "underscore"
 
 import { PlotStatistic,
     PlotStatisticOptions,
     PlotTransform,
-    PlotTransformOptions,
-    SelectOption } from "../interfaces/UIDefinitions"
+    PlotTransformOptions } from "../interfaces/UIDefinitions"
 
 
 export class PlotStore {
@@ -40,24 +38,21 @@ export class PlotStore {
         this.segmentsHoveredOnPlot = hoveredSegments
     }
 
-    @action setSelectedPlotChannels = (x: SelectOption[]) => {
-        this.selectedPlotChannels = _.pluck(x, "value")
+    @action setSelectedPlotChannels = (x: string[]) => {
+        this.selectedPlotChannels = x
     }
 
     @action clearSelectedPlotChannels = () => {
         this.selectedPlotChannels = []
     }
 
-    @action setScatterPlotStatistic = (x: SelectOption) => {
-        if (x != null){
-            this.scatterPlotStatistic = x.value as PlotStatistic
-        }
+    @action setScatterPlotStatistic = (x: PlotStatistic) => {
+        this.scatterPlotStatistic = x
+
     }
 
-    @action setScatterPlotTransform = (x: SelectOption) => {
-        if (x != null){
-            this.scatterPlotTransform = x.value as PlotTransform
-        }
+    @action setScatterPlotTransform = (x: PlotTransform) => {
+        this.scatterPlotTransform = x
     }   
 
 }

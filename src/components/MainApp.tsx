@@ -50,9 +50,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if (segmentIds.length > 0) this.props.populationStore.addSelectedPopulation(null, segmentIds)
     }
 
-    onPlotChannelSelect = (x: SelectOption[]) => this.props.plotStore.setSelectedPlotChannels(x)
-    onPlotMetricSelect = (x: SelectOption) => this.props.plotStore.setScatterPlotStatistic(x)
-
     getChannelMin = (s:ChannelName) => {
         let channelMarker = this.props.imageStore.channelMarker[s]
         if (channelMarker != null && this.props.imageStore.imageData != null) {
@@ -135,9 +132,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     windowWidth = {this.props.imageStore.windowWidth}
                     channelSelectOptions = {this.props.imageStore.channelSelectOptions.get()}
                     selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
-                    setSelectedPlotChannels = {this.onPlotChannelSelect}
+                    setSelectedPlotChannels = {this.props.plotStore.setSelectedPlotChannels}
                     selectedStatistic= {this.props.plotStore.scatterPlotStatistic}
-                    setSelectedStatistic = {this.onPlotMetricSelect}
+                    setSelectedStatistic = {this.props.plotStore.setScatterPlotStatistic}
                     selectedTransform = {this.props.plotStore.scatterPlotTransform}
                     setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
                     setSelectedSegments = {this.addSelectedPopulation}
@@ -198,14 +195,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
                             {selectedPopulations}
                         </UnmountClosed>
-                        <Button onClick={this.handleGraphClick}  style={fullWidth}>
+                        {/* <Button onClick={this.handleGraphClick}  style={fullWidth}>
                             {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
                         </Button>
                         <UnmountClosed isOpened={this.state.graphOpen} style={fullWidth}>
                             <Flexbox flexDirection="column" flex="flex-grow" minWidth="400px">
                                 {scatterPlot}
                             </Flexbox>
-                        </UnmountClosed>
+                        </UnmountClosed> */}
                     </Flexbox>
                 </Flexbox>
             </div>

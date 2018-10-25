@@ -7,7 +7,6 @@ import { ImageData } from "../lib/ImageData"
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
 import { PlotStore } from "../stores/PlotStore"
-import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -48,16 +47,34 @@ ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: numbe
     imageStore.setWindowDimensions(width, height)
 })
 
-ipcRenderer.on('add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
+ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) => {
+    plotStore.setSelectedPlotChannels(channels)
+})
+
+ipcRenderer.on('set-plot-statistic', (event:Electron.Event, statistic: any) => {
+    plotStore.setScatterPlotStatistic(statistic)
+})
+
+ipcRenderer.on('set-plot-transform', (event:Electron.Event, transform: any) => {
+    plotStore.setScatterPlotTransform(transform)
+})
+
+ipcRenderer.on('add-plot-selected-population', (event:Electron.Event, segmentIds: number[]) => {
     populationStore.addSelectedPopulation(null, segmentIds)
 })
 
-ipcRenderer.on('set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
+ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
     plotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
 Mobx.autorun(() =>{
-    ipcRenderer.send('set-plot-populations', populationStore.selectedPopulations)
+    ipcRenderer.send('mainWindow-set-plot-data',
+        imageStore.channelSelectOptions.get(),
+        plotStore.selectedPlotChannels,
+        plotStore.scatterPlotStatistic,
+        plotStore.scatterPlotTransform,
+        plotStore.scatterPlotData
+    )
 })
 
 ReactDOM.render(

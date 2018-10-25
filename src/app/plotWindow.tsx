@@ -1,59 +1,70 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
-import { PlotApp } from "../components/PlotApp"
-import { ImageData } from "../lib/ImageData"
-import { ImageStore } from "../stores/ImageStore"
-import { PopulationStore } from "../stores/PopulationStore"
-import { PlotStore } from "../stores/PlotStore"
-import { SelectedPopulation } from "../interfaces/ImageInterfaces"
+import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { ScatterPlot } from "../components/ScatterPlot";
 
-Mobx.configure({ enforceActions: 'always' })
+let channelSelectOptions: { value: string, label: string}[] | null
+let selectedPlotChannels: string[] | null
+let selectedStatistic: string | null
+let selectedTransform: string | null
+let scatterPlotData: ScatterPlotData | null
 
-const populationStore = new PopulationStore()
-const plotStore = new PlotStore()
-const imageStore = new ImageStore(populationStore, plotStore)
+let setSelectedPlotChannels = (channels: string[]) => {
+    ipcRenderer.send('plotWindow-set-channels', channels)
+}
 
+let setSelectedStatistic = (statistic: any) => {
+    ipcRenderer.send('plotWindow-set-statistic', statistic)
+}
 
-ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
-    console.log(dirName)
-    imageStore.setImageDataLoading(true)
-    imageStore.selectDirectory(dirName)
-
-    imageStore.clearImageData()
-    let imageData = new ImageData()
-    imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
-
-    // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('update-menu', true)
-})
-
-ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
-    imageStore.selectSegmentationFile(filename)
-})
-
-ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
-    imageStore.setWindowDimensions(width, height)
-})
-
-ipcRenderer.on("set-populations", (event:Electron.Event, populations:SelectedPopulation[]) => {
-    populationStore.setSelectedPopulations(populations)
-})
+let setScatterPlotTransform = (transform: any) => {
+    ipcRenderer.send('plotWindow-set-transform', transform)
+}
 
 let addSelectedPopulation = (segmentIds: number[]) => {
-    ipcRenderer.send('add-selected-population', segmentIds)
+    ipcRenderer.send('plotWindow-add-selected-population', segmentIds)
 }
 
 let setHoveredSegments = (segmentIds: number[]) => {
-    ipcRenderer.send('set-hovered-segments', segmentIds)
+    ipcRenderer.send('plotWindow-set-hovered-segments', segmentIds)
 }
 
-ReactDOM.render(
-    <div>
-        <PlotApp  imageStore={imageStore} populationStore={populationStore} plotStore={plotStore} addSelectedPopulation={addSelectedPopulation} setHoveredSegments={setHoveredSegments}/>
-    </div>,
-    document.getElementById("plot")
-)
+function render() {
+    if(channelSelectOptions && selectedPlotChannels && selectedStatistic && selectedTransform){
+        console.log("Render successs!")
+        ReactDOM.render(
+            <div>
+                <ScatterPlot 
+                    windowWidth = {null}
+                    channelSelectOptions = {channelSelectOptions}
+                    selectedPlotChannels = {selectedPlotChannels}
+                    setSelectedPlotChannels = {setSelectedPlotChannels}
+                    selectedStatistic= {selectedStatistic}
+                    setSelectedStatistic = {setSelectedStatistic}
+                    selectedTransform = {selectedTransform}
+                    setSelectedTransform = {setScatterPlotTransform}
+                    setSelectedSegments = {addSelectedPopulation}
+                    setHoveredSegments = {setHoveredSegments}
+                    scatterPlotData = {scatterPlotData}
+                />
+            </div>,
+            document.getElementById("plot")
+        )
+    }
+}
 
+ipcRenderer.on('set-plot-data', (event:Electron.Event,
+    selectOptions: { value: string, label: string}[],
+    plotChannels: string[],
+    statistic: string,
+    transform: string,
+    plotData: any) => {
 
+    channelSelectOptions = selectOptions
+    selectedPlotChannels = plotChannels
+    selectedStatistic = statistic
+    selectedTransform = transform
+    scatterPlotData = plotData as ScatterPlotData
+    render()
+})

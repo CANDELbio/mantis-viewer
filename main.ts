@@ -1,10 +1,8 @@
 import {Menu, app, dialog, BrowserWindow, ipcMain} from "electron"
-import { SelectedPopulation } from "./src/interfaces/ImageInterfaces"
 import * as _ from "underscore"
 
 const path = require('path')
 const url = require('url')
-
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -187,14 +185,32 @@ ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
   setMenu(imageLoaded)
 })
 
-ipcMain.on('set-plot-populations', (event:Electron.Event, populations:SelectedPopulation[]) => {
-  if(plotWindow != null) plotWindow.webContents.send("set-populations", populations)
+ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
+  selectOptions: { value: string, label: string}[],
+  plotChannels: string[],
+  statistic: string,
+  transform: string,
+  plotData: any) => {
+
+  if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, plotData)
 })
 
-ipcMain.on('add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
-  if(mainWindow != null) mainWindow.webContents.send('add-selected-population', segmentIds)
+ipcMain.on('plotWindow-set-channels', (event:Electron.Event, channels: string[]) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-channels', channels)
 })
 
-ipcMain.on('set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
-  if(mainWindow != null) mainWindow.webContents.send('set-hovered-segments', segmentIds)
+ipcMain.on('plotWindow-set-statistic', (event:Electron.Event, statistic: any) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-statistic', statistic)
+})
+
+ipcMain.on('plotWindow-set-transform', (event:Electron.Event, transform: any) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-transform', transform)
+})
+
+ipcMain.on('plotWindow-add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
+  if(mainWindow != null) mainWindow.webContents.send('add-plot-selected-population', segmentIds)
+})
+
+ipcMain.on('plotWindow-set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-hovered-segments', segmentIds)
 })
