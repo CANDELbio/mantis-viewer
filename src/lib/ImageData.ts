@@ -31,6 +31,12 @@ export class ImageData {
         return(channelNames)
     }
 
+    terminateWorkers() {
+        for(let worker of this.workers){
+            worker.terminate()
+        }
+    }
+
     meanPixelIntensity(chName:string, pixels:number[]):number {
         if(chName in this.data) {
             let chData = this.data[chName]

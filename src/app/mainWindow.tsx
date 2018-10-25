@@ -49,6 +49,10 @@ ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: numbe
     imageStore.setWindowDimensions(width, height)
 })
 
+ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
+    if(imageStore.imageData != null) imageStore.imageData.terminateWorkers()
+})
+
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
     plotStore.setPlotInMainWindow(inMain)

@@ -128,13 +128,19 @@ function createMainWindow () {
   mainWindow.on('enter-full-screen', sendWindowSize)
   mainWindow.on('leave-full-screen', sendWindowSize)
 
+  // Emitted when the user requests to close but before the window is actually closed.
+  mainWindow.on('close', function () {
+    // Clean up the webworkers. We don't do this earlier as it causes issues with transferrables.
+    if(mainWindow != null) mainWindow.webContents.send('clean-up-webworkers')
+  })
+
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
-    plotWindow = null
+    closePlotWindow()
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -161,6 +167,16 @@ function createPlotWindow() {
   })
 }
 
+// Need to remove the event listener for close that prevents the default close
+// Otherwise the window will never be destroyed and the application cannot exit.
+function closePlotWindow() {
+  if(plotWindow != null){
+    plotWindow.removeAllListeners('close')
+    plotWindow.close()
+    plotWindow = null
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -179,10 +195,13 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
-    createMainWindow()
-  }
+  if (mainWindow === null) createMainWindow()
+  if (plotWindow === null) createPlotWindow()
 })
+
+app.on('before-quit', () => {
+  closePlotWindow()
+});
 
 // Used to enable disabled menu items when images have been loaded.
 ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
