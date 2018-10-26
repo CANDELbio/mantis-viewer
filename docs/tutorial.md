@@ -6,17 +6,17 @@ When you first load the application you should see a blank screen with a few unp
 
 ![Application Load](./images/tutorial/application_load.png)
 
-Mantis Viewer expects one folder with multiple channels stored as PNGs.
+Mantis Viewer expects one folder with multiple images (one per channel) all stored as TIFFs.
 
 ## Color Controls ##
 
-Once a folder has been selected, Mantis Viewer will select a random channel for each color.
+Once a folder has been selected, Mantis Viewer will select a random channel image for each color.
 
 ![Channel Controls](./images/tutorial/channel_controls.png)
 
 If you wish to change the channel selected for a color you can click on the dropdown and select a new channel. If you wish to clear a color you can click the `x` on the channel select dropdown.
 
-You can adjust the brightness of a color by changing the min and max values on the slider below the color dropdown. The min and max values are set using the pixel intensities from the channel's PNG. Brihtness adjustments are achieved by means of a linear transform.
+You can adjust the brightness of a color by changing the min and max values on the slider below the color dropdown. The min and max values are set using the pixel intensities from the channel's TIFF. Brihtness adjustments are achieved by means of a linear transform.
 
 ## Additional Menu Items ##
 
@@ -35,7 +35,7 @@ These items will be discussed in subsequent sections.
 
 ## Segmentation Data ##
 
-You can load segmentation data by clicking the `Open Segmentation File` entry in the main menu. Mantis Viewer expects segmentation data to be loaded as a PNG where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value.
+You can load segmentation data by clicking the `Open Segmentation File` entry in the main menu. Mantis Viewer expects segmentation data to be loaded as a TIFF where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value.
 
 Once segemntation data has been loaded segment outlines will be overlayed on the image.
 
@@ -45,7 +45,7 @@ You can access controls for displaying the segmentation data by clicking the but
 
 ## Graphing ##
 
-If segmentation data is loaded you can access graphs of the data by clicking the `Show Graphing Pane` button or by selecting the `Open Plot Window` entry in the `Window` menu. Note: graph performance is usually better in the plot window, and the graphing pane will automatically close when the plot window is opened.
+The graphing functions of Mantis Viewer allow you to view scatterplots of cell intensities per channel, as well as select and view populations of cells. If segmentation data is loaded you can access graphs of the data by clicking the `Show Graphing Pane` button or by selecting the `Open Plot Window` entry in the `Window` menu. Note: graph performance is usually better in the plot window, and the graphing pane will automatically close when the plot window is opened.
  
 ![Opening Graphing](./images/tutorial/graphing.png)
 
@@ -73,7 +73,7 @@ If segmentation data has been loaded selected regions will also be displayed on 
 
 ## Adding Populations from CSV ##
 
-Using the main menu item `Add populations from CSV` you can add populations from a CSV file. The CSV file should have no header, and each row should be of the format `segment_id, population_name`. For example, here are a few rows from a valid population CSV file:
+Mantis Viewer allows you to import populations, ie from gating using other software. Using the main menu item `Add populations from CSV` you can add populations from a CSV file. The CSV file should have no header, and each row should be of the format `segment_id, population_name`. For example, here are a few rows from a valid population CSV file:
 
 ```
 220,CD4 High Cells
