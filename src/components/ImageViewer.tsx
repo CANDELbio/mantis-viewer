@@ -6,16 +6,18 @@ import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
-    SelectedRegionColor } from "../interfaces/UIDefinitions"
+    DefaultSelectedRegionColor,
+    HighlightedSegmentOutlineColor } from "../interfaces/UIDefinitions"
 import { SegmentationData } from "../lib/SegmentationData"
-import { GraphicsHelper } from "../lib/GraphicsHelper"
+import * as GraphicsHelper from "../lib/GraphicsHelper"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface ImageProps {
 
     imageData: ImageData,
     segmentationData: SegmentationData | null
-    segmentationAlpha: number
+    segmentationFillAlpha: number
+    segmentationOutlineAlpha: number
     segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
@@ -56,14 +58,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // We re-render the segmentationSprite and segmentationCentroidGraphics below.
     segmentationData: SegmentationData | null
     segmentationSprite: PIXI.Sprite | null
+    segmentationOutlineGraphics: PIXI.Graphics | null
     segmentationCentroidGraphics: PIXI.Graphics | null
 
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
     // selectedRegionGraphics below
-    selectedRegions: Array<SelectedPopulation> | null
-    selectedRegionGraphics:{[key:string] : {region: PIXI.Graphics|null, centroids: PIXI.Graphics|null, segments: PIXI.Sprite|null}} | null
+    selectedRegions: SelectedPopulation[] | null
+    selectedRegionGraphics:{[key:string] : {region: PIXI.Graphics|null, outline: PIXI.Graphics|null}} | null
 
     // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
     selectedSegmentsFromGraph: number[] = []
@@ -225,12 +228,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let selection:number[] = []
         // Graphics object storing the selected area
         let selectionGraphics: PIXI.Graphics|null = null
-        // Sprite for the selected segments
-        let segmentSprite: PIXI.Sprite|null = null
+        // Graphics object storing the outlines of the selected segments
+        let segmentOutlineGraphics: PIXI.Graphics|null = null
         // Array of the selected segment IDs
         let selectedSegments:number[] = []
-        //Graphics object storing the selected centroids
-        let centroidGraphics: PIXI.Graphics|null = null
 
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
@@ -250,17 +251,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.x)
                 selection.push(pos.y)
 
-                GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentSprite, centroidGraphics)
-                let toUnpack = GraphicsHelper.selectRegion(selection,this.segmentationData,this.imageData)
+                GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
+                let toUnpack = GraphicsHelper.selectRegion(selection, this.segmentationData, DefaultSelectedRegionColor)
 
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
-                segmentSprite = toUnpack.segmentSprite
-                centroidGraphics = toUnpack.centroidGraphics
+
+                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(DefaultSelectedRegionColor, selectedSegments)
 
                 this.stage.addChild(selectionGraphics)
-                if(segmentSprite != null) this.stage.addChild(segmentSprite)
-                if(centroidGraphics != null) this.stage.addChild(centroidGraphics)
+                if(segmentOutlineGraphics != null) this.stage.addChild(segmentOutlineGraphics)
 
                 this.renderer.render(this.rootContainer)
             }
@@ -272,7 +272,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.addSelectedRegionToStore(selection, selectedSegments)
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
-                centroidGraphics  = null
+                segmentOutlineGraphics  = null
                 this.selecting = false
                 selection = []
             }
@@ -343,16 +343,23 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Add segmentation data to the stage.
-    loadSegmentationGraphics(segmentationData: SegmentationData, segmentationAlpha:number, centroidsVisible:boolean){
+    loadSegmentationGraphics(segmentationData: SegmentationData, segmentationFillAlpha:number, segmentationOutlineAlpha:number, centroidsVisible:boolean){
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
-            this.segmentationSprite = segmentationData.segmentSprite
+            this.segmentationSprite = segmentationData.segmentSprite()
+            this.segmentationOutlineGraphics = segmentationData.segmentOutlineGraphics()
             this.segmentationCentroidGraphics = GraphicsHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
         }
         // Add segmentation cells
         if(this.segmentationSprite!=null){
-            this.segmentationSprite.alpha = segmentationAlpha/10
+            this.segmentationSprite.alpha = segmentationFillAlpha
             this.stage.addChild(this.segmentationSprite)
+        }
+
+        // Add segementation outlines
+        if(this.segmentationOutlineGraphics){
+            this.segmentationOutlineGraphics.alpha = segmentationOutlineAlpha
+            this.stage.addChild(this.segmentationOutlineGraphics)
         }
 
         // Add segmentation centroids
@@ -365,12 +372,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selectedRegionGraphics = {}
         for(let region of selectedRegions) {
             if(region.visible){
-                this.selectedRegionGraphics[region.id] = {region: null, centroids: null, segments: null}
+                this.selectedRegionGraphics[region.id] = {region: null, outline: null}
                 if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = GraphicsHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
                 if(region.selectedSegments != null && this.segmentationData != null) {
-                    let toUnpack = GraphicsHelper.generateSelectedSegmentGraphics(this.segmentationData, region.selectedSegments, region.color, this.imageData)
-                    this.selectedRegionGraphics[region.id].centroids = toUnpack.centroids
-                    this.selectedRegionGraphics[region.id].segments = toUnpack.segments
+                    this.selectedRegionGraphics[region.id].outline = this.segmentationData.segmentOutlineGraphics(region.color, region.selectedSegments)
+
                 }
             }
         }
@@ -390,13 +396,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                     stage.addChild(regionGraphics)
                 }
 
-                let segmentSprite = curGraphics.segments
-                if (segmentSprite != null){
-                    segmentSprite.alpha = alpha
-                    stage.addChild(segmentSprite)
-                }
-
-                if (curGraphics.centroids != null) stage.addChild(curGraphics.centroids)
+                if (curGraphics.outline != null) stage.addChild(curGraphics.outline)
             }
         }
     }
@@ -411,11 +411,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.addSelectedRegionGraphicsToStage(this.stage, highlightedRegions)
     }
 
+    // Generates and adds segments highlighted/moused over on the graph.
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = GraphicsHelper.generateSelectedSegmentGraphics(segmentationData, highlightedSegments, SelectedRegionColor, this.imageData)
-            this.stage.addChild(graphics.segments)
-            this.stage.addChild(graphics.centroids)
+            let graphics = segmentationData.segmentOutlineGraphics(HighlightedSegmentOutlineColor, highlightedSegments)
+            this.stage.addChild(graphics)
         }
     }
 
@@ -424,7 +424,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>, 
         segmentationData: SegmentationData | null,
-        segmentationAlpha: number,
+        segmentationFillAlpha: number,
+        segmentationOutlineAlpha: number,
         segmentationCentroidsVisible: boolean,
         selectedRegions: Array<SelectedPopulation> | null,
         highlightedRegions: string[],
@@ -454,7 +455,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
 
         if(segmentationData != null){
-            this.loadSegmentationGraphics(segmentationData, segmentationAlpha, segmentationCentroidsVisible)
+            this.loadSegmentationGraphics(segmentationData, segmentationFillAlpha, segmentationOutlineAlpha, segmentationCentroidsVisible)
         }
 
         if(selectedRegions != null) {
@@ -488,7 +489,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let imcData = this.props.imageData
 
         let segmentationData = this.props.segmentationData
-        let segmentationAlpha = this.props.segmentationAlpha
+        let segmentationFillAlpha = this.props.segmentationFillAlpha
+        let segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
         let segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
 
         let regions = this.props.selectedRegions
@@ -513,7 +515,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                                 channelMarker,
                                                 channelDomain,
                                                 segmentationData,
-                                                segmentationAlpha,
+                                                segmentationFillAlpha,
+                                                segmentationOutlineAlpha,
                                                 segmentationCentroidsVisible,
                                                 regions,
                                                 highlightedRegions,

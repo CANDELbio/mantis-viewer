@@ -25,6 +25,7 @@
         "./src/app/plotWindow.tsx",
         "./src/stores/ImageStore.ts",
         "./src/stores/PopulationStore.ts",
+        "./src/stores/PlotStore.ts",
         "./src/components/ImageViewer.tsx",
         "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",

@@ -1,25 +1,28 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
 import * as React from "react"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import * as _ from "underscore"
 import Select from 'react-select'
-import { SelectOption } from "../interfaces/UIDefinitions"
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
+
+import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
+import { SelectOption, PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { PlotStatisticOptions,
     PlotTransformOptions } from "../interfaces/UIDefinitions"
 
-interface ScatterPlotProps {
+
+
+export interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
     selectedPlotChannels: string[]
-    setSelectedPlotChannels: ((x: SelectOption[]) => void)
+    setSelectedPlotChannels: ((x: string[]) => void)
     selectedStatistic: string
-    setSelectedStatistic: ((x: SelectOption) => void)
+    setSelectedStatistic: ((x: PlotStatistic) => void)
     selectedTransform: string
-    setSelectedTransform: ((x: SelectOption) => void)
-    setSelectedPoints: ((data: {points:any, event:any}) => void)
-    setHoveredPoints: ((data: {points:any, event:any}) => void)
-    setUnHoveredPoints: (() => void)
+    setSelectedTransform: ((x: PlotTransform) => void)
+    setSelectedSegments: ((selectedSegments: number[]) => void)
+    setHoveredSegments: ((selectedSegments: number[]) => void)
     scatterPlotData: ScatterPlotData | null
     windowWidth: number | null
 }
@@ -34,15 +37,44 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
         super(props)
     }
 
-    onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(x)
-    onStatisticSelect = (x: SelectOption) => this.props.setSelectedStatistic(x)
-    onTransformSelect = (x: SelectOption) => this.props.setSelectedTransform(x)
-    onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedPoints(data)
-    onHover = (data: {points:any, event:any}) => this.props.setHoveredPoints(data)
-    onUnHover = () => this.props.setUnHoveredPoints()
+    onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(_.pluck(x, "value"))
+    onStatisticSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
+    }
+    onTransformSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedTransform(x.value as PlotTransform)
+    }
+    onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedSegments(this.parsePlotlyEventData(data))
+    onHover = (data: {points:any, event:any}) => this.props.setHoveredSegments(this.parsePlotlyEventData(data))
+    onUnHover = () => this.props.setHoveredSegments([])
 
     public componentWillUnmount() {
         this.cleanupPlotly()
+    }
+
+    // Data comes from a Plotly event.
+    // Points are the selected points.
+    // No custom fields, so we are getting the segment id from the title text for the point.
+    // Title text with segment id generated in ScatterPlotData.
+    parsePlotlyEventData(data: {points:any, event:any}) {
+        let selectedSegments:number[] = []
+        if(data != null) {
+            if(data.points != null && data.points.length > 0){
+                for (let point of data.points){
+                    let pointRegionName = point.data.name
+                    // Check if the region name for the point is the default selection name
+                    // Sometimes plotly returns incorrect selected points if there are multiple selections
+                    // and the point being hovered/highlighted isn't in some of those selections.
+                    if(pointRegionName == DefaultSelectionName) {
+                        let pointText = point.text
+                        let splitText:string[] = pointText.split(" ")
+                        let segmentId = Number(splitText[splitText.length - 1])
+                        selectedSegments.push(segmentId)
+                    }
+                }
+            }
+        }
+        return selectedSegments
     }
 
     cleanupPlotly() {
