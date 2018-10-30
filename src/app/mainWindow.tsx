@@ -29,15 +29,15 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
 })
 
 ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
-    imageStore.selectSegmentationFile(filename)
+    imageStore.setSegmentationFile(filename)
 })
 
 ipcRenderer.on("import-selected-populations", (event:Electron.Event, filename:string) => {
-    populationStore.importSelectedPopulations(filename)
+    imageStore.importUserData(filename)
 })
 
 ipcRenderer.on("export-selected-populations", (event:Electron.Event, filename:string) => {
-    populationStore.exportSelectedPopulations(filename)
+    imageStore.exportUserData(filename)
 })
 
 ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) => {

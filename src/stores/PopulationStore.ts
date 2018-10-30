@@ -1,12 +1,11 @@
 import { observable, 
     action } from "mobx"
-import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import * as fs from 'fs'
 import * as shortId from 'shortid'
 import * as csvParse from 'csv-parse'
 import * as _ from "underscore"
 
-
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
 
 export class PopulationStore {
@@ -125,28 +124,6 @@ export class PopulationStore {
                 region.visible = visible
                 return region
             })
-        }
-    }
-
-    @action exportSelectedPopulations = (filename:string) => {
-        if(this.selectedPopulations != null){
-            let exportingContent = JSON.stringify(this.selectedPopulations)
-            fs.writeFile(filename, exportingContent, 'utf8', function (err) {
-                if (err) {
-                    console.log("An error occured while writing regions of interest to file.")
-                    return console.log(err)
-                }
-             
-                console.log("Regions of interest file has been saved.")
-            })
-        }
-    }
-
-    @action importSelectedPopulations = (filename:string) => {
-        if(this.selectedPopulations == null || this.selectedPopulations.length == 0) {
-            let importingContent = fs.readFileSync(filename, 'utf8')
-            let importedRegions:SelectedPopulation[] = JSON.parse(importingContent)
-            this.selectedPopulations = importedRegions
         }
     }
 

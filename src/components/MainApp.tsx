@@ -116,16 +116,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
             )
 
-            if (this.props.imageStore.selectedSegmentationFile != null) {
+            if (this.props.imageStore.segmentationData != null) {
                 segmentationControls = <SegmentationControls
-                    segmentationPath = {this.props.imageStore.selectedSegmentationFile}
                     fillAlpha = {this.props.imageStore.segmentationFillAlpha}
                     outlineAlpha = {this.props.imageStore.segmentationOutlineAlpha}
                     onFillAlphaChange = {this.props.imageStore.setSegmentationFillAlpha}
                     onOutlineAlphaChange = {this.props.imageStore.setSegmentationOutlineAlpha}
                     centroidsVisible = {this.props.imageStore.segmentationCentroidsVisible}
-                    onCentroidVisibilityChange = {this.props.imageStore.setCentroidVisibility()}
-                    onClearSegmentation = {this.props.imageStore.clearSegmentationDataCallback()}
+                    setCentroidsVisible = {this.props.imageStore.setCentroidVisibility}
+                    onClearSegmentation = {this.props.imageStore.clearSegmentationData}
                 />
 
                 if(this.props.plotStore.plotInMainWindow) {

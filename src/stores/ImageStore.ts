@@ -6,6 +6,7 @@ import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ScatterPlotData } from "../lib/ScatterPlotData"
 import * as _ from "underscore"
+import * as fs from 'fs'
 
 import { ChannelName,
     D3BrushExtent, 
@@ -13,6 +14,7 @@ import { ChannelName,
     LabelLayer } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 import { PopulationStore } from "./PopulationStore";
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { PlotStore } from "./PlotStore";
 
 export class ImageStore {
@@ -139,12 +141,6 @@ export class ImageStore {
         this.imageData = null
     }
 
-    @action updateSegmentationData() {
-        if (this.selectedSegmentationFile != null) {
-            this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
-        }
-    }
-
     @action setSegmentationFillAlpha = (value: number) => {
         this.segmentationFillAlpha = value
     }
@@ -153,10 +149,8 @@ export class ImageStore {
         this.segmentationOutlineAlpha = value
     }
 
-    @action setCentroidVisibility = () => {
-        return action((event: React.FormEvent<HTMLInputElement>) => {
-            this.segmentationCentroidsVisible = event.currentTarget.checked
-        })
+    @action setCentroidVisibility = (visible: boolean) => {
+        this.segmentationCentroidsVisible = visible
     }
 
     @action clearSegmentationData = () => {
@@ -164,10 +158,6 @@ export class ImageStore {
         this.segmentationData = null
         this.segmentationFillAlpha = 0
         this.plotStore.clearSelectedPlotChannels()
-    }
-
-    @action clearSegmentationDataCallback = () => {
-        return this.clearSegmentationData
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -226,9 +216,54 @@ export class ImageStore {
         this.selectedDirectory = dirName
     }
 
-    @action selectSegmentationFile = (fName: string) => {
+    @action setSegmentationData = (data: SegmentationData) => {
+        this.segmentationData = data
+    }
+
+    @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
-        this.updateSegmentationData()
+        this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
+    }
+
+    @action exportUserData = (filename:string) => {
+        let exportingContent = {populations: [] as SelectedPopulation[], segmentation: {}}
+        // Prepare segmentation data for export
+        // Dump Float32Array to normal array as JSON.stringify/parse don't support typed arrays.
+        if(this.segmentationData != null) {
+            exportingContent.segmentation = {
+                width: this.segmentationData.width,
+                height: this.segmentationData.height,
+                data: Array.from(this.segmentationData.data)
+            }
+        }
+        // Prepare selected populations for export
+        if(this.populationStore.selectedPopulations != null) exportingContent.populations = this.populationStore.selectedPopulations
+
+        let exportingString = JSON.stringify(exportingContent)
+
+        // Write data to file
+        fs.writeFile(filename, exportingString, 'utf8', function (err) {
+            if (err) {
+                console.log("An error occured while writing regions of interest to file.")
+                return console.log(err)
+            }
+            console.log("Regions of interest file has been saved.")
+        })
+    }
+
+    // Imports segmentation data and selected populations from file
+    // TODO: Some sanity checks to make sure imported data makes sense
+    @action importUserData = (filename:string) => {
+        let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
+
+        // Import Segmentation Data
+        let importingSegmentation = importingContent.segmentation
+        let importedDataArray = Float32Array.from(importingSegmentation.data)
+        let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
+        this.setSegmentationData(importedSegmentationData)
+
+        // Import saved populations
+        this.populationStore.setSelectedPopulations(importingContent.populations)
     }
 
     @action setCanvasImageData = (data:ImageData) => {

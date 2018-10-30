@@ -18,22 +18,24 @@ function generateMenuTemplate(imageLoaded: boolean) {
       label: "Open folder",
       click: () => {
         dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
-          if(mainWindow != null && dirName != null)
+          if(mainWindow != null && dirName != null){
             mainWindow.webContents.send("open-directory", dirName[0])
             if(plotWindow != null) plotWindow.webContents.send("open-directory", dirName[0])
             // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
             sendWindowSize()
+          }
         })
       }
     },
     {
-    label: "Open segmentation file",
-    enabled: imageLoaded,
-    click: () => {
-      dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
-        if(mainWindow != null && fileNames != null)
-          mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-          if(plotWindow != null) plotWindow.webContents.send("open-segmentation-file", fileNames[0])
+      label: "Open segmentation file",
+      enabled: imageLoaded,
+      click: () => {
+        dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
+          if(mainWindow != null && fileNames != null){
+            mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+            if(plotWindow != null) plotWindow.webContents.send("open-segmentation-file", fileNames[0])
+          }
         })
       }
     },
@@ -48,7 +50,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
       }
     },
     {
-      label: "Import selected populations",
+      label: "Import segmentation & selected populations",
       enabled: imageLoaded,
       click: () => {
         dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
@@ -58,7 +60,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
         }
       },
     {
-      label: "Export selected populations",
+      label: "Export segmentation & selected populations",
       enabled: imageLoaded,
       click: () => {
         dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
