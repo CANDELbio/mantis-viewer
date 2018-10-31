@@ -293,7 +293,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let height = imcData.height * scaleFactor
         this.minScale = scaleFactor
         this.scaledHeight = height
-        this.checkScale()
     }
 
     // Resizes the WebGL Renderer and sets the new scale factors accordingly.
@@ -303,6 +302,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.rendererWidth = windowWidth
         this.setScaleFactors(imcData)
         this.renderer.resize(this.rendererWidth, this.scaledHeight)
+        this.checkScale()
+    }
+
+    resetZoom(){
+        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+        this.stage.scale.x = this.minScale
+        this.stage.scale.y = this.minScale
     }
 
     initializeGraphics(imcData: ImageData, windowWidth: number){
@@ -314,10 +320,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Setting up the renderer
         this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.scaledHeight)
         this.el.appendChild(this.renderer.view)
-
-        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
-        this.stage.scale.x = this.minScale
-        this.stage.scale.y = this.minScale
 
         // Setting up event listeners
         // TODO: Make sure these don't get added again if a new set of images is selected.
@@ -436,12 +438,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             return
         this.el = el
 
-        this.imageData = imcData
-
         if(!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, windowWidth)
         }
 
+        // We want to resize graphics and reset zoom if imcData has changed
+        if(this.imageData != imcData) {
+            this.imageData = imcData
+            this.resizeGraphics(imcData, windowWidth)
+            this.resetZoom()
+        }
+
+        // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if(this.rendererWidth != windowWidth){
             this.resizeGraphics(imcData, windowWidth)
         }

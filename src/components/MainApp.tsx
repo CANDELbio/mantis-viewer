@@ -1,24 +1,21 @@
 import * as React from "react"
-import { ImageStore } from "../stores/ImageStore"
+import { UnmountClosed } from 'react-collapse'
+import { Button } from "@blueprintjs/core"
+import { ClipLoader } from 'react-spinners'
+import Flexbox from 'flexbox-react'
+
+import { ProjectStore } from "../stores/ProjectStore";
 import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
-import { ChannelName, SelectOption } from "../interfaces/UIDefinitions"
+import { ChannelName } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
 import { SelectedDirectory } from "./SelectedDirectory"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot"
 import { SelectedPopulations } from "./SelectedPopulations"
-import { UnmountClosed } from 'react-collapse'
-import { Button } from "@blueprintjs/core"
-import { ClipLoader } from 'react-spinners'
-import Flexbox from 'flexbox-react'
-import { PopulationStore } from "../stores/PopulationStore";
-import { PlotStore } from "../stores/PlotStore";
 
 export interface MainAppProps { 
-    imageStore: ImageStore
-    populationStore: PopulationStore
-    plotStore: PlotStore
+    projectStore: ProjectStore
 }
 
 interface MainAppState { 
@@ -47,58 +44,63 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     handleGraphClick = () => this.setState({graphOpen: !this.state.graphOpen})
 
     addSelectedPopulation = (segmentIds: number[]) => {
-        if (segmentIds.length > 0) this.props.populationStore.addSelectedPopulation(null, segmentIds)
+        let populationStore = this.props.projectStore.activePopulationStore
+        if(segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
     }
 
     getChannelMin = (s:ChannelName) => {
-        let channelMarker = this.props.imageStore.channelMarker[s]
-        if (channelMarker != null && this.props.imageStore.imageData != null) {
-            return this.props.imageStore.imageData.minmax[channelMarker].min
+        let imageStore = this.props.projectStore.activeImageStore
+        let channelMarker = imageStore.channelMarker[s]
+        if (channelMarker != null && imageStore.imageData != null) {
+            return imageStore.imageData.minmax[channelMarker].min
         }
         return 0
     }
 
     getChannelMax = (s:ChannelName) => {
-        let channelMarker = this.props.imageStore.channelMarker[s]
-        if (channelMarker != null && this.props.imageStore.imageData != null) {
-            return this.props.imageStore.imageData.minmax[channelMarker].max
+        let imageStore = this.props.projectStore.activeImageStore
+        let channelMarker = imageStore.channelMarker[s]
+        if (channelMarker != null && imageStore.imageData != null) {
+            return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
     }
 
     render() {
+
+        let imageStore = this.props.projectStore.activeImageStore
+        let populationStore = this.props.projectStore.activePopulationStore
+        let plotStore = this.props.projectStore.activePlotStore
+
         let imageViewer = null
         let selectedDirectory =  null
         let channelControls = null
         let scatterPlot = null
         let segmentationControls = null
 
-        if(this.props.imageStore.selectedDirectory) {
+        if(imageStore.selectedDirectory) {
             selectedDirectory = <SelectedDirectory
-                selectedDirectory = {this.props.imageStore.selectedDirectory}
+                selectedDirectory = {imageStore.selectedDirectory}
             />
         }
 
-        if(this.props.imageStore.imageData != null) {
-            let width = this.props.imageStore.imageData.width
-            let height = this.props.imageStore.imageData.height
-                
+        if(imageStore.imageData != null) {
             imageViewer = <ImageViewer 
-                imageData = {this.props.imageStore.imageData}
-                segmentationData = {this.props.imageStore.segmentationData}
-                segmentationFillAlpha = {this.props.imageStore.segmentationFillAlpha}
-                segmentationOutlineAlpha = {this.props.imageStore.segmentationOutlineAlpha}
-                segmentationCentroidsVisible = {this.props.imageStore.segmentationCentroidsVisible}
-                channelDomain = {this.props.imageStore.channelDomain}
-                channelMarker = {this.props.imageStore.channelMarker}
-                canvasWidth = {width}
-                canvasHeight = {height}
-                windowWidth = {this.props.imageStore.windowWidth}
-                onCanvasDataLoaded = {this.props.imageStore.setCanvasImageData}
-                addSelectedRegion = {this.props.populationStore.addSelectedPopulation}
-                selectedRegions = {this.props.populationStore.selectedPopulations}
-                hightlightedRegions = {this.props.populationStore.highlightedPopulations}
-                highlightedSegmentsFromGraph = {this.props.plotStore.segmentsHoveredOnPlot}
+                imageData = {imageStore.imageData}
+                segmentationData = {imageStore.segmentationData}
+                segmentationFillAlpha = {imageStore.segmentationFillAlpha}
+                segmentationOutlineAlpha = {imageStore.segmentationOutlineAlpha}
+                segmentationCentroidsVisible = {imageStore.segmentationCentroidsVisible}
+                channelDomain = {imageStore.channelDomain}
+                channelMarker = {imageStore.channelMarker}
+                canvasWidth = {imageStore.imageData.width}
+                canvasHeight = {imageStore.imageData.height}
+                windowWidth = {imageStore.windowWidth}
+                onCanvasDataLoaded = {imageStore.setCanvasImageData}
+                addSelectedRegion = {populationStore.addSelectedPopulation}
+                selectedRegions = {populationStore.selectedPopulations}
+                hightlightedRegions = {populationStore.highlightedPopulations}
+                highlightedSegmentsFromGraph = {plotStore.segmentsHoveredOnPlot}
             />
  
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
@@ -106,40 +108,40 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     key={s}
                     sliderMin = {this.getChannelMin(s)}
                     sliderMax = {this.getChannelMax(s)}
-                    sliderValue = {this.props.imageStore.channelSliderValue[s]}
-                    onSliderChange = {this.props.imageStore.setChannelSliderValue(s)}
-                    onSliderRelease = {this.props.imageStore.setChannelDomain(s)}
-                    selectOptions = {this.props.imageStore.channelSelectOptions.get()}
-                    selectValue = {this.props.imageStore.channelMarker[s]}
-                    onSelectChange = {this.props.imageStore.setChannelMarkerFromSelect(s)}
-                    windowWidth = {this.props.imageStore.windowWidth}
+                    sliderValue = {imageStore.channelSliderValue[s]}
+                    onSliderChange = {imageStore.setChannelSliderValue(s)}
+                    onSliderRelease = {imageStore.setChannelDomain(s)}
+                    selectOptions = {imageStore.channelSelectOptions.get()}
+                    selectValue = {imageStore.channelMarker[s]}
+                    onSelectChange = {imageStore.setChannelMarkerFromSelect(s)}
+                    windowWidth = {imageStore.windowWidth}
                 />
             )
 
-            if (this.props.imageStore.segmentationData != null) {
+            if (imageStore.segmentationData != null) {
                 segmentationControls = <SegmentationControls
-                    fillAlpha = {this.props.imageStore.segmentationFillAlpha}
-                    outlineAlpha = {this.props.imageStore.segmentationOutlineAlpha}
-                    onFillAlphaChange = {this.props.imageStore.setSegmentationFillAlpha}
-                    onOutlineAlphaChange = {this.props.imageStore.setSegmentationOutlineAlpha}
-                    centroidsVisible = {this.props.imageStore.segmentationCentroidsVisible}
-                    setCentroidsVisible = {this.props.imageStore.setCentroidVisibility}
-                    onClearSegmentation = {this.props.imageStore.clearSegmentationData}
+                    fillAlpha = {imageStore.segmentationFillAlpha}
+                    outlineAlpha = {imageStore.segmentationOutlineAlpha}
+                    onFillAlphaChange = {imageStore.setSegmentationFillAlpha}
+                    onOutlineAlphaChange = {imageStore.setSegmentationOutlineAlpha}
+                    centroidsVisible = {imageStore.segmentationCentroidsVisible}
+                    setCentroidsVisible = {imageStore.setCentroidVisibility}
+                    onClearSegmentation = {imageStore.clearSegmentationData}
                 />
 
-                if(this.props.plotStore.plotInMainWindow) {
+                if(plotStore.plotInMainWindow) {
                     scatterPlot = <ScatterPlot
-                        windowWidth = {this.props.imageStore.windowWidth}
-                        channelSelectOptions = {this.props.imageStore.channelSelectOptions.get()}
-                        selectedPlotChannels = {this.props.plotStore.selectedPlotChannels}
-                        setSelectedPlotChannels = {this.props.plotStore.setSelectedPlotChannels}
-                        selectedStatistic= {this.props.plotStore.scatterPlotStatistic}
-                        setSelectedStatistic = {this.props.plotStore.setScatterPlotStatistic}
-                        selectedTransform = {this.props.plotStore.scatterPlotTransform}
-                        setSelectedTransform = {this.props.plotStore.setScatterPlotTransform}
+                        windowWidth = {imageStore.windowWidth}
+                        channelSelectOptions = {imageStore.channelSelectOptions.get()}
+                        selectedPlotChannels = {plotStore.selectedPlotChannels}
+                        setSelectedPlotChannels = {plotStore.setSelectedPlotChannels}
+                        selectedStatistic= {plotStore.scatterPlotStatistic}
+                        setSelectedStatistic = {plotStore.setScatterPlotStatistic}
+                        selectedTransform = {plotStore.scatterPlotTransform}
+                        setSelectedTransform = {plotStore.setScatterPlotTransform}
                         setSelectedSegments = {this.addSelectedPopulation}
-                        setHoveredSegments = {this.props.plotStore.setSegmentsHoveredOnPlot}
-                        scatterPlotData = {this.props.plotStore.scatterPlotData}
+                        setHoveredSegments = {plotStore.setSegmentsHoveredOnPlot}
+                        scatterPlotData = {plotStore.scatterPlotData}
                     />
                 }
             }
@@ -149,19 +151,19 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             sizeUnit={"px"}
             size={150}
             color={'#123abc'}
-            loading={this.props.imageStore.imageDataLoading}
+            loading={imageStore.imageDataLoading}
         />
 
         let selectedPopulations = <SelectedPopulations
-            populations = {this.props.populationStore.selectedPopulations}
-            updateName = {this.props.populationStore.updateSelectedPopulationName}
-            updateNotes = {this.props.populationStore.updateSelectedPopulationNotes}
-            updateColor = {this.props.populationStore.updateSelectedPopulationColor}
-            updateVisibility = {this.props.populationStore.updateSelectedPopulationVisibility}
-            deletePopulation = {this.props.populationStore.deleteSelectedPopulation}
-            setAllVisibility = {this.props.populationStore.setAllSelectedPopulationVisibility}
-            highlightPopulation = {this.props.populationStore.highlightSelectedPopulation}
-            unhighlightPopulation = {this.props.populationStore.unhighlightSelectedPopulation}
+            populations = {populationStore.selectedPopulations}
+            updateName = {populationStore.updateSelectedPopulationName}
+            updateNotes = {populationStore.updateSelectedPopulationNotes}
+            updateColor = {populationStore.updateSelectedPopulationColor}
+            updateVisibility = {populationStore.updateSelectedPopulationVisibility}
+            deletePopulation = {populationStore.deleteSelectedPopulation}
+            setAllVisibility = {populationStore.setAllSelectedPopulationVisibility}
+            highlightPopulation = {populationStore.highlightSelectedPopulation}
+            unhighlightPopulation = {populationStore.unhighlightSelectedPopulation}
         />
 
         let fullWidth = {width: "100%"} 

@@ -1,32 +1,23 @@
 import { observable, 
     action,
-    computed,
-    autorun} from "mobx"
+    computed } from "mobx"
+import * as _ from "underscore"
+
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
-import * as _ from "underscore"
-import * as fs from 'fs'
-
 import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
-import { PopulationStore } from "./PopulationStore";
-import { SelectedPopulation } from "../interfaces/ImageInterfaces"
-import { PlotStore } from "./PlotStore";
 
 export class ImageStore {
 
-    constructor(populationStore: PopulationStore, plotStore: PlotStore) {
-        this.initialize(populationStore, plotStore)
+    constructor() {
+        this.initialize()
     }
     
     private canvasImageData:ImageData | null = null
-
-    @observable.ref populationStore: PopulationStore
-    @observable.ref plotStore: PlotStore
 
     @observable windowWidth: number | null
     @observable windowHeight: number | null
@@ -56,22 +47,7 @@ export class ImageStore {
         y: [number, number]
     } | null
 
-    setScatterPlotData = autorun(() => {
-        if(this.plotStore && this.plotStore.selectedPlotChannels.length == 2){
-            let ch1 = this.plotStore.selectedPlotChannels[0]
-            let ch2 = this.plotStore.selectedPlotChannels[1]
-            if(this.imageData != null && this.segmentationData != null){
-                this.plotStore.setScatterPlotData(new ScatterPlotData(ch1,
-                    ch2,
-                    this.imageData,
-                    this.segmentationData,
-                    this.plotStore.scatterPlotStatistic,
-                    this.plotStore.scatterPlotTransform,
-                    this.populationStore.selectedPopulations
-                ))
-            }
-        }
-    })
+
 
     channelSelectOptions = computed(() => {
         if(this.imageData) {
@@ -81,10 +57,7 @@ export class ImageStore {
         }
     })
 
-    @action initialize = (populationStore: PopulationStore, plotStore: PlotStore) => {
-        this.populationStore = populationStore
-        this.plotStore = plotStore
-
+    @action initialize = () => {
         this.channelDomain = {
             rChannel: [0, 100],
             gChannel: [0, 100],
@@ -136,8 +109,6 @@ export class ImageStore {
             let curChannel = s as ChannelName
             this.unsetChannelMarker(curChannel)
         }
-        this.clearSegmentationData()
-        this.populationStore.clearSelectedPopulations()
         this.imageData = null
     }
 
@@ -157,7 +128,6 @@ export class ImageStore {
         this.selectedSegmentationFile = null
         this.segmentationData = null
         this.segmentationFillAlpha = 0
-        this.plotStore.clearSelectedPlotChannels()
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -223,47 +193,6 @@ export class ImageStore {
     @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
         this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
-    }
-
-    @action exportUserData = (filename:string) => {
-        let exportingContent = {populations: [] as SelectedPopulation[], segmentation: {}}
-        // Prepare segmentation data for export
-        // Dump Float32Array to normal array as JSON.stringify/parse don't support typed arrays.
-        if(this.segmentationData != null) {
-            exportingContent.segmentation = {
-                width: this.segmentationData.width,
-                height: this.segmentationData.height,
-                data: Array.from(this.segmentationData.data)
-            }
-        }
-        // Prepare selected populations for export
-        if(this.populationStore.selectedPopulations != null) exportingContent.populations = this.populationStore.selectedPopulations
-
-        let exportingString = JSON.stringify(exportingContent)
-
-        // Write data to file
-        fs.writeFile(filename, exportingString, 'utf8', function (err) {
-            if (err) {
-                console.log("An error occured while writing regions of interest to file.")
-                return console.log(err)
-            }
-            console.log("Regions of interest file has been saved.")
-        })
-    }
-
-    // Imports segmentation data and selected populations from file
-    // TODO: Some sanity checks to make sure imported data makes sense
-    @action importUserData = (filename:string) => {
-        let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
-
-        // Import Segmentation Data
-        let importingSegmentation = importingContent.segmentation
-        let importedDataArray = Float32Array.from(importingSegmentation.data)
-        let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
-        this.setSegmentationData(importedSegmentationData)
-
-        // Import saved populations
-        this.populationStore.setSelectedPopulations(importingContent.populations)
     }
 
     @action setCanvasImageData = (data:ImageData) => {
