@@ -4,6 +4,7 @@ import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
 import { ProjectStore } from "../stores/ProjectStore";
+import { ImageStore } from "../stores/ImageStore";
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -32,6 +33,10 @@ ipcRenderer.on("export-selected-populations", (event:Electron.Event, filename:st
 
 ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) => {
     projectStore.activePopulationStore.addPopulationsFromCSV(filename)
+})
+
+ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
+    projectStore.activeImageStore.setImageExportFilename(filename)
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.

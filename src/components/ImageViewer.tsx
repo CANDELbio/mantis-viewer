@@ -1,6 +1,8 @@
 import * as React from "react"
 import * as PIXI from "pixi.js"
 import { observer } from "mobx-react"
+import * as fs from "fs"
+
 import { ImageData } from "../lib/ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
@@ -29,6 +31,8 @@ export interface ImageProps {
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
     hightlightedRegions: string[]
     highlightedSegmentsFromGraph: number[]
+    exportPath: string | null
+    onExportComplete: (() => void)
 }
 
 @observer
@@ -127,6 +131,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[]) => this.props.addSelectedRegion(selectedRegion, selectedSegments)
+    onExportComplete = () => this.props.onExportComplete()
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -421,6 +426,23 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    exportRenderer(exportPath: string){
+        // Get the source canvas that we are exporting from pixi
+        let sourceCanvas = this.renderer.extract.canvas()
+        let sourceContext = sourceCanvas.getContext('2d')
+
+        if(sourceContext){
+            // Convert to a base64 encoded png
+            let exportingImage = sourceCanvas.toDataURL('image/png')
+            // Replace the header so that we just have the base64 encoded string
+            let exportingData = exportingImage.replace(/^data:image\/png;base64,/, "");
+            // Save the base64 encoded string to file.
+            fs.writeFile(exportPath, exportingData, 'base64', function(err) {
+                console.log(err)
+            })
+        }
+    }
+
     renderImage(el: HTMLDivElement|null, 
         imcData: ImageData, 
         channelMarker: Record<ChannelName, string | null>,
@@ -432,6 +454,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         selectedRegions: Array<SelectedPopulation> | null,
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
+        exportPath: string | null,
         windowWidth: number) {
 
         if(el == null)
@@ -475,6 +498,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
 
         this.renderer.render(this.rootContainer)
+
+        if(exportPath){
+            this.exportRenderer(exportPath)
+            this.onExportComplete()
+        }
         
     }
 
@@ -507,6 +535,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
 
+        let exportPath = this.props.exportPath
+
         let renderWidth = 500
         if(this.props.windowWidth != null){
             // We need to set the render width smaller than the window width to account for the controls around it.
@@ -529,6 +559,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                                 regions,
                                                 highlightedRegions,
                                                 highlightedSegmentsFromGraph,
+                                                exportPath,
                                                 renderWidth
                                                 )
                     }}

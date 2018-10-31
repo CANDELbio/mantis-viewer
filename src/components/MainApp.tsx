@@ -101,6 +101,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedRegions = {populationStore.selectedPopulations}
                 hightlightedRegions = {populationStore.highlightedPopulations}
                 highlightedSegmentsFromGraph = {plotStore.segmentsHoveredOnPlot}
+                exportPath = {imageStore.imageExportFilename}
+                onExportComplete = {imageStore.clearImageExportFilename}
             />
  
             channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 

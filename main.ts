@@ -69,12 +69,22 @@ function generateMenuTemplate(imageLoaded: boolean) {
         })
       }
     },
-      {
-        label: "Quit",
-        click: () => {
-          app.quit()
-        }
+    {
+      label: "Export image",
+      enabled: imageLoaded,
+      click: () => {
+        dialog.showSaveDialog({filters: [{ name: 'png', extensions: ['png'] }]},  (filename:string) => {
+          if(mainWindow != null && filename != null)
+            mainWindow.webContents.send("export-image", filename)
+        })
       }
+    },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit()
+      }
+    }
     ],
   },
 {

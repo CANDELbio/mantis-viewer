@@ -25,6 +25,8 @@ export class ImageStore {
     @observable.ref imageData: ImageData | null
     @observable imageDataLoading: boolean
 
+    @observable imageExportFilename: string | null
+
     @observable.ref segmentationData: SegmentationData | null
 
     @observable selectedDirectory: string | null
@@ -193,6 +195,14 @@ export class ImageStore {
     @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
         this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
+    }
+
+    @action setImageExportFilename = (fName: string) => {
+        this.imageExportFilename = fName
+    }
+
+    @action clearImageExportFilename = () => {
+        this.imageExportFilename = null
     }
 
     @action setCanvasImageData = (data:ImageData) => {
