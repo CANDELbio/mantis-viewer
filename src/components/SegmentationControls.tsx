@@ -1,7 +1,6 @@
 import * as React from "react"
 import { Button, Slider, Checkbox } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-import * as Path from "path"
 
 export interface SegmentationControlsProps {
     fillAlpha: number

@@ -4,7 +4,6 @@ import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
 import { ProjectStore } from "../stores/ProjectStore";
-import { ImageStore } from "../stores/ImageStore";
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -13,7 +12,15 @@ const projectStore = new ProjectStore()
 // Listeners for menu items from the main thread.
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     console.log(dirName)
-    projectStore.setActiveDirectory(dirName)
+    projectStore.setActiveImageSet(dirName)
+
+    // Send a message to the main process to update the disabled menu items
+    ipcRenderer.send('update-menu', true)
+})
+
+ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
+    console.log(dirName)
+    projectStore.setImageSetPaths(dirName)
 
     // Send a message to the main process to update the disabled menu items
     ipcRenderer.send('update-menu', true)

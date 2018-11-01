@@ -20,7 +20,18 @@ function generateMenuTemplate(imageLoaded: boolean) {
         dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
           if(mainWindow != null && dirName != null){
             mainWindow.webContents.send("open-directory", dirName[0])
-            if(plotWindow != null) plotWindow.webContents.send("open-directory", dirName[0])
+            // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
+            sendWindowSize()
+          }
+        })
+      }
+    },
+    {
+      label: "Open project",
+      click: () => {
+        dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
+          if(mainWindow != null && dirName != null){
+            mainWindow.webContents.send("open-project", dirName[0])
             // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
             sendWindowSize()
           }
@@ -34,7 +45,6 @@ function generateMenuTemplate(imageLoaded: boolean) {
         dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
           if(mainWindow != null && fileNames != null){
             mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-            if(plotWindow != null) plotWindow.webContents.send("open-segmentation-file", fileNames[0])
           }
         })
       }

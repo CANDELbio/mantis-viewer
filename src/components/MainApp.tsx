@@ -9,7 +9,7 @@ import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
 import { ChannelName } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
-import { SelectedDirectory } from "./SelectedDirectory"
+import { ImageSetSelector } from "./ImageSetSelector"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot"
 import { SelectedPopulations } from "./SelectedPopulations"
@@ -73,16 +73,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let plotStore = this.props.projectStore.activePlotStore
 
         let imageViewer = null
-        let selectedDirectory =  null
+        let imageSetSelector =  null
         let channelControls = null
         let scatterPlot = null
         let segmentationControls = null
 
-        if(imageStore.selectedDirectory) {
-            selectedDirectory = <SelectedDirectory
-                selectedDirectory = {imageStore.selectedDirectory}
-            />
-        }
+        imageSetSelector = <ImageSetSelector
+            selectedImageSet = {this.props.projectStore.activeImageSetPath}
+            imageSetOptions = {this.props.projectStore.imageSetPathOptions.get()}
+            setSelectedImageSet = {this.props.projectStore.setActiveImageSetFromSelect()}
+        />
 
         if(imageStore.imageData != null) {
             imageViewer = <ImageViewer 
@@ -178,7 +178,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
                         </Button>
                         <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
-                            <div>{selectedDirectory}</div>
+                            <div>{imageSetSelector}</div>
+                            <div>Channel Controls:</div>
                             <div>{channelControls}</div>
                         </UnmountClosed>
                         <br></br>

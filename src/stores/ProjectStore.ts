@@ -1,8 +1,9 @@
 import { observable, 
     action,
-    computed,
-    autorun} from "mobx"
+    autorun,
+    computed} from "mobx"
 import * as fs from 'fs'
+import * as path from "path"
 
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
@@ -11,8 +12,11 @@ import { ScatterPlotData } from "../lib/ScatterPlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
+import { SelectOption } from "../interfaces/UIDefinitions";
 
-interface Project {
+
+
+interface ImageSet {
     imageStore: ImageStore,
     populationStore: PopulationStore,
     plotStore: PlotStore
@@ -24,15 +28,17 @@ export class ProjectStore {
         this.initialize()
     }
     
-    @observable.ref projects: Record<string, Project> 
-    @observable activeProject: string | null
+    @observable imageSetPaths: string[]
+    @observable imageSets: Record<string, ImageSet>
+    @observable activeImageSetPath: string | null
 
     @observable.ref activeImageStore: ImageStore
     @observable.ref activePopulationStore: PopulationStore
     @observable.ref activePlotStore: PlotStore
 
     @action initialize = () => {
-        this.projects = {}
+        this.imageSetPaths = []
+        this.imageSets = {}
 
         this.activeImageStore = new ImageStore()
         this.activePopulationStore = new PopulationStore()
@@ -62,27 +68,50 @@ export class ProjectStore {
         }
     })
 
-    @action async setActiveDirectory(dirName:string) {
-        if(this.activeProject != dirName){
-            if(!(dirName in this.projects)){
-                let imageStore = new ImageStore()
-                imageStore.setImageDataLoading(true)
-                imageStore.selectDirectory(dirName)
-                imageStore.clearImageData()
-                let imageData = new ImageData()
-                imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
-                this.projects[dirName] = {
-                    imageStore: imageStore,
-                    populationStore: new PopulationStore(),
-                    plotStore: new PlotStore()
-                }
-            }
+    imageSetPathOptions = computed(() => {
+        return this.imageSetPaths.map((s) => {
+            return({value: s, label: path.basename(s)})
+        })
+    })
 
-            this.activeProject = dirName
-            this.activeImageStore = this.projects[dirName].imageStore
-            this.activePopulationStore = this.projects[dirName].populationStore
-            this.activePlotStore = this.projects[dirName].plotStore
+    @action setImageSetPaths(dirName:string) {
+        let files = fs.readdirSync(dirName)
+        for(let file of files){
+            let filePath = path.join(dirName, file)
+            if(fs.statSync(filePath).isDirectory()) this.imageSetPaths.push(filePath)
         }
+        if(this.imageSetPaths.length > 0) this.setActiveImageSet(this.imageSetPaths[0])
+    }
+
+    @action setActiveImageSet(dirName:string) {
+        // If we haven't loaded this directory, initialize the stores and load it.
+        if(!(dirName in this.imageSets)){
+            let imageStore = new ImageStore()
+            imageStore.setImageDataLoading(true)
+            imageStore.selectDirectory(dirName)
+            imageStore.clearImageData()
+            let imageData = new ImageData()
+            imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
+            this.imageSets[dirName] = {
+                imageStore: imageStore,
+                populationStore: new PopulationStore(),
+                plotStore: new PlotStore()
+            }
+        }
+
+        // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
+        if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
+
+        // Set this directory as the active one.
+        this.activeImageSetPath = dirName
+        this.activeImageStore = this.imageSets[dirName].imageStore
+        this.activePopulationStore = this.imageSets[dirName].populationStore
+        this.activePlotStore = this.imageSets[dirName].plotStore
+
+    }
+
+    @action setActiveImageSetFromSelect = () => {
+        return action((x: SelectOption) => { if(x != null) this.setActiveImageSet(x.value) })
     }
 
     @action clearActiveSegmentationData() {
