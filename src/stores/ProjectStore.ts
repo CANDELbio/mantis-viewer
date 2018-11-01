@@ -32,6 +32,8 @@ export class ProjectStore {
     @observable imageSets: Record<string, ImageSet>
     @observable activeImageSetPath: string | null
 
+    @observable persistImageSetSettings: boolean
+
     @observable.ref activeImageStore: ImageStore
     @observable.ref activePopulationStore: PopulationStore
     @observable.ref activePlotStore: PlotStore
@@ -39,6 +41,8 @@ export class ProjectStore {
     @action initialize = () => {
         this.imageSetPaths = []
         this.imageSets = {}
+
+        this.persistImageSetSettings = true
 
         this.activeImageStore = new ImageStore()
         this.activePopulationStore = new PopulationStore()
@@ -102,12 +106,28 @@ export class ProjectStore {
         // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
         if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
 
+        // Copy settings from old imageSet to new one.
+        if(this.activeImageSetPath != null && this.persistImageSetSettings){
+            this.copySegmentationBasename(this.activeImageSetPath, dirName)
+        }
+
         // Set this directory as the active one.
         this.activeImageSetPath = dirName
         this.activeImageStore = this.imageSets[dirName].imageStore
         this.activePopulationStore = this.imageSets[dirName].populationStore
         this.activePlotStore = this.imageSets[dirName].plotStore
 
+    }
+
+    @action copySegmentationBasename(sourceImageSetPath:string, destinationImageSetPath:string){
+        let sourceSegmentationFile = this.imageSets[sourceImageSetPath].imageStore.selectedSegmentationFile
+        if(sourceSegmentationFile != null){
+            let segmentationBasename = path.basename(sourceSegmentationFile)
+            let destinationSegmentationFile = path.join(destinationImageSetPath, segmentationBasename)
+            if(fs.statSync(destinationSegmentationFile).isFile()){
+                this.imageSets[destinationImageSetPath].imageStore.setSegmentationFile(destinationSegmentationFile)
+            }
+        }
     }
 
     @action setActiveImageSetFromSelect = () => {
