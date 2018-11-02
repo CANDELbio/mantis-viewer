@@ -32,7 +32,6 @@ export class ImageStore {
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
 
-    
     @observable channelDomain: Record<ChannelName, [number, number]> 
 
     @observable segmentationFillAlpha: number
@@ -47,8 +46,6 @@ export class ImageStore {
         x: [number, number]
         y: [number, number]
     } | null
-
-
 
     channelSelectOptions = computed(() => {
         if(this.imageData) {
@@ -95,7 +92,10 @@ export class ImageStore {
         this.imageDataLoading = status
     }
 
-    @action setImageData(data: ImageData, initialChannelMarkerValues?: Record<ChannelName, string | null> | null){
+    @action setImageData(data: ImageData,
+        initialChannelMarkerValues?: Record<ChannelName, string | null> | null,
+        initialChannelDomainPercentages?: Record<ChannelName, [number, number]> | null)
+    {
         this.imageData = data
         // If we have initial channel marker values, attempt to copy them. Otherwise use the defaults.
         if(initialChannelMarkerValues && initialChannelMarkerValues != null){
@@ -103,6 +103,11 @@ export class ImageStore {
         } else {
             this.setChannelMarkerDefaults()
         }
+
+        if(initialChannelDomainPercentages && initialChannelDomainPercentages != null){
+            this.setChannelDomainFromPercentages(initialChannelDomainPercentages)
+        }
+
         this.setImageDataLoading(false)
     }
 
@@ -130,6 +135,45 @@ export class ImageStore {
         this.selectedSegmentationFile = null
         this.segmentationData = null
         this.segmentationFillAlpha = 0
+    }
+
+    getChannelDomainPercentages = () => {
+        let channelDomainPercentages:Record<ChannelName, [number, number]>  = {
+            rChannel: [0, 1],
+            gChannel: [0, 1],
+            bChannel: [0, 1]
+        }
+
+        if(this.imageData != null){
+            for(let s in this.channelDomain){
+                let curChannel = s as ChannelName
+                let channelMarker = this.channelMarker[curChannel]
+                if(channelMarker != null){
+                    let channelMax = this.imageData.minmax[channelMarker].max
+                    let minPercentage = this.channelDomain[curChannel][0]/channelMax
+                    let maxPercentage = this.channelDomain[curChannel][1]/channelMax
+                    channelDomainPercentages[curChannel] = [minPercentage, maxPercentage]
+                }
+            }
+        }
+
+        return channelDomainPercentages
+    }
+
+    // Sets channel domain values as a percentage of the channelMax.
+    @action setChannelDomainFromPercentages = (percentages: Record<ChannelName, [number, number]>) => {
+        if(this.imageData != null){
+            for(let s in this.channelDomain){
+                let curChannel = s as ChannelName
+                let channelMarker = this.channelMarker[curChannel]
+                if(channelMarker != null){
+                    let channelMax = this.imageData.minmax[channelMarker].max
+                    let minValue  = percentages[curChannel][0] * channelMax
+                    let maxValue  = percentages[curChannel][1] * channelMax
+                    this.channelDomain[curChannel] = [minValue, maxValue]
+                }
+            }
+        }
     }
 
     @action setChannelDomain = (name: ChannelName) => {

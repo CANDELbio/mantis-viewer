@@ -82,6 +82,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             selectedImageSet = {this.props.projectStore.activeImageSetPath}
             imageSetOptions = {this.props.projectStore.imageSetPathOptions.get()}
             setSelectedImageSet = {this.props.projectStore.setActiveImageSetFromSelect()}
+            persistData = {this.props.projectStore.persistImageSetSettings}
+            setPersistData = {this.props.projectStore.setPersistImageSetSettings}
         />
 
         if(imageStore.imageData != null) {
@@ -178,7 +180,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         </Button>
                         <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
                             <div>{imageSetSelector}</div>
-                            <div>Channel Controls:</div>
+                            <div>{channelControls ? "Channel Controls:" : null}</div>
                             <div>{channelControls}</div>
                         </UnmountClosed>
                         <br></br>

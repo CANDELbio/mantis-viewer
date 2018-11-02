@@ -76,7 +76,13 @@ export class ProjectStore {
         })
     })
 
-    @action setImageSetPaths(dirName:string) {
+    @action setPersistImageSetSettings = (value: boolean) => {
+        console.log("Setting persist settings to...")
+        console.log(value)
+        this.persistImageSetSettings = value
+    }
+
+    @action setImageSetPaths = (dirName:string) => {
         let files = fs.readdirSync(dirName)
         for(let file of files){
             let filePath = path.join(dirName, file)
@@ -85,7 +91,7 @@ export class ProjectStore {
         if(this.imageSetPaths.length > 0) this.setActiveImageSet(this.imageSetPaths[0])
     }
 
-    @action setActiveImageSet(dirName:string) {
+    @action setActiveImageSet = (dirName:string) => {
         // If we haven't loaded this directory, initialize the stores and load it.
         if(!(dirName in this.imageSets)){
             // Set up the image store
@@ -93,11 +99,15 @@ export class ProjectStore {
             imageStore.setImageDataLoading(true)
             imageStore.selectDirectory(dirName)
             imageStore.clearImageData()
-            // Decide if we want to copy channelMarkerValues from the currently active imageStore
-            let initialChannelMarkerValues = (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.channelMarker : null
+            // Decide if we want to copy channelMarkerValues and channelDomain values as percentages from the currently active imageStore
+            let initialChannelMarkerValues =
+                (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.channelMarker : null
+            let initialChannelDomainPercentages =
+                (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.getChannelDomainPercentages() : null
+            // Load image data in the background and set on the image store once it's loaded.
             let imageData = new ImageData()
             imageData.loadFolder(dirName, (data) => {
-                imageStore.setImageData(data, initialChannelMarkerValues)
+                imageStore.setImageData(data, initialChannelMarkerValues, initialChannelDomainPercentages)
             })
             // Save in imageSets
             this.imageSets[dirName] = {
@@ -121,15 +131,16 @@ export class ProjectStore {
 
     }
 
-    @action copyImageSetSettings(sourceImageSetPath:string|null, destinationImageSetPath:string){
+    @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string) => {
         if(sourceImageSetPath != null && this.persistImageSetSettings){
             this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
             this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
+            this.copyChannelMarkerSettings(sourceImageSetPath, destinationImageSetPath)
         }
     }
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action copySegmentationBasename(sourceImageSetPath:string, destinationImageSetPath:string){
+    @action copySegmentationBasename = (sourceImageSetPath:string, destinationImageSetPath:string) => {
         let sourceSegmentationFile = this.imageSets[sourceImageSetPath].imageStore.selectedSegmentationFile
         if(sourceSegmentationFile != null){
             let segmentationBasename = path.basename(sourceSegmentationFile)
@@ -142,17 +153,23 @@ export class ProjectStore {
         }
     }
 
-    @action copyChannelMarkerValues(sourceImageSetPath:string, destinationImageSetPath:string){
+    @action copyChannelMarkerValues = (sourceImageSetPath:string, destinationImageSetPath:string) => {
         let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
         let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
         destinationImageStore.copyChannelMarkerValues(sourceImageStore.channelMarker)
+    }
+
+    @action copyChannelMarkerSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
+        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
+        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+        destinationImageStore.setChannelDomainFromPercentages(sourceImageStore.getChannelDomainPercentages())
     }
 
     @action setActiveImageSetFromSelect = () => {
         return action((x: SelectOption) => { if(x != null) this.setActiveImageSet(x.value) })
     }
 
-    @action clearActiveSegmentationData() {
+    @action clearActiveSegmentationData = () => {
         let imageStore = this.activeImageStore
         let plotStore = this.activePlotStore
         if(imageStore && plotStore){
@@ -161,7 +178,7 @@ export class ProjectStore {
         }
     }
 
-    @action clearActiveImageData() {
+    @action clearActiveImageData = () => {
         let imageStore = this.activeImageStore
         let populationStore = this.activePopulationStore
         if(imageStore && populationStore) {
