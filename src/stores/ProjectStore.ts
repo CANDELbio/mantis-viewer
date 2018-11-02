@@ -12,9 +12,7 @@ import { ScatterPlotData } from "../lib/ScatterPlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
-import { SelectOption, ChannelName } from "../interfaces/UIDefinitions";
-
-
+import { SelectOption } from "../interfaces/UIDefinitions";
 
 interface ImageSet {
     imageStore: ImageStore,

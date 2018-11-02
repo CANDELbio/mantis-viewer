@@ -34,7 +34,6 @@ export class ImageStore {
 
     
     @observable channelDomain: Record<ChannelName, [number, number]> 
-    @observable channelSliderValue: Record<ChannelName, [number, number]>
 
     @observable segmentationFillAlpha: number
     @observable segmentationOutlineAlpha: number
@@ -65,11 +64,7 @@ export class ImageStore {
             gChannel: [0, 100],
             bChannel: [0, 100]
         }
-        this.channelSliderValue = {
-            rChannel: [0, 100],
-            gChannel: [0, 100],
-            bChannel: [0, 100]
-        }
+
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 1
         this.segmentationCentroidsVisible = false
@@ -143,16 +138,9 @@ export class ImageStore {
         })
     }
 
-    @action setChannelSliderValue = (name: ChannelName) => {
-        return action((value: [number, number]) => {
-            this.channelSliderValue[name] = value
-        })
-    }
-
     @action unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
         this.channelDomain[channelName] = [0, 100]
-        this.channelSliderValue[channelName] = [0, 100]
     }
 
     @action setChannelMarker = (channelName: ChannelName, markerName: string) => {
@@ -162,7 +150,6 @@ export class ImageStore {
             let min = this.imageData.minmax[markerName].min
             let max = this.imageData.minmax[markerName].max
             this.channelDomain[channelName] = [min, max]
-            this.channelSliderValue[channelName] = [min, max]
         }
     }
 

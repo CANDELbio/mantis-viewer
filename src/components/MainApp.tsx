@@ -110,9 +110,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     key={s}
                     sliderMin = {this.getChannelMin(s)}
                     sliderMax = {this.getChannelMax(s)}
-                    sliderValue = {imageStore.channelSliderValue[s]}
-                    onSliderChange = {imageStore.setChannelSliderValue(s)}
-                    onSliderRelease = {imageStore.setChannelDomain(s)}
+                    sliderValue = {imageStore.channelDomain[s]}
+                    onSliderChange = {imageStore.setChannelDomain(s)}
                     selectOptions = {imageStore.channelSelectOptions.get()}
                     selectValue = {imageStore.channelMarker[s]}
                     onSelectChange = {imageStore.setChannelMarkerFromSelect(s)}
