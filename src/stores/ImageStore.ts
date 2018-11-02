@@ -100,9 +100,14 @@ export class ImageStore {
         this.imageDataLoading = status
     }
 
-    @action setImageData(data: ImageData){
+    @action setImageData(data: ImageData, initialChannelMarkerValues?: Record<ChannelName, string | null> | null){
         this.imageData = data
-        this.setChannelMarkerDefaults()
+        // If we have initial channel marker values, attempt to copy them. Otherwise use the defaults.
+        if(initialChannelMarkerValues && initialChannelMarkerValues != null){
+            this.copyChannelMarkerValues(initialChannelMarkerValues)
+        } else {
+            this.setChannelMarkerDefaults()
+        }
         this.setImageDataLoading(false)
     }
 
@@ -184,7 +189,29 @@ export class ImageStore {
         }
     }
 
-    @action selectDirectory = (dirName : string) => {
+    @action copyChannelMarkerValues = (values: Record<ChannelName, string | null>) => {
+        // Only copy if we have image data. Otherwise we can't verify if we have the channels indicated in values.
+        if(this.imageData != null && values != null) {
+            for (let s in values) {
+                let channelName = s as ChannelName
+                let channelValue = values[channelName] // The file selected
+                if(channelValue != null){
+                    if(this.imageData.channelNames.indexOf(channelValue) != -1){
+                        // If the file selected is not null and the destination has a file with the same name set that
+                        this.setChannelMarker(channelName, channelValue)
+                    } else {
+                        // Otherwise unset that channel for the destination
+                        this.unsetChannelMarker(channelName)
+                    }
+                } else {
+                    // Unset the channel for the destination if it's unset in the source
+                    this.unsetChannelMarker(channelName)
+                }
+            }
+        }
+    }
+
+    @action selectDirectory = (dirName: string) => {
         this.selectedDirectory = dirName
     }
 

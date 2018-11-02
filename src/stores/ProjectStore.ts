@@ -12,7 +12,7 @@ import { ScatterPlotData } from "../lib/ScatterPlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
-import { SelectOption } from "../interfaces/UIDefinitions";
+import { SelectOption, ChannelName } from "../interfaces/UIDefinitions";
 
 
 
@@ -90,12 +90,18 @@ export class ProjectStore {
     @action setActiveImageSet(dirName:string) {
         // If we haven't loaded this directory, initialize the stores and load it.
         if(!(dirName in this.imageSets)){
+            // Set up the image store
             let imageStore = new ImageStore()
             imageStore.setImageDataLoading(true)
             imageStore.selectDirectory(dirName)
             imageStore.clearImageData()
+            // Decide if we want to copy channelMarkerValues from the currently active imageStore
+            let initialChannelMarkerValues = (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.channelMarker : null
             let imageData = new ImageData()
-            imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
+            imageData.loadFolder(dirName, (data) => {
+                imageStore.setImageData(data, initialChannelMarkerValues)
+            })
+            // Save in imageSets
             this.imageSets[dirName] = {
                 imageStore: imageStore,
                 populationStore: new PopulationStore(),
@@ -106,10 +112,8 @@ export class ProjectStore {
         // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
         if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
 
-        // Copy settings from old imageSet to new one.
-        if(this.activeImageSetPath != null && this.persistImageSetSettings){
-            this.copySegmentationBasename(this.activeImageSetPath, dirName)
-        }
+        // Copy settings from old imageSet to new one if we're not loading the new image set from scratch.
+        this.copyImageSetSettings(this.activeImageSetPath, dirName)
 
         // Set this directory as the active one.
         this.activeImageSetPath = dirName
@@ -119,15 +123,31 @@ export class ProjectStore {
 
     }
 
+    @action copyImageSetSettings(sourceImageSetPath:string|null, destinationImageSetPath:string){
+        if(sourceImageSetPath != null && this.persistImageSetSettings){
+            this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
+            this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
+        }
+    }
+
+    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     @action copySegmentationBasename(sourceImageSetPath:string, destinationImageSetPath:string){
         let sourceSegmentationFile = this.imageSets[sourceImageSetPath].imageStore.selectedSegmentationFile
         if(sourceSegmentationFile != null){
             let segmentationBasename = path.basename(sourceSegmentationFile)
             let destinationSegmentationFile = path.join(destinationImageSetPath, segmentationBasename)
-            if(fs.statSync(destinationSegmentationFile).isFile()){
-                this.imageSets[destinationImageSetPath].imageStore.setSegmentationFile(destinationSegmentationFile)
+            let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+            // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
+            if(fs.statSync(destinationSegmentationFile).isFile() && destinationImageStore.selectedSegmentationFile != destinationSegmentationFile){
+                destinationImageStore.setSegmentationFile(destinationSegmentationFile)
             }
         }
+    }
+
+    @action copyChannelMarkerValues(sourceImageSetPath:string, destinationImageSetPath:string){
+        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
+        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+        destinationImageStore.copyChannelMarkerValues(sourceImageStore.channelMarker)
     }
 
     @action setActiveImageSetFromSelect = () => {
