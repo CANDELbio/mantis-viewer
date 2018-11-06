@@ -1,7 +1,8 @@
 import { observable, 
     action,
     autorun,
-    computed} from "mobx"
+    computed,
+    when} from "mobx"
 import * as fs from 'fs'
 import * as path from "path"
 
@@ -28,6 +29,7 @@ export class ProjectStore {
     
     @observable imageSetPaths: string[]
     @observable imageSets: Record<string, ImageSet>
+    @observable lastActiveImageSetPath: string | null
     @observable activeImageSetPath: string | null
 
     @observable persistImageSetSettings: boolean
@@ -105,7 +107,7 @@ export class ProjectStore {
             // Load image data in the background and set on the image store once it's loaded.
             let imageData = new ImageData()
             imageData.loadFolder(dirName, (data) => {
-                imageStore.setImageData(data, initialChannelMarkerValues, initialChannelDomainPercentages)
+                imageStore.setImageData(data)
             })
             // Save in imageSets
             this.imageSets[dirName] = {
@@ -119,23 +121,46 @@ export class ProjectStore {
         if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
 
         // Copy settings from old imageSet to new one if we're not loading the new image set from scratch.
-        this.copyImageSetSettings(this.activeImageSetPath, dirName)
+        // this.copyImageSetSettings(this.activeImageSetPath, dirName)
 
         // Set this directory as the active one.
+        this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
         this.activeImageStore = this.imageSets[dirName].imageStore
         this.activePopulationStore = this.imageSets[dirName].populationStore
         this.activePlotStore = this.imageSets[dirName].plotStore
+        when(() => !this.activeImageStore.imageDataLoading, () => this.copyImageSetSettings(this.lastActiveImageSetPath, this.activeImageSetPath))
 
     }
 
-    @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string) => {
-        if(sourceImageSetPath != null && this.persistImageSetSettings){
-            this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
-            this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
-            this.copyChannelMarkerSettings(sourceImageSetPath, destinationImageSetPath)
-            this.copySegmentationSettings(sourceImageSetPath, destinationImageSetPath)
+    @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
+        console.log("Attempting to copy settings...")
+        if(sourceImageSetPath != null && destinationImageSetPath != null){
+            console.log("Copying settings...")
+            // We want to copy whether or not the plot is being viewed in the main window as changing the image set won't close the plot window if open.
+            this.copyPlotInMainWindow(sourceImageSetPath, destinationImageSetPath)
+            if(this.persistImageSetSettings) {
+                this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
+                this.copyChannelMarkerSettings(sourceImageSetPath, destinationImageSetPath)
+                this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
+                this.copySegmentationSettings(sourceImageSetPath, destinationImageSetPath)
+                this.copyPlotStoreSettings(sourceImageSetPath, destinationImageSetPath)
+            }
         }
+    }
+
+    @action copyPlotInMainWindow = (sourceImageSetPath:string, destinationImageSetPath:string) => {
+        let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
+        let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
+        destinationPlotStore.setPlotInMainWindow(sourcePlotStore.plotInMainWindow)
+    }
+
+    @action copyPlotStoreSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
+        let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
+        let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
+        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
+        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
+        // TODO: Check if selected channels are in the current image store. If so, copy them over.
     }
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
