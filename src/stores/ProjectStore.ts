@@ -91,52 +91,53 @@ export class ProjectStore {
         if(this.imageSetPaths.length > 0) this.setActiveImageSet(this.imageSetPaths[0])
     }
 
-    @action setActiveImageSet = (dirName:string) => {
-        // If we haven't loaded this directory, initialize the stores and load it.
-        if(!(dirName in this.imageSets)){
-            // Set up the image store
-            let imageStore = new ImageStore()
-            imageStore.setImageDataLoading(true)
-            imageStore.selectDirectory(dirName)
-            imageStore.clearImageData()
-            // Decide if we want to copy channelMarkerValues and channelDomain values as percentages from the currently active imageStore
-            let initialChannelMarkerValues =
-                (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.channelMarker : null
-            let initialChannelDomainPercentages =
-                (this.activeImageSetPath && this.persistImageSetSettings) ? this.activeImageStore.getChannelDomainPercentages() : null
-            // Load image data in the background and set on the image store once it's loaded.
-            let imageData = new ImageData()
-            imageData.loadFolder(dirName, (data) => {
-                imageStore.setImageData(data)
-            })
-            // Save in imageSets
-            this.imageSets[dirName] = {
-                imageStore: imageStore,
-                populationStore: new PopulationStore(),
-                plotStore: new PlotStore()
-            }
+    @action initializeStores = (dirName:string) => {
+        // Set up the image store
+        let imageStore = new ImageStore()
+        imageStore.setImageDataLoading(true)
+        imageStore.selectDirectory(dirName)
+        imageStore.clearImageData()
+        // Load image data in the background and set on the image store once it's loaded.
+        let imageData = new ImageData()
+        imageData.loadFolder(dirName, (data) => {
+            imageStore.setImageData(data)
+        })
+        // Save in imageSets
+        this.imageSets[dirName] = {
+            imageStore: imageStore,
+            populationStore: new PopulationStore(),
+            plotStore: new PlotStore()
         }
+    }
 
-        // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
-        if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
-
-        // Copy settings from old imageSet to new one if we're not loading the new image set from scratch.
-        // this.copyImageSetSettings(this.activeImageSetPath, dirName)
-
-        // Set this directory as the active one.
+    @action setActiveStores = (dirName:string) => {
         this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
         this.activeImageStore = this.imageSets[dirName].imageStore
         this.activePopulationStore = this.imageSets[dirName].populationStore
         this.activePlotStore = this.imageSets[dirName].plotStore
+    }
+
+    @action setActiveImageSet = (dirName:string) => {
+        // If we haven't loaded this directory, initialize the stores and load it.
+        if(!(dirName in this.imageSets)){
+            this.initializeStores(dirName)
+        }
+
+        // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
+        if(this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
+
+        // Set this directory as the active one and set the stores as the active ones.
+        this.setActiveStores(dirName)
+
+        // Copy settings from old imageSet to new one once image data has loaded.
+        // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
         when(() => !this.activeImageStore.imageDataLoading, () => this.copyImageSetSettings(this.lastActiveImageSetPath, this.activeImageSetPath))
 
     }
 
     @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
-        console.log("Attempting to copy settings...")
         if(sourceImageSetPath != null && destinationImageSetPath != null){
-            console.log("Copying settings...")
             // We want to copy whether or not the plot is being viewed in the main window as changing the image set won't close the plot window if open.
             this.copyPlotInMainWindow(sourceImageSetPath, destinationImageSetPath)
             if(this.persistImageSetSettings) {
@@ -160,7 +161,19 @@ export class ProjectStore {
         let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
         destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
         destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
-        // TODO: Check if selected channels are in the current image store. If so, copy them over.
+        // Check if the source selected plot channels are in the destination image set. If they are, use them.
+        let sourcePlotChannels = sourcePlotStore.selectedPlotChannels
+        let destinationImageData = this.imageSets[destinationImageSetPath].imageStore.imageData
+        if(destinationImageData != null){
+            let selectedPlotChannels = []
+            for(let channel of sourcePlotChannels){
+                if(destinationImageData.channelNames.indexOf(channel) != -1){
+                    selectedPlotChannels.push(channel)
+                }
+            }
+
+            destinationPlotStore.setSelectedPlotChannels(selectedPlotChannels)
+        }
     }
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.

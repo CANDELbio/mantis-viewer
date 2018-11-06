@@ -81,37 +81,24 @@ export class ImageStore {
         this.windowHeight = height
     }
 
-    @action setCurrentSelection(extent: D3BrushExtent) {
+    @action setCurrentSelection = (extent: D3BrushExtent) => {
         this.currentSelection = {
             x: [extent[0][0], extent[1][0]],
             y: [extent[0][1], extent[1][1]]
         }
     }
 
-    @action setImageDataLoading(status: boolean){
+    @action setImageDataLoading = (status: boolean) => {
         this.imageDataLoading = status
     }
 
-    @action setImageData(data: ImageData,
-        initialChannelMarkerValues?: Record<ChannelName, string | null> | null,
-        initialChannelDomainPercentages?: Record<ChannelName, [number, number]> | null)
-    {
+    @action setImageData = (data: ImageData) => {
         this.imageData = data
-        // If we have initial channel marker values, attempt to copy them. Otherwise use the defaults.
-        if(initialChannelMarkerValues && initialChannelMarkerValues != null){
-            this.copyChannelMarkerValues(initialChannelMarkerValues)
-        } else {
-            this.setChannelMarkerDefaults()
-        }
-
-        if(initialChannelDomainPercentages && initialChannelDomainPercentages != null){
-            this.setChannelDomainFromPercentages(initialChannelDomainPercentages)
-        }
-
+        this.setChannelMarkerDefaults()
         this.setImageDataLoading(false)
     }
 
-    @action clearImageData(){
+    @action clearImageData = () => {
         for(let s of ['rChannel', 'bChannel', 'gChannel']){
             let curChannel = s as ChannelName
             this.unsetChannelMarker(curChannel)
