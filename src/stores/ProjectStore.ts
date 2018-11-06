@@ -77,8 +77,6 @@ export class ProjectStore {
     })
 
     @action setPersistImageSetSettings = (value: boolean) => {
-        console.log("Setting persist settings to...")
-        console.log(value)
         this.persistImageSetSettings = value
     }
 
@@ -136,6 +134,7 @@ export class ProjectStore {
             this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
             this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
             this.copyChannelMarkerSettings(sourceImageSetPath, destinationImageSetPath)
+            this.copySegmentationSettings(sourceImageSetPath, destinationImageSetPath)
         }
     }
 
@@ -151,6 +150,14 @@ export class ProjectStore {
                 destinationImageStore.setSegmentationFile(destinationSegmentationFile)
             }
         }
+    }
+
+    @action copySegmentationSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
+        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
+        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+        destinationImageStore.setSegmentationFillAlpha(sourceImageStore.segmentationFillAlpha)
+        destinationImageStore.setSegmentationOutlineAlpha(sourceImageStore.segmentationOutlineAlpha)
+        destinationImageStore.setCentroidVisibility(sourceImageStore.segmentationCentroidsVisible)
     }
 
     @action copyChannelMarkerValues = (sourceImageSetPath:string, destinationImageSetPath:string) => {
