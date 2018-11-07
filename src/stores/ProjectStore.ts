@@ -68,6 +68,8 @@ export class ProjectStore {
                         populationStore.selectedPopulations
                     ))
                 }
+            } else {
+                plotStore.clearScatterPlotData()
             }
         }
     })
