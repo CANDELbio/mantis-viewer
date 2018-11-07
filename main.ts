@@ -15,79 +15,99 @@ function generateMenuTemplate(imageLoaded: boolean) {
     label: "File",
     submenu: [
     {
-      label: "Open folder",
-      click: () => {
-        dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
-          if(mainWindow != null && dirName != null){
-            mainWindow.webContents.send("open-directory", dirName[0])
-            // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-            sendWindowSize()
+      label: "Open",
+      submenu:  [
+        {
+          label: "Open folder",
+          click: () => {
+            dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
+              if(mainWindow != null && dirName != null){
+                mainWindow.webContents.send("open-directory", dirName[0])
+                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
+                sendWindowSize()
+              }
+            })
           }
-        })
-      }
-    },
-    {
-      label: "Open project",
-      click: () => {
-        dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
-          if(mainWindow != null && dirName != null){
-            mainWindow.webContents.send("open-project", dirName[0])
-            // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-            sendWindowSize()
+        },
+        {
+          label: "Open project",
+          click: () => {
+            dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
+              if(mainWindow != null && dirName != null){
+                mainWindow.webContents.send("open-project", dirName[0])
+                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
+                sendWindowSize()
+              }
+            })
           }
-        })
-      }
-    },
-    {
-      label: "Open segmentation file",
-      enabled: imageLoaded,
-      click: () => {
-        dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
-          if(mainWindow != null && fileNames != null){
-            mainWindow.webContents.send("open-segmentation-file", fileNames[0])
-          }
-        })
-      }
-    },
-    {
-      label: "Add populations from CSV",
-      enabled: imageLoaded,
-      click: () => {
-        dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
-          if(mainWindow != null && fileNames != null)
-            mainWindow.webContents.send("add-populations-csv", fileNames[0])
-        })
-      }
-    },
-    {
-      label: "Import segmentation & selected populations",
-      enabled: imageLoaded,
-      click: () => {
-        dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
-          if(mainWindow != null && fileNames != null)
-            mainWindow.webContents.send("import-selected-populations", fileNames[0])
-          })
         }
-      },
-    {
-      label: "Export segmentation & selected populations",
-      enabled: imageLoaded,
-      click: () => {
-        dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
-          if(mainWindow != null && filename != null)
-            mainWindow.webContents.send("export-selected-populations", filename)
-        })
-      }
+      ]
     },
     {
-      label: "Export image",
-      enabled: imageLoaded,
-      click: () => {
-        dialog.showSaveDialog({filters: [{ name: 'png', extensions: ['png'] }]},  (filename:string) => {
-          if(mainWindow != null && filename != null)
-            mainWindow.webContents.send("export-image", filename)
-        })
-      }
+      label: "Segmentation",
+      submenu: [
+        {
+          label: "Open segmentation file",
+          enabled: imageLoaded,
+          click: () => {
+            dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
+              if(mainWindow != null && fileNames != null){
+                mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+              }
+            })
+          }
+        }
+      ]
+    },
+    {
+      label: "Populations",
+      submenu: [
+        {
+          label: "Import populations from CSV",
+          enabled: imageLoaded,
+          click: () => {
+            dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
+              if(mainWindow != null && fileNames != null)
+                mainWindow.webContents.send("add-populations-csv", fileNames[0])
+            })
+          }
+        },
+        {
+          label: "Import segmentation and populations from JSON",
+          enabled: imageLoaded,
+          click: () => {
+            dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
+              if(mainWindow != null && fileNames != null)
+                mainWindow.webContents.send("import-selected-populations", fileNames[0])
+              })
+            }
+          },
+        {
+          label: "Export segmentation and populations to JSON",
+          enabled: imageLoaded,
+          click: () => {
+            dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
+              if(mainWindow != null && filename != null)
+                mainWindow.webContents.send("export-selected-populations", filename)
+            })
+          }
+        },
+      ]
+    },
+    {
+      label: "Image",
+      submenu: [
+        {
+          label: "Export image",
+          enabled: imageLoaded,
+          click: () => {
+            dialog.showSaveDialog({filters: [{ name: 'png', extensions: ['png'] }]},  (filename:string) => {
+              if(mainWindow != null && filename != null)
+                mainWindow.webContents.send("export-image", filename)
+            })
+          }
+        }
+      ]
     },
     {
       label: "Quit",

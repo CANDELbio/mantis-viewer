@@ -30,7 +30,7 @@ export interface ImageProps {
     selectedRegions: Array<SelectedPopulation> | null,
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
     hightlightedRegions: string[]
-    highlightedSegmentsFromGraph: number[]
+    highlightedSegmentsFromPlot: number[]
     exportPath: string | null
     onExportComplete: (() => void)
 }
@@ -533,7 +533,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let highlightedRegions = this.props.hightlightedRegions
 
-        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
+        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 
         let exportPath = this.props.exportPath
 

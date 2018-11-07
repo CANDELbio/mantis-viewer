@@ -22,7 +22,7 @@ interface MainAppState {
     channelsOpen: boolean,
     regionsOpen: boolean,
     segmentationOpen: boolean,
-    graphOpen: boolean
+    plotOpen: boolean
 }
 
 @observer
@@ -35,13 +35,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         channelsOpen: true,
         regionsOpen: true,
         segmentationOpen: false,
-        graphOpen: false
+        plotOpen: false
     }
 
     handleChannelClick = () => this.setState({channelsOpen: !this.state.channelsOpen})
     handleRegionsClick = () => this.setState({regionsOpen: !this.state.regionsOpen})
     handleSegmentationClick = () => this.setState({segmentationOpen: !this.state.segmentationOpen})
-    handleGraphClick = () => this.setState({graphOpen: !this.state.graphOpen})
+    handlePlotClick = () => this.setState({plotOpen: !this.state.plotOpen})
 
     addSelectedPopulation = (segmentIds: number[]) => {
         let populationStore = this.props.projectStore.activePopulationStore
@@ -102,7 +102,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 addSelectedRegion = {populationStore.addSelectedPopulation}
                 selectedRegions = {populationStore.selectedPopulations}
                 hightlightedRegions = {populationStore.highlightedPopulations}
-                highlightedSegmentsFromGraph = {plotStore.segmentsHoveredOnPlot}
+                highlightedSegmentsFromPlot = {plotStore.segmentsHoveredOnPlot}
                 exportPath = {imageStore.imageExportFilename}
                 onExportComplete = {imageStore.clearImageExportFilename}
             />
@@ -202,10 +202,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
                             {selectedPopulations}
                         </UnmountClosed>
-                        <Button onClick={this.handleGraphClick}  style={fullWidth}>
-                            {this.state.graphOpen ? "Hide" : "Show"} Graphing Pane
+                        <Button onClick={this.handlePlotClick}  style={fullWidth}>
+                            {this.state.plotOpen ? "Hide" : "Show"} Plot Pane
                         </Button>
-                        <UnmountClosed isOpened={this.state.graphOpen} style={fullWidth}>
+                        <UnmountClosed isOpened={this.state.plotOpen} style={fullWidth}>
                             <Flexbox flexDirection="column" flex="flex-grow" minWidth="400px">
                                 {scatterPlot}
                             </Flexbox>
