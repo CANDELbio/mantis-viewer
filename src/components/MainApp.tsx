@@ -2,7 +2,7 @@ import * as React from "react"
 import { UnmountClosed } from 'react-collapse'
 import { Button } from "@blueprintjs/core"
 import { ClipLoader } from 'react-spinners'
-import Flexbox from 'flexbox-react'
+import { Grid, Row, Col } from 'react-flexbox-grid';
 
 import { ProjectStore } from "../stores/ProjectStore";
 import { ChannelControls } from "./ChannelControls"
@@ -173,45 +173,51 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
      
         return(
             <div>
-                <Flexbox flexDirection="row" justifyContent="space-between">
-                    <Flexbox flexDirection="column" flex="0 1 auto" alignItems="flex-start" paddingLeft="20px" paddingRight="10px" paddingTop="10px">
-                        <Button onClick={this.handleChannelClick} style={fullWidth}>
-                            {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
-                        </Button>
-                        <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
-                            <div>{imageSetSelector}</div>
-                            <div>{channelControls ? "Channel Controls:" : null}</div>
-                            <div>{channelControls}</div>
-                        </UnmountClosed>
-                        <br></br>
-                        <Button onClick={this.handleSegmentationClick} style={fullWidth}>
-                            {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
-                        </Button>
-                        <UnmountClosed isOpened={this.state.segmentationOpen} style={fullWidth}>
-                            <div>{segmentationControls}</div>
-                        </UnmountClosed>
-                    </Flexbox>
-                    <Flexbox flexDirection="column" flex="1 1 auto" alignItems="center" minWidth="550px"  paddingTop="10px">
-                        {imageViewer}
-                        {imageLoading}
-                    </Flexbox>
-                    <Flexbox flexDirection="column" flex="1 1 auto" alignItems="flex-end" paddingLeft="10px" paddingRight="20px" paddingTop="10px">
-                        <Button onClick={this.handleRegionsClick} style={fullWidth}>
-                            {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions
-                        </Button>
-                        <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
-                            {selectedPopulations}
-                        </UnmountClosed>
-                        <Button onClick={this.handlePlotClick}  style={fullWidth}>
-                            {this.state.plotOpen ? "Hide" : "Show"} Plot Pane
-                        </Button>
-                        <UnmountClosed isOpened={this.state.plotOpen} style={fullWidth}>
-                            <Flexbox flexDirection="column" flex="flex-grow" minWidth="400px">
-                                {scatterPlot}
-                            </Flexbox>
-                        </UnmountClosed>
-                    </Flexbox>
-                </Flexbox>
+                <Grid fluid={true}>
+                    <Row between="xs">
+                        <Col xs={2} sm={2} md={2} lg={2}>
+                            <Button onClick={this.handleChannelClick} style={fullWidth}>
+                                {this.state.channelsOpen ? "Hide" : "Show"} Channel Controls
+                            </Button>
+                            <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
+                                <div>{imageSetSelector}</div>
+                                <div>{channelControls ? "Channel Controls:" : null}</div>
+                                <div>{channelControls}</div>
+                            </UnmountClosed>
+                            <br></br>
+                            <Button onClick={this.handleSegmentationClick} style={fullWidth}>
+                                {this.state.segmentationOpen ? "Hide" : "Show"} Segmentation Controls
+                            </Button>
+                            <UnmountClosed isOpened={this.state.segmentationOpen} style={fullWidth}>
+                                <div>{segmentationControls}</div>
+                            </UnmountClosed>
+                        </Col>
+                        <Col xs={6} sm={6} md={6} lg={6}>
+                            <Grid fluid={true}>
+                                <Row center="xs">
+                                    <Col>
+                                        {imageViewer}
+                                        {imageLoading}
+                                    </Col>
+                                </Row>
+                            </Grid>
+                        </Col>
+                        <Col xs={4} sm={4} md={4} lg={4}>
+                            <Button onClick={this.handleRegionsClick} style={fullWidth}>
+                                {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions
+                            </Button>
+                            <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
+                                {selectedPopulations}
+                            </UnmountClosed>
+                            <Button onClick={this.handlePlotClick}  style={fullWidth}>
+                                {this.state.plotOpen ? "Hide" : "Show"} Plot Pane
+                            </Button>
+                            <UnmountClosed isOpened={this.state.plotOpen} style={fullWidth}>
+                                    {scatterPlot}
+                            </UnmountClosed>
+                        </Col>
+                    </Row>
+                </Grid>
             </div>
         )
     }

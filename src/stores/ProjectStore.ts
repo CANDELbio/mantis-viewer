@@ -140,32 +140,36 @@ export class ProjectStore {
 
     @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
         if(sourceImageSetPath != null && destinationImageSetPath != null){
+            let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
+            let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
+            let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+            let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
             // We want to copy whether or not the plot is being viewed in the main window as changing the image set won't close the plot window if open.
-            this.copyPlotInMainWindow(sourceImageSetPath, destinationImageSetPath)
+            this.copyWindowWidth(sourceImageStore, destinationImageStore)
+            this.copyPlotInMainWindow(sourcePlotStore, destinationPlotStore)
             if(this.persistImageSetSettings) {
-                this.copyChannelMarkerValues(sourceImageSetPath, destinationImageSetPath)
-                this.copyChannelMarkerSettings(sourceImageSetPath, destinationImageSetPath)
-                this.copySegmentationBasename(sourceImageSetPath, destinationImageSetPath)
-                this.copySegmentationSettings(sourceImageSetPath, destinationImageSetPath)
-                this.copyPlotStoreSettings(sourceImageSetPath, destinationImageSetPath)
+                destinationImageStore.copyChannelMarkerValues(sourceImageStore.channelMarker)
+                destinationImageStore.setChannelDomainFromPercentages(sourceImageStore.getChannelDomainPercentages())
+                this.copySegmentationBasename(sourceImageStore, destinationImageSetPath, destinationImageStore)
+                this.copySegmentationSettings(sourceImageStore, destinationImageStore)
+                this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
             }
         }
     }
 
-    @action copyPlotInMainWindow = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
-        let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
+    @action copyWindowWidth = (sourceImageStore:ImageStore, destinationImageStore:ImageStore) => {
+        if(sourceImageStore.windowWidth != null && sourceImageStore.windowHeight != null){
+            destinationImageStore.setWindowDimensions(sourceImageStore.windowWidth, sourceImageStore.windowHeight)
+        }
+    }
+
+    @action copyPlotInMainWindow = (sourcePlotStore:PlotStore, destinationPlotStore:PlotStore) => {
         destinationPlotStore.setPlotInMainWindow(sourcePlotStore.plotInMainWindow)
     }
 
-    @action copyPlotStoreSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
-        let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
-        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
-        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
-        // Check if the source selected plot channels are in the destination image set. If they are, use them.
+    @action copyPlotStoreChannels = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
         let sourcePlotChannels = sourcePlotStore.selectedPlotChannels
-        let destinationImageData = this.imageSets[destinationImageSetPath].imageStore.imageData
+        let destinationImageData = destinationImageStore.imageData
         if(destinationImageData != null){
             let selectedPlotChannels = []
             for(let channel of sourcePlotChannels){
@@ -173,18 +177,24 @@ export class ProjectStore {
                     selectedPlotChannels.push(channel)
                 }
             }
-
             destinationPlotStore.setSelectedPlotChannels(selectedPlotChannels)
         }
     }
 
+    @action copyPlotStoreSettings = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
+        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
+        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
+        // Check if the source selected plot channels are in the destination image set. If they are, use them.
+        this.copyPlotStoreChannels(sourcePlotStore, destinationImageStore, destinationPlotStore)
+    }
+
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action copySegmentationBasename = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourceSegmentationFile = this.imageSets[sourceImageSetPath].imageStore.selectedSegmentationFile
+    @action copySegmentationBasename = (sourceImageStore:ImageStore, destinationImageSetPath:string, destinationImageStore:ImageStore) => {
+        let sourceSegmentationFile = sourceImageStore.selectedSegmentationFile
         if(sourceSegmentationFile != null){
+            let destinationPath = destinationImageStore.selectedDirectory
             let segmentationBasename = path.basename(sourceSegmentationFile)
             let destinationSegmentationFile = path.join(destinationImageSetPath, segmentationBasename)
-            let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
             // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
             if(fs.statSync(destinationSegmentationFile).isFile() && destinationImageStore.selectedSegmentationFile != destinationSegmentationFile){
                 destinationImageStore.setSegmentationFile(destinationSegmentationFile)
@@ -192,24 +202,10 @@ export class ProjectStore {
         }
     }
 
-    @action copySegmentationSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
-        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
+    @action copySegmentationSettings = (sourceImageStore:ImageStore, destinationImageStore:ImageStore) => {
         destinationImageStore.setSegmentationFillAlpha(sourceImageStore.segmentationFillAlpha)
         destinationImageStore.setSegmentationOutlineAlpha(sourceImageStore.segmentationOutlineAlpha)
         destinationImageStore.setCentroidVisibility(sourceImageStore.segmentationCentroidsVisible)
-    }
-
-    @action copyChannelMarkerValues = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
-        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
-        destinationImageStore.copyChannelMarkerValues(sourceImageStore.channelMarker)
-    }
-
-    @action copyChannelMarkerSettings = (sourceImageSetPath:string, destinationImageSetPath:string) => {
-        let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
-        let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
-        destinationImageStore.setChannelDomainFromPercentages(sourceImageStore.getChannelDomainPercentages())
     }
 
     @action setActiveImageSetFromSelect = () => {

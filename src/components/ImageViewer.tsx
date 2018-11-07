@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as PIXI from "pixi.js"
-import { observer } from "mobx-react"
 import * as fs from "fs"
+import { observer } from "mobx-react"
 
 import { ImageData } from "../lib/ImageData"
 import { ChannelName,
@@ -559,7 +559,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
             // become larger as the window becomes larger
             // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/1540) * 550
+            renderWidth = (this.props.windowWidth/1540) * 650
         } 
 
         return(

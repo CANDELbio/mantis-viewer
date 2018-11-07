@@ -1,9 +1,10 @@
+import * as Plotly from 'plotly.js'
+
 import { ImageData } from "./ImageData"
 import { SegmentationData } from "./SegmentationData"
 import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { hexToRGB } from "./GraphicsHelper"
-import * as Plotly from 'plotly.js'
 
 export const DefaultSelectionName = "All Segments"
 export const DefaultSelectionId = "DEFAULT_SELECTION_ID"
@@ -12,7 +13,7 @@ export const DefaultSelectionColor = 0x4286f4 // blue, color for "All Segments"
 export class ScatterPlotData {
     ch1: string
     ch2: string
-    data: Array<Plotly.Data>
+    data: Plotly.Data[]
     layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
 
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.

@@ -31,7 +31,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         return(
             <div>
                 <Select
-                    value = {(this.props.selectValue == null) ? undefined : this.props.selectValue}
+                    value = {(this.props.selectValue == null) ? undefined:  this.props.selectValue}
                     options = {this.props.selectOptions}
                     onChange = {this.props.onSelectChange}
                 />

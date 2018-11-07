@@ -1,8 +1,8 @@
 import * as _ from "underscore"
 import * as PIXI from "pixi.js"
-import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from "../interfaces/ImageInterfaces"
 import * as fs from "fs"
 import * as path from "path"
+import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from "../interfaces/ImageInterfaces"
 
 import ImageWorker = require("worker-loader?name=dist/[name].js!../workers/ImageDataWorker")
 
