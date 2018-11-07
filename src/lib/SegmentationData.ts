@@ -173,7 +173,7 @@ export class SegmentationData {
         return SegmentationData.segmentationSpriteFromData(this.data, this.width, this.height)
     }
 
-    public segmentOutlineGraphics(color = SegmentOutlineColor, segments?:number[]){
+    public segmentOutlineGraphics(color = SegmentOutlineColor, width: number, segments?:number[]){
         let outlines = []
         for(let segment in this.segmentOutlineMap){
             let segmentId = Number(segment)
@@ -183,7 +183,7 @@ export class SegmentationData {
                 outlines.push(this.segmentOutlineMap[segmentId])
             }
         }
-        return drawOutlines(outlines, color)
+        return drawOutlines(outlines, color, width)
     }
 
     constructor(width:number, height: number, data: Float32Array | Uint16Array) {
