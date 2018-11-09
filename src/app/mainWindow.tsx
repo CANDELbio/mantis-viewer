@@ -15,7 +15,7 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
     projectStore.setActiveImageSet(dirName)
 
     // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('update-menu', true)
+    ipcRenderer.send('set-image-loaded', true)
 })
 
 ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
@@ -23,19 +23,27 @@ ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
     projectStore.setImageSetPaths(dirName)
 
     // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('update-menu', true)
+    ipcRenderer.send('set-image-loaded', true)
 })
 
 ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
     projectStore.activeImageStore.setSegmentationFile(filename)
 })
 
-ipcRenderer.on("import-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("import-active-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.importActiveUserData(filename)
 })
 
-ipcRenderer.on("export-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("import-all-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.importAllUserData(filename)
+})
+
+ipcRenderer.on("export-active-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.exportActiveUserData(filename)
+})
+
+ipcRenderer.on("export-all-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.exportAllUserData(filename)
 })
 
 ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) => {
@@ -84,7 +92,7 @@ ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: n
 })
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
-Mobx.autorun(() =>{
+Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore
     let plotStore = projectStore.activePlotStore
     ipcRenderer.send('mainWindow-set-plot-data',
@@ -94,6 +102,12 @@ Mobx.autorun(() =>{
         plotStore.scatterPlotTransform,
         plotStore.scatterPlotData
     )
+})
+
+// Sends the active image set path to the main thread when changed.
+// Used for setting default menu directories.
+Mobx.autorun(() => {
+    ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
 })
 
 ReactDOM.render(

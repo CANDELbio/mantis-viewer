@@ -147,10 +147,11 @@ export class ProjectStore {
             // We want to copy whether or not the plot is being viewed in the main window as changing the image set won't close the plot window if open.
             this.copyWindowWidth(sourceImageStore, destinationImageStore)
             this.copyPlotInMainWindow(sourcePlotStore, destinationPlotStore)
+            // If the user wants to persist image set settings
             if(this.persistImageSetSettings) {
                 destinationImageStore.copyChannelMarkerValues(sourceImageStore.channelMarker)
                 destinationImageStore.setChannelDomainFromPercentages(sourceImageStore.getChannelDomainPercentages())
-                this.copySegmentationBasename(sourceImageStore, destinationImageSetPath, destinationImageStore)
+                this.copySegmentationBasename(sourceImageStore, destinationImageStore)
                 this.copySegmentationSettings(sourceImageStore, destinationImageStore)
                 this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
             }
@@ -189,15 +190,17 @@ export class ProjectStore {
     }
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action copySegmentationBasename = (sourceImageStore:ImageStore, destinationImageSetPath:string, destinationImageStore:ImageStore) => {
+    @action copySegmentationBasename = (sourceImageStore:ImageStore, destinationImageStore:ImageStore) => {
         let sourceSegmentationFile = sourceImageStore.selectedSegmentationFile
         if(sourceSegmentationFile != null){
             let destinationPath = destinationImageStore.selectedDirectory
-            let segmentationBasename = path.basename(sourceSegmentationFile)
-            let destinationSegmentationFile = path.join(destinationImageSetPath, segmentationBasename)
-            // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
-            if(fs.statSync(destinationSegmentationFile).isFile() && destinationImageStore.selectedSegmentationFile != destinationSegmentationFile){
-                destinationImageStore.setSegmentationFile(destinationSegmentationFile)
+            if (destinationPath != null){
+                let segmentationBasename = path.basename(sourceSegmentationFile)
+                let destinationSegmentationFile = path.join(destinationPath, segmentationBasename)
+                // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
+                if(fs.existsSync(destinationSegmentationFile) && destinationImageStore.selectedSegmentationFile != destinationSegmentationFile){
+                    destinationImageStore.setSegmentationFile(destinationSegmentationFile)
+                }
             }
         }
     }
@@ -231,52 +234,79 @@ export class ProjectStore {
         }
     }
 
-    @action exportActiveUserData = (filename:string) => {
+    // Exports user data (i.e populations and segmentation) for the all image sets
+    // Exports to a file named filename in each image sets's directory.
+    exportAllUserData = (filename:string) => {
+        let basename = path.basename(filename)
+        for(let curPath of this.imageSetPaths){
+            let exportFilename = path.join(curPath, basename)
+            this.exportActiveUserData(exportFilename, curPath)
+        }
+    }
+
+    // Exports user data (i.e populations and segmentation) for the active image set
+    exportActiveUserData = (filename:string, dirName=this.activeImageSetPath) => {
         let exportingContent = {populations: [] as SelectedPopulation[], segmentation: {}}
-        let imageStore = this.activeImageStore
-        let populationStore = this.activePopulationStore
-        // Prepare segmentation data for export
-        // Dump Float32Array to normal array as JSON.stringify/parse don't support typed arrays.
-        if(imageStore && populationStore) {
-            if(imageStore.segmentationData != null) {
-                exportingContent.segmentation = {
-                    width: imageStore.segmentationData.width,
-                    height: imageStore.segmentationData.height,
-                    data: Array.from(imageStore.segmentationData.data)
+        if(dirName != null && dirName in this.imageSets){
+            let imageStore = this.imageSets[dirName].imageStore
+            let populationStore = this.imageSets[dirName].populationStore
+            // Prepare segmentation data for export
+            // Dump Float32Array to normal array as JSON.stringify/parse don't support typed arrays.
+            if(imageStore && populationStore && populationStore.selectedPopulations.length > 0) {
+                if(imageStore.segmentationData != null) {
+                    exportingContent.segmentation = {
+                        width: imageStore.segmentationData.width,
+                        height: imageStore.segmentationData.height,
+                        data: Array.from(imageStore.segmentationData.data)
+                    }
                 }
+                // Prepare selected populations for export
+                exportingContent.populations = populationStore.selectedPopulations
+
+                let exportingString = JSON.stringify(exportingContent)
+
+                // Write data to file
+                fs.writeFile(filename, exportingString, 'utf8', function (err) {
+                    if (err) {
+                        console.log("An error occured while writing regions of interest to file.")
+                        return console.log(err)
+                    }
+                    console.log("Regions of interest file has been saved.")
+                })
             }
-            // Prepare selected populations for export
-            if(populationStore.selectedPopulations != null) exportingContent.populations = populationStore.selectedPopulations
+        }
+    }
 
-            let exportingString = JSON.stringify(exportingContent)
-
-            // Write data to file
-            fs.writeFile(filename, exportingString, 'utf8', function (err) {
-                if (err) {
-                    console.log("An error occured while writing regions of interest to file.")
-                    return console.log(err)
-                }
-                console.log("Regions of interest file has been saved.")
-            })
+    // Imports user data (i.e populations and segmentation) for the all image sets
+    // Imports from a file named filename in each image sets's directory.
+    @action importAllUserData = (filename:string) => {
+        let basename = path.basename(filename)
+        for(let curPath of this.imageSetPaths){
+            let importFilename = path.join(curPath, basename)
+            if(fs.existsSync(importFilename)) this.importActiveUserData(importFilename, curPath)
         }
     }
 
     // Imports segmentation data and selected populations from file
     // TODO: Some sanity checks to make sure imported data makes sense
-    @action importActiveUserData = (filename:string) => {
+    @action importActiveUserData = (filename:string, dirName=this.activeImageSetPath) => {
         let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
-        let imageStore = this.activeImageStore
-        let populationStore = this.activePopulationStore
+        if(dirName != null){
+            // If the user has not viewed the image set we're importing for yet we need to initialize the stores for it first.
+            if(!(dirName in this.imageSets)) this.initializeStores(dirName)
+            let imageStore = this.imageSets[dirName].imageStore
+            let populationStore = this.imageSets[dirName].populationStore
 
-        if(imageStore && populationStore) {
             // Import Segmentation Data
             let importingSegmentation = importingContent.segmentation
-            let importedDataArray = Float32Array.from(importingSegmentation.data)
-            let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
-            imageStore.setSegmentationData(importedSegmentationData)
-
+            if(importingSegmentation){
+                let importedDataArray = Float32Array.from(importingSegmentation.data)
+                let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
+                imageStore.setSegmentationData(importedSegmentationData)
+            }
             // Import saved populations
-            populationStore.setSelectedPopulations(importingContent.populations)
+            let importingPopulations = importingContent.populations
+            if(importingPopulations) populationStore.setSelectedPopulations(importingPopulations)
         }
     }
 

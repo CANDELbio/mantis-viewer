@@ -10,7 +10,12 @@ const isDev = require('electron-is-dev');
 let mainWindow: Electron.BrowserWindow | null
 let plotWindow: Electron.BrowserWindow | null
 
-function generateMenuTemplate(imageLoaded: boolean) {
+// The current active image directory. Used to set default directories for menu items.
+let activeImageDirectory: string | undefined
+// Whether or not an image is loaded. Used to enable/disable menu items that require an image to be loaded.
+let imageLoaded = false
+
+function generateMenuTemplate() {
   return [{
     label: "File",
     submenu: [
@@ -18,7 +23,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
       label: "Open",
       submenu:  [
         {
-          label: "Open folder",
+          label: "Folder",
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
@@ -30,7 +35,7 @@ function generateMenuTemplate(imageLoaded: boolean) {
           }
         },
         {
-          label: "Open project",
+          label: "Project",
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
@@ -44,68 +49,108 @@ function generateMenuTemplate(imageLoaded: boolean) {
       ]
     },
     {
-      label: "Segmentation",
+      label: "Import",
       submenu: [
         {
-          label: "Open segmentation file",
-          enabled: imageLoaded,
-          click: () => {
-            dialog.showOpenDialog({properties: ["openFile"]},  (fileNames:string[]) => {
-              if(mainWindow != null && fileNames != null){
-                mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+          label: "Segmentation",
+          submenu: [
+            {
+              label: "For active image set",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null){
+                    mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+                  }
+                })
               }
-            })
-          }
+            }
+          ]
+        },
+        {
+          label: "Populations",
+          submenu: [
+            {
+              label: "For active image set from CSV",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'csv', extensions: ['csv'] }]},
+                (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null)
+                    mainWindow.webContents.send("add-populations-csv", fileNames[0])
+                })
+              }
+            },
+            {
+              label: "For active image set from JSON",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'json', extensions: ['json'] }]},
+                (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null)
+                    mainWindow.webContents.send("import-active-selected-populations", fileNames[0])
+                })
+              }
+            },
+            {
+              label: "For all image sets from JSON",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'json', extensions: ['json'] }]},
+                (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null)
+                    mainWindow.webContents.send("import-all-selected-populations", fileNames[0])
+                })
+              }
+            }
+          ]
         }
       ]
     },
     {
-      label: "Populations",
+      label: "Export",
       submenu: [
         {
-          label: "Import populations from CSV",
-          enabled: imageLoaded,
-          click: () => {
-            dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'csv', extensions: ['csv'] }]},  (fileNames:string[]) => {
-              if(mainWindow != null && fileNames != null)
-                mainWindow.webContents.send("add-populations-csv", fileNames[0])
-            })
-          }
-        },
-        {
-          label: "Import segmentation and populations from JSON",
-          enabled: imageLoaded,
-          click: () => {
-            dialog.showOpenDialog({properties: ["openFile"], filters: [{ name: 'json', extensions: ['json'] }]},  (fileNames:string[]) => {
-              if(mainWindow != null && fileNames != null)
-                mainWindow.webContents.send("import-selected-populations", fileNames[0])
-              })
+          label: "Populations",
+          submenu: [
+            {
+              label: "For active image set to JSON",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
+                (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-active-selected-populations", filename)
+                })
+              }
+            },
+            {
+              label: "For all image sets to JSON",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
+                (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-all-selected-populations", filename)
+                })
+              }
             }
-          },
-        {
-          label: "Export segmentation and populations to JSON",
-          enabled: imageLoaded,
-          click: () => {
-            dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }]},  (filename:string) => {
-              if(mainWindow != null && filename != null)
-                mainWindow.webContents.send("export-selected-populations", filename)
-            })
-          }
+          ]
         },
-      ]
-    },
-    {
-      label: "Image",
-      submenu: [
         {
-          label: "Export image",
-          enabled: imageLoaded,
-          click: () => {
-            dialog.showSaveDialog({filters: [{ name: 'png', extensions: ['png'] }]},  (filename:string) => {
-              if(mainWindow != null && filename != null)
-                mainWindow.webContents.send("export-image", filename)
-            })
-          }
+          label: "Image",
+          submenu: [
+            {
+              label: "Current image and layers",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'png', extensions: ['png'] }]}, (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-image", filename)
+                })
+              }
+            }
+          ]
         }
       ]
     },
@@ -142,8 +187,8 @@ function sendWindowSize() {
   }
 }
 
-function setMenu(imageLoaded = false) {
-  let menuTemplate = generateMenuTemplate(imageLoaded)
+function setMenu() {
+  let menuTemplate = generateMenuTemplate()
   const menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
 }
@@ -244,11 +289,17 @@ app.on('activate', function () {
 
 app.on('before-quit', () => {
   closePlotWindow()
-});
+})
 
 // Used to enable disabled menu items when images have been loaded.
-ipcMain.on('update-menu', (event:Electron.Event, imageLoaded:boolean) => {
-  setMenu(imageLoaded)
+ipcMain.on('set-image-loaded', (event:Electron.Event, loaded:boolean) => {
+  imageLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string) => {
+  activeImageDirectory = directory
+  setMenu()
 })
 
 // Functions to relay data from the mainWindow to the plotWindow

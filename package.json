@@ -1,6 +1,6 @@
 {
   "name": "mantis-viewer",
-  "version": "0.7.3-alpha.4",
+  "version": "0.7.3-alpha.5",
   "description": "Electron application to visualize multidimensional microscopy data",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,8 @@
   },
   "repository": "https://github.com/ParkerICI/imc-viewer-js",
   "keywords": [
-    "Electron"
+    "Electron",
+    "Microscopy"
   ],
   "build": {
     "appId": "com.mantis-viewer.app",
@@ -31,7 +32,7 @@
       "category": "Development"
     }
   },
-  "author": "pfgherardini",
+  "author": "rschiemann",
   "license": "GPL-3.0",
   "devDependencies": {
     "@types/concaveman": "^1.1.3",
