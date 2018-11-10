@@ -4,6 +4,7 @@ import * as _ from "underscore"
 const path = require('path')
 const url = require('url')
 const isDev = require('electron-is-dev');
+const openAboutWindow = require('about-window').default;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -162,18 +163,33 @@ function generateMenuTemplate() {
     }
     ],
   },
-{
-  label: "Window",
-  submenu: [
-    {
-      label: "Open Plot Window",
-      click: () => {
-        if(plotWindow != null) plotWindow.show()
-        if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
+  {
+    label: "Window",
+    submenu: [
+      {
+        label: "Open Plot Window",
+        click: () => {
+          if(plotWindow != null) plotWindow.show()
+          if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
+        }
       }
-    }
-  ]
-}]
+    ]
+  },{
+    label: "Help",
+    submenu: [
+      {
+        label: "About",
+        click:  () => {
+            openAboutWindow({
+                icon_path: path.join(__dirname, 'assets', 'icons', 'electron1024.png'),
+                use_version_info: true,
+                license: "GPLv3",
+                product_name: "Mantis Viewer"
+            })
+        }
+      }
+    ]
+  }]
 }
 
 function sendWindowSize() {
