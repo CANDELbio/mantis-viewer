@@ -24,7 +24,7 @@ function generateMenuTemplate() {
       label: "Open",
       submenu:  [
         {
-          label: "Folder",
+          label: "Image Set",
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
