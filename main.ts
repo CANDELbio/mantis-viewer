@@ -181,7 +181,7 @@ function generateMenuTemplate() {
         label: "About",
         click:  () => {
             openAboutWindow({
-                icon_path: path.join(__dirname, 'assets', 'icons', 'electron1024.png'),
+                icon_path: path.join(__dirname, 'icon.png'),
                 use_version_info: true,
                 license: "GPLv3",
                 product_name: "Mantis Viewer"
