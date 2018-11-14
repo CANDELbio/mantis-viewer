@@ -130,6 +130,18 @@ Mobx.autorun(() => {
     ipcRenderer.send('set-image-loaded', projectStore.activeImageStore.imageData != null)
 })
 
+Mobx.autorun(() => {
+    ipcRenderer.send('set-project-loaded', projectStore.imageSetPaths.length > 1)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-segmentation-loaded', projectStore.activeImageStore.segmentationData != null)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-populations-selected', projectStore.activePopulationStore.selectedPopulations.length > 0)
+})
+
 ReactDOM.render(
     <div>
         <MainApp projectStore={projectStore}/>

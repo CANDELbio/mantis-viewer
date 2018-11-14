@@ -13,8 +13,12 @@ let plotWindow: Electron.BrowserWindow | null
 
 // The current active image directory. Used to set default directories for menu items.
 let activeImageDirectory: string | undefined
-// Whether or not an image is loaded. Used to enable/disable menu items that require an image to be loaded.
+
+// Flags used for whether or not certain things are loaded/selected used for enabling/disabling menu items.
 let imageLoaded = false
+let projectLoaded = false
+let segmentationLoaded = false
+let populationsSelected = false
 
 function generateMenuTemplate() {
   return [{
@@ -68,7 +72,7 @@ function generateMenuTemplate() {
             },
             {
               label: "For project",
-              enabled: imageLoaded,
+              enabled: projectLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
                   if(mainWindow != null && fileNames != null){
@@ -84,7 +88,7 @@ function generateMenuTemplate() {
           submenu: [
             {
               label: "For active image set from CSV",
-              enabled: imageLoaded,
+              enabled: imageLoaded && segmentationLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'csv', extensions: ['csv'] }]},
                 (fileNames:string[]) => {
@@ -106,7 +110,7 @@ function generateMenuTemplate() {
             },
             {
               label: "For project from JSON",
-              enabled: imageLoaded,
+              enabled: projectLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'json', extensions: ['json'] }]},
                 (fileNames:string[]) => {
@@ -127,7 +131,7 @@ function generateMenuTemplate() {
           submenu: [
             {
               label: "For active image set to JSON",
-              enabled: imageLoaded,
+              enabled: imageLoaded && populationsSelected,
               click: () => {
                 dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
                 (filename:string) => {
@@ -138,7 +142,7 @@ function generateMenuTemplate() {
             },
             {
               label: "For project to JSON",
-              enabled: imageLoaded,
+              enabled: projectLoaded && populationsSelected,
               click: () => {
                 dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
                 (filename:string) => {
@@ -179,6 +183,7 @@ function generateMenuTemplate() {
     submenu: [
       {
         label: "Open Plot Window",
+        enabled: segmentationLoaded,
         click: () => {
           if(plotWindow != null) plotWindow.show()
           if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
@@ -318,9 +323,24 @@ app.on('before-quit', () => {
   closePlotWindow()
 })
 
-// Used to enable disabled menu items when images have been loaded.
+//Functions for setting menu flags and regenerating the menu
 ipcMain.on('set-image-loaded', (event:Electron.Event, loaded:boolean) => {
   imageLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-project-loaded', (event:Electron.Event, loaded:boolean) => {
+  projectLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-segmentation-loaded', (event:Electron.Event, loaded:boolean) => {
+  segmentationLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-populations-selected', (event:Electron.Event, selected:boolean) => {
+  populationsSelected = selected
   setMenu()
 })
 
@@ -329,10 +349,12 @@ ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string
   setMenu()
 })
 
+// Show an error dialog with the message passed in.
 ipcMain.on('mainWindow-show-error-dialog', (event:Electron.Event, message:string) => {
   if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "error", message: message})
 })
 
+// Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
 ipcMain.on('mainWindow-show-remove-dialog', (event:Electron.Event, message:string) => {
   if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['Yes', 'No']}, (response: number) =>{
     if(response == 0){
