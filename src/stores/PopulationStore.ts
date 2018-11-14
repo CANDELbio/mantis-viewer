@@ -127,10 +127,6 @@ export class PopulationStore {
         }
     }
 
-    @action clearSelectedPopulations = () => {
-        this.selectedPopulations = []
-    }
-
     @action addPopulationsFromCSV = (filename:string) => {
         console.log("Add populations from " + filename)
 

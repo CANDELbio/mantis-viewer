@@ -1,6 +1,6 @@
 {
   "name": "mantis-viewer",
-  "version": "0.7.4-alpha.1",
+  "version": "0.8.0-alpha.1",
   "description": "Electron application to visualize multidimensional microscopy data",
   "main": "main.js",
   "scripts": {
@@ -32,7 +32,7 @@
       "category": "Development"
     }
   },
-  "author": "rschiemann",
+  "author": "pici",
   "license": "GPL-3.0",
   "devDependencies": {
     "@types/concaveman": "^1.1.3",

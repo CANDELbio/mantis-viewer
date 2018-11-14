@@ -21,7 +21,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
     onPersistDataChange = (event: React.FormEvent<HTMLInputElement>) => this.props.setPersistData(event.currentTarget.checked)
 
     render() {
-        if(this.props.selectedImageSet){
+        if(this.props.imageSetOptions.length > 0){
             return(
                 <div>
                     <div>Selected Image Set:</div>

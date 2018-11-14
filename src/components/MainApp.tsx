@@ -84,7 +84,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageSetOptions = {projectStore.imageSetPathOptions.get()}
             setSelectedImageSet = {projectStore.setActiveImageSetFromSelect()}
             persistData = {projectStore.copyImageSetSettingsEnabled}
-            setPersistData = {projectStore.setPersistImageSetSettings}
+            setPersistData = {projectStore.setCopyImageSetSettings}
         />
 
         if(imageStore.imageData != null) {
@@ -98,7 +98,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 channelMarker = {imageStore.channelMarker}
                 canvasWidth = {imageStore.imageData.width}
                 canvasHeight = {imageStore.imageData.height}
-                windowWidth = {imageStore.windowWidth}
+                windowWidth = {projectStore.windowWidth}
                 onCanvasDataLoaded = {imageStore.setCanvasImageData}
                 addSelectedRegion = {populationStore.addSelectedPopulation}
                 selectedRegions = {populationStore.selectedPopulations}
@@ -107,20 +107,22 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 exportPath = {imageStore.imageExportFilename}
                 onExportComplete = {imageStore.clearImageExportFilename}
             />
- 
-            channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) => 
-                <ChannelControls
-                    key={s}
-                    sliderMin = {this.getChannelMin(s)}
-                    sliderMax = {this.getChannelMax(s)}
-                    sliderValue = {imageStore.channelDomain[s]}
-                    onSliderChange = {projectStore.setChannelDomainCallback(s)}
-                    selectOptions = {imageStore.channelSelectOptions.get()}
-                    selectValue = {imageStore.channelMarker[s]}
-                    onSelectChange = {projectStore.setChannelMarkerCallback(s)}
-                    windowWidth = {imageStore.windowWidth}
-                />
-            )
+
+            if(imageStore.imageData.channelNames.length > 0){
+                channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) =>
+                    <ChannelControls
+                        key={s}
+                        sliderMin = {this.getChannelMin(s)}
+                        sliderMax = {this.getChannelMax(s)}
+                        sliderValue = {imageStore.channelDomain[s]}
+                        onSliderChange = {projectStore.setChannelDomainCallback(s)}
+                        selectOptions = {imageStore.channelSelectOptions.get()}
+                        selectValue = {imageStore.channelMarker[s]}
+                        onSelectChange = {projectStore.setChannelMarkerCallback(s)}
+                        windowWidth = {projectStore.windowWidth}
+                    />
+                )
+            }
 
             if (imageStore.segmentationData != null) {
                 segmentationControls = <SegmentationControls
@@ -133,9 +135,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onClearSegmentation = {projectStore.clearActiveSegmentationData}
                 />
 
-                if(plotStore.plotInMainWindow) {
+                if(projectStore.plotInMainWindow) {
                     scatterPlot = <ScatterPlot
-                        windowWidth = {imageStore.windowWidth}
+                        windowWidth = {projectStore.windowWidth}
                         channelSelectOptions = {imageStore.channelSelectOptions.get()}
                         selectedPlotChannels = {plotStore.selectedPlotChannels}
                         setSelectedPlotChannels = {projectStore.setSelectedPlotChannels}

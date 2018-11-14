@@ -329,8 +329,16 @@ ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string
   setMenu()
 })
 
-ipcMain.on('mainWindow-show-message-dialog', (event:Electron.Event, message:string) => {
-  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message})
+ipcMain.on('mainWindow-show-error-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "error", message: message})
+})
+
+ipcMain.on('mainWindow-show-remove-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['Yes', 'No']}, (response: number) =>{
+    if(response == 0){
+      if(mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
+    }
+  })
 })
 
 // Functions to relay data from the mainWindow to the plotWindow

@@ -12,16 +12,10 @@ const projectStore = new ProjectStore()
 // Listeners for menu items from the main thread.
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     projectStore.setActiveImageSet(dirName)
-
-    // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('set-image-loaded', true)
 })
 
 ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
     projectStore.setImageSetPaths(dirName)
-
-    // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('set-image-loaded', true)
 })
 
 ipcRenderer.on("open-active-segmentation-file", (event:Electron.Event, filename:string) => {
@@ -58,7 +52,7 @@ ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
-    projectStore.activeImageStore.setWindowDimensions(width, height)
+    projectStore.setWindowDimensions(width, height)
 })
 
 ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
@@ -67,9 +61,14 @@ ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
     }
 })
 
+ipcRenderer.on("delete-active-image-set", (event:Electron.Event) => {
+    projectStore.deleteActiveImageSet()
+})
+
+
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
-    projectStore.activePlotStore.setPlotInMainWindow(inMain)
+    projectStore.setPlotInMainWindow(inMain)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
@@ -114,9 +113,21 @@ Mobx.autorun(() => {
 
 Mobx.autorun(() => {
     if(projectStore.errorMessage != null){
-        ipcRenderer.send('mainWindow-show-message-dialog', projectStore.errorMessage)
+        ipcRenderer.send('mainWindow-show-error-dialog', projectStore.errorMessage)
         projectStore.clearErrorMessage()
     }
+})
+
+Mobx.autorun(() => {
+    if(projectStore.removeMessage != null){
+        ipcRenderer.send('mainWindow-show-remove-dialog', projectStore.removeMessage)
+        projectStore.clearRemoveMessage()
+    }
+})
+
+// Update the main thread on whether or not an image store with image data loaded is selected.
+Mobx.autorun(() => {
+    ipcRenderer.send('set-image-loaded', projectStore.activeImageStore.imageData != null)
 })
 
 ReactDOM.render(

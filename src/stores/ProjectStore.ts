@@ -29,6 +29,7 @@ export class ProjectStore {
     
     @observable imageSetPaths: string[]
     @observable imageSets: Record<string, ImageSet>
+    @observable nullImageSet: ImageSet
     @observable lastActiveImageSetPath: string | null
     @observable activeImageSetPath: string | null
 
@@ -48,7 +49,19 @@ export class ProjectStore {
     // selected plot channels to be copied
     @observable.ref selectedPlotChannels: string[]
 
+    // The width and height of the main window.
+    @observable windowWidth: number | null
+    @observable windowHeight: number | null
+    // Whether or not the scatter plot is in the main window
+    @observable plotInMainWindow: boolean
+
+    // Message to be shown if there is an error.
+    // Setting this to a string will cause the string to be displayed in a dialog
+    // The render thread will set this back to null once displayed.
     @observable errorMessage: string | null
+
+    // Message to be shown if the user is being prompted to delete the active image set.
+    @observable removeMessage: string | null
 
     @action initialize = () => {
         this.imageSetPaths = []
@@ -69,6 +82,7 @@ export class ProjectStore {
         }
 
         this.selectedPlotChannels = []
+        this.plotInMainWindow = true
 
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
@@ -76,6 +90,7 @@ export class ProjectStore {
         this.activeImageStore = new ImageStore()
         this.activePopulationStore = new PopulationStore()
         this.activePlotStore = new PlotStore()
+        this.nullImageSet = {imageStore: this.activeImageStore, plotStore: this.activePlotStore, populationStore: this.activePopulationStore}
     }
 
     setScatterPlotData = autorun(() => {
@@ -109,7 +124,7 @@ export class ProjectStore {
         })
     })
 
-    @action setPersistImageSetSettings = (value: boolean) => {
+    @action setCopyImageSetSettings = (value: boolean) => {
         this.copyImageSetSettingsEnabled = value
     }
 
@@ -122,8 +137,25 @@ export class ProjectStore {
         if(this.imageSetPaths.length > 0) {
             this.setActiveImageSet(this.imageSetPaths[0])
         } else {
-            this.errorMessage = "Warning: No image set directories found within chosen directory."
+            this.errorMessage = "Warning: No image set directories found in " + dirName
         }
+    }
+
+    @action deleteActiveImageSet = () => {
+        if(this.activeImageSetPath != null){
+            if(this.activeImageStore.imageData) this.activeImageStore.imageData.terminateWorkers()
+            if(this.lastActiveImageSetPath == this.activeImageSetPath) this.lastActiveImageSetPath = null
+            this.imageSetPaths = this.imageSetPaths.filter(p => p != this.activeImageSetPath)
+            delete this.imageSets[this.activeImageSetPath]
+            this.clearActiveImageSet()
+        }
+    }
+
+    @action clearActiveImageSet = () => {
+        this.activeImageSetPath = null
+        this.activeImageStore = this.nullImageSet.imageStore
+        this.activePlotStore = this.nullImageSet.plotStore
+        this.activePopulationStore = this.nullImageSet.populationStore
     }
 
     @action initializeStores = (dirName:string) => {
@@ -165,7 +197,8 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
-
+        // Use when because image data loading takes a while
+        // We can't copy image set settings or set warnings until image data has loaded.
         when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet(this.lastActiveImageSetPath, this.activeImageSetPath))
 
     }
@@ -180,10 +213,12 @@ export class ProjectStore {
         if(imageSetPath != null){
             let imageStore = this.imageSets[imageSetPath].imageStore
             if(imageStore.imageData != null){
-                if(imageStore.imageData.channelNames.length == 0) this.errorMessage = "Warning: No tiffs found within chosen image set."
-
+                if(imageStore.imageData.channelNames.length == 0){
+                    let msg = "Warning: No tiffs found in " + this.imageSetPaths
+                    msg += " Do you wish to remove it from the list of image sets?"
+                    this.removeMessage = msg
+                }
             }
-
         }
     }
 
@@ -195,9 +230,6 @@ export class ProjectStore {
             let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
             let destinationImageStore = this.imageSets[destinationImageSetPath].imageStore
             let destinationPlotStore = this.imageSets[destinationImageSetPath].plotStore
-            // We want to copy whether or not the plot is being viewed in the main window as changing the image set won't close the plot window if open.
-            this.copyWindowWidth(sourceImageStore, destinationImageStore)
-            this.copyPlotInMainWindow(sourcePlotStore, destinationPlotStore)
             // We want to set the image store segmentation file if segmentation file basename is not null.
             this.setImageStoreSegmentationFile(destinationImageStore)
             // If the user wants to persist image set settings
@@ -208,16 +240,6 @@ export class ProjectStore {
                 this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
             }
         }
-    }
-
-    @action copyWindowWidth = (sourceImageStore:ImageStore, destinationImageStore:ImageStore) => {
-        if(sourceImageStore.windowWidth != null && sourceImageStore.windowHeight != null){
-            destinationImageStore.setWindowDimensions(sourceImageStore.windowWidth, sourceImageStore.windowHeight)
-        }
-    }
-
-    @action copyPlotInMainWindow = (sourcePlotStore:PlotStore, destinationPlotStore:PlotStore) => {
-        destinationPlotStore.setPlotInMainWindow(sourcePlotStore.plotInMainWindow)
     }
 
     @action setImageStoreChannelMarkers = (destinationImageStore:ImageStore) => {
@@ -296,7 +318,13 @@ export class ProjectStore {
     }
 
     @action setActiveImageSetFromSelect = () => {
-        return action((x: SelectOption) => { if(x != null) this.setActiveImageSet(x.value) })
+        return action((x: SelectOption) => {
+            if(x != null) {
+                this.setActiveImageSet(x.value)
+            } else {
+                this.clearActiveImageSet()
+            }
+        })
     }
 
     @action clearActiveSegmentationData = () => {
@@ -305,16 +333,6 @@ export class ProjectStore {
         if(imageStore && plotStore){
             imageStore.clearSegmentationData()
             this.clearSelectedPlotChannels()
-        }
-    }
-
-    @action clearActiveImageData = () => {
-        let imageStore = this.activeImageStore
-        let populationStore = this.activePopulationStore
-        if(imageStore && populationStore) {
-            imageStore.clearImageData()
-            populationStore.clearSelectedPopulations()
-            this.clearActiveImageData()
         }
     }
 
@@ -441,6 +459,19 @@ export class ProjectStore {
 
     @action clearErrorMessage = () => {
         this.errorMessage = null
+    }
+
+    @action clearRemoveMessage = () => {
+        this.removeMessage = null
+    }
+
+    @action setWindowDimensions = (width: number, height: number) => {
+        this.windowWidth = width
+        this.windowHeight = height
+    }
+
+    @action setPlotInMainWindow = (inWindow: boolean) => {
+        this.plotInMainWindow = inWindow
     }
 
 }

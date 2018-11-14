@@ -7,7 +7,6 @@ import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ChannelName,
     D3BrushExtent, 
-    SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 
@@ -18,9 +17,6 @@ export class ImageStore {
     }
     
     private canvasImageData:ImageData | null = null
-
-    @observable windowWidth: number | null
-    @observable windowHeight: number | null
     
     @observable.ref imageData: ImageData | null
     @observable imageDataLoading: boolean
@@ -74,11 +70,6 @@ export class ImageStore {
         }
 
         this.imageDataLoading = false
-    }
-
-    @action setWindowDimensions = (width: number, height: number) => {
-        this.windowWidth = width
-        this.windowHeight = height
     }
 
     @action setCurrentSelection = (extent: D3BrushExtent) => {
