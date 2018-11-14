@@ -94,7 +94,7 @@ export class ImageStore {
 
     @action setImageData = (data: ImageData) => {
         this.imageData = data
-        this.setChannelMarkerDefaults()
+        // this.setChannelMarkerDefaults()
         this.setImageDataLoading(false)
     }
 
@@ -124,49 +124,34 @@ export class ImageStore {
         this.segmentationFillAlpha = 0
     }
 
-    getChannelDomainPercentages = () => {
-        let channelDomainPercentages:Record<ChannelName, [number, number]>  = {
-            rChannel: [0, 1],
-            gChannel: [0, 1],
-            bChannel: [0, 1]
-        }
+    getChannelDomainPercentage = (name: ChannelName) => {
+        let percentages:[number, number] = [0, 1]
 
         if(this.imageData != null){
-            for(let s in this.channelDomain){
-                let curChannel = s as ChannelName
-                let channelMarker = this.channelMarker[curChannel]
+                let channelMarker = this.channelMarker[name]
                 if(channelMarker != null){
                     let channelMax = this.imageData.minmax[channelMarker].max
-                    let minPercentage = this.channelDomain[curChannel][0]/channelMax
-                    let maxPercentage = this.channelDomain[curChannel][1]/channelMax
-                    channelDomainPercentages[curChannel] = [minPercentage, maxPercentage]
+                    let minPercentage = this.channelDomain[name][0]/channelMax
+                    let maxPercentage = this.channelDomain[name][1]/channelMax
+                    percentages = [minPercentage, maxPercentage]
                 }
-            }
         }
 
-        return channelDomainPercentages
+        return percentages
     }
 
-    // Sets channel domain values as a percentage of the channelMax.
-    @action setChannelDomainFromPercentages = (percentages: Record<ChannelName, [number, number]>) => {
-        if(this.imageData != null){
-            for(let s in this.channelDomain){
-                let curChannel = s as ChannelName
-                let channelMarker = this.channelMarker[curChannel]
-                if(channelMarker != null){
-                    let channelMax = this.imageData.minmax[channelMarker].max
-                    let minValue  = percentages[curChannel][0] * channelMax
-                    let maxValue  = percentages[curChannel][1] * channelMax
-                    this.channelDomain[curChannel] = [minValue, maxValue]
-                }
-            }
+    @action setChannelDomain = (name: ChannelName, domain:[number, number]) => {
+        this.channelDomain[name] = domain
+    }
+
+    @action setChannelDomainFromPercentage = (name: ChannelName, domain:[number, number]) => {
+        let channelMarker = this.channelMarker[name]
+        if(this.imageData != null && channelMarker != null){
+            let channelMax = this.imageData.minmax[channelMarker].max
+            let minValue  = domain[0] * channelMax
+            let maxValue  = domain[1] * channelMax
+            this.channelDomain[name] = [minValue, maxValue]
         }
-    }
-
-    @action setChannelDomain = (name: ChannelName) => {
-        return action((value: [number, number]) => {
-            this.channelDomain[name] = value
-        })
     }
 
     @action unsetChannelMarker = (channelName: ChannelName) => {
@@ -184,18 +169,6 @@ export class ImageStore {
         }
     }
 
-    @action setChannelMarkerFromSelect = (name: ChannelName) => {
-        return action((x: SelectOption) => {
-            // If the SelectOption has a value.
-            if(x != null){
-                this.setChannelMarker(name, x.value)
-            // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
-            } else {
-                this.unsetChannelMarker(name)
-            }
-        })
-    }
-
     @action setChannelMarkerDefaults = () => {
         if(this.imageData != null) {
             let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(this.imageData.channelNames)
@@ -203,28 +176,6 @@ export class ImageStore {
                 let channelName = v as ChannelName
                 let markerName = defaultValues[channelName]
                 if(markerName != null) this.setChannelMarker(channelName, markerName)
-            }
-        }
-    }
-
-    @action copyChannelMarkerValues = (values: Record<ChannelName, string | null>) => {
-        // Only copy if we have image data. Otherwise we can't verify if we have the channels indicated in values.
-        if(this.imageData != null && values != null) {
-            for (let s in values) {
-                let channelName = s as ChannelName
-                let channelValue = values[channelName] // The file selected
-                if(channelValue != null){
-                    if(this.imageData.channelNames.indexOf(channelValue) != -1){
-                        // If the file selected is not null and the destination has a file with the same name set that
-                        this.setChannelMarker(channelName, channelValue)
-                    } else {
-                        // Otherwise unset that channel for the destination
-                        this.unsetChannelMarker(channelName)
-                    }
-                } else {
-                    // Unset the channel for the destination if it's unset in the source
-                    this.unsetChannelMarker(channelName)
-                }
             }
         }
     }

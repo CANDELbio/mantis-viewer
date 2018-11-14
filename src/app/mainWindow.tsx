@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
-import { ProjectStore } from "../stores/ProjectStore";
+import { ProjectStore } from "../stores/ProjectStore"
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -26,15 +26,19 @@ ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
     ipcRenderer.send('set-image-loaded', true)
 })
 
-ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("open-active-segmentation-file", (event:Electron.Event, filename:string) => {
     projectStore.activeImageStore.setSegmentationFile(filename)
+})
+
+ipcRenderer.on("open-project-segmentation-file", (event:Electron.Event, filename:string) => {
+    projectStore.setSegmentationBasename(filename)
 })
 
 ipcRenderer.on("import-active-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.importActiveUserData(filename)
 })
 
-ipcRenderer.on("import-all-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("import-project-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.importAllUserData(filename)
 })
 
@@ -42,7 +46,7 @@ ipcRenderer.on("export-active-selected-populations", (event:Electron.Event, file
     projectStore.exportActiveUserData(filename)
 })
 
-ipcRenderer.on("export-all-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("export-project-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.exportAllUserData(filename)
 })
 

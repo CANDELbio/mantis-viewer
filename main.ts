@@ -3,8 +3,8 @@ import * as _ from "underscore"
 
 const path = require('path')
 const url = require('url')
-const isDev = require('electron-is-dev');
-const openAboutWindow = require('about-window').default;
+const isDev = require('electron-is-dev')
+const openAboutWindow = require('about-window').default
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -61,7 +61,18 @@ function generateMenuTemplate() {
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
                   if(mainWindow != null && fileNames != null){
-                    mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+                    mainWindow.webContents.send("open-active-segmentation-file", fileNames[0])
+                  }
+                })
+              }
+            },
+            {
+              label: "For project",
+              enabled: imageLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null){
+                    mainWindow.webContents.send("open-project-segmentation-file", fileNames[0])
                   }
                 })
               }
@@ -94,13 +105,13 @@ function generateMenuTemplate() {
               }
             },
             {
-              label: "For all image sets from JSON",
+              label: "For project from JSON",
               enabled: imageLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'json', extensions: ['json'] }]},
                 (fileNames:string[]) => {
                   if(mainWindow != null && fileNames != null)
-                    mainWindow.webContents.send("import-all-selected-populations", fileNames[0])
+                    mainWindow.webContents.send("import-project-selected-populations", fileNames[0])
                 })
               }
             }
@@ -126,13 +137,13 @@ function generateMenuTemplate() {
               }
             },
             {
-              label: "For all image sets to JSON",
+              label: "For project to JSON",
               enabled: imageLoaded,
               click: () => {
                 dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
                 (filename:string) => {
                   if(mainWindow != null && filename != null)
-                    mainWindow.webContents.send("export-all-selected-populations", filename)
+                    mainWindow.webContents.send("export-project-selected-populations", filename)
                 })
               }
             }

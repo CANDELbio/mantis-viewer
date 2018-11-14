@@ -2,9 +2,9 @@ import * as React from "react"
 import { UnmountClosed } from 'react-collapse'
 import { Button } from "@blueprintjs/core"
 import { ClipLoader } from 'react-spinners'
-import { Grid, Row, Col } from 'react-flexbox-grid';
+import { Grid, Row, Col } from 'react-flexbox-grid'
 
-import { ProjectStore } from "../stores/ProjectStore";
+import { ProjectStore } from "../stores/ProjectStore"
 import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
 import { ChannelName } from "../interfaces/UIDefinitions"
@@ -68,9 +68,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     render() {
 
-        let imageStore = this.props.projectStore.activeImageStore
-        let populationStore = this.props.projectStore.activePopulationStore
-        let plotStore = this.props.projectStore.activePlotStore
+        let projectStore = this.props.projectStore
+        let imageStore = projectStore.activeImageStore
+        let populationStore = projectStore.activePopulationStore
+        let plotStore = projectStore.activePlotStore
 
         let imageViewer = null
         let imageSetSelector =  null
@@ -79,11 +80,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let segmentationControls = null
 
         imageSetSelector = <ImageSetSelector
-            selectedImageSet = {this.props.projectStore.activeImageSetPath}
-            imageSetOptions = {this.props.projectStore.imageSetPathOptions.get()}
-            setSelectedImageSet = {this.props.projectStore.setActiveImageSetFromSelect()}
-            persistData = {this.props.projectStore.persistImageSetSettings}
-            setPersistData = {this.props.projectStore.setPersistImageSetSettings}
+            selectedImageSet = {projectStore.activeImageSetPath}
+            imageSetOptions = {projectStore.imageSetPathOptions.get()}
+            setSelectedImageSet = {projectStore.setActiveImageSetFromSelect()}
+            persistData = {projectStore.copyImageSetSettingsEnabled}
+            setPersistData = {projectStore.setPersistImageSetSettings}
         />
 
         if(imageStore.imageData != null) {
@@ -113,10 +114,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     sliderMin = {this.getChannelMin(s)}
                     sliderMax = {this.getChannelMax(s)}
                     sliderValue = {imageStore.channelDomain[s]}
-                    onSliderChange = {imageStore.setChannelDomain(s)}
+                    onSliderChange = {projectStore.setChannelDomainCallback(s)}
                     selectOptions = {imageStore.channelSelectOptions.get()}
                     selectValue = {imageStore.channelMarker[s]}
-                    onSelectChange = {imageStore.setChannelMarkerFromSelect(s)}
+                    onSelectChange = {projectStore.setChannelMarkerCallback(s)}
                     windowWidth = {imageStore.windowWidth}
                 />
             )
@@ -129,7 +130,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onOutlineAlphaChange = {imageStore.setSegmentationOutlineAlpha}
                     centroidsVisible = {imageStore.segmentationCentroidsVisible}
                     setCentroidsVisible = {imageStore.setCentroidVisibility}
-                    onClearSegmentation = {imageStore.clearSegmentationData}
+                    onClearSegmentation = {projectStore.clearActiveSegmentationData}
                 />
 
                 if(plotStore.plotInMainWindow) {
@@ -137,7 +138,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         windowWidth = {imageStore.windowWidth}
                         channelSelectOptions = {imageStore.channelSelectOptions.get()}
                         selectedPlotChannels = {plotStore.selectedPlotChannels}
-                        setSelectedPlotChannels = {plotStore.setSelectedPlotChannels}
+                        setSelectedPlotChannels = {projectStore.setSelectedPlotChannels}
                         selectedStatistic= {plotStore.scatterPlotStatistic}
                         setSelectedStatistic = {plotStore.setScatterPlotStatistic}
                         selectedTransform = {plotStore.scatterPlotTransform}
