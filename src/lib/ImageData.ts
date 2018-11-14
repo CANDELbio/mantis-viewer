@@ -115,19 +115,22 @@ export class ImageData {
         // Store the number of tiffs being loaded so we know when all the background workers have finished
         this.numChannels = tiffs.length
 
-        console.log(tiffs)
+        if(tiffs.length == 0){
+            // If no tiffs are present in the directory, just return an empty image data.
+            this.onReady(this)
+        } else {
+            let loadFileData = (data: ImageDataWorkerResult) => this.loadFileData(data)
 
-        let loadFileData = (data: ImageDataWorkerResult) => this.loadFileData(data)
-
-        // Create a webworker for each tiff and return the results to loadFileData.
-        tiffs.forEach(f => {
-            let worker = new ImageWorker()
-            worker.addEventListener('message', function(e: {data: ImageDataWorkerResult}) {
-                loadFileData(e.data)
-            }, false)
-            worker.postMessage({filepath: path.join(dirName, f)})
-            this.workers.push(worker)
-        })
+            // Create a webworker for each tiff and return the results to loadFileData.
+            tiffs.forEach(f => {
+                let worker = new ImageWorker()
+                worker.addEventListener('message', function(e: {data: ImageDataWorkerResult}) {
+                    loadFileData(e.data)
+                }, false)
+                worker.postMessage({filepath: path.join(dirName, f)})
+                this.workers.push(worker)
+            })
+        }
     }
 
     constructor(){

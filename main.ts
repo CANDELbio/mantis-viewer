@@ -329,6 +329,10 @@ ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string
   setMenu()
 })
 
+ipcMain.on('mainWindow-show-message-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message})
+})
+
 // Functions to relay data from the mainWindow to the plotWindow
 ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
   selectOptions: { value: string, label: string}[],

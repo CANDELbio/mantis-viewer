@@ -48,6 +48,7 @@ export class ProjectStore {
     // selected plot channels to be copied
     @observable.ref selectedPlotChannels: string[]
 
+    @observable errorMessage: string | null
 
     @action initialize = () => {
         this.imageSetPaths = []
@@ -118,7 +119,11 @@ export class ProjectStore {
             let filePath = path.join(dirName, file)
             if(fs.statSync(filePath).isDirectory()) this.imageSetPaths.push(filePath)
         }
-        if(this.imageSetPaths.length > 0) this.setActiveImageSet(this.imageSetPaths[0])
+        if(this.imageSetPaths.length > 0) {
+            this.setActiveImageSet(this.imageSetPaths[0])
+        } else {
+            this.errorMessage = "Warning: No image set directories found within chosen directory."
+        }
     }
 
     @action initializeStores = (dirName:string) => {
@@ -160,12 +165,30 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
-        // Copy settings from old imageSet to new one once image data has loaded.
-        // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
-        when(() => !this.activeImageStore.imageDataLoading, () => this.copyImageSetSettings(this.lastActiveImageSetPath, this.activeImageSetPath))
+
+        when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet(this.lastActiveImageSetPath, this.activeImageSetPath))
 
     }
 
+    // Make any changes or checks that require image data to be loaded.
+    @action finalizeActiveImageSet = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
+        this.copyImageSetSettings(sourceImageSetPath, destinationImageSetPath)
+        this.setImageSetWarnings(destinationImageSetPath)
+    }
+
+    @action setImageSetWarnings = (imageSetPath:string|null) => {
+        if(imageSetPath != null){
+            let imageStore = this.imageSets[imageSetPath].imageStore
+            if(imageStore.imageData != null){
+                if(imageStore.imageData.channelNames.length == 0) this.errorMessage = "Warning: No tiffs found within chosen image set."
+
+            }
+
+        }
+    }
+
+    // Copy settings from old imageSet to new one once image data has loaded.
+    // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
     @action copyImageSetSettings = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
         if(sourceImageSetPath != null && destinationImageSetPath != null){
             let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
@@ -414,6 +437,10 @@ export class ProjectStore {
             let importingPopulations = importingContent.populations
             if(importingPopulations) populationStore.setSelectedPopulations(importingPopulations)
         }
+    }
+
+    @action clearErrorMessage = () => {
+        this.errorMessage = null
     }
 
 }

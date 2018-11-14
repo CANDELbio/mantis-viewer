@@ -11,7 +11,6 @@ const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
-    console.log(dirName)
     projectStore.setActiveImageSet(dirName)
 
     // Send a message to the main process to update the disabled menu items
@@ -19,7 +18,6 @@ ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) =>
 })
 
 ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
-    console.log(dirName)
     projectStore.setImageSetPaths(dirName)
 
     // Send a message to the main process to update the disabled menu items
@@ -112,6 +110,13 @@ Mobx.autorun(() => {
 // Used for setting default menu directories.
 Mobx.autorun(() => {
     ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
+})
+
+Mobx.autorun(() => {
+    if(projectStore.errorMessage != null){
+        ipcRenderer.send('mainWindow-show-message-dialog', projectStore.errorMessage)
+        projectStore.clearErrorMessage()
+    }
 })
 
 ReactDOM.render(
