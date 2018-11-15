@@ -8,7 +8,6 @@ import { SegmentationData } from "../lib/SegmentationData"
 import { ChannelName,
     D3BrushExtent, 
     LabelLayer } from "../interfaces/UIDefinitions"
-import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 
 export class ImageStore {
 
@@ -85,7 +84,6 @@ export class ImageStore {
 
     @action setImageData = (data: ImageData) => {
         this.imageData = data
-        // this.setChannelMarkerDefaults()
         this.setImageDataLoading(false)
     }
 
@@ -157,17 +155,6 @@ export class ImageStore {
             let min = this.imageData.minmax[markerName].min
             let max = this.imageData.minmax[markerName].max
             this.channelDomain[channelName] = [min, max]
-        }
-    }
-
-    @action setChannelMarkerDefaults = () => {
-        if(this.imageData != null) {
-            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(this.imageData.channelNames)
-            for (let v in defaultValues) {
-                let channelName = v as ChannelName
-                let markerName = defaultValues[channelName]
-                if(markerName != null) this.setChannelMarker(channelName, markerName)
-            }
         }
     }
 

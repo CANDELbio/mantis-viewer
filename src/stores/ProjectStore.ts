@@ -14,6 +14,7 @@ import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
 import { SelectOption, ChannelName } from "../interfaces/UIDefinitions"
+import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 
 interface ImageSet {
     imageStore: ImageStore,
@@ -175,6 +176,10 @@ export class ProjectStore {
             populationStore: new PopulationStore(),
             plotStore: new PlotStore()
         }
+
+        // Set defaults once image data has loaded
+        when(() => !this.activeImageStore.imageDataLoading, () => this.setDefaultImageSetSettings(imageStore))
+
     }
 
     @action setActiveStores = (dirName:string) => {
@@ -200,24 +205,42 @@ export class ProjectStore {
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet(this.lastActiveImageSetPath, this.activeImageSetPath))
+    }
 
+    @action setDefaultImageSetSettings = (imageStore:ImageStore) => {
+        let markers = this.channelMarker
+        // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
+        if(!this.copyImageSetSettingsEnabled || (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null)) {
+            this.setChannelMarkerDefaults(imageStore)
+        }
+    }
+
+    // If the image store has image data, sets the defaults based on the configuration helper.
+    @action setChannelMarkerDefaults = (imageStore:ImageStore) => {
+        if(imageStore.imageData != null) {
+            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
+            for (let v in defaultValues) {
+                let channelName = v as ChannelName
+                let markerName = defaultValues[channelName]
+                if(markerName != null) this.setChannelMarker(channelName, markerName)
+            }
+        }
     }
 
     // Make any changes or checks that require image data to be loaded.
     @action finalizeActiveImageSet = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
         this.copyImageSetSettings(sourceImageSetPath, destinationImageSetPath)
-        this.setImageSetWarnings(destinationImageSetPath)
+        this.setImageSetWarnings()
     }
 
-    @action setImageSetWarnings = (imageSetPath:string|null) => {
-        if(imageSetPath != null){
-            let imageStore = this.imageSets[imageSetPath].imageStore
-            if(imageStore.imageData != null){
-                if(imageStore.imageData.channelNames.length == 0){
-                    let msg = "Warning: No tiffs found in " + this.imageSetPaths
-                    msg += " Do you wish to remove it from the list of image sets?"
-                    this.removeMessage = msg
-                }
+
+    @action setImageSetWarnings = () => {
+        let imageStore = this.activeImageStore
+        if(imageStore.imageData != null){
+            if(imageStore.imageData.channelNames.length == 0){
+                let msg = "Warning: No tiffs found in " + this.imageSetPaths
+                msg += " Do you wish to remove it from the list of image sets?"
+                this.removeMessage = msg
             }
         }
     }
@@ -234,7 +257,7 @@ export class ProjectStore {
             this.setImageStoreSegmentationFile(destinationImageStore)
             // If the user wants to persist image set settings
             if(this.copyImageSetSettingsEnabled) {
-                this.setImageStoreChannelMarkers(destinationImageStore)
+                this.copyImageStoreChannelMarkers(destinationImageStore)
                 this.setImageStoreChannelDomains(destinationImageStore)
                 this.copySegmentationSettings(sourceImageStore, destinationImageStore)
                 this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
@@ -242,22 +265,24 @@ export class ProjectStore {
         }
     }
 
-    @action setImageStoreChannelMarkers = (destinationImageStore:ImageStore) => {
-        if(destinationImageStore.imageData != null){
+    // Copies channel markers from the project store to the image store being passed in
+    // If a channel marker isn't present in the image store that channel is unset.
+    @action copyImageStoreChannelMarkers = (imageStore:ImageStore) => {
+        if(imageStore.imageData != null){
             for(let s in this.channelMarker) {
                 let channelName = s as ChannelName
                 let channelValue = this.channelMarker[channelName]
                 if(channelValue != null){
-                    if(destinationImageStore.imageData.channelNames.indexOf(channelValue) != -1){
+                    if(imageStore.imageData.channelNames.indexOf(channelValue) != -1){
                         // If the file selected is not null and the destination has a file with the same name set that
-                        destinationImageStore.setChannelMarker(channelName, channelValue)
+                        imageStore.setChannelMarker(channelName, channelValue)
                     } else {
                         // Otherwise unset that channel for the destination
-                        destinationImageStore.unsetChannelMarker(channelName)
+                        imageStore.unsetChannelMarker(channelName)
                     }
                 } else {
                     // Unset the channel for the destination if it's unset in the source
-                    destinationImageStore.unsetChannelMarker(channelName)
+                    imageStore.unsetChannelMarker(channelName)
                 }
             }
         }
