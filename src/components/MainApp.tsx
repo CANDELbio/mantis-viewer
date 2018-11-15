@@ -3,11 +3,12 @@ import { UnmountClosed } from 'react-collapse'
 import { Button } from "@blueprintjs/core"
 import { ClipLoader } from 'react-spinners'
 import { Grid, Row, Col } from 'react-flexbox-grid'
+import { SizeMe } from 'react-sizeme'
 
 import { ProjectStore } from "../stores/ProjectStore"
 import { ChannelControls } from "./ChannelControls"
 import { observer } from "mobx-react"
-import { ChannelName } from "../interfaces/UIDefinitions"
+import { ChannelName, WindowHeightBufferSize } from "../interfaces/UIDefinitions"
 import { ImageViewer } from "./ImageViewer"
 import { ImageSetSelector } from "./ImageSetSelector"
 import { SegmentationControls } from "./SegmentationControls"
@@ -66,6 +67,38 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return 100
     }
 
+    renderImageViewer = (maxWidth: number) => {
+        let projectStore = this.props.projectStore
+        let imageStore = projectStore.activeImageStore
+        let populationStore = projectStore.activePopulationStore
+        let plotStore = projectStore.activePlotStore
+
+        let viewer = null
+        if(imageStore.imageData != null && projectStore.windowHeight != null) {
+            viewer = <ImageViewer
+                imageData = {imageStore.imageData}
+                segmentationData = {imageStore.segmentationData}
+                segmentationFillAlpha = {imageStore.segmentationFillAlpha}
+                segmentationOutlineAlpha = {imageStore.segmentationOutlineAlpha}
+                segmentationCentroidsVisible = {imageStore.segmentationCentroidsVisible}
+                channelDomain = {imageStore.channelDomain}
+                channelMarker = {imageStore.channelMarker}
+                canvasWidth = {imageStore.imageData.width}
+                canvasHeight = {imageStore.imageData.height}
+                maxRendererSize = {{width: maxWidth, height: projectStore.windowHeight - WindowHeightBufferSize}}
+                onCanvasDataLoaded = {imageStore.setCanvasImageData}
+                addSelectedRegion = {populationStore.addSelectedPopulation}
+                selectedRegions = {populationStore.selectedPopulations}
+                hightlightedRegions = {populationStore.highlightedPopulations}
+                highlightedSegmentsFromPlot = {plotStore.segmentsHoveredOnPlot}
+                exportPath = {imageStore.imageExportFilename}
+                onExportComplete = {imageStore.clearImageExportFilename}
+            />
+        }
+
+        return viewer
+    }
+
     render() {
 
         let projectStore = this.props.projectStore
@@ -73,7 +106,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let populationStore = projectStore.activePopulationStore
         let plotStore = projectStore.activePlotStore
 
-        let imageViewer = null
         let imageSetSelector =  null
         let channelControls = null
         let scatterPlot = null
@@ -88,26 +120,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         />
 
         if(imageStore.imageData != null) {
-            imageViewer = <ImageViewer 
-                imageData = {imageStore.imageData}
-                segmentationData = {imageStore.segmentationData}
-                segmentationFillAlpha = {imageStore.segmentationFillAlpha}
-                segmentationOutlineAlpha = {imageStore.segmentationOutlineAlpha}
-                segmentationCentroidsVisible = {imageStore.segmentationCentroidsVisible}
-                channelDomain = {imageStore.channelDomain}
-                channelMarker = {imageStore.channelMarker}
-                canvasWidth = {imageStore.imageData.width}
-                canvasHeight = {imageStore.imageData.height}
-                windowWidth = {projectStore.windowWidth}
-                onCanvasDataLoaded = {imageStore.setCanvasImageData}
-                addSelectedRegion = {populationStore.addSelectedPopulation}
-                selectedRegions = {populationStore.selectedPopulations}
-                hightlightedRegions = {populationStore.highlightedPopulations}
-                highlightedSegmentsFromPlot = {plotStore.segmentsHoveredOnPlot}
-                exportPath = {imageStore.imageExportFilename}
-                onExportComplete = {imageStore.clearImageExportFilename}
-            />
-
             if(imageStore.imageData.channelNames.length > 0){
                 channelControls = ["rChannel", "gChannel", "bChannel"].map((s:ChannelName) =>
                     <ChannelControls
@@ -172,11 +184,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             unhighlightPopulation = {populationStore.unhighlightSelectedPopulation}
         />
 
-        let fullWidth = {width: "100%"} 
+        let fullWidth = {width: "100%"}
+        let paddingStyle = {paddingTop: "10px"}
      
         return(
             <div>
-                <Grid fluid={true}>
+                <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
                             <Button onClick={this.handleChannelClick} style={fullWidth}>
@@ -195,16 +208,18 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{segmentationControls}</div>
                             </UnmountClosed>
                         </Col>
-                        <Col xs={6} sm={6} md={6} lg={6}>
-                            <Grid fluid={true}>
-                                <Row center="xs">
-                                    <Col>
-                                        {imageViewer}
-                                        {imageLoading}
-                                    </Col>
-                                </Row>
-                            </Grid>
-                        </Col>
+                        <SizeMe refreshRate={32}>{({ size }) =>
+                            <Col xs={6} sm={6} md={6} lg={6}>
+                                <Grid fluid={true}>
+                                    <Row center="xs">
+                                        <Col>
+                                            {this.renderImageViewer(size.width)}
+                                            {imageLoading}
+                                        </Col>
+                                    </Row>
+                                </Grid>
+                            </Col>}
+                        </SizeMe>
                         <Col xs={4} sm={4} md={4} lg={4}>
                             <Button onClick={this.handleRegionsClick} style={fullWidth}>
                                 {this.state.regionsOpen ? "Hide" : "Show"} Selected Regions

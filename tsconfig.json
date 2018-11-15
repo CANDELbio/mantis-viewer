@@ -33,6 +33,7 @@
         "./src/components/SegmentationControls.tsx",
         "./src/components/ScatterPlot.tsx",
         "./src/components/SelectedPopulations.tsx",
-        "./src/typings/custom.d.ts"
+        "./src/typings/custom.d.ts",
+        "./src/typings/reactSizeme.d.ts"
     ]
 }

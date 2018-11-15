@@ -18,6 +18,7 @@ export const PlotTransformOptions = [
     {label: "Log10", value: "log"},
 ]
 
+export const WindowHeightBufferSize = 40
 export const SelectedRegionAlpha = 0.3
 export const HighlightedSelectedRegionAlpha = 0.5
 export const SelectedSegmentOutlineAlpha = 0.7
