@@ -127,6 +127,15 @@ export class ProjectStore {
 
     @action setCopyImageSetSettings = (value: boolean) => {
         this.copyImageSetSettingsEnabled = value
+        // if setting to true, copy the values from active image store to the project store.
+        if(value){
+            for (let s of ["rChannel", "gChannel", "bChannel"]) {
+                let channelName = s as ChannelName
+                this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(channelName)
+                this.channelMarker[channelName] = this.activeImageStore.channelMarker[channelName]
+            }
+            this.selectedPlotChannels = this.activePlotStore.selectedPlotChannels
+        }
     }
 
     @action setImageSetPaths = (dirName:string) => {
@@ -182,6 +191,26 @@ export class ProjectStore {
 
     }
 
+    @action setDefaultImageSetSettings = (imageStore:ImageStore) => {
+        let markers = this.channelMarker
+        // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
+        if(!this.copyImageSetSettingsEnabled || (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null)) {
+            this.setChannelMarkerDefaults(imageStore)
+        }
+    }
+
+    // If the image store has image data, sets the defaults based on the configuration helper.
+    @action setChannelMarkerDefaults = (imageStore:ImageStore) => {
+        if(imageStore.imageData != null) {
+            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
+            for (let s in defaultValues) {
+                let channelName = s as ChannelName
+                let markerName = defaultValues[channelName]
+                if(markerName != null) this.setChannelMarker(channelName, markerName)
+            }
+        }
+    }
+
     @action setActiveStores = (dirName:string) => {
         this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
@@ -207,26 +236,6 @@ export class ProjectStore {
         when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet(this.lastActiveImageSetPath, this.activeImageSetPath))
     }
 
-    @action setDefaultImageSetSettings = (imageStore:ImageStore) => {
-        let markers = this.channelMarker
-        // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
-        if(!this.copyImageSetSettingsEnabled || (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null)) {
-            this.setChannelMarkerDefaults(imageStore)
-        }
-    }
-
-    // If the image store has image data, sets the defaults based on the configuration helper.
-    @action setChannelMarkerDefaults = (imageStore:ImageStore) => {
-        if(imageStore.imageData != null) {
-            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
-            for (let v in defaultValues) {
-                let channelName = v as ChannelName
-                let markerName = defaultValues[channelName]
-                if(markerName != null) this.setChannelMarker(channelName, markerName)
-            }
-        }
-    }
-
     // Make any changes or checks that require image data to be loaded.
     @action finalizeActiveImageSet = (sourceImageSetPath:string|null, destinationImageSetPath:string|null) => {
         this.copyImageSetSettings(sourceImageSetPath, destinationImageSetPath)
@@ -234,6 +243,8 @@ export class ProjectStore {
     }
 
 
+    // Sets warnings on the active image set
+    // Currently just raises an error if no images are found.
     @action setImageSetWarnings = () => {
         let imageStore = this.activeImageStore
         if(imageStore.imageData != null){
@@ -264,6 +275,20 @@ export class ProjectStore {
             }
         }
     }
+
+        // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
+        @action setImageStoreSegmentationFile = (destinationImageStore:ImageStore) => {
+            if(this.segmentationBasename != null){
+                let destinationPath = destinationImageStore.selectedDirectory
+                if (destinationPath != null){
+                    let destinationSegmentationFile = path.join(destinationPath, this.segmentationBasename)
+                    // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
+                    if(fs.existsSync(destinationSegmentationFile) && destinationImageStore.selectedSegmentationFile == null){
+                        destinationImageStore.setSegmentationFile(destinationSegmentationFile)
+                    }
+                }
+            }
+        }
 
     // Copies channel markers from the project store to the image store being passed in
     // If a channel marker isn't present in the image store that channel is unset.
@@ -302,6 +327,13 @@ export class ProjectStore {
         }
     }
 
+    @action copyPlotStoreSettings = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
+        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
+        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
+        // Check if the source selected plot channels are in the destination image set. If they are, use them.
+        this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
+    }
+
     @action setPlotStoreChannels = (destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
         let destinationImageData = destinationImageStore.imageData
         if(destinationImageData != null){
@@ -315,34 +347,13 @@ export class ProjectStore {
         }
     }
 
-    @action copyPlotStoreSettings = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
-        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
-        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
-        // Check if the source selected plot channels are in the destination image set. If they are, use them.
-        this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
-    }
-
-    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action setImageStoreSegmentationFile = (destinationImageStore:ImageStore) => {
-        if(this.segmentationBasename != null){
-            let destinationPath = destinationImageStore.selectedDirectory
-            if (destinationPath != null){
-                let destinationSegmentationFile = path.join(destinationPath, this.segmentationBasename)
-                // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
-                if(fs.existsSync(destinationSegmentationFile) && destinationImageStore.selectedSegmentationFile == null){
-                    destinationImageStore.setSegmentationFile(destinationSegmentationFile)
-                }
-            }
-        }
-    }
-
     @action copySegmentationSettings = (sourceImageStore:ImageStore, destinationImageStore:ImageStore) => {
         destinationImageStore.setSegmentationFillAlpha(sourceImageStore.segmentationFillAlpha)
         destinationImageStore.setSegmentationOutlineAlpha(sourceImageStore.segmentationOutlineAlpha)
         destinationImageStore.setCentroidVisibility(sourceImageStore.segmentationCentroidsVisible)
     }
 
-    @action setActiveImageSetFromSelect = () => {
+    @action setActiveImageSetCallback = () => {
         return action((x: SelectOption) => {
             if(x != null) {
                 this.setActiveImageSet(x.value)
@@ -364,11 +375,16 @@ export class ProjectStore {
     @action setChannelMarker = (channelName: ChannelName, markerName: string) => {
         this.channelMarker[channelName] = markerName
         this.activeImageStore.setChannelMarker(channelName, markerName)
+        // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
+        this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(channelName)
+
     }
 
     @action unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
         this.activeImageStore.unsetChannelMarker(channelName)
+        // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
+        this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(channelName)
     }
 
     @action setChannelMarkerCallback = (name: ChannelName) => {
