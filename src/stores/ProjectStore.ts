@@ -196,6 +196,7 @@ export class ProjectStore {
         // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
         if(!this.copyImageSetSettingsEnabled || (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null)) {
             this.setChannelMarkerDefaults(imageStore)
+            this.setChannelDomainDefaults(imageStore)
         }
     }
 
@@ -208,6 +209,16 @@ export class ProjectStore {
                 let markerName = defaultValues[channelName]
                 if(markerName != null) this.setChannelMarker(channelName, markerName)
             }
+        }
+    }
+
+    @action setChannelDomainDefaults = (imageStore:ImageStore) => {
+        let defaultValues = ConfigurationHelper.getDefaultChannelDomains()
+        for(let s in defaultValues){
+            let channelName = s as ChannelName
+            let defaultDomain = defaultValues[channelName]
+            this.channelDomainPercentage[channelName] = defaultDomain
+            imageStore.setChannelDomainFromPercentage(channelName, defaultDomain)
         }
     }
 

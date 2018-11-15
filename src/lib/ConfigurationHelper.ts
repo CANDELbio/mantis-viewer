@@ -71,3 +71,11 @@ import { ChannelName } from '../interfaces/UIDefinitions'
 
         return defaultMarkers
     }
+
+    export function getDefaultChannelDomains() {
+        return {
+            rChannel: [0, 0.7] as [number, number],
+            gChannel: [0, 0.7] as [number, number],
+            bChannel: [0, 0.7] as [number, number]
+        }
+    }
