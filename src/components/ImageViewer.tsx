@@ -8,7 +8,6 @@ import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
-    DefaultSelectedRegionColor,
     HighlightedSegmentOutlineColor,
     SelectedSegmentOutlineAlpha,
     HighlightedSelectedSegmentOutlineAlpha,
@@ -30,7 +29,7 @@ export interface ImageProps {
     channelMarker: Record<ChannelName, string | null>
     onCanvasDataLoaded: ((data: ImageData) => void),
     selectedRegions: Array<SelectedPopulation> | null,
-    addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
+    addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[], color:number) => void)
     hightlightedRegions: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
@@ -137,8 +136,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[]) => this.props.addSelectedRegion(selectedRegion, selectedSegments)
     onExportComplete = () => this.props.onExportComplete()
+    addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[], color:number) => {
+        this.props.addSelectedRegion(selectedRegion, selectedSegments, color)
+    }
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -244,12 +245,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let segmentOutlineGraphics: PIXI.Graphics|null = null
         // Array of the selected segment IDs
         let selectedSegments:number[] = []
+        let selectionColor:number = 0
 
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
             if(altPressed){
                 this.selecting = true
+                selectionColor = GraphicsHelper.randomHexColor()
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 selection.push(pos.x)
                 selection.push(pos.y)
@@ -264,12 +267,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.y)
 
                 GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
-                let toUnpack = GraphicsHelper.selectRegion(selection, this.segmentationData, DefaultSelectedRegionColor)
+                let toUnpack = GraphicsHelper.selectRegion(selection, this.segmentationData, selectionColor, SelectedRegionAlpha)
 
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
 
-                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(DefaultSelectedRegionColor, SelectedSegmentOutlineWidth, selectedSegments)
+                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(selectionColor, SelectedSegmentOutlineWidth, selectedSegments)
 
                 this.stage.addChild(selectionGraphics)
                 if(segmentOutlineGraphics != null){
@@ -284,12 +287,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                this.addSelectedRegionToStore(selection, selectedSegments)
+                this.addSelectedRegionToStore(selection, selectedSegments, selectionColor)
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
                 segmentOutlineGraphics  = null
                 this.selecting = false
                 selection = []
+                selectionColor = 0
             }
         })
     }

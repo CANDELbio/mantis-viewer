@@ -80,7 +80,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         maxWidth: number,
         windowHeight: number | null,
         onCanvasDataLoaded: (data: ImageData) => void,
-        addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[]) => void,
+        addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void,
         selectedRegions: SelectedPopulation[] | null,
         hightlightedRegions: string[],
         highlightedSegments: number[],
@@ -280,7 +280,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 {this.state.plotOpen ? "Hide" : "Show"} Plot Pane
                             </Button>
                             <UnmountClosed isOpened={this.state.plotOpen} style={fullWidth}>
-                                    {scatterPlot}
+                                <div>{scatterPlot}</div>
                             </UnmountClosed>
                         </Col>
                     </Row>

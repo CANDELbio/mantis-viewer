@@ -2,11 +2,22 @@ import * as PIXI from "pixi.js"
 import { SegmentationData } from "./SegmentationData"
 import { ImageData } from "./ImageData"
 import { ChannelName,
-    SelectedRegionAlpha,
-    DefaultSelectedRegionColor,
     DefaultSegmentOutlineAlpha} from "../interfaces/UIDefinitions"
 
 import { PixelLocation } from "../interfaces/ImageInterfaces"
+
+export function randomRGBColor(){
+    let c = randomHexColor()
+    let r = c >> 16
+    let g = c >> 8 & 255
+    let b = c & 255
+    return {r: r, g: g, b: b}
+}
+
+export function randomHexColor(){
+    return Math.round(0xffffff * Math.random())
+}
+
 
 // Gets RGB values from a hex number representing a color.
 export function hexToRGB(hex: number){
@@ -126,7 +137,7 @@ export function cleanUpStage(stage: PIXI.Container, selectionGraphics:PIXI.Graph
 // Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
 // Then draws a new selectionGraphics of the region, finds the segments and their centroids in that selectionGraphics, and draws the selectedCentroids.
 // Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
-export function selectRegion(selection:number[], segmentationData: SegmentationData|null, color = DefaultSelectedRegionColor, alpha = SelectedRegionAlpha){
+export function selectRegion(selection:number[], segmentationData: SegmentationData|null, color:number, alpha:number){
 
     let selectionGraphics = drawSelectedRegion(selection, color, alpha)
     

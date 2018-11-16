@@ -386,8 +386,10 @@ export class ProjectStore {
     @action setChannelMarker = (channelName: ChannelName, markerName: string) => {
         this.channelMarker[channelName] = markerName
         this.activeImageStore.setChannelMarker(channelName, markerName)
-        // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
-        this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(channelName)
+        // Set the channel domain to the default for that channel when we change it.
+        let domainPercentage = ConfigurationHelper.getDefaultChannelDomains()[channelName]
+        this.channelDomainPercentage[channelName] = domainPercentage
+        this.activeImageStore.setChannelDomainFromPercentage(channelName, domainPercentage)
 
     }
 

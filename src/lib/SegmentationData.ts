@@ -2,7 +2,7 @@ import * as fs from "fs"
 import * as PIXI from "pixi.js"
 import * as concaveman from "concaveman"
 import { PixelLocation } from "../interfaces/ImageInterfaces"
-import { drawOutlines } from "./GraphicsHelper"
+import { drawOutlines, randomRGBColor } from "./GraphicsHelper"
 import { SegmentOutlineColor } from "../interfaces/UIDefinitions"
 
 const tiff = require("tiff")
@@ -34,12 +34,7 @@ export class SegmentationData {
 
     private static getPixelColor(segmentId:number, colors: RGBColorCollection){
         if(!(segmentId in colors)){
-            // Generate a random color
-            let num = Math.round(0xffffff * Math.random())
-            let r = num >> 16
-            let g = num >> 8 & 255
-            let b = num & 255
-            let color = {r: r, g: g, b: b}
+            let color = randomRGBColor()
 
             // Store that color in the colors hash and then return in.
             colors[segmentId] = color
