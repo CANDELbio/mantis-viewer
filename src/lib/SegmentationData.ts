@@ -173,7 +173,7 @@ export class SegmentationData {
         return SegmentationData.segmentationSpriteFromData(this.data, this.width, this.height)
     }
 
-    public segmentOutlineGraphics(color = SegmentOutlineColor, segments?:number[]){
+    public segmentOutlineGraphics(color = SegmentOutlineColor, width: number, segments?:number[]){
         let outlines = []
         for(let segment in this.segmentOutlineMap){
             let segmentId = Number(segment)
@@ -183,26 +183,29 @@ export class SegmentationData {
                 outlines.push(this.segmentOutlineMap[segmentId])
             }
         }
-        return drawOutlines(outlines, color)
+        return drawOutlines(outlines, color, width)
     }
 
-    constructor(fName:string) {
-        console.log(fName)
-        let input = fs.readFileSync(fName)
-        let tiffData = tiff.decode(input)[0]
+    constructor(width:number, height: number, data: Float32Array | Uint16Array) {
 
-        this.width = tiffData.width
-        this.height = tiffData.height
-        this.data = tiffData.data
+        this.width = width
+        this.height = height
+        this.data = data
         
         // Generating the pixelMap and segmentMaps that represent the segementation data
-        let maps = SegmentationData.generateMaps(tiffData.data, tiffData.width, tiffData.height)
+        let maps = SegmentationData.generateMaps(data, width, height)
         this.pixelMap = maps.pixelMap
         this.segmentLocationMap = maps.segmentLocationMap
         this.segmentIndexMap = maps.segmentIndexMap
 
         this.segmentOutlineMap = SegmentationData.generateOutlineMap(maps.segmentLocationMap)
         this.centroidMap = SegmentationData.calculateCentroids(maps.segmentLocationMap)
+    }
+
+    public static newFromFile(fName:string) {
+        let input = fs.readFileSync(fName)
+        let tiffData = tiff.decode(input)[0]
+        return new SegmentationData(tiffData.width, tiffData.height, tiffData.data)
     }
 
 

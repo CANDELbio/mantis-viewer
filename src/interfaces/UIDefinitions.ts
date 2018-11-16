@@ -20,6 +20,11 @@ export const PlotTransformOptions = [
 
 export const SelectedRegionAlpha = 0.3
 export const HighlightedSelectedRegionAlpha = 0.5
+export const SelectedSegmentOutlineAlpha = 0.7
+export const HighlightedSelectedSegmentOutlineAlpha = 1.0
+export const SelectedSegmentOutlineWidth = 2.0
+export const SegmentOutlineWidth = 1.0 // For all segments
+export const DefaultSegmentOutlineAlpha = 1.0
 export const UnselectedCentroidColor = 0xf1c40f // yellow
 export const SelectedCentroidColor = 0xffffff // white
 export const DefaultSelectedRegionColor = 0xf1c40f // yellow

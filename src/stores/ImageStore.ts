@@ -1,30 +1,23 @@
 import { observable, 
     action,
-    computed,
-    autorun} from "mobx"
-import { ImageData } from "../lib/ImageData"
-import { SegmentationData } from "../lib/SegmentationData"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+    computed } from "mobx"
 import * as _ from "underscore"
 
+import { ImageData } from "../lib/ImageData"
+import { SegmentationData } from "../lib/SegmentationData"
 import { ChannelName,
     D3BrushExtent, 
     SelectOption,
     LabelLayer } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
-import { PopulationStore } from "./PopulationStore";
-import { PlotStore } from "./PlotStore";
 
 export class ImageStore {
 
-    constructor(populationStore: PopulationStore, plotStore: PlotStore) {
-        this.initialize(populationStore, plotStore)
+    constructor() {
+        this.initialize()
     }
     
     private canvasImageData:ImageData | null = null
-
-    @observable.ref populationStore: PopulationStore
-    @observable.ref plotStore: PlotStore
 
     @observable windowWidth: number | null
     @observable windowHeight: number | null
@@ -32,14 +25,14 @@ export class ImageStore {
     @observable.ref imageData: ImageData | null
     @observable imageDataLoading: boolean
 
+    @observable imageExportFilename: string | null
+
     @observable.ref segmentationData: SegmentationData | null
 
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
 
-    
     @observable channelDomain: Record<ChannelName, [number, number]> 
-    @observable channelSliderValue: Record<ChannelName, [number, number]>
 
     @observable segmentationFillAlpha: number
     @observable segmentationOutlineAlpha: number
@@ -54,23 +47,6 @@ export class ImageStore {
         y: [number, number]
     } | null
 
-    setScatterPlotData = autorun(() => {
-        if(this.plotStore && this.plotStore.selectedPlotChannels.length == 2){
-            let ch1 = this.plotStore.selectedPlotChannels[0]
-            let ch2 = this.plotStore.selectedPlotChannels[1]
-            if(this.imageData != null && this.segmentationData != null){
-                this.plotStore.setScatterPlotData(new ScatterPlotData(ch1,
-                    ch2,
-                    this.imageData,
-                    this.segmentationData,
-                    this.plotStore.scatterPlotStatistic,
-                    this.plotStore.scatterPlotTransform,
-                    this.populationStore.selectedPopulations
-                ))
-            }
-        }
-    })
-
     channelSelectOptions = computed(() => {
         if(this.imageData) {
             return this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
@@ -79,20 +55,13 @@ export class ImageStore {
         }
     })
 
-    @action initialize = (populationStore: PopulationStore, plotStore: PlotStore) => {
-        this.populationStore = populationStore
-        this.plotStore = plotStore
-
+    @action initialize = () => {
         this.channelDomain = {
             rChannel: [0, 100],
             gChannel: [0, 100],
             bChannel: [0, 100]
         }
-        this.channelSliderValue = {
-            rChannel: [0, 100],
-            gChannel: [0, 100],
-            bChannel: [0, 100]
-        }
+
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 1
         this.segmentationCentroidsVisible = false
@@ -112,37 +81,29 @@ export class ImageStore {
         this.windowHeight = height
     }
 
-    @action setCurrentSelection(extent: D3BrushExtent) {
+    @action setCurrentSelection = (extent: D3BrushExtent) => {
         this.currentSelection = {
             x: [extent[0][0], extent[1][0]],
             y: [extent[0][1], extent[1][1]]
         }
     }
 
-    @action setImageDataLoading(status: boolean){
+    @action setImageDataLoading = (status: boolean) => {
         this.imageDataLoading = status
     }
 
-    @action setImageData(data: ImageData){
+    @action setImageData = (data: ImageData) => {
         this.imageData = data
         this.setChannelMarkerDefaults()
         this.setImageDataLoading(false)
     }
 
-    @action clearImageData(){
+    @action clearImageData = () => {
         for(let s of ['rChannel', 'bChannel', 'gChannel']){
             let curChannel = s as ChannelName
             this.unsetChannelMarker(curChannel)
         }
-        this.clearSegmentationData()
-        this.populationStore.clearSelectedPopulations()
         this.imageData = null
-    }
-
-    @action updateSegmentationData() {
-        if (this.selectedSegmentationFile != null) {
-            this.segmentationData = new SegmentationData(this.selectedSegmentationFile)
-        }
     }
 
     @action setSegmentationFillAlpha = (value: number) => {
@@ -153,21 +114,53 @@ export class ImageStore {
         this.segmentationOutlineAlpha = value
     }
 
-    @action setCentroidVisibility = () => {
-        return action((event: React.FormEvent<HTMLInputElement>) => {
-            this.segmentationCentroidsVisible = event.currentTarget.checked
-        })
+    @action setCentroidVisibility = (visible: boolean) => {
+        this.segmentationCentroidsVisible = visible
     }
 
     @action clearSegmentationData = () => {
         this.selectedSegmentationFile = null
         this.segmentationData = null
         this.segmentationFillAlpha = 0
-        this.plotStore.clearSelectedPlotChannels()
     }
 
-    @action clearSegmentationDataCallback = () => {
-        return this.clearSegmentationData
+    getChannelDomainPercentages = () => {
+        let channelDomainPercentages:Record<ChannelName, [number, number]>  = {
+            rChannel: [0, 1],
+            gChannel: [0, 1],
+            bChannel: [0, 1]
+        }
+
+        if(this.imageData != null){
+            for(let s in this.channelDomain){
+                let curChannel = s as ChannelName
+                let channelMarker = this.channelMarker[curChannel]
+                if(channelMarker != null){
+                    let channelMax = this.imageData.minmax[channelMarker].max
+                    let minPercentage = this.channelDomain[curChannel][0]/channelMax
+                    let maxPercentage = this.channelDomain[curChannel][1]/channelMax
+                    channelDomainPercentages[curChannel] = [minPercentage, maxPercentage]
+                }
+            }
+        }
+
+        return channelDomainPercentages
+    }
+
+    // Sets channel domain values as a percentage of the channelMax.
+    @action setChannelDomainFromPercentages = (percentages: Record<ChannelName, [number, number]>) => {
+        if(this.imageData != null){
+            for(let s in this.channelDomain){
+                let curChannel = s as ChannelName
+                let channelMarker = this.channelMarker[curChannel]
+                if(channelMarker != null){
+                    let channelMax = this.imageData.minmax[channelMarker].max
+                    let minValue  = percentages[curChannel][0] * channelMax
+                    let maxValue  = percentages[curChannel][1] * channelMax
+                    this.channelDomain[curChannel] = [minValue, maxValue]
+                }
+            }
+        }
     }
 
     @action setChannelDomain = (name: ChannelName) => {
@@ -176,16 +169,9 @@ export class ImageStore {
         })
     }
 
-    @action setChannelSliderValue = (name: ChannelName) => {
-        return action((value: [number, number]) => {
-            this.channelSliderValue[name] = value
-        })
-    }
-
     @action unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
         this.channelDomain[channelName] = [0, 100]
-        this.channelSliderValue[channelName] = [0, 100]
     }
 
     @action setChannelMarker = (channelName: ChannelName, markerName: string) => {
@@ -195,7 +181,6 @@ export class ImageStore {
             let min = this.imageData.minmax[markerName].min
             let max = this.imageData.minmax[markerName].max
             this.channelDomain[channelName] = [min, max]
-            this.channelSliderValue[channelName] = [min, max]
         }
     }
 
@@ -222,13 +207,47 @@ export class ImageStore {
         }
     }
 
-    @action selectDirectory = (dirName : string) => {
+    @action copyChannelMarkerValues = (values: Record<ChannelName, string | null>) => {
+        // Only copy if we have image data. Otherwise we can't verify if we have the channels indicated in values.
+        if(this.imageData != null && values != null) {
+            for (let s in values) {
+                let channelName = s as ChannelName
+                let channelValue = values[channelName] // The file selected
+                if(channelValue != null){
+                    if(this.imageData.channelNames.indexOf(channelValue) != -1){
+                        // If the file selected is not null and the destination has a file with the same name set that
+                        this.setChannelMarker(channelName, channelValue)
+                    } else {
+                        // Otherwise unset that channel for the destination
+                        this.unsetChannelMarker(channelName)
+                    }
+                } else {
+                    // Unset the channel for the destination if it's unset in the source
+                    this.unsetChannelMarker(channelName)
+                }
+            }
+        }
+    }
+
+    @action selectDirectory = (dirName: string) => {
         this.selectedDirectory = dirName
     }
 
-    @action selectSegmentationFile = (fName: string) => {
+    @action setSegmentationData = (data: SegmentationData) => {
+        this.segmentationData = data
+    }
+
+    @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
-        this.updateSegmentationData()
+        this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
+    }
+
+    @action setImageExportFilename = (fName: string) => {
+        this.imageExportFilename = fName
+    }
+
+    @action clearImageExportFilename = () => {
+        this.imageExportFilename = null
     }
 
     @action setCanvasImageData = (data:ImageData) => {

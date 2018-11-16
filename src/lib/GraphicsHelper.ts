@@ -3,8 +3,8 @@ import { SegmentationData } from "./SegmentationData"
 import { ImageData } from "./ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
-    SelectedCentroidColor,
-    DefaultSelectedRegionColor } from "../interfaces/UIDefinitions"
+    DefaultSelectedRegionColor,
+    DefaultSegmentOutlineAlpha} from "../interfaces/UIDefinitions"
 
 import { PixelLocation } from "../interfaces/ImageInterfaces"
 
@@ -142,9 +142,11 @@ export function selectRegion(selection:number[], segmentationData: SegmentationD
 // Expects an array containing arrays of pixel locations.
 // Each array of pixel locations should be the coordinates of the outline.
 // The easiest way to get these is from the SegmentationData segmentOutlineMap
-export function drawOutlines(outlines: PixelLocation[][], color: number, width = 1, alpha = 1, alignment = 0.5){
+export function drawOutlines(outlines: PixelLocation[][], color: number, width:number, alignment = 0.5){
     let outlineGraphics = new PIXI.Graphics()
-    outlineGraphics.lineStyle(width, color, alpha, alignment)
+    // Always set the alpha to 1.0 and adjust it elsewhere
+    // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
+    outlineGraphics.lineStyle(width, color, DefaultSegmentOutlineAlpha, alignment)
     for(let outline of outlines){
         // Copy the outline array so we're not modifying the one being passed in
         outline = outline.slice()

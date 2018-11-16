@@ -1,11 +1,8 @@
 import * as React from "react"
 import { Button, Slider, Checkbox } from "@blueprintjs/core"
 import { observer } from "mobx-react"
-import * as Path from "path"
 
 export interface SegmentationControlsProps {
-    segmentationPath: string
-
     fillAlpha: number
     outlineAlpha: number
 
@@ -13,7 +10,7 @@ export interface SegmentationControlsProps {
     onOutlineAlphaChange: ((value: number) => void)
 
     centroidsVisible: boolean
-    onCentroidVisibilityChange: ((event: React.FormEvent<HTMLInputElement>) => void)
+    setCentroidsVisible: ((visible: boolean) => void)
 
     onClearSegmentation: (() => void)
 }
@@ -29,17 +26,12 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
 
     onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value/this.sliderMax)
     onOutlineAlphaSliderChange = (value:number) => this.props.onOutlineAlphaChange(value/this.sliderMax)
+    onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) => this.props.setCentroidsVisible(event.currentTarget.checked)
 
     render() {
-        let splitPath = this.props.segmentationPath.split(Path.sep)
-        let segmentationFileString = "..." + Path.sep + splitPath[splitPath.length - 2] + Path.sep + splitPath[splitPath.length - 1]
-
         return(
             <div>
-                <div>Selected segmentation file:</div>
-                <div>{segmentationFileString}</div>
-                <br></br>
-                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.props.onCentroidVisibilityChange} />
+                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.onCentroidVisibilityChange} />
                 Segmentation Outline Alpha
                 <Slider
                     value = {this.props.outlineAlpha * this.sliderMax}

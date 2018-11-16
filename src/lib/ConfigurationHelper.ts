@@ -17,6 +17,7 @@ import { ChannelName } from '../interfaces/UIDefinitions'
             'catenin'
         ],
         bChannel: [
+            'DAPI',
             '191 Ir',
             '191Ir',
             '193 Ir',

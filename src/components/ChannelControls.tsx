@@ -7,7 +7,6 @@ export interface ChannelControlsProps {
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
-    onSliderRelease: ((value: [number, number]) => void)
     onSliderChange: ((value: [number, number]) => void)
     
     selectOptions: {value: string, label:string}[]
@@ -32,7 +31,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         return(
             <div>
                 <Select
-                    value = {(this.props.selectValue == null) ? undefined : this.props.selectValue}
+                    value = {(this.props.selectValue == null) ? undefined:  this.props.selectValue}
                     options = {this.props.selectOptions}
                     onChange = {this.props.onSelectChange}
                 />
@@ -43,7 +42,6 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                     labelStepSize = {Math.round(this.props.sliderMax/5)}
                     labelPrecision = {1}
                     stepSize = {this.props.sliderMax/1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                    onRelease = {this.props.onSliderRelease}
                     onChange = {this.props.onSliderChange}
                 />
             </div>

@@ -3,84 +3,98 @@ import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
-import { ImageData } from "../lib/ImageData"
-import { ImageStore } from "../stores/ImageStore"
-import { PopulationStore } from "../stores/PopulationStore"
-import { PlotStore } from "../stores/PlotStore"
+import { ProjectStore } from "../stores/ProjectStore";
 
 Mobx.configure({ enforceActions: 'always' })
 
-const populationStore = new PopulationStore()
-const plotStore = new PlotStore()
-const imageStore = new ImageStore(populationStore, plotStore)
+const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
 ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
     console.log(dirName)
-    imageStore.setImageDataLoading(true)
-    imageStore.selectDirectory(dirName)
-
-    imageStore.clearImageData()
-    let imageData = new ImageData()
-    imageData.loadFolder(dirName, (data) => imageStore.setImageData(data))
+    projectStore.setActiveImageSet(dirName)
 
     // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('update-menu', true)
+    ipcRenderer.send('set-image-loaded', true)
+})
+
+ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
+    console.log(dirName)
+    projectStore.setImageSetPaths(dirName)
+
+    // Send a message to the main process to update the disabled menu items
+    ipcRenderer.send('set-image-loaded', true)
 })
 
 ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
-    imageStore.selectSegmentationFile(filename)
+    projectStore.activeImageStore.setSegmentationFile(filename)
 })
 
-ipcRenderer.on("import-selected-populations", (event:Electron.Event, filename:string) => {
-    populationStore.importSelectedPopulations(filename)
+ipcRenderer.on("import-active-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.importActiveUserData(filename)
 })
 
-ipcRenderer.on("export-selected-populations", (event:Electron.Event, filename:string) => {
-    populationStore.exportSelectedPopulations(filename)
+ipcRenderer.on("import-all-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.importAllUserData(filename)
+})
+
+ipcRenderer.on("export-active-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.exportActiveUserData(filename)
+})
+
+ipcRenderer.on("export-all-selected-populations", (event:Electron.Event, filename:string) => {
+    projectStore.exportAllUserData(filename)
 })
 
 ipcRenderer.on("add-populations-csv", (event:Electron.Event, filename:string) => {
-    populationStore.addPopulationsFromCSV(filename)
+    projectStore.activePopulationStore.addPopulationsFromCSV(filename)
+})
+
+ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
+    projectStore.activeImageStore.setImageExportFilename(filename)
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
-    imageStore.setWindowDimensions(width, height)
+    projectStore.activeImageStore.setWindowDimensions(width, height)
 })
 
 ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
-    if(imageStore.imageData != null) imageStore.imageData.terminateWorkers()
+    if(projectStore.activeImageStore.imageData != null){
+        projectStore.activeImageStore.imageData.terminateWorkers()
+    }
 })
 
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
-    plotStore.setPlotInMainWindow(inMain)
+    projectStore.activePlotStore.setPlotInMainWindow(inMain)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) => {
-    plotStore.setSelectedPlotChannels(channels)
+    projectStore.activePlotStore.setSelectedPlotChannels(channels)
 })
 
 ipcRenderer.on('set-plot-statistic', (event:Electron.Event, statistic: any) => {
-    plotStore.setScatterPlotStatistic(statistic)
+    projectStore.activePlotStore.setScatterPlotStatistic(statistic)
 })
 
 ipcRenderer.on('set-plot-transform', (event:Electron.Event, transform: any) => {
-    plotStore.setScatterPlotTransform(transform)
+    projectStore.activePlotStore.setScatterPlotTransform(transform)
 })
 
 ipcRenderer.on('add-plot-selected-population', (event:Electron.Event, segmentIds: number[]) => {
-    populationStore.addSelectedPopulation(null, segmentIds)
+     projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds)
 })
 
 ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
-    plotStore.setSegmentsHoveredOnPlot(segmentIds)
+    projectStore.activePlotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
-Mobx.autorun(() =>{
+Mobx.autorun(() => {
+    let imageStore = projectStore.activeImageStore
+    let plotStore = projectStore.activePlotStore
     ipcRenderer.send('mainWindow-set-plot-data',
         imageStore.channelSelectOptions.get(),
         plotStore.selectedPlotChannels,
@@ -90,9 +104,15 @@ Mobx.autorun(() =>{
     )
 })
 
+// Sends the active image set path to the main thread when changed.
+// Used for setting default menu directories.
+Mobx.autorun(() => {
+    ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
+})
+
 ReactDOM.render(
     <div>
-        <MainApp  imageStore={imageStore} populationStore={populationStore} plotStore={plotStore}/>
+        <MainApp projectStore={projectStore}/>
     </div>,
     document.getElementById("main")
 )

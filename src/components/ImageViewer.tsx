@@ -1,13 +1,20 @@
 import * as React from "react"
 import * as PIXI from "pixi.js"
+import * as fs from "fs"
 import { observer } from "mobx-react"
+
 import { ImageData } from "../lib/ImageData"
 import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
     DefaultSelectedRegionColor,
-    HighlightedSegmentOutlineColor } from "../interfaces/UIDefinitions"
+    HighlightedSegmentOutlineColor,
+    SelectedSegmentOutlineAlpha,
+    HighlightedSelectedSegmentOutlineAlpha,
+    SelectedSegmentOutlineWidth,
+    SegmentOutlineColor,
+    SegmentOutlineWidth} from "../interfaces/UIDefinitions"
 import { SegmentationData } from "../lib/SegmentationData"
 import * as GraphicsHelper from "../lib/GraphicsHelper"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
@@ -28,7 +35,9 @@ export interface ImageProps {
     selectedRegions: Array<SelectedPopulation> | null,
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
     hightlightedRegions: string[]
-    highlightedSegmentsFromGraph: number[]
+    highlightedSegmentsFromPlot: number[]
+    exportPath: string | null
+    onExportComplete: (() => void)
 }
 
 @observer
@@ -127,6 +136,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[]) => this.props.addSelectedRegion(selectedRegion, selectedSegments)
+    onExportComplete = () => this.props.onExportComplete()
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -257,10 +267,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
 
-                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(DefaultSelectedRegionColor, selectedSegments)
+                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(DefaultSelectedRegionColor, SelectedSegmentOutlineWidth, selectedSegments)
 
                 this.stage.addChild(selectionGraphics)
-                if(segmentOutlineGraphics != null) this.stage.addChild(segmentOutlineGraphics)
+                if(segmentOutlineGraphics != null){
+                    segmentOutlineGraphics.alpha = SelectedSegmentOutlineAlpha
+                    this.stage.addChild(segmentOutlineGraphics)
+                }
 
                 this.renderer.render(this.rootContainer)
             }
@@ -293,7 +306,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let height = imcData.height * scaleFactor
         this.minScale = scaleFactor
         this.scaledHeight = height
-        this.checkScale()
     }
 
     // Resizes the WebGL Renderer and sets the new scale factors accordingly.
@@ -303,6 +315,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.rendererWidth = windowWidth
         this.setScaleFactors(imcData)
         this.renderer.resize(this.rendererWidth, this.scaledHeight)
+        this.checkScale()
+    }
+
+    resetZoom(){
+        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
+        this.stage.scale.x = this.minScale
+        this.stage.scale.y = this.minScale
     }
 
     initializeGraphics(imcData: ImageData, windowWidth: number){
@@ -314,10 +333,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Setting up the renderer
         this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.scaledHeight)
         this.el.appendChild(this.renderer.view)
-
-        // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
-        this.stage.scale.x = this.minScale
-        this.stage.scale.y = this.minScale
 
         // Setting up event listeners
         // TODO: Make sure these don't get added again if a new set of images is selected.
@@ -347,7 +362,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentSprite()
-            this.segmentationOutlineGraphics = segmentationData.segmentOutlineGraphics()
+            this.segmentationOutlineGraphics = segmentationData.segmentOutlineGraphics(SegmentOutlineColor, SegmentOutlineWidth)
             this.segmentationCentroidGraphics = GraphicsHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
         }
         // Add segmentation cells
@@ -375,8 +390,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.selectedRegionGraphics[region.id] = {region: null, outline: null}
                 if(region.selectedRegion != null) this.selectedRegionGraphics[region.id].region = GraphicsHelper.drawSelectedRegion(region.selectedRegion, region.color, SelectedRegionAlpha)
                 if(region.selectedSegments != null && this.segmentationData != null) {
-                    this.selectedRegionGraphics[region.id].outline = this.segmentationData.segmentOutlineGraphics(region.color, region.selectedSegments)
-
+                    this.selectedRegionGraphics[region.id].outline = this.segmentationData.segmentOutlineGraphics(region.color, SelectedSegmentOutlineWidth, region.selectedSegments)
                 }
             }
         }
@@ -388,15 +402,24 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             for(let regionId in this.selectedRegionGraphics){
                 let curGraphics = this.selectedRegionGraphics[regionId]
                 // Set the alpha correctly for regions that need to be highlighted
-                let alpha = (highlightedRegions.indexOf(regionId) > -1) ? HighlightedSelectedRegionAlpha : SelectedRegionAlpha
+                let regionAlpha = SelectedRegionAlpha
+                let outlineAlpha = SelectedSegmentOutlineAlpha
+                if(highlightedRegions.indexOf(regionId) > -1){
+                    regionAlpha = HighlightedSelectedRegionAlpha
+                    outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
+                }
 
                 let regionGraphics = curGraphics.region
                 if(regionGraphics != null){
-                    regionGraphics.alpha = alpha
+                    regionGraphics.alpha = regionAlpha
                     stage.addChild(regionGraphics)
                 }
 
-                if (curGraphics.outline != null) stage.addChild(curGraphics.outline)
+                let outlineGraphics = curGraphics.outline
+                if (outlineGraphics != null){
+                    outlineGraphics.alpha = outlineAlpha
+                    stage.addChild(outlineGraphics)
+                }
             }
         }
     }
@@ -414,8 +437,25 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Generates and adds segments highlighted/moused over on the graph.
     loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]){
         if(highlightedSegments.length > 0){
-            let graphics = segmentationData.segmentOutlineGraphics(HighlightedSegmentOutlineColor, highlightedSegments)
+            let graphics = segmentationData.segmentOutlineGraphics(HighlightedSegmentOutlineColor, SelectedSegmentOutlineWidth, highlightedSegments)
             this.stage.addChild(graphics)
+        }
+    }
+
+    exportRenderer(exportPath: string){
+        // Get the source canvas that we are exporting from pixi
+        let sourceCanvas = this.renderer.extract.canvas()
+        let sourceContext = sourceCanvas.getContext('2d')
+
+        if(sourceContext){
+            // Convert to a base64 encoded png
+            let exportingImage = sourceCanvas.toDataURL('image/png')
+            // Replace the header so that we just have the base64 encoded string
+            let exportingData = exportingImage.replace(/^data:image\/png;base64,/, "");
+            // Save the base64 encoded string to file.
+            fs.writeFile(exportPath, exportingData, 'base64', function(err) {
+                console.log(err)
+            })
         }
     }
 
@@ -430,18 +470,25 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         selectedRegions: Array<SelectedPopulation> | null,
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
+        exportPath: string | null,
         windowWidth: number) {
 
         if(el == null)
             return
         this.el = el
 
-        this.imageData = imcData
-
         if(!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, windowWidth)
         }
 
+        // We want to resize graphics and reset zoom if imcData has changed
+        if(this.imageData != imcData) {
+            this.imageData = imcData
+            this.resizeGraphics(imcData, windowWidth)
+            this.resetZoom()
+        }
+
+        // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if(this.rendererWidth != windowWidth){
             this.resizeGraphics(imcData, windowWidth)
         }
@@ -467,6 +514,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
 
         this.renderer.render(this.rootContainer)
+
+        if(exportPath){
+            this.exportRenderer(exportPath)
+            this.onExportComplete()
+        }
         
     }
 
@@ -497,7 +549,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let highlightedRegions = this.props.hightlightedRegions
 
-        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromGraph
+        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
+
+        let exportPath = this.props.exportPath
 
         let renderWidth = 500
         if(this.props.windowWidth != null){
@@ -505,7 +559,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
             // become larger as the window becomes larger
             // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/1540) * 550
+            renderWidth = (this.props.windowWidth/1540) * 650
         } 
 
         return(
@@ -521,6 +575,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                                 regions,
                                                 highlightedRegions,
                                                 highlightedSegmentsFromGraph,
+                                                exportPath,
                                                 renderWidth
                                                 )
                     }}

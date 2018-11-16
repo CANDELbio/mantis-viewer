@@ -37,6 +37,10 @@ export class PlotStore {
         this.scatterPlotData = data
     }
 
+    @action clearScatterPlotData = () => {
+        this.scatterPlotData = null
+    }
+
     @action setPlotInMainWindow = (inWindow: boolean) => {
         this.plotInMainWindow = inWindow
     }
