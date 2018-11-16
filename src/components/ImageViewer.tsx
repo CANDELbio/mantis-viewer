@@ -28,8 +28,6 @@ export interface ImageProps {
     segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
-    canvasWidth: number
-    canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
     selectedRegions: Array<SelectedPopulation> | null,
     addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)

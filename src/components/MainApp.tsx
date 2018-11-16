@@ -14,6 +14,9 @@ import { ImageSetSelector } from "./ImageSetSelector"
 import { SegmentationControls } from "./SegmentationControls"
 import { ScatterPlot } from "./ScatterPlot"
 import { SelectedPopulations } from "./SelectedPopulations"
+import { ImageData } from "../lib/ImageData"
+import { SegmentationData } from "../lib/SegmentationData"
+import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 
 export interface MainAppProps { 
     projectStore: ProjectStore
@@ -67,32 +70,42 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return 100
     }
 
-    renderImageViewer = (maxWidth: number) => {
-        let projectStore = this.props.projectStore
-        let imageStore = projectStore.activeImageStore
-        let populationStore = projectStore.activePopulationStore
-        let plotStore = projectStore.activePlotStore
-
+    renderImageViewer = (imageData: ImageData| null,
+        segmentationData: SegmentationData | null,
+        segmentationFillAlpha: number,
+        segmentationOutlineAlpha: number,
+        segmentationCentroidsVisible: boolean,
+        channelDomain: Record<ChannelName, [number, number]>,
+        channelMarker: Record<ChannelName, string | null>,
+        maxWidth: number,
+        windowHeight: number | null,
+        onCanvasDataLoaded: (data: ImageData) => void,
+        addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[]) => void,
+        selectedRegions: SelectedPopulation[] | null,
+        hightlightedRegions: string[],
+        highlightedSegments: number[],
+        exportPath: string | null,
+        onExportComplete: () => void) =>
+    {
         let viewer = null
-        if(imageStore.imageData != null && projectStore.windowHeight != null) {
+        if(imageData != null && windowHeight != null) {
+            let maxRendererSize = {width: maxWidth, height: windowHeight - WindowHeightBufferSize}
             viewer = <ImageViewer
-                imageData = {imageStore.imageData}
-                segmentationData = {imageStore.segmentationData}
-                segmentationFillAlpha = {imageStore.segmentationFillAlpha}
-                segmentationOutlineAlpha = {imageStore.segmentationOutlineAlpha}
-                segmentationCentroidsVisible = {imageStore.segmentationCentroidsVisible}
-                channelDomain = {imageStore.channelDomain}
-                channelMarker = {imageStore.channelMarker}
-                canvasWidth = {imageStore.imageData.width}
-                canvasHeight = {imageStore.imageData.height}
-                maxRendererSize = {{width: maxWidth, height: projectStore.windowHeight - WindowHeightBufferSize}}
-                onCanvasDataLoaded = {imageStore.setCanvasImageData}
-                addSelectedRegion = {populationStore.addSelectedPopulation}
-                selectedRegions = {populationStore.selectedPopulations}
-                hightlightedRegions = {populationStore.highlightedPopulations}
-                highlightedSegmentsFromPlot = {plotStore.segmentsHoveredOnPlot}
-                exportPath = {imageStore.imageExportFilename}
-                onExportComplete = {imageStore.clearImageExportFilename}
+                imageData = {imageData}
+                segmentationData = {segmentationData}
+                segmentationFillAlpha = {segmentationFillAlpha}
+                segmentationOutlineAlpha = {segmentationOutlineAlpha}
+                segmentationCentroidsVisible = {segmentationCentroidsVisible}
+                channelDomain = {channelDomain}
+                channelMarker = {channelMarker}
+                maxRendererSize = {maxRendererSize}
+                onCanvasDataLoaded = {onCanvasDataLoaded}
+                addSelectedRegion = {addSelectedRegion}
+                selectedRegions = {selectedRegions}
+                hightlightedRegions = {hightlightedRegions}
+                highlightedSegmentsFromPlot = {highlightedSegments}
+                exportPath = {exportPath}
+                onExportComplete = {onExportComplete}
             />
         }
 
@@ -186,6 +199,25 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         let fullWidth = {width: "100%"}
         let paddingStyle = {paddingTop: "10px"}
+
+        // Dereferencing these here for rendering the image viewer
+        // With the way SizeMe works, any variables dereferenced within it
+        // don't work as dereferences to trigger a React rerender
+        let imageData = imageStore.imageData
+        let segmentationData = imageStore.segmentationData
+        let segmentationFillAlpha = imageStore.segmentationFillAlpha
+        let segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
+        let segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
+        let channelDomain = imageStore.channelDomain
+        let channelMarker = imageStore.channelMarker
+        let windowHeight = projectStore.windowHeight
+        let onCanvasDataLoaded = imageStore.setCanvasImageData
+        let addSelectedRegion = populationStore.addSelectedPopulation
+        let selectedRegions = populationStore.selectedPopulations
+        let hightlightedRegions = populationStore.highlightedPopulations
+        let highlightedSegmentsFromPlot = plotStore.segmentsHoveredOnPlot
+        let exportPath = imageStore.imageExportFilename
+        let onExportComplete = imageStore.clearImageExportFilename
      
         return(
             <div>
@@ -208,12 +240,29 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{segmentationControls}</div>
                             </UnmountClosed>
                         </Col>
-                        <SizeMe refreshRate={32}>{({ size }) =>
+                        <SizeMe>{({ size }) =>
                             <Col xs={6} sm={6} md={6} lg={6}>
                                 <Grid fluid={true}>
                                     <Row center="xs">
                                         <Col>
-                                            {this.renderImageViewer(size.width)}
+                                            {this.renderImageViewer(
+                                                imageData,
+                                                segmentationData,
+                                                segmentationFillAlpha,
+                                                segmentationOutlineAlpha,
+                                                segmentationCentroidsVisible,
+                                                channelDomain,
+                                                channelMarker,
+                                                size.width,
+                                                windowHeight,
+                                                onCanvasDataLoaded,
+                                                addSelectedRegion,
+                                                selectedRegions,
+                                                hightlightedRegions,
+                                                highlightedSegmentsFromPlot,
+                                                exportPath,
+                                                onExportComplete
+                                            )}
                                             {imageLoading}
                                         </Col>
                                     </Row>
