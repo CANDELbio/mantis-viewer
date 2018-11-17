@@ -28,6 +28,10 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         // Dereferencing here so we re-render on resize
         let windowWidth = this.props.windowWidth
 
+        let unroundedStepSize = this.props.sliderMax/5
+        let roundedStepSize = Math.round(unroundedStepSize)
+        let stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
+
         return(
             <div>
                 <Select
@@ -39,7 +43,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                     min = {this.props.sliderMin}
                     max = {this.props.sliderMax}
                     value = {this.props.sliderValue}
-                    labelStepSize = {Math.round(this.props.sliderMax/5)}
+                    labelStepSize = {stepSize}
                     labelPrecision = {1}
                     stepSize = {this.props.sliderMax/1000} // Might want to change the number/size of steps. Seemed like a good starting point.
                     onChange = {this.props.onSliderChange}

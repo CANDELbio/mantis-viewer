@@ -130,7 +130,8 @@ export class ImageStore {
     }
 
     @action setChannelDomain = (name: ChannelName, domain:[number, number]) => {
-        this.channelDomain[name] = domain
+        // Only set the domain if min is less than the max oherwise WebGL will crash
+        if(domain[0] < domain[1]) this.channelDomain[name] = domain
     }
 
     @action setChannelDomainFromPercentage = (name: ChannelName, domain:[number, number]) => {
