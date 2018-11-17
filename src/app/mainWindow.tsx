@@ -10,12 +10,12 @@ Mobx.configure({ enforceActions: 'always' })
 const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
-ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
-    projectStore.setActiveImageSet(dirName)
+ipcRenderer.on("open-image-set", async (event:Electron.Event, dirName:string) => {
+    projectStore.openImageSet(dirName)
 })
 
 ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
-    projectStore.setImageSetPaths(dirName)
+    projectStore.openProject(dirName)
 })
 
 ipcRenderer.on("open-active-segmentation-file", (event:Electron.Event, filename:string) => {
@@ -127,7 +127,7 @@ Mobx.autorun(() => {
 
 // Update the main thread on whether or not an image store with image data loaded is selected.
 Mobx.autorun(() => {
-    ipcRenderer.send('set-image-loaded', projectStore.activeImageStore.imageData != null)
+    ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)
 })
 
 Mobx.autorun(() => {

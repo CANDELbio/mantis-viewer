@@ -32,9 +32,7 @@ function generateMenuTemplate() {
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
-                mainWindow.webContents.send("open-directory", dirName[0])
-                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-                sendWindowSize()
+                openImageSet(dirName[0])
               }
             })
           }
@@ -44,9 +42,7 @@ function generateMenuTemplate() {
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
-                mainWindow.webContents.send("open-project", dirName[0])
-                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-                sendWindowSize()
+                openProject(dirName[0])
               }
             })
           }
@@ -265,7 +261,38 @@ function createMainWindow () {
 
   mainWindow.on('ready-to-show', () => {
     if(mainWindow != null) mainWindow.show()
+    sendWindowSize()
   })
+}
+
+function openImageSet(path: string) {
+  if(mainWindow != null){
+    if(imageLoaded || projectLoaded){
+      let message = "Warning: Opening a new image set will close all open image sets. Are you sure you wish to do this?"
+      dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+        if(response == 1){
+          if(mainWindow != null) mainWindow.webContents.send("open-image-set", path)
+        }
+      })
+    } else {
+      mainWindow.webContents.send("open-image-set", path)
+    }
+  }
+}
+
+function openProject(path: string) {
+  if(mainWindow != null){
+    if(imageLoaded || projectLoaded){
+      let message = "Warning: Opening a new project will close all open image sets. Are you sure you wish to do this?"
+      dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+        if(response == 1){
+          if(mainWindow != null) mainWindow.webContents.send("open-project", path)
+        }
+      })
+    } else {
+      mainWindow.webContents.send("open-project", path)
+    }
+  }
 }
 
 function createPlotWindow() {
@@ -356,8 +383,8 @@ ipcMain.on('mainWindow-show-error-dialog', (event:Electron.Event, message:string
 
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
 ipcMain.on('mainWindow-show-remove-dialog', (event:Electron.Event, message:string) => {
-  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['Yes', 'No']}, (response: number) =>{
-    if(response == 0){
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+    if(response == 1){
       if(mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
     }
   })

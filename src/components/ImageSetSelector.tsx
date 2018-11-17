@@ -31,7 +31,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                         onChange = {this.props.setSelectedImageSet}
                         clearable = {false}
                     />
-                    <Checkbox checked={this.props.persistData} label="Copy Image Set Data" onChange={this.onPersistDataChange} />
+                    <Checkbox checked={this.props.persistData} label="Copy Image Set Visualization Settings" onChange={this.onPersistDataChange} />
 
                 </div>
             )
