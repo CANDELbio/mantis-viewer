@@ -2,11 +2,19 @@
 
 ## Getting started! ##
 
-When you first load the application you should see a blank screen with a few unpopulated controls. Click the menu item named `mantis-viewer`, and then select `Open Folder`.
+When you first load the application you should see a blank screen with a few unpopulated controls. Click the menu item named `mantis-viewer`, and then select `Open`.
 
 ![Application Load](./images/tutorial/application_load.png)
 
-Mantis Viewer expects one folder with multiple images (one per channel) all stored as TIFFs.
+In the `Open` submenu you should see option for `Image Set` and `Project`. For an `Image Set`, Mantis Viewer expects one folder with multiple images (one per channel) all stored as TIFFs. For a `Project` Mantis Viewer expects a folder containing multipe image sets.
+
+## Switching Between Image Sets ##
+
+If you have loaded a project you can switch between the image sets in the project by using the dropdown under the title `Selected Image Set`
+
+![Switching Image Sets](./images/tutorial/switching_image_sets.png)
+
+If you want visualization settings (i.e. the selected channels, brightness levels, and segmentation appearance) copied as you switch between image sets then keep the box labeled `Copy Image Set Visualization Settings` checked.
 
 ## Color Controls ##
 
@@ -18,24 +26,13 @@ If you wish to change the channel selected for a color you can click on the drop
 
 You can adjust the brightness of a color by changing the min and max values on the slider below the color dropdown. The min and max values are set using the pixel intensities from the channel's TIFF. Brihtness adjustments are achieved by means of a linear transform.
 
-## Additional Menu Items ##
-
-Additional menu items will be activated in the main menu once channels have been loaded. 
-
-![Additional Menu Items](./images/tutorial/menu_options_images_loaded.png)
-
-You should see the following menu items enabled:
-
-* `Open Segmentation File`
-* `Add populations from CSV`
-* `Import selected populations`
-* `Export selected populations`
-
-These items will be discussed in subsequent sections.
-
 ## Segmentation Data ##
 
-You can load segmentation data by clicking the `Open Segmentation File` entry in the main menu. Mantis Viewer expects segmentation data to be loaded as a TIFF where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value.
+You can load segmentation data by hovering over `Import` and then `Segmentation` entries in the main menu. From here you can load segmentation data either `For active image set` or `For project`. If you select `For active image set` it will only load segmentation for the image set you are currently vewing. If you select `For project` it will attempt to find segmentation files with the same filename as the file you select in all of the open image sets.
+
+![Segmentation Menu](./images/tutorial/segmentation_menu.png)
+
+ Mantis Viewer expects segmentation data to be loaded as a TIFF where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value.
 
 Once segemntation data has been loaded segment outlines will be overlayed on the image.
 
@@ -73,7 +70,9 @@ If segmentation data has been loaded selected regions will also be displayed on 
 
 ## Adding Populations from CSV ##
 
-Mantis Viewer allows you to import populations, ie from gating using other software. Using the main menu item `Add populations from CSV` you can add populations from a CSV file. The CSV file should have no header, and each row should be of the format `segment_id, population_name`. For example, here are a few rows from a valid population CSV file:
+Mantis Viewer allows you to import populations (i.e. from gating using other software). Using the main menu item `Import` then `Populations` then `For Active Image Set from CSV` you can add populations from a CSV file. Note that this menu item will be disabled unless segmentation data has been loaded for the currently active image set.
+
+The CSV file selected should have no header, and each row should be of the format `segment_id, population_name`. For example, here are a few rows from a valid population CSV file:
 
 ```
 220,CD4 High Cells
@@ -85,6 +84,10 @@ Mantis Viewer allows you to import populations, ie from gating using other softw
 
 ## Importing and Exporting Populations ##
 
-You can save your selected regions and populations for use later by selecting the main menu item `Export selected populations` and saving the selected populations in a file.
+You can save your selected regions and populations for use later by selecting the main menu item `Export` and then `Populations`. You can either export for the currently active image set by selecting `For active image set to JSON` or for all of the open image sets in a project by selecting `For project to JSON`. If you select `For project to JSON` it will ask you to save for the currently active image set, but it will also create and export to a file with the same name in the base directory of every image set with populations. Note that these menu options will only be enabled when you have selected populations for the currently active image set. 
 
-You can reload exported populations at a later time by selecting the main menu item `Import selected populations` and selecting a file that you previously exported.
+You can reload exported populations at a later time by selecting the main menu item `Import` and then `Populations`. You can either import for the currently active image set by selecting `For active image set from JSON` or for all of the open image sets in a project by selecting `For project from JSON`. Importing for a project from JSON files works the same way as exporting: you select a JSON file for the currently active image set, and the application will look for JSON files with the same name in all of the base directories for every loaded image set.
+
+## Exporting the Current Image with Layers ##
+
+You can export the current image with layers from the main menu by selecting `Export` then `Image` then `Current Image and Layers`.
