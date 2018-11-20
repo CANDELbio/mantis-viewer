@@ -34,7 +34,7 @@ You can load segmentation data by hovering over `Import` and then `Segmentation`
 
  Mantis Viewer expects segmentation data to be loaded as a TIFF where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value.
 
-Once segemntation data has been loaded segment outlines will be overlayed on the image.
+Once segmentation data has been loaded segment outlines will be overlayed on the image.
 
 ![Segmentation Controls](./images/tutorial/segmentation_controls.png)
 
