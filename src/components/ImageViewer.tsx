@@ -376,7 +376,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     loadSegmentationGraphics(segmentationData: SegmentationData, segmentationFillAlpha:number, segmentationOutlineAlpha:number, centroidsVisible:boolean){
         if(segmentationData != this.segmentationData){
             this.segmentationData = segmentationData
-            this.segmentationSprite = segmentationData.segmentSprite()
+            this.segmentationSprite = segmentationData.segmentFillSprite
             this.segmentationOutlineGraphics = segmentationData.segmentOutlineGraphics(SegmentOutlineColor, SegmentOutlineWidth)
             this.segmentationCentroidGraphics = GraphicsHelper.drawCentroids(segmentationData.centroidMap, UnselectedCentroidColor)
         }

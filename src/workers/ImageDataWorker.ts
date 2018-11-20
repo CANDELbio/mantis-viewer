@@ -1,5 +1,5 @@
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
-const ctx: Worker = self as any;
+const ctx: Worker = self as any
 
 import * as d3Scale from "d3-scale"
 import { ImageDataWorkerResult, MinMax } from "../interfaces/ImageInterfaces"

@@ -169,7 +169,8 @@ export class ImageStore {
 
     @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
-        this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
+        let segmentationData = new SegmentationData()
+        segmentationData.loadFile(fName, this.setSegmentationData)
     }
 
     @action setImageExportFilename = (fName: string) => {

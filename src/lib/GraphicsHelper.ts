@@ -1,9 +1,9 @@
 import * as PIXI from "pixi.js"
+
 import { SegmentationData } from "./SegmentationData"
 import { ImageData } from "./ImageData"
 import { ChannelName,
     DefaultSegmentOutlineAlpha} from "../interfaces/UIDefinitions"
-
 import { PixelLocation } from "../interfaces/ImageInterfaces"
 
 export function randomRGBColor(){
@@ -18,13 +18,23 @@ export function randomHexColor(){
     return Math.round(0xffffff * Math.random())
 }
 
-
 // Gets RGB values from a hex number representing a color.
 export function hexToRGB(hex: number){
     let r = (hex >> 16) & 255
     let g = (hex >> 8) & 255
     let b = hex & 255
     return {r: r, g: g, b: b}
+}
+
+export function imageBitmapToSprite(bitmap: ImageBitmap) {
+    let offScreen = document.createElement("canvas")
+
+    offScreen.width = bitmap.width
+    offScreen.height = bitmap.height
+
+    let ctx = offScreen.getContext("2d")
+    if(ctx) ctx.drawImage(bitmap, 0, 0)
+    return new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen))
 }
 
 // Given a list of pixel locations to draw, draws those pixels on a canvas of width and height with the passed in rgba color.

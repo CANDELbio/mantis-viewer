@@ -1,8 +1,8 @@
 import * as _ from "underscore"
-import * as PIXI from "pixi.js"
 import * as fs from "fs"
 import * as path from "path"
 import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from "../interfaces/ImageInterfaces"
+import { imageBitmapToSprite } from "./GraphicsHelper"
 
 import ImageWorker = require("worker-loader?name=dist/[name].js!../workers/ImageDataWorker")
 
@@ -76,17 +76,6 @@ export class ImageData {
         }
     }
 
-    private imageBitmapToSprite(bitmap: ImageBitmap) {
-        let offScreen = document.createElement("canvas")
-
-        offScreen.width = bitmap.width
-        offScreen.height = bitmap.height
-
-        let ctx = offScreen.getContext("2d")
-        if(ctx) ctx.drawImage(bitmap, 0, 0)
-        return new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen))
-    }
-
     private fileLoadComplete() {
         let channelsLoaded = _.keys(this.data)
         // If the number of channels loaded is equal to the total number of channels we are done!
@@ -100,7 +89,7 @@ export class ImageData {
         this.width = fData.width
         this.height = fData.height
         this.data[chName] = fData.data
-        this.sprites[chName] = this.imageBitmapToSprite(fData.bitmap)
+        this.sprites[chName] = imageBitmapToSprite(fData.bitmap)
         this.minmax[chName] = fData.minmax
         this.fileLoadComplete()
     }

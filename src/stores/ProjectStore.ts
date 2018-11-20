@@ -521,12 +521,17 @@ export class ProjectStore {
             let importingSegmentation = importingContent.segmentation
             if(importingSegmentation){
                 let importedDataArray = Float32Array.from(importingSegmentation.data)
-                let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
-                imageStore.setSegmentationData(importedSegmentationData)
+                let importedSegmentation = new SegmentationData()
+                importedSegmentation.loadTiffData(importedDataArray, importingSegmentation.width, importingSegmentation.height, imageStore.setSegmentationData)
             }
             // Import saved populations
             let importingPopulations = importingContent.populations
-            if(importingPopulations) populationStore.setSelectedPopulations(importingPopulations)
+            if(importingPopulations){
+                // When segmentation data has been loaded or if we're not loading segmentation data
+                when(() => !importingSegmentation || imageStore.segmentationData != null,
+                     () => populationStore.setSelectedPopulations(importingPopulations)
+                    )
+            }
         }
     }
 
