@@ -3,7 +3,8 @@ import * as _ from "underscore"
 
 const path = require('path')
 const url = require('url')
-const isDev = require('electron-is-dev');
+const isDev = require('electron-is-dev')
+const openAboutWindow = require('about-window').default
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -12,8 +13,12 @@ let plotWindow: Electron.BrowserWindow | null
 
 // The current active image directory. Used to set default directories for menu items.
 let activeImageDirectory: string | undefined
-// Whether or not an image is loaded. Used to enable/disable menu items that require an image to be loaded.
+
+// Flags used for whether or not certain things are loaded/selected used for enabling/disabling menu items.
 let imageLoaded = false
+let projectLoaded = false
+let segmentationLoaded = false
+let populationsSelected = false
 
 function generateMenuTemplate() {
   return [{
@@ -23,13 +28,11 @@ function generateMenuTemplate() {
       label: "Open",
       submenu:  [
         {
-          label: "Folder",
+          label: "Image Set",
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
-                mainWindow.webContents.send("open-directory", dirName[0])
-                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-                sendWindowSize()
+                openImageSet(dirName[0])
               }
             })
           }
@@ -39,9 +42,7 @@ function generateMenuTemplate() {
           click: () => {
             dialog.showOpenDialog({properties: ["openDirectory"]}, (dirName:string[]) => {
               if(mainWindow != null && dirName != null){
-                mainWindow.webContents.send("open-project", dirName[0])
-                // Send the window size when loading a new directory so the PIXI stage resizes to fit the window.
-                sendWindowSize()
+                openProject(dirName[0])
               }
             })
           }
@@ -60,7 +61,18 @@ function generateMenuTemplate() {
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
                   if(mainWindow != null && fileNames != null){
-                    mainWindow.webContents.send("open-segmentation-file", fileNames[0])
+                    mainWindow.webContents.send("open-active-segmentation-file", fileNames[0])
+                  }
+                })
+              }
+            },
+            {
+              label: "For project",
+              enabled: projectLoaded,
+              click: () => {
+                dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory},  (fileNames:string[]) => {
+                  if(mainWindow != null && fileNames != null){
+                    mainWindow.webContents.send("open-project-segmentation-file", fileNames[0])
                   }
                 })
               }
@@ -72,7 +84,7 @@ function generateMenuTemplate() {
           submenu: [
             {
               label: "For active image set from CSV",
-              enabled: imageLoaded,
+              enabled: imageLoaded && segmentationLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'csv', extensions: ['csv'] }]},
                 (fileNames:string[]) => {
@@ -93,13 +105,13 @@ function generateMenuTemplate() {
               }
             },
             {
-              label: "For all image sets from JSON",
-              enabled: imageLoaded,
+              label: "For project from JSON",
+              enabled: projectLoaded,
               click: () => {
                 dialog.showOpenDialog({properties: ["openFile"], defaultPath: activeImageDirectory, filters: [{ name: 'json', extensions: ['json'] }]},
                 (fileNames:string[]) => {
                   if(mainWindow != null && fileNames != null)
-                    mainWindow.webContents.send("import-all-selected-populations", fileNames[0])
+                    mainWindow.webContents.send("import-project-selected-populations", fileNames[0])
                 })
               }
             }
@@ -115,7 +127,7 @@ function generateMenuTemplate() {
           submenu: [
             {
               label: "For active image set to JSON",
-              enabled: imageLoaded,
+              enabled: imageLoaded && populationsSelected,
               click: () => {
                 dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
                 (filename:string) => {
@@ -125,13 +137,13 @@ function generateMenuTemplate() {
               }
             },
             {
-              label: "For all image sets to JSON",
-              enabled: imageLoaded,
+              label: "For project to JSON",
+              enabled: projectLoaded && populationsSelected,
               click: () => {
                 dialog.showSaveDialog({filters: [{ name: 'json', extensions: ['json'] }], defaultPath: activeImageDirectory},
                 (filename:string) => {
                   if(mainWindow != null && filename != null)
-                    mainWindow.webContents.send("export-all-selected-populations", filename)
+                    mainWindow.webContents.send("export-project-selected-populations", filename)
                 })
               }
             }
@@ -162,18 +174,34 @@ function generateMenuTemplate() {
     }
     ],
   },
-{
-  label: "Window",
-  submenu: [
-    {
-      label: "Open Plot Window",
-      click: () => {
-        if(plotWindow != null) plotWindow.show()
-        if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
+  {
+    label: "Window",
+    submenu: [
+      {
+        label: "Open Plot Window",
+        enabled: segmentationLoaded,
+        click: () => {
+          if(plotWindow != null) plotWindow.show()
+          if(mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
+        }
       }
-    }
-  ]
-}]
+    ]
+  },{
+    label: "Help",
+    submenu: [
+      {
+        label: "About",
+        click:  () => {
+            openAboutWindow({
+                icon_path: path.join(__dirname, 'icon.png'),
+                use_version_info: true,
+                license: "GPLv3",
+                product_name: "Mantis Viewer"
+            })
+        }
+      }
+    ]
+  }]
 }
 
 function sendWindowSize() {
@@ -233,7 +261,38 @@ function createMainWindow () {
 
   mainWindow.on('ready-to-show', () => {
     if(mainWindow != null) mainWindow.show()
+    sendWindowSize()
   })
+}
+
+function openImageSet(path: string) {
+  if(mainWindow != null){
+    if(imageLoaded || projectLoaded){
+      let message = "Warning: Opening a new image set will close all open image sets. Are you sure you wish to do this?"
+      dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+        if(response == 1){
+          if(mainWindow != null) mainWindow.webContents.send("open-image-set", path)
+        }
+      })
+    } else {
+      mainWindow.webContents.send("open-image-set", path)
+    }
+  }
+}
+
+function openProject(path: string) {
+  if(mainWindow != null){
+    if(imageLoaded || projectLoaded){
+      let message = "Warning: Opening a new project will close all open image sets. Are you sure you wish to do this?"
+      dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+        if(response == 1){
+          if(mainWindow != null) mainWindow.webContents.send("open-project", path)
+        }
+      })
+    } else {
+      mainWindow.webContents.send("open-project", path)
+    }
+  }
 }
 
 function createPlotWindow() {
@@ -291,15 +350,44 @@ app.on('before-quit', () => {
   closePlotWindow()
 })
 
-// Used to enable disabled menu items when images have been loaded.
+//Functions for setting menu flags and regenerating the menu
 ipcMain.on('set-image-loaded', (event:Electron.Event, loaded:boolean) => {
   imageLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-project-loaded', (event:Electron.Event, loaded:boolean) => {
+  projectLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-segmentation-loaded', (event:Electron.Event, loaded:boolean) => {
+  segmentationLoaded = loaded
+  setMenu()
+})
+
+ipcMain.on('set-populations-selected', (event:Electron.Event, selected:boolean) => {
+  populationsSelected = selected
   setMenu()
 })
 
 ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string) => {
   activeImageDirectory = directory
   setMenu()
+})
+
+// Show an error dialog with the message passed in.
+ipcMain.on('mainWindow-show-error-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "error", message: message})
+})
+
+// Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
+ipcMain.on('mainWindow-show-remove-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "warning", message: message, buttons:['No', 'Yes']}, (response: number) => {
+    if(response == 1){
+      if(mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
+    }
+  })
 })
 
 // Functions to relay data from the mainWindow to the plotWindow

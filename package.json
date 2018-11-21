@@ -1,6 +1,6 @@
 {
   "name": "mantis-viewer",
-  "version": "0.7.3-alpha.5",
+  "version": "0.8.0-alpha.3",
   "description": "Electron application to visualize multidimensional microscopy data",
   "main": "main.js",
   "scripts": {
@@ -32,7 +32,7 @@
       "category": "Development"
     }
   },
-  "author": "rschiemann",
+  "author": "pici",
   "license": "GPL-3.0",
   "devDependencies": {
     "@types/concaveman": "^1.1.3",
@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.6.1",
+    "about-window": "^1.12.1",
     "bootstrap": "^4.1.3",
     "concaveman": "^1.1.1",
     "csv-parse": "^3.1.3",
@@ -82,6 +83,7 @@
     "react-flexbox-grid": "^2.1.2",
     "react-motion": "^0.5.2",
     "react-select": "^1.3.0",
+    "react-sizeme": "^2.5.2",
     "react-spinners": "^0.4.5",
     "react-transition-group": "^2.5.0",
     "shortid": "^2.2.13",

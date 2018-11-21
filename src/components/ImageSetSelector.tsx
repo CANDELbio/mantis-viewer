@@ -21,7 +21,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
     onPersistDataChange = (event: React.FormEvent<HTMLInputElement>) => this.props.setPersistData(event.currentTarget.checked)
 
     render() {
-        if(this.props.selectedImageSet){
+        if(this.props.imageSetOptions.length > 0){
             return(
                 <div>
                     <div>Selected Image Set:</div>
@@ -31,7 +31,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                         onChange = {this.props.setSelectedImageSet}
                         clearable = {false}
                     />
-                    <Checkbox checked={this.props.persistData} label="Persist Image Set Data" onChange={this.onPersistDataChange} />
+                    <Checkbox checked={this.props.persistData} label="Copy Image Set Visualization Settings" onChange={this.onPersistDataChange} />
 
                 </div>
             )

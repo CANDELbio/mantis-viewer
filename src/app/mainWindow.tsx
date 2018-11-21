@@ -3,38 +3,34 @@ import * as ReactDOM from "react-dom"
 import { MainApp } from "../components/MainApp"
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
-import { ProjectStore } from "../stores/ProjectStore";
+import { ProjectStore } from "../stores/ProjectStore"
 
 Mobx.configure({ enforceActions: 'always' })
 
 const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
-ipcRenderer.on("open-directory", async (event:Electron.Event, dirName:string) => {
-    console.log(dirName)
-    projectStore.setActiveImageSet(dirName)
-
-    // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('set-image-loaded', true)
+ipcRenderer.on("open-image-set", async (event:Electron.Event, dirName:string) => {
+    projectStore.openImageSet(dirName)
 })
 
 ipcRenderer.on("open-project", async (event:Electron.Event, dirName:string) => {
-    console.log(dirName)
-    projectStore.setImageSetPaths(dirName)
-
-    // Send a message to the main process to update the disabled menu items
-    ipcRenderer.send('set-image-loaded', true)
+    projectStore.openProject(dirName)
 })
 
-ipcRenderer.on("open-segmentation-file", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("open-active-segmentation-file", (event:Electron.Event, filename:string) => {
     projectStore.activeImageStore.setSegmentationFile(filename)
+})
+
+ipcRenderer.on("open-project-segmentation-file", (event:Electron.Event, filename:string) => {
+    projectStore.setSegmentationBasename(filename)
 })
 
 ipcRenderer.on("import-active-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.importActiveUserData(filename)
 })
 
-ipcRenderer.on("import-all-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("import-project-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.importAllUserData(filename)
 })
 
@@ -42,7 +38,7 @@ ipcRenderer.on("export-active-selected-populations", (event:Electron.Event, file
     projectStore.exportActiveUserData(filename)
 })
 
-ipcRenderer.on("export-all-selected-populations", (event:Electron.Event, filename:string) => {
+ipcRenderer.on("export-project-selected-populations", (event:Electron.Event, filename:string) => {
     projectStore.exportAllUserData(filename)
 })
 
@@ -56,7 +52,7 @@ ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
-    projectStore.activeImageStore.setWindowDimensions(width, height)
+    projectStore.setWindowDimensions(width, height)
 })
 
 ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
@@ -65,9 +61,14 @@ ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
     }
 })
 
+ipcRenderer.on("delete-active-image-set", (event:Electron.Event) => {
+    projectStore.deleteActiveImageSet()
+})
+
+
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
-    projectStore.activePlotStore.setPlotInMainWindow(inMain)
+    projectStore.setPlotInMainWindow(inMain)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
@@ -108,6 +109,37 @@ Mobx.autorun(() => {
 // Used for setting default menu directories.
 Mobx.autorun(() => {
     ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
+})
+
+Mobx.autorun(() => {
+    if(projectStore.errorMessage != null){
+        ipcRenderer.send('mainWindow-show-error-dialog', projectStore.errorMessage)
+        projectStore.clearErrorMessage()
+    }
+})
+
+Mobx.autorun(() => {
+    if(projectStore.removeMessage != null){
+        ipcRenderer.send('mainWindow-show-remove-dialog', projectStore.removeMessage)
+        projectStore.clearRemoveMessage()
+    }
+})
+
+// Update the main thread on whether or not an image store with image data loaded is selected.
+Mobx.autorun(() => {
+    ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-project-loaded', projectStore.imageSetPaths.length > 1)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-segmentation-loaded', projectStore.activeImageStore.segmentationData != null)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-populations-selected', projectStore.activePopulationStore.selectedPopulations.length > 0)
 })
 
 ReactDOM.render(

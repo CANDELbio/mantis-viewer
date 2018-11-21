@@ -8,7 +8,6 @@ import { ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
     UnselectedCentroidColor,
-    DefaultSelectedRegionColor,
     HighlightedSegmentOutlineColor,
     SelectedSegmentOutlineAlpha,
     HighlightedSelectedSegmentOutlineAlpha,
@@ -28,16 +27,17 @@ export interface ImageProps {
     segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
-    canvasWidth: number
-    canvasHeight: number 
     onCanvasDataLoaded: ((data: ImageData) => void),
-    windowWidth: number | null,
     selectedRegions: Array<SelectedPopulation> | null,
-    addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[]) => void)
+    addSelectedRegion: ((selectedRegion: number[]|null, selectedSegments: number[], color:number) => void)
     hightlightedRegions: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
     onExportComplete: (() => void)
+    maxRendererSize: {
+        width: number
+        height: number
+    },
 }
 
 @observer
@@ -54,10 +54,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Color filters to use so that the sprites display as the desired color
     channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
-    // The width at which the stage should be fixed.
+    // The actual width and height of the stage
     rendererWidth: number
-    // The scaled height of the stage.
-    scaledHeight: number
+    rendererHeight: number
+    // The maximum size the stage can be set to
+    maxRendererSize: {width:number, height:number}
+
     // The minimum scale for zooming. Based on the fixed width/image width
     minScale: number
 
@@ -127,7 +129,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             bChannel: blueFilter
         }
 
-        this.rendererWidth = 700
         this.minScale = 1.0
 
         this.dragging = false
@@ -135,8 +136,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
-    addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[]) => this.props.addSelectedRegion(selectedRegion, selectedSegments)
     onExportComplete = () => this.props.onExportComplete()
+    addSelectedRegionToStore = (selectedRegion: number[]|null, selectedSegments: number[], color:number) => {
+        this.props.addSelectedRegion(selectedRegion, selectedSegments, color)
+    }
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     checkSetStageBounds() {
@@ -146,7 +149,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
         let minX = this.rendererWidth - (this.imageData.width * this.stage.scale.x)
-        let minY = this.scaledHeight - (this.imageData.height * this.stage.scale.y)
+        let minY = this.rendererHeight - (this.imageData.height * this.stage.scale.y)
 
         // Not able to scroll past the bottom right corner
         if(this.stage.position.x < minX) this.stage.position.x = minX
@@ -242,12 +245,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let segmentOutlineGraphics: PIXI.Graphics|null = null
         // Array of the selected segment IDs
         let selectedSegments:number[] = []
+        let selectionColor:number = 0
 
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener("mousedown", e => {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
             if(altPressed){
                 this.selecting = true
+                selectionColor = GraphicsHelper.randomHexColor()
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 selection.push(pos.x)
                 selection.push(pos.y)
@@ -262,12 +267,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.y)
 
                 GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
-                let toUnpack = GraphicsHelper.selectRegion(selection, this.segmentationData, DefaultSelectedRegionColor)
+                let toUnpack = GraphicsHelper.selectRegion(selection, this.segmentationData, selectionColor, SelectedRegionAlpha)
 
                 selectionGraphics = toUnpack.selectionGraphics
                 selectedSegments = toUnpack.selectedSegments
 
-                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(DefaultSelectedRegionColor, SelectedSegmentOutlineWidth, selectedSegments)
+                if(this.segmentationData != null) segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(selectionColor, SelectedSegmentOutlineWidth, selectedSegments)
 
                 this.stage.addChild(selectionGraphics)
                 if(segmentOutlineGraphics != null){
@@ -282,12 +287,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // If the mouse is released stop selecting
         el.addEventListener('mouseup', e => {
             if(this.selecting){
-                this.addSelectedRegionToStore(selection, selectedSegments)
+                this.addSelectedRegionToStore(selection, selectedSegments, selectionColor)
                 // Clear the temp storage now that we've stored the selection.
                 selectionGraphics = null
                 segmentOutlineGraphics  = null
                 this.selecting = false
                 selection = []
+                selectionColor = 0
             }
         })
     }
@@ -299,22 +305,31 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.checkSetStageBounds()
     }
 
-    setScaleFactors(imcData: ImageData){
-        // Setting up the scale factor to account for the fixed width
-        let scaleFactor = this.rendererWidth / imcData.width
-        let width = imcData.width * scaleFactor
-        let height = imcData.height * scaleFactor
+    setScaleFactors(imcData: ImageData, maxRendererSize: {width:number, height:number}){
+        // Setting up the scale factor trying to maximize the width
+        let scaleFactor = maxRendererSize.width / imcData.width
+        let scaledHeight = imcData.height * scaleFactor
+        let scaledWidth = maxRendererSize.width
+
+        // If the scaled height is larger than the max allowable, scale to maximize the height.
+        if(scaledHeight > maxRendererSize.height){
+            scaleFactor = maxRendererSize.height / imcData.height
+            scaledHeight = maxRendererSize.height
+            scaledWidth = imcData.width * scaleFactor
+        }
+
+        // Save the results
+        this.rendererWidth = scaledWidth
+        this.rendererHeight = scaledHeight
         this.minScale = scaleFactor
-        this.scaledHeight = height
     }
 
     // Resizes the WebGL Renderer and sets the new scale factors accordingly.
     // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
     // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
-    resizeGraphics(imcData: ImageData, windowWidth: number){
-        this.rendererWidth = windowWidth
-        this.setScaleFactors(imcData)
-        this.renderer.resize(this.rendererWidth, this.scaledHeight)
+    resizeGraphics(imcData: ImageData, maxRendererSize: {width:number, height:number}){
+        this.setScaleFactors(imcData, maxRendererSize)
+        this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
     }
 
@@ -324,14 +339,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.scale.y = this.minScale
     }
 
-    initializeGraphics(imcData: ImageData, windowWidth: number){
+    initializeGraphics(imcData: ImageData, maxRendererSize: {width:number, height:number}){
         if(this.el == null) return
 
-        this.rendererWidth = windowWidth
-        this.setScaleFactors(imcData)
+
+        this.setScaleFactors(imcData, maxRendererSize)
 
         // Setting up the renderer
-        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.scaledHeight)
+        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight)
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners
@@ -471,26 +486,26 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
         exportPath: string | null,
-        windowWidth: number) {
-
+        maxRendererSize: {width:number, height:number})
+    {
         if(el == null)
             return
         this.el = el
 
         if(!this.el.hasChildNodes()) {
-            this.initializeGraphics(imcData, windowWidth)
+            this.initializeGraphics(imcData, maxRendererSize)
         }
 
         // We want to resize graphics and reset zoom if imcData has changed
         if(this.imageData != imcData) {
             this.imageData = imcData
-            this.resizeGraphics(imcData, windowWidth)
+            this.resizeGraphics(imcData, maxRendererSize)
             this.resetZoom()
         }
 
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
-        if(this.rendererWidth != windowWidth){
-            this.resizeGraphics(imcData, windowWidth)
+        if(this.maxRendererSize != maxRendererSize){
+            this.resizeGraphics(imcData, maxRendererSize)
         }
 
         this.stage.removeChildren()
@@ -553,14 +568,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let exportPath = this.props.exportPath
 
-        let renderWidth = 500
-        if(this.props.windowWidth != null){
-            // We need to set the render width smaller than the window width to account for the controls around it.
-            // Since we're using a React Fluid Grid we need to account for the fact that the controls around it will
-            // become larger as the window becomes larger
-            // Not perfect as the scale seems to be logarithmic at the edges, but works for now.
-            renderWidth = (this.props.windowWidth/1540) * 650
-        } 
+        let maxRendererSize = this.props.maxRendererSize
 
         return(
             <div className="imcimage"
@@ -576,7 +584,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                                 highlightedRegions,
                                                 highlightedSegmentsFromGraph,
                                                 exportPath,
-                                                renderWidth
+                                                maxRendererSize
                                                 )
                     }}
             />
