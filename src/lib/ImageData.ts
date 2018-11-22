@@ -96,6 +96,8 @@ export class ImageData {
     }
 
     private async loadFileData(fData: ImageDataWorkerResult){
+        console.log("Done loading channel " + fData.chName)
+
         let chName = fData.chName
         this.width = fData.width
         this.height = fData.height
@@ -112,6 +114,8 @@ export class ImageData {
         let files = fs.readdirSync(dirName)
 
         let tiffs = files.filter(f => f.endsWith(".tiff") || f.endsWith(".tif") )
+
+        console.log(tiffs)
         // Store the number of tiffs being loaded so we know when all the background workers have finished
         this.numChannels = tiffs.length
 

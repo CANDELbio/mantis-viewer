@@ -190,6 +190,13 @@ function generateMenuTemplate() {
     label: "Help",
     submenu: [
       {
+        label: "Open Developer Tools",
+        click:  () => {
+          if(mainWindow != null) mainWindow.webContents.openDevTools()
+          if(plotWindow != null) plotWindow.webContents.openDevTools()
+        }
+      },
+      {
         label: "About",
         click:  () => {
             openAboutWindow({
