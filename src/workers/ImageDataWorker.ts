@@ -51,7 +51,8 @@ function calculateMinMax(v: Float32Array | Uint16Array) {
 }
 
 async function loadFile(filepath: string):Promise<ImageDataWorkerResult> {
-    let chName = path.basename(filepath, ".tiff")
+    let parsed = path.parse(filepath)
+    let chName = parsed.name
     //Decode tiff data
     let data = fs.readFileSync(filepath)
     let tiffData = tiff.decode(data)[0]

@@ -111,7 +111,7 @@ export class ImageData {
 
         let files = fs.readdirSync(dirName)
 
-        let tiffs = files.filter(f => f.endsWith(".tiff") )
+        let tiffs = files.filter(f => f.endsWith(".tiff") || f.endsWith(".tif") )
         // Store the number of tiffs being loaded so we know when all the background workers have finished
         this.numChannels = tiffs.length
 
