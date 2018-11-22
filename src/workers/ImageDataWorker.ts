@@ -2,7 +2,7 @@
 const ctx: Worker = self as any;
 
 import * as d3Scale from "d3-scale"
-import { ImageDataWorkerResult, MinMax } from "../interfaces/ImageInterfaces"
+import { MinMax } from "../interfaces/ImageInterfaces"
 import * as fs from "fs"
 import * as path from "path"
 
@@ -50,29 +50,36 @@ function calculateMinMax(v: Float32Array | Uint16Array) {
     return({min: min, max: max})
 }
 
-async function loadFile(filepath: string):Promise<ImageDataWorkerResult> {
+async function loadFile(filepath: string, onError: (err:any) => void) {
     let parsed = path.parse(filepath)
     let chName = parsed.name
-    //Decode tiff data
-    let data = fs.readFileSync(filepath)
-    let tiffData = tiff.decode(data)[0]
+    try {
+        //Decode tiff data
+        let data = fs.readFileSync(filepath)
+        let tiffData = tiff.decode(data)[0]
 
-    let width = tiffData.width
-    let height = tiffData.height
-    let minmax = calculateMinMax(tiffData.data)
-    // Generate an ImageBitmap from the tiffData
-    // ImageBitmaps are rendered canvases can be passed between processes
-    let bitmap = await bitmapFromData(tiffData.data, width, height, minmax)
+        let width = tiffData.width
+        let height = tiffData.height
+        let minmax = calculateMinMax(tiffData.data)
+        // Generate an ImageBitmap from the tiffData
+        // ImageBitmaps are rendered canvases can be passed between processes
+        let bitmap = await bitmapFromData(tiffData.data, width, height, minmax)
 
-    return({chName: chName, width: width, height: height, data: tiffData.data, bitmap: bitmap, minmax: minmax})
+        return({chName: chName, width: width, height: height, data: tiffData.data, bitmap: bitmap, minmax: minmax})
+    } catch (err) {
+        onError({error: err.message, chName: chName})
+    }
 }
 
 ctx.addEventListener('message', (message) => {
     var data = message.data
-    loadFile(data.filepath).then((message) => {
+    loadFile(data.filepath, (err) => {
+        // If we have an error, send the message.
+        ctx.postMessage(err)
+    }).then((message) => {
         // Send the message and then specify the large data array and bitmap as transferrables
         // Using transferrables dramatically speeds up transfer back to the main thread
         // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-        ctx.postMessage(message, [message.data.buffer, message.bitmap])
+        if(message) ctx.postMessage(message, [message.data.buffer, message.bitmap])
     })
 }, false)

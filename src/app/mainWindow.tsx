@@ -125,6 +125,14 @@ Mobx.autorun(() => {
     }
 })
 
+Mobx.autorun(() => {
+    if(projectStore.activeImageStore.imageData && projectStore.activeImageStore.imageData.errors.length > 0){
+        let msg = "Error(s) opening tiffs for the following channels: " + projectStore.activeImageStore.imageData.errors.join(', ')
+        ipcRenderer.send('mainWindow-show-error-dialog', msg)
+        projectStore.activeImageStore.imageData.clearErrors()
+    }
+})
+
 // Update the main thread on whether or not an image store with image data loaded is selected.
 Mobx.autorun(() => {
     ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)

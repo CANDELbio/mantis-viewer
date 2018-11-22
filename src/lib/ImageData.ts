@@ -17,6 +17,8 @@ export class ImageData {
     width: number
     height: number
 
+    errors: string[]
+
     // Keep track of the number of channels. Used to know when all workers have completed.
     private numChannels: number
     // Keep track of workers created
@@ -29,6 +31,10 @@ export class ImageData {
     get channelNames() : string[] {
         let channelNames = _.keys(this.data).sort()
         return(channelNames)
+    }
+
+    clearErrors() {
+        this.errors = []
     }
 
     terminateWorkers() {
@@ -107,6 +113,14 @@ export class ImageData {
         this.fileLoadComplete()
     }
 
+    private async loadFileError(fError: {error: string, chName: string}){
+        let err = "Error loading channel " + fError.chName + ": " + fError.error
+        console.log(err)
+        this.errors.push(fError.chName)
+        this.numChannels -= 1
+        this.fileLoadComplete()
+    }
+
     // Loads a folder in the background using ImageDataWorkers
     loadFolder(dirName:string, onReady: (imageData: ImageData) => void) {
         this.onReady = onReady
@@ -124,12 +138,17 @@ export class ImageData {
             this.onReady(this)
         } else {
             let loadFileData = (data: ImageDataWorkerResult) => this.loadFileData(data)
+            let loadFileError = (data: {error: any, chName: string}) => this.loadFileError(data)
 
             // Create a webworker for each tiff and return the results to loadFileData.
             tiffs.forEach(f => {
                 let worker = new ImageWorker()
-                worker.addEventListener('message', function(e: {data: ImageDataWorkerResult}) {
-                    loadFileData(e.data)
+                worker.addEventListener('message', function(e: {data: any}) {
+                    if('error' in e.data){
+                        loadFileError(e.data)
+                    } else {
+                        loadFileData(e.data)
+                    }
                 }, false)
                 worker.postMessage({filepath: path.join(dirName, f)})
                 this.workers.push(worker)
@@ -142,5 +161,6 @@ export class ImageData {
         this.minmax = {}
         this.sprites = {}
         this.workers = []
+        this.errors = []
     }
 }
