@@ -9,7 +9,7 @@ import SegmentationWorker = require("worker-loader?name=dist/[name].js!../worker
 export class SegmentationData {
     width: number
     height: number
-    data: Float32Array | Uint16Array
+    data: Float32Array | Uint16Array | Uint8Array
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
     pixelMap: Record<string, number>
     // Mapping of a segmentId to pixel indices.
@@ -79,7 +79,7 @@ export class SegmentationData {
         this.loadInWorker({filepath: fName}, onReady)
     }
 
-    async loadTiffData(data: Float32Array | Uint16Array, width: number, height: number, onReady: (SegmentationData: SegmentationData) => void) {
+    async loadTiffData(data: Float32Array | Uint16Array | Uint8Array, width: number, height: number, onReady: (SegmentationData: SegmentationData) => void) {
         this.loadInWorker({tiffData: data, width: width, height: height}, onReady)
     }
 

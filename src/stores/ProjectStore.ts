@@ -477,6 +477,7 @@ export class ProjectStore {
                     exportingContent.segmentation = {
                         width: imageStore.segmentationData.width,
                         height: imageStore.segmentationData.height,
+                        bytesPerElement: imageStore.segmentationData.data.BYTES_PER_ELEMENT,
                         data: Array.from(imageStore.segmentationData.data)
                     }
                 }
@@ -520,9 +521,18 @@ export class ProjectStore {
             // Import Segmentation Data
             let importingSegmentation = importingContent.segmentation
             if(importingSegmentation){
-                let importedDataArray = Float32Array.from(importingSegmentation.data)
-                let importedSegmentation = new SegmentationData()
-                importedSegmentation.loadTiffData(importedDataArray, importingSegmentation.width, importingSegmentation.height, imageStore.setSegmentationData)
+                let importedDataBytes = importingSegmentation.bytesPerElement
+                let importedDataTypeMapping:Record<number, any> = {4: Float32Array, 2: Uint16Array, 1: Uint8Array}
+                if(importedDataBytes in importedDataTypeMapping){
+                    let arrayType = importedDataTypeMapping[importedDataBytes]
+                    let importedDataArray = arrayType.from(importingSegmentation.data)
+                    let importedSegmentation = new SegmentationData()
+                    importedSegmentation.loadTiffData(importedDataArray,
+                        importingSegmentation.width,
+                        importingSegmentation.height,
+                        imageStore.setSegmentationData
+                    )
+                }
             }
             // Import saved populations
             let importingPopulations = importingContent.populations

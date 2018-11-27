@@ -91,8 +91,6 @@ export class ImageData {
     }
 
     private async loadFileData(fData: ImageDataWorkerResult){
-        console.log("Done loading channel " + fData.chName)
-
         let chName = fData.chName
         this.width = fData.width
         this.height = fData.height

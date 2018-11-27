@@ -16,7 +16,7 @@ export interface SelectedPopulation {
 }
 
 export interface TiffDataMap   {
-    [key: string] : Float32Array | Uint16Array
+    [key: string] : Float32Array | Uint16Array | Uint8Array
 }
 
 export interface MinMax {
@@ -46,15 +46,20 @@ export interface ImageDataWorkerResult {
     chName: string,
     width: number,
     height: number,
-    data: Float32Array | Uint16Array,
+    data: Float32Array | Uint16Array | Uint8Array,
     bitmap: ImageBitmap,
     minmax: MinMax
+}
+
+export interface ImageDataWorkerError {
+    chName: string,
+    error: string
 }
 
 export interface SegmentationDataWorkerResult {
     width: number
     height: number
-    data: Float32Array | Uint16Array
+    data: Float32Array | Uint16Array | Uint8Array
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
     pixelMap: Record<string, number>
     // Mapping of a segmentId to pixel indices.

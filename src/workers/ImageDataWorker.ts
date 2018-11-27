@@ -2,10 +2,10 @@
 const ctx: Worker = self as any
 
 import * as d3Scale from "d3-scale"
-import { MinMax } from "../interfaces/ImageInterfaces"
-import * as fs from "fs"
 import * as path from "path"
-import * as UTIF from "utif"
+
+import { MinMax, ImageDataWorkerResult, ImageDataWorkerError } from "../interfaces/ImageInterfaces"
+import { readTiffData } from "../lib/TiffHelper"
 
 async function bitmapFromData(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number, minmax: MinMax) {
     // @ts-ignore
@@ -39,45 +39,6 @@ async function bitmapFromData(v: Float32Array | Uint16Array | Uint8Array, width:
     return(bitmap)
 }
 
-function convertBinaryArray(v: Uint8Array, destinationBits:number, width:number, height:number, isLE: boolean){
-    if(destinationBits == 8) return v
-
-    let buffer = v.buffer
-    let view = new DataView(buffer)
-    let results = []
-    let numValues = width * height
-
-    for(let i = 0; i < numValues; ++i) {
-        if(destinationBits == 16) results.push(view.getInt16(i*2, isLE))
-        if(destinationBits == 32) results.push(view.getFloat32(i*4, isLE))
-    }
-
-    if(destinationBits == 16){
-        return Uint16Array.from(results)
-    } else if (destinationBits == 32) {
-        return Float32Array.from(results)
-    }
-}
-
-function readTiffData(filepath: string){
-    //Decode tiff data
-    let rawData = fs.readFileSync(filepath)
-
-    let ifds = UTIF.decode(rawData)
-    UTIF.decodeImages(rawData, ifds)
-    let tiffData = ifds[0]
-
-    let width = tiffData.width
-    let height = tiffData.height
-    let uint8Data = tiffData.data // utif returns data as a uint8 array
-    let isLE = tiffData.isLE // Whether or not the uint8Data array is little-endian
-    let imageBits = tiffData.t258[0] // Whether the image in 8-bit, 16-bit, or 32-bit image
-
-    // Data comes back as a Uint8array. If the image is 16-bit or 32-bit we need to convert to the correct bits.
-    let data = convertBinaryArray(uint8Data, imageBits, width, height, isLE)
-    return {data: data, width: width, height: height}
-}
-
 function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array) {
     let min = v[0]
     let max = v[0]
@@ -88,7 +49,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array) {
     return({min: min, max: max})
 }
 
-async function readFile(filepath: string, onError: (err:any) => void) {
+async function readFile(filepath: string, onError: (err:any) => void):Promise<ImageDataWorkerResult|ImageDataWorkerError> {
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {
@@ -116,6 +77,6 @@ ctx.addEventListener('message', (message) => {
         // Send the message and then specify the large data array and bitmap as transferrables
         // Using transferrables dramatically speeds up transfer back to the main thread
         // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-        if(message) ctx.postMessage(message, [message.data.buffer, message.bitmap])
+        if(message && 'data' in message && 'bitmap' in message) ctx.postMessage(message, [message.data.buffer, message.bitmap])
     })
 }, false)

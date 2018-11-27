@@ -7,8 +7,7 @@ import * as concaveman from "concaveman"
 import { RGBColorCollection,
     SegmentationDataWorkerResult } from "../interfaces/ImageInterfaces"
 import { PixelLocation } from "../interfaces/ImageInterfaces"
-
-const tiff = require("tiff")
+import { readTiffData } from "../lib/TiffHelper"
 
 // TO DO: DRY this up. randomRGB is also used in GraphicsHelper, but can't import from there as importing PIXI causes errors in webworkers.
 function randomRGBColor(){
@@ -54,7 +53,7 @@ function drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uin
 // Generates a texture (to be used to create a PIXI sprite) from segmentation data.
 // Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
 // or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
-async function segmentationFillBitmap(v: Float32Array | Uint16Array, width: number, height: number) {
+async function segmentationFillBitmap(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number) {
     // @ts-ignore
     let offScreen = new OffscreenCanvas(width, height)
 
@@ -97,7 +96,7 @@ function segmentMapKey(x: number, y: number){
 }
 
 // Generates the pixelMap (key of x_y to segmentId) and segmentMap (key of segmentId to an array of pixels contained in that segment)
-function generateMaps(v: Float32Array | Uint16Array, width: number, height: number) {
+function generateMaps(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number) {
     let pixelMap:{[key:string] : number} = {}
     let segmentLocationMap:{[key:number] : PixelLocation[]} = {}
     let segmentIndexMap:{[key:number] : number[]} = {}
@@ -153,7 +152,7 @@ function calculateCentroids(segmentMap: {[key:number] : Array<PixelLocation>}) {
     return centroidMap
 }
 
-async function loadTiffData(data: Float32Array | Uint16Array, width: number, height: number) {
+async function loadTiffData(data: Float32Array | Uint16Array | Uint8Array, width: number, height: number) {
     // Generating the pixelMap and segmentMaps that represent the segementation data
     let maps = generateMaps(data, width, height)
     let pixelMap = maps.pixelMap
@@ -181,8 +180,7 @@ async function loadTiffData(data: Float32Array | Uint16Array, width: number, hei
 
 async function loadFile(filepath: string):Promise<SegmentationDataWorkerResult> {
     //Decode tiff data
-    let rawTiffdata = fs.readFileSync(filepath)
-    let tiffData = tiff.decode(rawTiffdata)[0]
+    let tiffData = readTiffData(filepath)
     
     return await loadTiffData(tiffData.data, tiffData.width, tiffData.height)
 }
