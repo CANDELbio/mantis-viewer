@@ -5,10 +5,9 @@ import * as d3Scale from "d3-scale"
 import { MinMax } from "../interfaces/ImageInterfaces"
 import * as fs from "fs"
 import * as path from "path"
+import * as UTIF from "utif"
 
-const tiff = require("tiff")
-
-async function bitmapFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
+async function bitmapFromData(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number, minmax: MinMax) {
     // @ts-ignore
     let offScreen = new OffscreenCanvas(width, height)
 
@@ -40,7 +39,46 @@ async function bitmapFromData(v: Float32Array | Uint16Array, width: number, heig
     return(bitmap)
 }
 
-function calculateMinMax(v: Float32Array | Uint16Array) {
+function convertBinaryArray(v: Uint8Array, destinationBits:number, width:number, height:number, isLE: boolean){
+    if(destinationBits == 8) return v
+
+    let buffer = v.buffer
+    let view = new DataView(buffer)
+    let results = []
+    let numValues = width * height
+
+    for(let i = 0; i < numValues; ++i) {
+        if(destinationBits == 16) results.push(view.getInt16(i*2, isLE))
+        if(destinationBits == 32) results.push(view.getFloat32(i*4, isLE))
+    }
+
+    if(destinationBits == 16){
+        return Uint16Array.from(results)
+    } else if (destinationBits == 32) {
+        return Float32Array.from(results)
+    }
+}
+
+function readTiffData(filepath: string){
+    //Decode tiff data
+    let rawData = fs.readFileSync(filepath)
+
+    let ifds = UTIF.decode(rawData)
+    UTIF.decodeImages(rawData, ifds)
+    let tiffData = ifds[0]
+
+    let width = tiffData.width
+    let height = tiffData.height
+    let uint8Data = tiffData.data // utif returns data as a uint8 array
+    let isLE = tiffData.isLE // Whether or not the uint8Data array is little-endian
+    let imageBits = tiffData.t258[0] // Whether the image in 8-bit, 16-bit, or 32-bit image
+
+    // Data comes back as a Uint8array. If the image is 16-bit or 32-bit we need to convert to the correct bits.
+    let data = convertBinaryArray(uint8Data, imageBits, width, height, isLE)
+    return {data: data, width: width, height: height}
+}
+
+function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array) {
     let min = v[0]
     let max = v[0]
     for (let curValue of v){
@@ -50,22 +88,20 @@ function calculateMinMax(v: Float32Array | Uint16Array) {
     return({min: min, max: max})
 }
 
-async function loadFile(filepath: string, onError: (err:any) => void) {
+async function readFile(filepath: string, onError: (err:any) => void) {
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {
-        //Decode tiff data
-        let data = fs.readFileSync(filepath)
-        let tiffData = tiff.decode(data)[0]
+        let tiffData = readTiffData(filepath)
+        let {data, width, height} = tiffData
 
-        let width = tiffData.width
-        let height = tiffData.height
-        let minmax = calculateMinMax(tiffData.data)
+        // Calculate the minimum and maximum channel intensity
+        let minmax = calculateMinMaxIntensity(data)
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
-        let bitmap = await bitmapFromData(tiffData.data, width, height, minmax)
+        let bitmap = await bitmapFromData(data, width, height, minmax)
 
-        return({chName: chName, width: width, height: height, data: tiffData.data, bitmap: bitmap, minmax: minmax})
+        return({chName: chName, width: width, height: height, data: data, bitmap: bitmap, minmax: minmax})
     } catch (err) {
         onError({error: err.message, chName: chName})
     }
@@ -73,7 +109,7 @@ async function loadFile(filepath: string, onError: (err:any) => void) {
 
 ctx.addEventListener('message', (message) => {
     var data = message.data
-    loadFile(data.filepath, (err) => {
+    readFile(data.filepath, (err) => {
         // If we have an error, send the message.
         ctx.postMessage(err)
     }).then((message) => {
