@@ -5,6 +5,7 @@ import { observable,
     when} from "mobx"
 import * as fs from 'fs'
 import * as path from "path"
+import * as stringify from 'csv-stringify'
 
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
@@ -13,7 +14,7 @@ import { ScatterPlotData } from "../lib/ScatterPlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
-import { SelectOption, ChannelName } from "../interfaces/UIDefinitions"
+import { SelectOption, ChannelName, PlotStatistic } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 
 interface ImageSet {
@@ -542,6 +543,47 @@ export class ProjectStore {
                      () => populationStore.setSelectedPopulations(importingPopulations)
                     )
             }
+        }
+    }
+
+    exportChannelIntensisties = (filename:string, statistic: PlotStatistic) => {
+        let imageStore = this.activeImageStore
+        let imageData = imageStore.imageData
+        let segmentationData = imageStore.segmentationData
+        if(imageData != null && segmentationData != null){
+            let channels = imageData.channelNames
+            let data = [] as string[][]
+
+            // Generate the header
+            let columns = ['Segment ID']
+            for(let channel of channels){
+                columns.push(channel)
+            }
+
+            // Iterate through the segments and calculate the intensity for each channel
+            let indexMap = segmentationData.segmentIndexMap
+            for(let s in indexMap){
+                let segmentId = parseInt(s)
+                let indexes = indexMap[segmentId]
+                let segmentData = [s] as string[]
+                for(let channel of channels){
+                    if(statistic == 'mean'){
+                        segmentData.push(imageData.meanPixelIntensity(channel, indexes).toString())
+                    } else{
+                        segmentData.push(imageData.medianPixelIntensity(channel, indexes).toString())
+                    }
+                }
+                data.push(segmentData)
+            }
+
+            // Write to a CSV
+            stringify(data, { header: true, columns: columns }, (err, output) => {
+                if (err) console.log('Error saving intensities ' + err)
+                fs.writeFile(filename, output, (err) => {
+                  if (err) console.log('Error saving intensities ' + err)
+                  console.log(statistic + ' intensities saved to ' + filename)
+                })
+            })
         }
     }
 

@@ -50,6 +50,14 @@ ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
     projectStore.activeImageStore.setImageExportFilename(filename)
 })
 
+ipcRenderer.on("export-mean-intensities", (event:Electron.Event, filename:string) => {
+    projectStore.exportChannelIntensisties(filename, 'mean')
+})
+
+ipcRenderer.on("export-median-intensities", (event:Electron.Event, filename:string) => {
+    projectStore.exportChannelIntensisties(filename, 'median')
+})
+
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
     projectStore.setWindowDimensions(width, height)
@@ -64,7 +72,6 @@ ipcRenderer.on("clean-up-webworkers", (event:Electron.Event) => {
 ipcRenderer.on("delete-active-image-set", (event:Electron.Event) => {
     projectStore.deleteActiveImageSet()
 })
-
 
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {

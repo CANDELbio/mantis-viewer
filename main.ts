@@ -150,6 +150,31 @@ function generateMenuTemplate() {
           ]
         },
         {
+          label: "Summary Statistics",
+          submenu: [
+            {
+              label: "Mean intensities for active image set",
+              enabled: imageLoaded && segmentationLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'csv', extensions: ['csv'] }]}, (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-mean-intensities", filename)
+                })
+              }
+            },
+            {
+              label: "Median intensities for active image set",
+              enabled: imageLoaded && segmentationLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'csv', extensions: ['csv'] }]}, (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-median-intensities", filename)
+                })
+              }
+            }
+          ]
+        },
+        {
           label: "Image",
           submenu: [
             {
