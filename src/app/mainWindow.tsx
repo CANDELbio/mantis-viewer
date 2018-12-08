@@ -84,11 +84,15 @@ ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) =
 })
 
 ipcRenderer.on('set-plot-statistic', (event:Electron.Event, statistic: any) => {
-    projectStore.activePlotStore.setScatterPlotStatistic(statistic)
+    projectStore.activePlotStore.setPlotStatistic(statistic)
 })
 
 ipcRenderer.on('set-plot-transform', (event:Electron.Event, transform: any) => {
-    projectStore.activePlotStore.setScatterPlotTransform(transform)
+    projectStore.activePlotStore.setPlotTransform(transform)
+})
+
+ipcRenderer.on('set-plot-type', (event:Electron.Event, type: any) => {
+    projectStore.activePlotStore.setPlotType(type)
 })
 
 ipcRenderer.on('add-plot-selected-population', (event:Electron.Event, segmentIds: number[]) => {
@@ -106,9 +110,10 @@ Mobx.autorun(() => {
     ipcRenderer.send('mainWindow-set-plot-data',
         imageStore.channelSelectOptions.get(),
         plotStore.selectedPlotChannels,
-        plotStore.scatterPlotStatistic,
-        plotStore.scatterPlotTransform,
-        plotStore.scatterPlotData
+        plotStore.plotStatistic,
+        plotStore.plotTransform,
+        plotStore.plotType,
+        plotStore.plotData
     )
 })
 

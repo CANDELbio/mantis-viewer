@@ -10,7 +10,7 @@ import * as stringify from 'csv-stringify'
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
 import { PlotStore } from "../stores/PlotStore"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { PlotData } from "../lib/PlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
@@ -87,21 +87,21 @@ export class ProjectStore {
         let plotStore = this.activePlotStore
 
         if(imageStore && populationStore && plotStore){
-            if(plotStore.selectedPlotChannels.length == 2){
-                let ch1 = plotStore.selectedPlotChannels[0]
-                let ch2 = plotStore.selectedPlotChannels[1]
+            let loadHistogram = plotStore.selectedPlotChannels.length == 1 && plotStore.plotType == 'histogram'
+            let loadScatter = plotStore.selectedPlotChannels.length == 2 && plotStore.plotType == 'scatter'
+            if(loadHistogram || loadScatter){
                 if(imageStore.imageData != null && imageStore.segmentationData != null){
-                    plotStore.setScatterPlotData(new ScatterPlotData(ch1,
-                        ch2,
+                    plotStore.setPlotData(new PlotData(plotStore.selectedPlotChannels,
                         imageStore.imageData,
                         imageStore.segmentationData,
-                        plotStore.scatterPlotStatistic,
-                        plotStore.scatterPlotTransform,
+                        plotStore.plotType,
+                        plotStore.plotStatistic,
+                        plotStore.plotTransform,
                         populationStore.selectedPopulations
                     ))
                 }
             } else {
-                plotStore.clearScatterPlotData()
+                plotStore.clearPlotData()
             }
         }
     })
@@ -361,8 +361,9 @@ export class ProjectStore {
     }
 
     @action copyPlotStoreSettings = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
-        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
-        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
+        destinationPlotStore.setPlotType(sourcePlotStore.plotType)
+        destinationPlotStore.setPlotStatistic(sourcePlotStore.plotStatistic)
+        destinationPlotStore.setPlotTransform(sourcePlotStore.plotTransform)
         // Check if the source selected plot channels are in the destination image set. If they are, use them.
         this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
     }

@@ -2,7 +2,7 @@ import * as Plotly from 'plotly.js'
 
 import { ImageData } from "./ImageData"
 import { SegmentationData } from "./SegmentationData"
-import { PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
+import { PlotStatistic, PlotTransform, PlotType } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { hexToRGB } from "./GraphicsHelper"
 
@@ -10,9 +10,8 @@ export const DefaultSelectionName = "All Segments"
 export const DefaultSelectionId = "DEFAULT_SELECTION_ID"
 export const DefaultSelectionColor = 0x4286f4 // blue, color for "All Segments"
 
-export class ScatterPlotData {
-    ch1: string
-    ch2: string
+export class PlotData {
+    channels: string[]
     data: Plotly.Data[]
     layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
 
@@ -102,21 +101,26 @@ export class ScatterPlotData {
         return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")"
     }
 
-    static calculateScatterPlotData(ch1: string,
-        ch2: string,
+    static newPlotDatum(numValues: number){
+        let values = []
+        for(let i = 0; i<numValues; i++){
+            values.push([])
+        }
+        return {values: values, text:[]}
+    }
+
+    static calculateRawPlotData(channels: string[],
         imcData:ImageData,
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: Array<SelectedPopulation>|null) {
-
+        selectedRegions: Array<SelectedPopulation>|null){
         // A map of the data to be used in the plot.
         // Maps selection name (either all segments or the name of a selected region) to a set of data.
         let plotData:{
             [key:string] : {
-                x: Array<number>,
-                y: Array<number>,
-                text: Array<string>}
+                values: number[][],
+                text: string[]}
             } = {}
 
         let regionMap = this.buildSegmentToSelectedRegionMap(selectedRegions)
@@ -132,25 +136,40 @@ export class ScatterPlotData {
             }
 
             // Calculate the mean or median intensity of the pixels in the segment
-            let x = this.getPixelIntensity(plotStatistic, ch1, pixels, plotTransform, imcData)
-            let y = this.getPixelIntensity(plotStatistic, ch2, pixels, plotTransform, imcData)
+            let curValues = []
+            for(let ch of channels){
+                curValues.push(this.getPixelIntensity(plotStatistic, ch, pixels, plotTransform, imcData))
+            }
 
             // Add the intensities to the data map for each selection the segment is in.
             // Being able to select points on the plot relies on the text being formatted
             // as a space delimited string with the last element being the segment id
             // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
             for(let selectionId of selections){
-                if(!(selectionId in plotData)) plotData[selectionId] = {x: [], y:[], text:[]}
-                if(x != null && y != null){
-                    plotData[selectionId].x.push(x)
-                    plotData[selectionId].y.push(y)
-                    plotData[selectionId].text.push("Segment " + segment)
+                if(!(selectionId in plotData)) plotData[selectionId] = this.newPlotDatum(channels.length)
+                plotData[selectionId].text.push("Segment " + segment)
+                for(let i in curValues){
+                    let v = curValues[i]
+                    plotData[selectionId].values[i].push(v)
                 }
-                 
             }
         }
 
-        let scatterPlotData = Array<Plotly.Data>()
+        return plotData
+    }
+
+    static calculateScatterPlotData(channels: string[],
+        imcData:ImageData,
+        segmentationData: SegmentationData,
+        plotType: PlotType,
+        plotStatistic: PlotStatistic,
+        plotTransform: PlotTransform,
+        selectedRegions: Array<SelectedPopulation>|null)
+    {
+
+        let rawPlotData = this.calculateRawPlotData(channels, imcData, segmentationData, plotStatistic, plotTransform, selectedRegions)
+
+        let plotData = Array<Plotly.Data>()
 
         // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
         let sortedSelectionIds = this.getSelectionIdsSortedByName(selectedRegions)
@@ -160,35 +179,40 @@ export class ScatterPlotData {
 
         // Converting from the plotData map to an array of the format that can be passed to Plotly.
         for (let selectionId of sortedSelectionIds){
-            let data = plotData[selectionId]
+            let selectionData = rawPlotData[selectionId]
+            let numSelectionValues = selectionData.values.length
 
-            scatterPlotData.push({
-                x: data.x,
-                y: data.y,
+            plotData.push({
+                x: selectionData.values[0],
+                y: numSelectionValues > 1 ? selectionData.values[1] : undefined,
+                z: numSelectionValues > 2 ? selectionData.values[2] : undefined,
                 mode: 'markers',
-                type: 'scattergl',
-                text: data.text,
+                type: plotType == 'scatter' ? 'scattergl' : 'histogram',
+                text: plotType == 'scatter' ? selectionData.text : undefined,
                 name: this.getSelectionName(selectionId, selectedRegionMap),
                 marker: { size: 8, color: this.getSelectionColor(selectionId, selectedRegionMap)}
             })
         }
 
-        return scatterPlotData
+        return plotData
     }
 
-    constructor(ch1: string,
-        ch2: string,
+    constructor(channels: string[],
         imcData:ImageData,
         segmentationData: SegmentationData,
+        plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
         selectedRegions: SelectedPopulation[]|null
     ) {
+        this.channels = channels
+        this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedRegions)
 
-        this.ch1 = ch1
-        this.ch2 = ch2
-        this.data = ScatterPlotData.calculateScatterPlotData(ch1, ch2, imcData, segmentationData, plotStatistic, plotTransform, selectedRegions)
-        this.layout = {title: ch1 + ' versus ' + ch2, xaxis: {title: ch1}, yaxis: {title: ch2}}
+        if(plotType == 'histogram' && channels.length == 1) {
+            this.layout = {title: channels[0], xaxis: {title: channels[0]}, barmode: "overlay"};
+        } else if (plotType == 'scatter' && channels.length == 2){
+            this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
+        }
     }
 
 }

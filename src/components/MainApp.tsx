@@ -12,7 +12,7 @@ import { ChannelName, WindowHeightBufferSize } from "../interfaces/UIDefinitions
 import { ImageViewer } from "./ImageViewer"
 import { ImageSetSelector } from "./ImageSetSelector"
 import { SegmentationControls } from "./SegmentationControls"
-import { ScatterPlot } from "./ScatterPlot"
+import { Plot } from "./Plot"
 import { SelectedPopulations } from "./SelectedPopulations"
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
@@ -161,18 +161,20 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
 
                 if(projectStore.plotInMainWindow) {
-                    scatterPlot = <ScatterPlot
+                    scatterPlot = <Plot
                         windowWidth = {projectStore.windowWidth}
                         channelSelectOptions = {imageStore.channelSelectOptions.get()}
                         selectedPlotChannels = {plotStore.selectedPlotChannels}
                         setSelectedPlotChannels = {projectStore.setSelectedPlotChannels}
-                        selectedStatistic= {plotStore.scatterPlotStatistic}
-                        setSelectedStatistic = {plotStore.setScatterPlotStatistic}
-                        selectedTransform = {plotStore.scatterPlotTransform}
-                        setSelectedTransform = {plotStore.setScatterPlotTransform}
+                        selectedStatistic= {plotStore.plotStatistic}
+                        setSelectedStatistic = {plotStore.setPlotStatistic}
+                        selectedTransform = {plotStore.plotTransform}
+                        setSelectedTransform = {plotStore.setPlotTransform}
+                        selectedType = {plotStore.plotType}
+                        setSelectedType = {plotStore.setPlotType}
                         setSelectedSegments = {this.addSelectedPopulation}
                         setHoveredSegments = {plotStore.setSegmentsHoveredOnPlot}
-                        scatterPlotData = {plotStore.scatterPlotData}
+                        scatterPlotData = {plotStore.plotData}
                     />
                 }
             }

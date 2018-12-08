@@ -6,8 +6,8 @@ import Select from 'react-select'
 import { observer } from "mobx-react"
 import * as Plotly from 'plotly.js'
 
-import { ScatterPlotData, DefaultSelectionName } from "../lib/ScatterPlotData"
-import { SelectOption, PlotStatistic, PlotTransform } from "../interfaces/UIDefinitions"
+import { PlotData, DefaultSelectionName } from "../lib/PlotData"
+import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from "../interfaces/UIDefinitions"
 import { PlotStatisticOptions,
     PlotTransformOptions } from "../interfaces/UIDefinitions"
 
@@ -21,14 +21,16 @@ export interface ScatterPlotProps {
     setSelectedStatistic: ((x: PlotStatistic) => void)
     selectedTransform: string
     setSelectedTransform: ((x: PlotTransform) => void)
+    selectedType: string
+    setSelectedType: ((x: PlotType) => void)
     setSelectedSegments: ((selectedSegments: number[]) => void)
     setHoveredSegments: ((selectedSegments: number[]) => void)
-    scatterPlotData: ScatterPlotData | null
+    scatterPlotData: PlotData | null
     windowWidth: number | null
 }
 
 @observer
-export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
+export class Plot extends React.Component<ScatterPlotProps, {}> {
     public container: Plotly.PlotlyHTMLElement | null = null
     
     channelSelectOptions: {value: string, label:string}[]
@@ -43,6 +45,9 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
     }
     onTransformSelect = (x: SelectOption) => {
         if(x != null) this.props.setSelectedTransform(x.value as PlotTransform)
+    }
+    onTypeSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedType(x.value as PlotType)
     }
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedSegments(this.parsePlotlyEventData(data))
     onHover = (data: {points:any, event:any}) => this.props.setHoveredSegments(this.parsePlotlyEventData(data))
@@ -67,9 +72,11 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
                     // and the point being hovered/highlighted isn't in some of those selections.
                     if(pointRegionName == DefaultSelectionName) {
                         let pointText = point.text
-                        let splitText:string[] = pointText.split(" ")
-                        let segmentId = Number(splitText[splitText.length - 1])
-                        selectedSegments.push(segmentId)
+                        if(pointText){
+                            let splitText:string[] = pointText.split(" ")
+                            let segmentId = Number(splitText[splitText.length - 1])
+                            selectedSegments.push(segmentId)
+                        }
                     }
                 }
             }
@@ -107,9 +114,11 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
 
         this.channelSelectOptions = this.props.channelSelectOptions
 
-        // Can only select two channels for the scatter plot.
-        // If two channels are selected, set the options for selecting equal to the currently selected options
-        if(this.props.selectedPlotChannels.length >= 2) {
+        // Can only select two channels for a scatter plot or one for histogram.
+        // If max channels are selected, set the options for selecting equal to the currently selected options
+        let maximumScatterChannelsSelected = this.props.selectedPlotChannels.length == 2 && this.props.selectedType == 'scatter'
+        let maximumHistogramChannelsSelected = this.props.selectedPlotChannels.length == 1 && this.props.selectedType == 'histogram'
+        if(maximumScatterChannelsSelected || maximumHistogramChannelsSelected) {
             this.channelSelectOptions =  this.props.selectedPlotChannels.map((s) => {
                 return({value: s, label: s})
             })
@@ -141,7 +150,14 @@ export class ScatterPlot extends React.Component<ScatterPlotProps, {}> {
 
         return(
             <div>
-                <div>Scatter Plot Channels</div>
+                <div>Plot Type</div>
+                <Select
+                    value = {this.props.selectedType}
+                    options = {PlotTypeOptions}
+                    onChange = {this.onTypeSelect}
+                    clearable = {false}
+                />
+                <div>Plot Channels</div>
                 <Select
                     value = {this.props.selectedPlotChannels}
                     options = {this.channelSelectOptions}

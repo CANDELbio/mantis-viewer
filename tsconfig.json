@@ -31,7 +31,7 @@
         "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",
         "./src/components/SegmentationControls.tsx",
-        "./src/components/ScatterPlot.tsx",
+        "./src/components/Plot.tsx",
         "./src/components/SelectedPopulations.tsx",
         "./src/typings/custom.d.ts",
         "./src/typings/reactSizeme.d.ts"
