@@ -145,6 +145,14 @@ Mobx.autorun(() => {
     }
 })
 
+Mobx.autorun(() => {
+    if(projectStore.activeImageStore.segmentationData && projectStore.activeImageStore.segmentationData.errorLoading){
+        let msg = "Error opening segmentation data."
+        ipcRenderer.send('mainWindow-show-error-dialog', msg)
+        projectStore.activeImageStore.clearSegmentationData()
+    }
+})
+
 // Update the main thread on whether or not an image store with image data loaded is selected.
 Mobx.autorun(() => {
     ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)

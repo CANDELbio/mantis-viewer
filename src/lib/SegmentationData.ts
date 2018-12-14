@@ -22,6 +22,8 @@ export class SegmentationData {
     centroidMap: Record<number, PixelLocation>
     segmentFillSprite: PIXI.Sprite
 
+    errorLoading: boolean
+
     private worker: SegmentationWorker
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (SegmentationData: SegmentationData) => void
@@ -43,6 +45,13 @@ export class SegmentationData {
         this.worker.terminate()
     }
 
+    private async loadFileError(fError: {error: string}){
+        let err = "Error loading segmentation data: " + fError.error
+        console.log(err)
+        this.errorLoading = true
+        this.onReady(this)
+    }
+
     private async loadFileData(fData: SegmentationDataWorkerResult){
         this.width = fData.width
         this.height = fData.height
@@ -57,13 +66,19 @@ export class SegmentationData {
     }
 
     private loadInWorker(message: any, onReady: (SegmentationData: SegmentationData) => void) {
+        this.errorLoading = false
         this.onReady = onReady
 
         let loadFileData = (data: SegmentationDataWorkerResult) => this.loadFileData(data)
+        let loadFileError = (data: {error: any}) => this.loadFileError(data)
 
         let worker = new SegmentationWorker()
         worker.addEventListener('message', function(e: {data: SegmentationDataWorkerResult}) {
-            loadFileData(e.data)
+            if('error' in e.data){
+                loadFileError(e.data)
+            } else {
+                loadFileData(e.data)
+            }
         }, false)
 
         if('tiffData' in message){

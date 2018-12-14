@@ -4,7 +4,7 @@ const ctx: Worker = self as any
 import * as d3Scale from "d3-scale"
 import * as path from "path"
 
-import { MinMax, ImageDataWorkerResult, ImageDataWorkerError } from "../interfaces/ImageInterfaces"
+import { MinMax, ImageDataWorkerResult } from "../interfaces/ImageInterfaces"
 import { readTiffData } from "../lib/TiffHelper"
 
 async function bitmapFromData(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number, minmax: MinMax) {
@@ -49,7 +49,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array) {
     return({min: min, max: max})
 }
 
-async function readFile(filepath: string, onError: (err:any) => void):Promise<ImageDataWorkerResult|ImageDataWorkerError> {
+async function readFile(filepath: string, onError: (err:any) => void):Promise<ImageDataWorkerResult> {
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {

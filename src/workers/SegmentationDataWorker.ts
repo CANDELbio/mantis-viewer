@@ -1,7 +1,6 @@
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any
 
-import * as fs from "fs"
 import * as concaveman from "concaveman"
 
 import { RGBColorCollection,
@@ -152,52 +151,68 @@ function calculateCentroids(segmentMap: {[key:number] : Array<PixelLocation>}) {
     return centroidMap
 }
 
-async function loadTiffData(data: Float32Array | Uint16Array | Uint8Array, width: number, height: number) {
-    // Generating the pixelMap and segmentMaps that represent the segementation data
-    let maps = generateMaps(data, width, height)
-    let pixelMap = maps.pixelMap
-    let segmentLocationMap = maps.segmentLocationMap
-    let segmentIndexMap = maps.segmentIndexMap
+async function loadTiffData(data: Float32Array | Uint16Array | Uint8Array, width: number, height: number, onError?: (err:any) => void) {
+    try {
+        // Generating the pixelMap and segmentMaps that represent the segementation data
+        let maps = generateMaps(data, width, height)
+        let pixelMap = maps.pixelMap
+        let segmentLocationMap = maps.segmentLocationMap
+        let segmentIndexMap = maps.segmentIndexMap
 
-    let segmentOutlineMap = generateOutlineMap(maps.segmentLocationMap)
-    let centroidMap = calculateCentroids(maps.segmentLocationMap)
-    // Generate an ImageBitmap from the tiffData
-    // ImageBitmaps are rendered canvases can be passed between processes
-    let bitmap = await segmentationFillBitmap(data, width, height)
+        let segmentOutlineMap = generateOutlineMap(maps.segmentLocationMap)
+        let centroidMap = calculateCentroids(maps.segmentLocationMap)
+        // Generate an ImageBitmap from the tiffData
+        // ImageBitmaps are rendered canvases can be passed between processes
+        let bitmap = await segmentationFillBitmap(data, width, height)
 
-    return({
-        width: width,
-        height: height,
-        data: data,
-        pixelMap: pixelMap,
-        segmentIndexMap: segmentIndexMap,
-        segmentLocationMap: segmentLocationMap,
-        segmentOutlineMap: segmentOutlineMap,
-        centroidMap: centroidMap,
-        fillBitmap: bitmap,
-    })
+        return({
+            width: width,
+            height: height,
+            data: data,
+            pixelMap: pixelMap,
+            segmentIndexMap: segmentIndexMap,
+            segmentLocationMap: segmentLocationMap,
+            segmentOutlineMap: segmentOutlineMap,
+            centroidMap: centroidMap,
+            fillBitmap: bitmap,
+        })
+    } catch (err) {
+        if(onError != null) {
+            onError({error: err.message})
+        } else {
+            throw err
+        }
+    }
 }
 
-async function loadFile(filepath: string):Promise<SegmentationDataWorkerResult> {
-    //Decode tiff data
-    let tiffData = readTiffData(filepath)
-    
-    return await loadTiffData(tiffData.data, tiffData.width, tiffData.height)
+async function loadFile(filepath: string, onError: (err:any) => void):Promise<SegmentationDataWorkerResult> {
+    try {
+        //Decode tiff data
+        let tiffData = readTiffData(filepath)
+        return await loadTiffData(tiffData.data, tiffData.width, tiffData.height)
+    } catch (err) {
+        onError({error: err.message})
+    }
 }
 
 ctx.addEventListener('message', (message) => {
-    var data = message.data
-    // TO-DO: If has filepath loadFile, otherwise loadTiffData
+    let data = message.data
+
+    // Callback if an error is raised when loading data.
+    let onError = (err) => {
+        ctx.postMessage(err)
+    }
+
     if('tiffData' in data){
-        loadTiffData(data.tiffData, data.width, data.height).then((message) => {
+        loadTiffData(data.tiffData, data.width, data.height, onError).then((message) => {
             // Send the message and then specify the large data array and bitmap as transferrables
             // Using transferrables dramatically speeds up transfer back to the main thread
             // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-            ctx.postMessage(message, [message.data.buffer, message.fillBitmap])
+            if(message && 'data' in message && 'fillBitmap' in message) ctx.postMessage(message, [message.data.buffer, message.fillBitmap])
         })
     } else {
-        loadFile(data.filepath).then((message) => {
-            ctx.postMessage(message, [message.data.buffer, message.fillBitmap])
+        loadFile(data.filepath, onError).then((message) => {
+            if(message && 'data' in message && 'fillBitmap' in message) ctx.postMessage(message, [message.data.buffer, message.fillBitmap])
         })
     }
 }, false)
