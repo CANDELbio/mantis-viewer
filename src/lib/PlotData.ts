@@ -13,7 +13,7 @@ export const DefaultSelectionColor = 0x4286f4 // blue, color for "All Segments"
 export class PlotData {
     channels: string[]
     data: Plotly.Data[]
-    layout: Partial<Plotly.Layout> // ScatterPlotLayout // 
+    layout: Partial<Plotly.Layout>
 
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.
     static buildSegmentToSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null) {
@@ -65,10 +65,11 @@ export class PlotData {
         return result
     }
 
-    static getSelectionIdsSortedByName(selectedRegion: Array<SelectedPopulation>|null){
+    // Currently sorts them by name. Will want to remove sorting by name once we allow user to choose the render order.
+    static buildSelectionIdArray(selectedPopulations: SelectedPopulation[]|null){
         let selectionIds = [DefaultSelectionId]
-        if(selectedRegion != null){
-            let sortedRegions = selectedRegion.sort((a: SelectedPopulation, b:SelectedPopulation) => {
+        if(selectedPopulations != null){
+            let sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b:SelectedPopulation) => {
                 return a.name.localeCompare(b.name)
             })
             sortedRegions.map((value: SelectedPopulation) => {
@@ -172,7 +173,7 @@ export class PlotData {
         let plotData = Array<Plotly.Data>()
 
         // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
-        let sortedSelectionIds = this.getSelectionIdsSortedByName(selectedRegions)
+        let sortedSelectionIds = this.buildSelectionIdArray(selectedRegions)
         // Builds a map of selected region ids to their regions.
         // We use this to get the names and colors to use for graphing.
         let selectedRegionMap = this.buildSelectedRegionMap(selectedRegions)
@@ -203,8 +204,8 @@ export class PlotData {
         plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: SelectedPopulation[]|null
-    ) {
+        selectedRegions: SelectedPopulation[]|null)
+    {
         this.channels = channels
         this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedRegions)
 
