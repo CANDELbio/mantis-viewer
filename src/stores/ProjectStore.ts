@@ -81,7 +81,7 @@ export class ProjectStore {
         this.nullImageSet = {imageStore: this.activeImageStore, plotStore: this.activePlotStore, populationStore: this.activePopulationStore}
     }
 
-    setScatterPlotData = autorun(() => {
+    setPlotData = autorun(() => {
         let imageStore = this.activeImageStore
         let populationStore = this.activePopulationStore
         let plotStore = this.activePlotStore
@@ -89,7 +89,8 @@ export class ProjectStore {
         if(imageStore && populationStore && plotStore){
             let loadHistogram = plotStore.selectedPlotChannels.length == 1 && plotStore.plotType == 'histogram'
             let loadScatter = plotStore.selectedPlotChannels.length == 2 && plotStore.plotType == 'scatter'
-            if(loadHistogram || loadScatter){
+            let loadHeatmap = plotStore.plotType == 'heatmap'
+            if(loadHistogram || loadScatter || loadHeatmap){
                 if(imageStore.imageData != null && imageStore.segmentationData != null){
                     plotStore.setPlotData(new PlotData(plotStore.selectedPlotChannels,
                         imageStore.imageData,

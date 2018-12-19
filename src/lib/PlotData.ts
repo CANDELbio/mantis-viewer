@@ -15,6 +15,24 @@ export class PlotData {
     data: Plotly.Data[]
     layout: Partial<Plotly.Layout>
 
+    // Builds a map of selected population ids to all of the pixels indexes contained in the segments in those populations.
+    static buildSelectionToPixelMap(segmentationData: SegmentationData, selectedPopulations: SelectedPopulation[]|null){
+        let pixelMap:Record<string, number[]> = {}
+        pixelMap[DefaultSelectionId] = []
+        let segmentLocations = segmentationData.segmentIndexMap
+        for(let segmentId in segmentLocations){
+            let segmentLocation = segmentLocations[segmentId]
+            pixelMap[DefaultSelectionId] = pixelMap[DefaultSelectionId].concat(segmentLocation)
+            if(selectedPopulations != null) {
+                for(let population of selectedPopulations){
+                    if(!(segmentId in pixelMap)) pixelMap[segmentId] = []
+                    if(segmentId in population.selectedSegments) pixelMap[segmentId] = pixelMap[segmentId].concat(segmentLocation)
+                }
+            }
+        }
+        return pixelMap
+    }
+
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.
     static buildSegmentToSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null) {
         let map:{[key:number] : string[]}  = {}
@@ -198,21 +216,58 @@ export class PlotData {
         return plotData
     }
 
+    static calculateHeatmapData(imcData:ImageData,
+        segmentationData: SegmentationData,
+        plotStatistic: PlotStatistic,
+        plotTransform: PlotTransform,
+        selectedPopulations: SelectedPopulation[]|null)
+    {
+        let pixelMap = this.buildSelectionToPixelMap(segmentationData, selectedPopulations)
+        let channels = imcData.channelNames
+        let selectionIds = this.buildSelectionIdArray(selectedPopulations)
+        let intensities = []
+
+        for(let selectionId of selectionIds){
+            let channelIntensities = []
+            for(let channel of channels){
+                let intensity = this.getPixelIntensity(plotStatistic, channel, pixelMap[selectionId], plotTransform, imcData)
+                channelIntensities.push(intensity)
+            }
+            intensities.push(channelIntensities)
+        }
+
+        let heatmapData = Array<Plotly.Data>()
+
+        // TO-DO: y should be selection names.
+        heatmapData.push({
+                z: intensities,
+                x: channels,
+                y: selectionIds,
+                type: 'heatmap'
+        })
+
+        return heatmapData
+    }
+
     constructor(channels: string[],
         imcData:ImageData,
         segmentationData: SegmentationData,
         plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: SelectedPopulation[]|null)
+        selectedPopulations: SelectedPopulation[]|null)
     {
         this.channels = channels
-        this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedRegions)
 
         if(plotType == 'histogram' && channels.length == 1) {
+            this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0], xaxis: {title: channels[0]}, barmode: "overlay"};
         } else if (plotType == 'scatter' && channels.length == 2){
+            this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
+        } else if (plotType == 'heatmap'){
+            this.data = PlotData.calculateHeatmapData(imcData, segmentationData, plotStatistic, plotTransform, selectedPopulations)
+            this.layout = {title: 'Heatmap of Channel Intensity', xaxis: {title: 'Channel'}, yaxis: {title: 'Population'}}
         }
     }
 

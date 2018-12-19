@@ -14,10 +14,11 @@ export type PlotStatistic = "mean" | "median"
 
 export const PlotTypeOptions = [
     {label: "Scatter Plot", value: "scatter"},
-    {label: "Histogram", value: "histogram"}
+    {label: "Histogram", value: "histogram"},
+    {label: "Heatmap", value: "heatmap"},
 ]
 
-export type PlotType = "scatter" | "histogram"
+export type PlotType = "scatter" | "histogram" | "heatmap"
 
 export const PlotTransformOptions = [
     {label: "No Tranformation", value: "none"},

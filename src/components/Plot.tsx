@@ -125,9 +125,21 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
         }
 
         // Clear the plot element if we don't have scatterPlot data.
+        let channelControls = null
         let scatterPlot = null
         let statisticControls = null
         let transformControls = null
+        if (this.props.selectedType != 'heatmap'){
+            channelControls = <div>
+                <div>Plot Channels</div>
+                <Select
+                    value = {this.props.selectedPlotChannels}
+                    options = {this.channelSelectOptions}
+                    onChange = {this.onPlotChannelSelect}
+                    multi = {true}
+                />
+            </div>
+        }
         if (this.props.scatterPlotData != null) {
             statisticControls = <Select
                 value = {this.props.selectedStatistic}
@@ -157,13 +169,7 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
                     onChange = {this.onTypeSelect}
                     clearable = {false}
                 />
-                <div>Plot Channels</div>
-                <Select
-                    value = {this.props.selectedPlotChannels}
-                    options = {this.channelSelectOptions}
-                    onChange = {this.onPlotChannelSelect}
-                    multi = {true}
-                />
+                {channelControls}
                 {scatterPlot}
                 {statisticControls}
                 {transformControls}
