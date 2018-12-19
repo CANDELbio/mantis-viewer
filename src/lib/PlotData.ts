@@ -25,8 +25,8 @@ export class PlotData {
             pixelMap[DefaultSelectionId] = pixelMap[DefaultSelectionId].concat(segmentLocation)
             if(selectedPopulations != null) {
                 for(let population of selectedPopulations){
-                    if(!(segmentId in pixelMap)) pixelMap[segmentId] = []
-                    if(segmentId in population.selectedSegments) pixelMap[segmentId] = pixelMap[segmentId].concat(segmentLocation)
+                    if(!(population.id in pixelMap)) pixelMap[population.id] = []
+                    if(segmentId in population.selectedSegments) pixelMap[population.id] = pixelMap[population.id].concat(segmentLocation)
                 }
             }
         }
@@ -133,7 +133,7 @@ export class PlotData {
         segmentationData: SegmentationData,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
-        selectedRegions: Array<SelectedPopulation>|null){
+        selectedPopulations: Array<SelectedPopulation>|null){
         // A map of the data to be used in the plot.
         // Maps selection name (either all segments or the name of a selected region) to a set of data.
         let plotData:{
@@ -142,7 +142,7 @@ export class PlotData {
                 text: string[]}
             } = {}
 
-        let regionMap = this.buildSegmentToSelectedRegionMap(selectedRegions)
+        let regionMap = this.buildSegmentToSelectedRegionMap(selectedPopulations)
 
         // Iterate through all of the segments/cells in the segmentation data
         for(let segment in segmentationData.segmentIndexMap){
@@ -177,7 +177,7 @@ export class PlotData {
         return plotData
     }
 
-    static calculateScatterPlotData(channels: string[],
+    static calculatePlotData(channels: string[],
         imcData:ImageData,
         segmentationData: SegmentationData,
         plotType: PlotType,
@@ -226,6 +226,9 @@ export class PlotData {
         let channels = imcData.channelNames
         let selectionIds = this.buildSelectionIdArray(selectedPopulations)
         let intensities = []
+        // Builds a map of selected region ids to their regions.
+        // We use this to get the names and colors to use for graphing.
+        let selectedRegionMap = this.buildSelectedRegionMap(selectedPopulations)
 
         for(let selectionId of selectionIds){
             let channelIntensities = []
@@ -242,7 +245,7 @@ export class PlotData {
         heatmapData.push({
                 z: intensities,
                 x: channels,
-                y: selectionIds,
+                y: selectionIds.map((selectionId:string) => { return this.getSelectionName(selectionId, selectedRegionMap) }),
                 type: 'heatmap'
         })
 
@@ -260,10 +263,10 @@ export class PlotData {
         this.channels = channels
 
         if(plotType == 'histogram' && channels.length == 1) {
-            this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculatePlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0], xaxis: {title: channels[0]}, barmode: "overlay"};
         } else if (plotType == 'scatter' && channels.length == 2){
-            this.data = PlotData.calculateScatterPlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculatePlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
         } else if (plotType == 'heatmap'){
             this.data = PlotData.calculateHeatmapData(imcData, segmentationData, plotStatistic, plotTransform, selectedPopulations)
