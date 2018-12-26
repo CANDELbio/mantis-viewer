@@ -20,13 +20,14 @@ export class SegmentationData {
     segmentOutlineMap: Record<number, PixelLocation[]>
     // Mapping of segmentId to the pixel that represents the centroid
     centroidMap: Record<number, PixelLocation>
+    // PIXI Sprite of random colored fills for the segments
     segmentFillSprite: PIXI.Sprite
 
     errorLoading: boolean
 
     private worker: SegmentationWorker
     // Callback function to call with the built ImageData once it has been loaded.
-    private onReady: (SegmentationData: SegmentationData) => void
+    private onReady: (segmentationData: SegmentationData) => void
 
     public segmentOutlineGraphics(color: number, width: number, segments?:number[]) {
         let outlines = []

@@ -1,3 +1,5 @@
+import { PlotStatistic } from "./UIDefinitions"
+
 export interface PixelLocation {
     x: number,
     y: number,
@@ -67,4 +69,11 @@ export interface SegmentationDataWorkerResult {
     centroidMap: Record<number, PixelLocation>
     // Bitmap of segment fill
     fillBitmap: ImageBitmap,
+}
+
+export interface SegmentationStatisticWorkerResult {
+    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    statistic: PlotStatistic
+    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    map: Record<string,number>
 }

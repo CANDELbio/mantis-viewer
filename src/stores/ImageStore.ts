@@ -1,12 +1,14 @@
 import { observable, 
     action,
-    computed } from "mobx"
+    computed,
+    autorun} from "mobx"
 import * as _ from "underscore"
 
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
+import { SegmentationStatistics } from "../lib/SegmentationStatistics"
 import { ChannelName,
-    D3BrushExtent, 
+    D3BrushExtent,
     LabelLayer } from "../interfaces/UIDefinitions"
 
 export class ImageStore {
@@ -23,6 +25,7 @@ export class ImageStore {
     @observable imageExportFilename: string | null
 
     @observable.ref segmentationData: SegmentationData | null
+    @observable.ref segmentationStatistics: SegmentationStatistics | null
 
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
@@ -41,6 +44,15 @@ export class ImageStore {
         x: [number, number]
         y: [number, number]
     } | null
+
+    calculateSegmentationStatistics = autorun(() => {
+        if(this.imageData && this.segmentationData){
+            let statistics = new SegmentationStatistics()
+            statistics.generateStatistics(this.imageData, this.segmentationData, this.setSegmentationStatistics)
+        } else {
+
+        }
+    })
 
     channelSelectOptions = computed(() => {
         if(this.imageData) {
@@ -107,12 +119,6 @@ export class ImageStore {
         this.segmentationCentroidsVisible = visible
     }
 
-    @action clearSegmentationData = () => {
-        this.selectedSegmentationFile = null
-        this.segmentationData = null
-        this.segmentationFillAlpha = 0
-    }
-
     getChannelDomainPercentage = (name: ChannelName) => {
         let percentages:[number, number] = [0, 1]
 
@@ -165,6 +171,20 @@ export class ImageStore {
 
     @action setSegmentationData = (data: SegmentationData) => {
         this.segmentationData = data
+    }
+
+    @action clearSegmentationData = () => {
+        this.selectedSegmentationFile = null
+        this.segmentationData = null
+        this.segmentationFillAlpha = 0
+    }
+
+    @action setSegmentationStatistics = (data: SegmentationStatistics) => {
+        this.segmentationStatistics = data
+    }
+
+    @action clearSegmentationStatistics = () => {
+        this.segmentationStatistics = null
     }
 
     @action setSegmentationFile = (fName: string) => {
