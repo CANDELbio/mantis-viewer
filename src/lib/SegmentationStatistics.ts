@@ -1,14 +1,16 @@
 import { SegmentationData } from "./SegmentationData"
 import { ImageData } from "./ImageData"
 import { SegmentationStatisticWorkerResult } from "../interfaces/ImageInterfaces"
+import { calculateMean, calculateMedian} from "../lib/StatsHelper"
 
 import StatisticWorker = require("worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker")
 
 export class SegmentationStatistics {
+    channels: string[]
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
-    meanMap: Record<string, number>
+    private meanMap: Record<string, number>
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
-    medianMap: Record<string,number>
+    private medianMap: Record<string,number>
     
     // Keep track of the number of channels to calculate statistics for and the number complete
     private numWorkers: number
@@ -56,6 +58,7 @@ export class SegmentationStatistics {
 
     generateStatistics(imageData: ImageData, segmentationData: SegmentationData, onReady: (statistics: SegmentationStatistics) => void) {
         for(let channel in imageData.data){
+            this.channels.push(channel)
             this.numWorkers += 2
             let tiffData = imageData.data[channel]
             this.loadInWorker({channel: channel, tiffData: tiffData, segmentIndexMap: segmentationData.segmentIndexMap, statistic: 'mean'}, onReady)
@@ -63,10 +66,29 @@ export class SegmentationStatistics {
         }
     }
 
+    meanIntensity(channel: string, segmentIds: number[]){
+        let intensities = []
+        for(let segmentId of segmentIds){
+            let mapKey = channel + "_" + segmentId
+            intensities.push(this.meanMap[mapKey])
+        }
+        return calculateMean(intensities)
+    }
+
+    medianIntensity(channel: string, segmentIds: number[]){
+        let intensities = []
+        for(let segmentId of segmentIds){
+            let mapKey = channel + "_" + segmentId
+            intensities.push(this.meanMap[mapKey])
+        }
+        return calculateMedian(intensities)
+    }
+
     constructor() {
         this.numWorkers = 0
         this.numWorkersComplete = 0
         this.workers = []
+        this.channels = []
         this.meanMap = {}
         this.medianMap = {}
     }

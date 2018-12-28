@@ -91,10 +91,10 @@ export class ProjectStore {
             let loadScatter = plotStore.selectedPlotChannels.length == 2 && plotStore.plotType == 'scatter'
             let loadHeatmap = plotStore.plotType == 'heatmap'
             if(loadHistogram || loadScatter || loadHeatmap){
-                if(imageStore.imageData != null && imageStore.segmentationData != null){
+                if(imageStore.segmentationData != null && imageStore.segmentationStatistics != null){
                     plotStore.setPlotData(new PlotData(plotStore.selectedPlotChannels,
-                        imageStore.imageData,
                         imageStore.segmentationData,
+                        imageStore.segmentationStatistics,
                         plotStore.plotType,
                         plotStore.plotStatistic,
                         plotStore.plotTransform,
@@ -552,7 +552,8 @@ export class ProjectStore {
         let imageStore = this.activeImageStore
         let imageData = imageStore.imageData
         let segmentationData = imageStore.segmentationData
-        if(imageData != null && segmentationData != null){
+        let segmentationStatistics = imageStore.segmentationStatistics
+        if(imageData != null && segmentationData != null && segmentationStatistics != null){
             let channels = imageData.channelNames
             let data = [] as string[][]
 
@@ -566,13 +567,12 @@ export class ProjectStore {
             let indexMap = segmentationData.segmentIndexMap
             for(let s in indexMap){
                 let segmentId = parseInt(s)
-                let indexes = indexMap[segmentId]
                 let segmentData = [s] as string[]
                 for(let channel of channels){
                     if(statistic == 'mean'){
-                        segmentData.push(imageData.meanPixelIntensity(channel, indexes).toString())
+                        segmentData.push(segmentationStatistics.meanIntensity(channel, [segmentId]).toString())
                     } else{
-                        segmentData.push(imageData.medianPixelIntensity(channel, indexes).toString())
+                        segmentData.push(segmentationStatistics.medianIntensity(channel, [segmentId]).toString())
                     }
                 }
                 data.push(segmentData)

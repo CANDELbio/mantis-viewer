@@ -2,6 +2,7 @@ import * as Plotly from 'plotly.js'
 
 import { ImageData } from "./ImageData"
 import { SegmentationData } from "./SegmentationData"
+import { SegmentationStatistics } from "./SegmentationStatistics"
 import { PlotStatistic, PlotTransform, PlotType } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { hexToRGB } from "./GraphicsHelper"
@@ -14,24 +15,6 @@ export class PlotData {
     channels: string[]
     data: Plotly.Data[]
     layout: Partial<Plotly.Layout>
-
-    // Builds a map of selected population ids to all of the pixels indexes contained in the segments in those populations.
-    static buildSelectionToPixelMap(segmentationData: SegmentationData, selectedPopulations: SelectedPopulation[]|null){
-        let pixelMap:Record<string, number[]> = {}
-        pixelMap[DefaultSelectionId] = []
-        let segmentLocations = segmentationData.segmentIndexMap
-        for(let segmentId in segmentLocations){
-            let segmentLocation = segmentLocations[segmentId]
-            pixelMap[DefaultSelectionId] = pixelMap[DefaultSelectionId].concat(segmentLocation)
-            if(selectedPopulations != null) {
-                for(let population of selectedPopulations){
-                    if(!(population.id in pixelMap)) pixelMap[population.id] = []
-                    if(segmentId in population.selectedSegments) pixelMap[population.id] = pixelMap[population.id].concat(segmentLocation)
-                }
-            }
-        }
-        return pixelMap
-    }
 
     // Builds a map of segment id/number to an array the regions of interest id it belongs to.
     static buildSegmentToSelectedRegionMap(selectedRegion: Array<SelectedPopulation>|null) {
@@ -63,14 +46,14 @@ export class PlotData {
         return map
     }
 
-    static getPixelIntensity(plotStatistic: string, channel:string, pixels:number[], plotTransform: string, imcData: ImageData){
+    static getSegmentIntensity(plotStatistic: string, channel:string, segmentIds:number[], plotTransform: string, segmentationStatistics: SegmentationStatistics){
         let result:number
 
         // Get the mean or median depending on what the user selected.
         if(plotStatistic == "mean") {
-            result = imcData.meanPixelIntensity(channel, pixels)
+            result = segmentationStatistics.meanIntensity(channel, segmentIds)
         } else {
-            result = imcData.medianPixelIntensity(channel, pixels)
+            result = segmentationStatistics.medianIntensity(channel, segmentIds)
         }
 
         // If the user has selected a transform, apply it.
@@ -129,8 +112,8 @@ export class PlotData {
     }
 
     static calculateRawPlotData(channels: string[],
-        imcData:ImageData,
         segmentationData: SegmentationData,
+        segmentationStatistics: SegmentationStatistics,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
         selectedPopulations: Array<SelectedPopulation>|null){
@@ -145,9 +128,7 @@ export class PlotData {
         let regionMap = this.buildSegmentToSelectedRegionMap(selectedPopulations)
 
         // Iterate through all of the segments/cells in the segmentation data
-        for(let segment in segmentationData.segmentIndexMap){
-            let pixels = segmentationData.segmentIndexMap[segment]
-
+        for(let segment in segmentationData.centroidMap){
             // Generate a list of all of the selections/ROIs that this segment is in.
             let selections = [DefaultSelectionId]
             if(segment in regionMap){
@@ -157,7 +138,7 @@ export class PlotData {
             // Calculate the mean or median intensity of the pixels in the segment
             let curValues = []
             for(let ch of channels){
-                curValues.push(this.getPixelIntensity(plotStatistic, ch, pixels, plotTransform, imcData))
+                curValues.push(this.getSegmentIntensity(plotStatistic, ch, [parseInt(segment)], plotTransform, segmentationStatistics))
             }
 
             // Add the intensities to the data map for each selection the segment is in.
@@ -178,15 +159,15 @@ export class PlotData {
     }
 
     static calculatePlotData(channels: string[],
-        imcData:ImageData,
         segmentationData: SegmentationData,
+        segmentationStatistics: SegmentationStatistics,
         plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
         selectedRegions: Array<SelectedPopulation>|null)
     {
 
-        let rawPlotData = this.calculateRawPlotData(channels, imcData, segmentationData, plotStatistic, plotTransform, selectedRegions)
+        let rawPlotData = this.calculateRawPlotData(channels, segmentationData, segmentationStatistics, plotStatistic, plotTransform, selectedRegions)
 
         let plotData = Array<Plotly.Data>()
 
@@ -216,14 +197,13 @@ export class PlotData {
         return plotData
     }
 
-    static calculateHeatmapData(imcData:ImageData,
-        segmentationData: SegmentationData,
+    static calculateHeatmapData(segmentationData: SegmentationData,
+        segmentationStatistics: SegmentationStatistics,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
         selectedPopulations: SelectedPopulation[]|null)
     {
-        let pixelMap = this.buildSelectionToPixelMap(segmentationData, selectedPopulations)
-        let channels = imcData.channelNames
+        let channels = segmentationStatistics.channels
         let selectionIds = this.buildSelectionIdArray(selectedPopulations)
         let intensities = []
         // Builds a map of selected region ids to their regions.
@@ -231,9 +211,11 @@ export class PlotData {
         let selectedRegionMap = this.buildSelectedRegionMap(selectedPopulations)
 
         for(let selectionId of selectionIds){
+            // If we have the default selection id use all segment ids, otherwise get segments for the current selection
+            let selectedSegments = (selectionId == DefaultSelectionId) ? segmentationData.segmentIds : selectedRegionMap[selectionId].selectedSegments
             let channelIntensities = []
             for(let channel of channels){
-                let intensity = this.getPixelIntensity(plotStatistic, channel, pixelMap[selectionId], plotTransform, imcData)
+                let intensity = this.getSegmentIntensity(plotStatistic, channel, selectedSegments, plotTransform, segmentationStatistics)
                 channelIntensities.push(intensity)
             }
             intensities.push(channelIntensities)
@@ -253,8 +235,8 @@ export class PlotData {
     }
 
     constructor(channels: string[],
-        imcData:ImageData,
         segmentationData: SegmentationData,
+        segmentationStatistics: SegmentationStatistics,
         plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
@@ -263,13 +245,13 @@ export class PlotData {
         this.channels = channels
 
         if(plotType == 'histogram' && channels.length == 1) {
-            this.data = PlotData.calculatePlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculatePlotData(channels, segmentationData, segmentationStatistics, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0], xaxis: {title: channels[0]}, barmode: "overlay"};
         } else if (plotType == 'scatter' && channels.length == 2){
-            this.data = PlotData.calculatePlotData(channels, imcData, segmentationData, plotType, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculatePlotData(channels, segmentationData, segmentationStatistics, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
         } else if (plotType == 'heatmap'){
-            this.data = PlotData.calculateHeatmapData(imcData, segmentationData, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculateHeatmapData(segmentationData, segmentationStatistics, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: 'Heatmap of Channel Intensity', xaxis: {title: 'Channel'}, yaxis: {title: 'Population'}}
         }
     }

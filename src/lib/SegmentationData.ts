@@ -10,6 +10,7 @@ export class SegmentationData {
     width: number
     height: number
     data: Float32Array | Uint16Array | Uint8Array
+    segmentIds: number[]
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
     pixelMap: Record<string, number>
     // Mapping of a segmentId to pixel indices.
@@ -62,6 +63,7 @@ export class SegmentationData {
         this.segmentLocationMap = fData.segmentLocationMap
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
+        this.segmentIds = Object.keys(this.centroidMap).map((value: string) => {return parseInt(value)})
         this.segmentFillSprite = imageBitmapToSprite(fData.fillBitmap)
         this.onReady(this)
     }
