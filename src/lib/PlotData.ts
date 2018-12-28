@@ -252,7 +252,7 @@ export class PlotData {
             this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
         } else if (plotType == 'heatmap'){
             this.data = PlotData.calculateHeatmapData(segmentationData, segmentationStatistics, plotStatistic, plotTransform, selectedPopulations)
-            this.layout = {title: 'Heatmap of Channel Intensity', xaxis: {title: 'Channel'}, yaxis: {title: 'Population'}}
+            this.layout = {title: 'Heatmap of Channel Intensity', xaxis: {tickangle: 45}}
         }
     }
 
