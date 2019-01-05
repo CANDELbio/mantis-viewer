@@ -8,8 +8,7 @@ import * as Plotly from 'plotly.js'
 
 import { PlotData, DefaultSelectionName } from "../lib/PlotData"
 import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from "../interfaces/UIDefinitions"
-import { PlotStatisticOptions,
-    PlotTransformOptions } from "../interfaces/UIDefinitions"
+import { PlotStatisticOptions, PlotTransformOptions, PlotNormalizationOptions, PlotNormalization } from "../interfaces/UIDefinitions"
 
 
 
@@ -23,9 +22,11 @@ export interface ScatterPlotProps {
     setSelectedTransform: ((x: PlotTransform) => void)
     selectedType: string
     setSelectedType: ((x: PlotType) => void)
+    selectedNormalization: string
+    setSelectedNormalization: ((x: PlotNormalization) => void)
     setSelectedSegments: ((selectedSegments: number[]) => void)
     setHoveredSegments: ((selectedSegments: number[]) => void)
-    scatterPlotData: PlotData | null
+    plotData: PlotData | null
     windowWidth: number | null
 }
 
@@ -48,6 +49,9 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     }
     onTypeSelect = (x: SelectOption) => {
         if(x != null) this.props.setSelectedType(x.value as PlotType)
+    }
+    onNormalizationSelect = (x: SelectOption) => {
+        if(x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
     onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedSegments(this.parsePlotlyEventData(data))
     onHover = (data: {points:any, event:any}) => this.props.setHoveredSegments(this.parsePlotlyEventData(data))
@@ -92,9 +96,9 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     }
 
     mountPlot = async (el:HTMLElement | null) => {
-        if(el != null && this.props.scatterPlotData != null) {
+        if(el != null && this.props.plotData != null) {
             let firstRender = (this.container == null)
-            this.container = await Plotly.react(el, this.props.scatterPlotData.data, this.props.scatterPlotData.layout)
+            this.container = await Plotly.react(el, this.props.plotData.data, this.props.plotData.layout)
             // Resize the plot to fit the container
             // Might need to remove. Seems that if this fires too much can cause weirdness with WebGL contexts.
             Plotly.Plots.resize(this.container)
@@ -126,9 +130,11 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
 
         // Clear the plot element if we don't have scatterPlot data.
         let channelControls = null
-        let scatterPlot = null
+        let plot = null
         let statisticControls = null
         let transformControls = null
+        let normalizationControls = null
+
         if (this.props.selectedType != 'heatmap'){
             channelControls = <div>
                 <div>Plot Channels</div>
@@ -140,7 +146,7 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
                 />
             </div>
         }
-        if (this.props.scatterPlotData != null) {
+        if (this.props.plotData != null) {
             statisticControls = <Select
                 value = {this.props.selectedStatistic}
                 options = {PlotStatisticOptions}
@@ -155,7 +161,16 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
                 clearable = {false}
             />
 
-            scatterPlot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
+            if(this.props.selectedType == 'heatmap'){
+                normalizationControls = <Select
+                    value = {this.props.selectedNormalization}
+                    options = {PlotNormalizationOptions}
+                    onChange = {this.onNormalizationSelect}
+                    clearable = {false}
+                />
+            }
+
+            plot = <div id="plotly-scatterplot" ref = {(el) => this.mountPlot(el)}/>
         } else {
             this.cleanupPlotly()
         }
@@ -170,9 +185,10 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
                     clearable = {false}
                 />
                 {channelControls}
-                {scatterPlot}
+                {plot}
                 {statisticControls}
                 {transformControls}
+                {normalizationControls}
             </div>
         )
     }

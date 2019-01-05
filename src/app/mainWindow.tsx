@@ -95,6 +95,10 @@ ipcRenderer.on('set-plot-type', (event:Electron.Event, type: any) => {
     projectStore.activePlotStore.setPlotType(type)
 })
 
+ipcRenderer.on('set-plot-normalization', (event:Electron.Event, normalization: any) => {
+    projectStore.activePlotStore.setPlotNormalization(normalization)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event:Electron.Event, segmentIds: number[]) => {
      projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds)
 })
@@ -113,6 +117,7 @@ Mobx.autorun(() => {
         plotStore.plotStatistic,
         plotStore.plotTransform,
         plotStore.plotType,
+        plotStore.plotNormalization,
         plotStore.plotData
     )
 })

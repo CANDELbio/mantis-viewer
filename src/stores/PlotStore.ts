@@ -7,7 +7,9 @@ import { PlotStatistic,
     PlotTransform,
     PlotTransformOptions,
     PlotType,
-    PlotTypeOptions} from "../interfaces/UIDefinitions"
+    PlotTypeOptions,
+    PlotNormalization,
+    PlotNormalizationOptions} from "../interfaces/UIDefinitions"
 
 
 export class PlotStore {
@@ -23,6 +25,7 @@ export class PlotStore {
     @observable plotStatistic: PlotStatistic
     @observable plotTransform: PlotTransform
     @observable plotType: PlotType
+    @observable plotNormalization: PlotNormalization
 
     @observable.ref selectedPlotChannels: string[]
 
@@ -30,6 +33,7 @@ export class PlotStore {
         this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.plotTransform = PlotTransformOptions[0].value as PlotTransform
         this.plotType = PlotTypeOptions[0].value as PlotType
+        this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.selectedPlotChannels = []
         this.segmentsHoveredOnPlot = []
     }
@@ -60,6 +64,10 @@ export class PlotStore {
 
     @action setPlotTransform = (x: PlotTransform) => {
         this.plotTransform = x
+    }
+
+    @action setPlotNormalization = (x: PlotNormalization) => {
+        this.plotNormalization = x
     }
 
     @action setPlotType = (x: PlotType) => {

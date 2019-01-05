@@ -429,9 +429,10 @@ ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
   statistic: string,
   transform: string,
   type: string,
-  plotData: any) => {
-
-  if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, type, plotData)
+  normalization: string,
+  plotData: any) =>
+{
+  if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, type, normalization, plotData)
 })
 
 // Functions to relay data from the plotWindow to the mainWindow
@@ -449,6 +450,10 @@ ipcMain.on('plotWindow-set-transform', (event:Electron.Event, transform: any) =>
 
 ipcMain.on('plotWindow-set-type', (event:Electron.Event, type: any) => {
   if(mainWindow != null) mainWindow.webContents.send('set-plot-type', type)
+})
+
+ipcMain.on('plotWindow-set-normalization', (event:Electron.Event, normalization: any) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-normalization', normalization)
 })
 
 ipcMain.on('plotWindow-add-selected-population', (event:Electron.Event, segmentIds: number[]) => {

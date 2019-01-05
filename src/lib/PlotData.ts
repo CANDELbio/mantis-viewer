@@ -1,6 +1,5 @@
 import * as Plotly from 'plotly.js'
 
-import { ImageData } from "./ImageData"
 import { SegmentationData } from "./SegmentationData"
 import { SegmentationStatistics } from "./SegmentationStatistics"
 import { PlotStatistic, PlotTransform, PlotType } from "../interfaces/UIDefinitions"

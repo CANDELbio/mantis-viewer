@@ -172,9 +172,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setSelectedTransform = {plotStore.setPlotTransform}
                         selectedType = {plotStore.plotType}
                         setSelectedType = {plotStore.setPlotType}
+                        selectedNormalization = {plotStore.plotNormalization}
+                        setSelectedNormalization = {plotStore.setPlotNormalization}
                         setSelectedSegments = {this.addSelectedPopulation}
                         setHoveredSegments = {plotStore.setSegmentsHoveredOnPlot}
-                        scatterPlotData = {plotStore.plotData}
+                        plotData = {plotStore.plotData}
                     />
                 }
             }

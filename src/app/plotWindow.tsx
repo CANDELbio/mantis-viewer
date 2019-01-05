@@ -9,7 +9,8 @@ let selectedPlotChannels: string[] | null
 let selectedStatistic: string | null
 let selectedTransform: string | null
 let selectedType: string | null
-let scatterPlotData: PlotData | null
+let selectedNormalization: string | null
+let plotData: PlotData | null
 
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
@@ -29,6 +30,10 @@ let setPlotType = (type: any) => {
     ipcRenderer.send('plotWindow-set-type', type)
 }
 
+let setPlotNormalization = (type: any) => {
+    ipcRenderer.send('plotWindow-set-normalization', type)
+}
+
 let addSelectedPopulation = (segmentIds: number[]) => {
     if(segmentIds.length != 0) ipcRenderer.send('plotWindow-add-selected-population', segmentIds)
 }
@@ -38,7 +43,7 @@ let setHoveredSegments = (segmentIds: number[]) => {
 }
 
 function render() {
-    if(channelSelectOptions && selectedPlotChannels && selectedStatistic && selectedTransform && selectedType){
+    if(channelSelectOptions && selectedPlotChannels && selectedStatistic && selectedTransform && selectedType && selectedNormalization){
         console.log("Render successs!")
         ReactDOM.render(
             <div>
@@ -53,9 +58,11 @@ function render() {
                     setSelectedTransform = {setPlotTranform}
                     selectedType = {selectedType}
                     setSelectedType = {setPlotType}
+                    selectedNormalization = {selectedNormalization}
+                    setSelectedNormalization = {setPlotNormalization}
                     setSelectedSegments = {addSelectedPopulation}
                     setHoveredSegments = {setHoveredSegments}
-                    scatterPlotData = {scatterPlotData}
+                    plotData = {plotData}
                 />
             </div>,
             document.getElementById("plot")
@@ -70,13 +77,16 @@ ipcRenderer.on('set-plot-data', (event:Electron.Event,
     statistic: string,
     transform: string,
     type: string,
-    plotData: any) => {
+    normalization: string,
+    data: any) =>
+{
 
     channelSelectOptions = selectOptions
     selectedPlotChannels = plotChannels
     selectedStatistic = statistic
     selectedTransform = transform
     selectedType = type
-    scatterPlotData = plotData as PlotData
+    selectedNormalization = normalization
+    plotData = data as PlotData
     render()
 })
