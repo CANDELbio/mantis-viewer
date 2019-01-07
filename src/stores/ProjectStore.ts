@@ -98,6 +98,7 @@ export class ProjectStore {
                         plotStore.plotType,
                         plotStore.plotStatistic,
                         plotStore.plotTransform,
+                        plotStore.plotNormalization,
                         populationStore.selectedPopulations
                     ))
                 }

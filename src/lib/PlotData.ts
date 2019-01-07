@@ -2,9 +2,10 @@ import * as Plotly from 'plotly.js'
 
 import { SegmentationData } from "./SegmentationData"
 import { SegmentationStatistics } from "./SegmentationStatistics"
-import { PlotStatistic, PlotTransform, PlotType } from "../interfaces/UIDefinitions"
+import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from "../interfaces/UIDefinitions"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { hexToRGB } from "./GraphicsHelper"
+import { calculateMean } from "../lib/StatsHelper"
 
 export const DefaultSelectionName = "All Segments"
 export const DefaultSelectionId = "DEFAULT_SELECTION_ID"
@@ -196,10 +197,47 @@ export class PlotData {
         return plotData
     }
 
+    static normalizeIntensitiesByMarker(intensities: number[][]){
+        let markerSums:number[] = new Array(intensities[0].length).fill(0);
+        intensities.map((population: number[]) => {
+            population.map((value: number, index: number) => {
+                markerSums[index] += value
+            })
+        })
+        let markerMeans = markerSums.map((sum:number)=> {
+            return sum/intensities.length
+        })
+        return intensities.map((population: number[]) => {
+            return population.map((value:number, index: number) =>{
+                return value/markerMeans[index]
+            })
+        })
+    }
+
+    static normalizeIntensitiesByPopulation(intensities: number[][]){
+        return intensities.map((population: number[]) => {
+            let populationMean = calculateMean(population)
+            return population.map((value: number) => {
+                return value/populationMean
+            })
+        })
+    }
+
+    static normalizeHeatmapIntensities(intensities: number[][], plotNormalization: PlotNormalization){
+        if(plotNormalization == 'marker'){
+            return this.normalizeIntensitiesByMarker(intensities)
+        } else if(plotNormalization == 'population'){
+            return this.normalizeIntensitiesByPopulation(intensities)
+        } else{
+            return intensities
+        }
+    }
+
     static calculateHeatmapData(segmentationData: SegmentationData,
         segmentationStatistics: SegmentationStatistics,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
+        plotNormalization: PlotNormalization,
         selectedPopulations: SelectedPopulation[]|null)
     {
         let channels = segmentationStatistics.channels
@@ -224,7 +262,7 @@ export class PlotData {
 
         // TO-DO: y should be selection names.
         heatmapData.push({
-                z: intensities,
+                z: this.normalizeHeatmapIntensities(intensities, plotNormalization),
                 x: channels,
                 y: selectionIds.map((selectionId:string) => { return this.getSelectionName(selectionId, selectedRegionMap) }),
                 type: 'heatmap'
@@ -239,6 +277,7 @@ export class PlotData {
         plotType: PlotType,
         plotStatistic: PlotStatistic,
         plotTransform: PlotTransform,
+        plotNormalization: PlotNormalization,
         selectedPopulations: SelectedPopulation[]|null)
     {
         this.channels = channels
@@ -250,7 +289,7 @@ export class PlotData {
             this.data = PlotData.calculatePlotData(channels, segmentationData, segmentationStatistics, plotType, plotStatistic, plotTransform, selectedPopulations)
             this.layout = {title: channels[0] + ' versus ' + channels[1], xaxis: {title: channels[0]}, yaxis: {title: channels[1]}}
         } else if (plotType == 'heatmap'){
-            this.data = PlotData.calculateHeatmapData(segmentationData, segmentationStatistics, plotStatistic, plotTransform, selectedPopulations)
+            this.data = PlotData.calculateHeatmapData(segmentationData, segmentationStatistics, plotStatistic, plotTransform, plotNormalization, selectedPopulations)
             this.layout = {title: 'Heatmap of Channel Intensity', xaxis: {tickangle: 45}}
         }
     }

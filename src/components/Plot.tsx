@@ -10,8 +10,6 @@ import { PlotData, DefaultSelectionName } from "../lib/PlotData"
 import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from "../interfaces/UIDefinitions"
 import { PlotStatisticOptions, PlotTransformOptions, PlotNormalizationOptions, PlotNormalization } from "../interfaces/UIDefinitions"
 
-
-
 export interface ScatterPlotProps {
     channelSelectOptions: {value: string, label:string}[]
     selectedPlotChannels: string[]
