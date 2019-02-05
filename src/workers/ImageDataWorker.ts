@@ -53,7 +53,7 @@ async function readFile(filepath: string, onError: (err:any) => void):Promise<Im
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {
-        let tiffData = readTiffData(filepath)
+        let tiffData = await readTiffData(filepath)
         let {data, width, height} = tiffData
 
         // Calculate the minimum and maximum channel intensity

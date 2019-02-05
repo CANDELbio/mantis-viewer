@@ -188,7 +188,7 @@ async function loadTiffData(data: Float32Array | Uint16Array | Uint8Array, width
 async function loadFile(filepath: string, onError: (err:any) => void):Promise<SegmentationDataWorkerResult> {
     try {
         //Decode tiff data
-        let tiffData = readTiffData(filepath)
+        let tiffData = await readTiffData(filepath)
         return await loadTiffData(tiffData.data, tiffData.width, tiffData.height)
     } catch (err) {
         onError({error: err.message})
