@@ -65,23 +65,44 @@ export class SegmentationStatistics {
             this.loadInWorker({channel: channel, tiffData: tiffData, segmentIndexMap: segmentationData.segmentIndexMap, statistic: 'median'}, onReady)
         }
     }
-
-    meanIntensity(channel: string, segmentIds: number[]){
+    
+    intensity(channel: string, segmentIds: number[], mean: boolean){
         let intensities = []
         for(let segmentId of segmentIds){
             let mapKey = channel + "_" + segmentId
-            intensities.push(this.meanMap[mapKey])
+            let curIntensity = mean ? this.meanMap[mapKey] : this.medianMap[mapKey]
+            intensities.push(curIntensity)
         }
-        return calculateMean(intensities)
+        return mean? calculateMean(intensities) : calculateMedian(intensities)
+    }
+
+    meanIntensity(channel: string, segmentIds: number[]){
+        return this.intensity(channel, segmentIds, true)
     }
 
     medianIntensity(channel: string, segmentIds: number[]){
-        let intensities = []
-        for(let segmentId of segmentIds){
-            let mapKey = channel + "_" + segmentId
-            intensities.push(this.meanMap[mapKey])
+        return this.intensity(channel, segmentIds, false)
+    }
+
+    splitMapKey(key: string){
+        let splat = key.split('_')
+        let segmentId = splat.pop()
+        let channel = splat.join('_')
+        return {channel: channel, segmentId: segmentId}
+    }
+
+    segmentsInIntensityRange(selectedChannel: string, min: number, max: number, mean: boolean){
+        let segments = []
+        for (let key in this.meanMap) {
+            let {channel, segmentId} = this.splitMapKey(key)
+            if(channel == selectedChannel && segmentId){
+                let curIntensity = mean ? this.meanMap[key] : this.medianMap[key]
+                if (min <= curIntensity && curIntensity <= max){
+                    segments.push(Number(segmentId))
+                }
+            }
         }
-        return calculateMedian(intensities)
+        return segments
     }
 
     constructor() {

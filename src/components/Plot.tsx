@@ -23,6 +23,7 @@ export interface ScatterPlotProps {
     selectedNormalization: string
     setSelectedNormalization: ((x: PlotNormalization) => void)
     setSelectedSegments: ((selectedSegments: number[]) => void)
+    setSelectedRange: ((min: number, max: number) => void)
     setHoveredSegments: ((selectedSegments: number[]) => void)
     plotData: PlotData | null
     windowWidth: number | null
@@ -51,8 +52,13 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     onNormalizationSelect = (x: SelectOption) => {
         if(x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
-    onPlotSelected = (data: {points:any, event:any}) => this.props.setSelectedSegments(this.parsePlotlyEventData(data))
-    onHover = (data: {points:any, event:any}) => this.props.setHoveredSegments(this.parsePlotlyEventData(data))
+    onPlotSelected = (data: {points:any, event:any}) => {
+        if(this.props.selectedType == 'scatter') this.props.setSelectedSegments(this.parseScatterEvent(data))
+        if(this.props.selectedType == 'histogram') this.parseHistogramEvent(data)
+    }
+    onHover = (data: {points:any, event:any}) => {
+        if(this.props.selectedType == 'scatter') this.props.setHoveredSegments(this.parseScatterEvent(data))
+    }
     onUnHover = () => this.props.setHoveredSegments([])
 
     public componentWillUnmount() {
@@ -63,9 +69,11 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     // Points are the selected points.
     // No custom fields, so we are getting the segment id from the title text for the point.
     // Title text with segment id generated in ScatterPlotData.
-    parsePlotlyEventData(data: {points:any, event:any}) {
+    parseScatterEvent(data: {points:any, event:any}) {
         let selectedSegments:number[] = []
         if(data != null) {
+            console.log("Selected from Plot")
+            console.log(data)
             if(data.points != null && data.points.length > 0){
                 for (let point of data.points){
                     let pointRegionName = point.data.name
@@ -84,6 +92,13 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
             }
         }
         return selectedSegments
+    }
+
+    parseHistogramEvent(data: {points:any, event:any}) {
+        if(data != null) {
+            console.log("Selected from Plot")
+            console.log(data)
+        }
     }
 
     cleanupPlotly() {

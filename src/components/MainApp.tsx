@@ -52,6 +52,18 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if(segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
     }
 
+    addPopulationFromRange = (min: number, max: number) => {
+        let plotStore = this.props.projectStore.activePlotStore
+        let populationStore = this.props.projectStore.activePopulationStore
+        let segmentationStatistics = this.props.projectStore.activeImageStore.segmentationStatistics
+        if(segmentationStatistics != null) {
+            let channel = plotStore.selectedPlotChannels[0]
+            let selectedStatistic = plotStore.plotStatistic
+            let segmentIds = segmentationStatistics.segmentsInIntensityRange(channel, min, max, selectedStatistic == 'mean')
+            if(segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
+        }
+    }
+
     getChannelMin = (s:ChannelName) => {
         let imageStore = this.props.projectStore.activeImageStore
         let channelMarker = imageStore.channelMarker[s]
@@ -175,6 +187,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         selectedNormalization = {plotStore.plotNormalization}
                         setSelectedNormalization = {plotStore.setPlotNormalization}
                         setSelectedSegments = {this.addSelectedPopulation}
+                        setSelectedRange = {this.addPopulationFromRange}
                         setHoveredSegments = {plotStore.setSegmentsHoveredOnPlot}
                         plotData = {plotStore.plotData}
                     />
