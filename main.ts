@@ -463,3 +463,7 @@ ipcMain.on('plotWindow-add-selected-population', (event:Electron.Event, segmentI
 ipcMain.on('plotWindow-set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
   if(mainWindow != null) mainWindow.webContents.send('set-plot-hovered-segments', segmentIds)
 })
+
+ipcMain.on('plotWindow-add-population-from-range', (event:Electron.Event, min: number, max:number) => {
+  if(mainWindow != null) mainWindow.webContents.send('add-plot-population-from-range', min, max)
+})

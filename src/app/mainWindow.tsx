@@ -107,6 +107,10 @@ ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: n
     projectStore.activePlotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
+ipcRenderer.on('add-plot-population-from-range', (event:Electron.Event, min: number, max:number) => {
+    projectStore.addPopulationFromRange(min, max)
+})
+
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore

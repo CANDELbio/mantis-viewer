@@ -52,11 +52,14 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     onNormalizationSelect = (x: SelectOption) => {
         if(x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
-    onPlotSelected = (data: {points:any, event:any}) => {
+    onPlotSelected = (data: {points:any, event:any, range:any, lassoPoints:any}) => {
         if(this.props.selectedType == 'scatter') this.props.setSelectedSegments(this.parseScatterEvent(data))
-        if(this.props.selectedType == 'histogram') this.parseHistogramEvent(data)
+        if(this.props.selectedType == 'histogram') {
+            let {min, max} = this.parseHistogramEvent(data)
+            if(min != null && max != null) this.props.setSelectedRange(min, max)
+        }
     }
-    onHover = (data: {points:any, event:any}) => {
+    onHover = (data: {points:any, event:any, range:any}) => {
         if(this.props.selectedType == 'scatter') this.props.setHoveredSegments(this.parseScatterEvent(data))
     }
     onUnHover = () => this.props.setHoveredSegments([])
@@ -72,8 +75,6 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     parseScatterEvent(data: {points:any, event:any}) {
         let selectedSegments:number[] = []
         if(data != null) {
-            console.log("Selected from Plot")
-            console.log(data)
             if(data.points != null && data.points.length > 0){
                 for (let point of data.points){
                     let pointRegionName = point.data.name
@@ -94,11 +95,20 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
         return selectedSegments
     }
 
-    parseHistogramEvent(data: {points:any, event:any}) {
+    parseHistogramEvent(data: {points:any, range:any, lassoPoints: any}) {
+        let minMax:{min:null|number, max:null|number} = {min: null, max: null}
         if(data != null) {
             console.log("Selected from Plot")
             console.log(data)
+            if(data.range != null){
+                minMax.min = Math.min(...data.range.x)
+                minMax.max = Math.max(...data.range.x)
+            } else if(data.lassoPoints != null){
+                minMax.min = Math.min(...data.lassoPoints.x)
+                minMax.max = Math.max(...data.lassoPoints.x)
+            }
         }
+        return minMax
     }
 
     cleanupPlotly() {

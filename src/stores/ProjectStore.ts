@@ -590,6 +590,18 @@ export class ProjectStore {
         }
     }
 
+    @action addPopulationFromRange = (min: number, max: number) => {
+        let plotStore = this.activePlotStore
+        let populationStore = this.activePopulationStore
+        let segmentationStatistics = this.activeImageStore.segmentationStatistics
+        if(segmentationStatistics != null) {
+            let channel = plotStore.selectedPlotChannels[0]
+            let selectedStatistic = plotStore.plotStatistic
+            let segmentIds = segmentationStatistics.segmentsInIntensityRange(channel, min, max, selectedStatistic == 'mean')
+            if(segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
+        }
+    }
+
     @action clearErrorMessage = () => {
         this.errorMessage = null
     }

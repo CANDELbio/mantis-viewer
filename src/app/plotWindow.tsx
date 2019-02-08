@@ -38,6 +38,10 @@ let addSelectedPopulation = (segmentIds: number[]) => {
     if(segmentIds.length != 0) ipcRenderer.send('plotWindow-add-selected-population', segmentIds)
 }
 
+let addPopulationFromRange = (min: number, max: number) => {
+    ipcRenderer.send('plotWindow-add-population-from-range', min, max)
+}
+
 let setHoveredSegments = (segmentIds: number[]) => {
     if(segmentIds.length != 0) ipcRenderer.send('plotWindow-set-hovered-segments', segmentIds)
 }
@@ -62,6 +66,7 @@ function render() {
                     setSelectedNormalization = {setPlotNormalization}
                     setSelectedSegments = {addSelectedPopulation}
                     setHoveredSegments = {setHoveredSegments}
+                    setSelectedRange = {addPopulationFromRange}
                     plotData = {plotData}
                 />
             </div>,
