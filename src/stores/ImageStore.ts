@@ -3,6 +3,7 @@ import { observable,
     computed,
     autorun} from "mobx"
 import * as _ from "underscore"
+import * as path from "path"
 
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
@@ -32,6 +33,8 @@ export class ImageStore {
 
     @observable channelDomain: Record<ChannelName, [number, number]> 
 
+    @observable channelSelectOptions: { value: string, label: string }[]
+
     @observable segmentationFillAlpha: number
     @observable segmentationOutlineAlpha: number
     @observable segmentationCentroidsVisible: boolean
@@ -39,6 +42,8 @@ export class ImageStore {
     @observable segmentationOutlinesVisible: boolean
 
     @observable channelMarker: Record<ChannelName, string | null>
+
+    @observable errorMessage: string | null
 
     @observable currentSelection: {
         x: [number, number]
@@ -50,16 +55,12 @@ export class ImageStore {
             let statistics = new SegmentationStatistics()
             statistics.generateStatistics(this.imageData, this.segmentationData, this.setSegmentationStatistics)
         } else {
-
+            this.setSegmentationStatistics(null)
         }
     })
 
-    channelSelectOptions = computed(() => {
-        if(this.imageData) {
-            return this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
-        } else {
-            return []
-        }
+    setChannelSelectOptions = autorun(() => {
+        if(this.imageData){ this.updateChannelSelectOption() }
     })
 
     @action initialize = () => {
@@ -68,6 +69,8 @@ export class ImageStore {
             gChannel: [0, 100],
             bChannel: [0, 100]
         }
+
+        this.channelSelectOptions = []
 
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
@@ -179,16 +182,32 @@ export class ImageStore {
         this.segmentationFillAlpha = 0
     }
 
-    @action setSegmentationStatistics = (data: SegmentationStatistics) => {
-        this.segmentationStatistics = data
+    @action setSegmentationStatistics = (statistics: SegmentationStatistics|null) => {
+        this.segmentationStatistics = statistics
     }
 
     @action clearSegmentationStatistics = () => {
         this.segmentationStatistics = null
     }
 
+    @action removeMarker = (markerName:string) => {
+        if(this.imageData != null && markerName in this.imageData.data){
+        this.setErrorMessage("Removing " + markerName + " from the list of loaded images.")
+        // Unset the marker if it is being used
+        for(let s of ['rChannel', 'bChannel', 'gChannel']){
+            let curChannel = s as ChannelName
+            if(this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
+        }
+        // Delete it from image data
+        this.imageData.removeChannel(markerName)
+        this.updateChannelSelectOption()
+        }
+    }
+
     @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
+        let basename = path.parse(fName).name
+        this.removeMarker(basename)
         let segmentationData = new SegmentationData()
         segmentationData.loadFile(fName, this.setSegmentationData)
     }
@@ -203,6 +222,25 @@ export class ImageStore {
 
     @action setCanvasImageData = (data:ImageData) => {
         this.canvasImageData = data
+    }
+
+    @action setErrorMessage = (message:string) => {
+        this.errorMessage = message
+    }
+
+    @action clearErrorMessage = () => {
+        this.errorMessage = null
+    }
+
+    // Somewhat hacky feeling workaround
+    // channelSelectOptions used to be computed, but was not refreshing when a marker was being removed (for segmentation data)
+    // Moved it here so that it can be called manually when we remove the segmentation data tiff from image data.
+    @action updateChannelSelectOption = () => {
+        if(this.imageData) {
+            this.channelSelectOptions = this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
+        } else {
+            this.channelSelectOptions = []
+        }
     }
 
     @action doSegmentation = () => {

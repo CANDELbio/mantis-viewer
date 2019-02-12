@@ -141,7 +141,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         sliderMax = {this.getChannelMax(s)}
                         sliderValue = {imageStore.channelDomain[s]}
                         onSliderChange = {projectStore.setChannelDomainCallback(s)}
-                        selectOptions = {imageStore.channelSelectOptions.get()}
+                        selectOptions = {imageStore.channelSelectOptions}
                         selectValue = {imageStore.channelMarker[s]}
                         onSelectChange = {projectStore.setChannelMarkerCallback(s)}
                         windowWidth = {projectStore.windowWidth}
@@ -163,7 +163,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 if(projectStore.plotInMainWindow) {
                     scatterPlot = <Plot
                         windowWidth = {projectStore.windowWidth}
-                        channelSelectOptions = {imageStore.channelSelectOptions.get()}
+                        channelSelectOptions = {imageStore.channelSelectOptions}
                         selectedPlotChannels = {plotStore.selectedPlotChannels}
                         setSelectedPlotChannels = {projectStore.setSelectedPlotChannels}
                         selectedStatistic= {plotStore.plotStatistic}

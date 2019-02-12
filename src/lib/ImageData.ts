@@ -69,6 +69,15 @@ export class ImageData {
         this.fileLoadComplete()
     }
 
+    removeChannel(chName: string){
+        if(chName in this.data){
+            this.numChannels -= 1
+            delete this.data[chName]
+            delete this.sprites[chName]
+            delete this.minmax[chName]
+        }
+    }
+
     // Loads a folder in the background using ImageDataWorkers
     loadFolder(dirName:string, onReady: (imageData: ImageData) => void) {
         this.onReady = onReady

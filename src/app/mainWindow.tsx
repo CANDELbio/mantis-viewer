@@ -116,7 +116,7 @@ Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore
     let plotStore = projectStore.activePlotStore
     ipcRenderer.send('mainWindow-set-plot-data',
-        imageStore.channelSelectOptions.get(),
+        imageStore.channelSelectOptions,
         plotStore.selectedPlotChannels,
         plotStore.plotStatistic,
         plotStore.plotTransform,
@@ -159,6 +159,14 @@ Mobx.autorun(() => {
         let msg = "Error opening segmentation data."
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         projectStore.activeImageStore.clearSegmentationData()
+    }
+})
+
+Mobx.autorun(() => {
+    if(projectStore.activeImageStore && projectStore.activeImageStore.errorMessage != null){
+        let msg = projectStore.activeImageStore.errorMessage
+        ipcRenderer.send('mainWindow-show-error-dialog', msg)
+        projectStore.activeImageStore.clearErrorMessage()
     }
 })
 
