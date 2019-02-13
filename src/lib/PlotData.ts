@@ -10,6 +10,7 @@ import { calculateMean } from "../lib/StatsHelper"
 export const DefaultSelectionName = "All Segments"
 export const DefaultSelectionId = "DEFAULT_SELECTION_ID"
 export const DefaultSelectionColor = 0x4286f4 // blue, color for "All Segments"
+export const NumHistogramBins = 25
 
 export class PlotData {
     channels: string[]
@@ -171,6 +172,9 @@ export class PlotData {
 
         let plotData = Array<Plotly.Data>()
 
+        let ch = channels[0]
+        let minMax = plotStatistic == 'mean' ? segmentationStatistics.meanMinMaxMap[ch] : segmentationStatistics.medianMinMaxMap[ch]
+
         // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
         let sortedSelectionIds = this.buildSelectionIdArray(selectedRegions)
         // Builds a map of selected region ids to their regions.
@@ -182,7 +186,7 @@ export class PlotData {
             let selectionData = rawPlotData[selectionId]
             let numSelectionValues = selectionData.values.length
 
-            plotData.push({
+            let trace:Partial<Plotly.Data> = {
                 x: selectionData.values[0],
                 y: numSelectionValues > 1 ? selectionData.values[1] : undefined,
                 z: numSelectionValues > 2 ? selectionData.values[2] : undefined,
@@ -191,7 +195,18 @@ export class PlotData {
                 text: plotType == 'scatter' ? selectionData.text : undefined,
                 name: this.getSelectionName(selectionId, selectedRegionMap),
                 marker: { size: 8, color: this.getSelectionColor(selectionId, selectedRegionMap)}
-            })
+            }
+
+            if(plotType == 'histogram'){
+                trace.autobinx = false
+                trace.xbins = {
+                    start: minMax.min,
+                    end: minMax.max,
+                    size: (minMax.max - minMax.min)/NumHistogramBins
+                }
+            }
+
+            plotData.push(trace)
         }
 
         return plotData

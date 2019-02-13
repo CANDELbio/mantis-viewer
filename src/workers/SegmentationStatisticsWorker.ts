@@ -27,20 +27,29 @@ function generateStatisticMap(channel: string,
     segmentIndexMap: Record<number, number[]>,
     statistic: PlotStatistic)
 {
+    let min:number, max:number
     let statisticMap = {}
     for (let segmentId in segmentIndexMap){
         let mapKey = channel + '_' + segmentId
+        let curIntensity:number
         if(statistic == 'mean'){
-            statisticMap[mapKey] = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
+            curIntensity = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
         } else if (statistic == 'median') {
-            statisticMap[mapKey] = medianPixelIntensity(tiffData, segmentIndexMap[segmentId])
+            curIntensity = medianPixelIntensity(tiffData, segmentIndexMap[segmentId])
         }
+        statisticMap[mapKey] = curIntensity
+        // Calculate the min and max for this channel
+        if(min == undefined) min = curIntensity
+        if(max == undefined) max = curIntensity
+        if(curIntensity < min) min = curIntensity
+        if(curIntensity > max) max = curIntensity
     }
-    return statisticMap
+    return {map: statisticMap, minMax: {min: min, max:max}}
 }
 
 ctx.addEventListener('message', (message) => {
     let data = message.data
-    ctx.postMessage({statistic: data.statistic, map: generateStatisticMap(data.channel, data.tiffData, data.segmentIndexMap, data.statistic)})
+    let {map, minMax} = generateStatisticMap(data.channel, data.tiffData, data.segmentIndexMap, data.statistic)
+    ctx.postMessage({statistic: data.statistic, map: map, minmax: minMax, chName: data.channel})
 }, false)
 

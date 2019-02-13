@@ -1,6 +1,5 @@
 import { observable, 
     action,
-    computed,
     autorun} from "mobx"
 import * as _ from "underscore"
 import * as path from "path"

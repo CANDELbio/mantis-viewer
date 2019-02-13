@@ -72,8 +72,10 @@ export interface SegmentationDataWorkerResult {
 }
 
 export interface SegmentationStatisticWorkerResult {
+    chName: string
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
     statistic: PlotStatistic
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
     map: Record<string,number>
+    minmax:MinMax
 }
