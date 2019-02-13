@@ -554,6 +554,7 @@ export class ProjectStore {
         let imageData = imageStore.imageData
         let segmentationData = imageStore.segmentationData
         let segmentationStatistics = imageStore.segmentationStatistics
+        let populationStore = this.activePopulationStore
         if(imageData != null && segmentationData != null && segmentationStatistics != null){
             let channels = imageData.channelNames
             let data = [] as string[][]
@@ -563,6 +564,7 @@ export class ProjectStore {
             for(let channel of channels){
                 columns.push(channel)
             }
+            columns.push('Populations')
 
             // Iterate through the segments and calculate the intensity for each channel
             let indexMap = segmentationData.segmentIndexMap
@@ -576,6 +578,14 @@ export class ProjectStore {
                         segmentData.push(segmentationStatistics.medianIntensity(channel, [segmentId]).toString())
                     }
                 }
+
+                // Figure out which populations this segment belongs to
+                let populations = []
+                for(let population of populationStore.selectedPopulations){
+                    if(population.selectedSegments.indexOf(segmentId) > -1) populations.push(population.name)
+                }
+                segmentData.push(populations.join(','))
+
                 data.push(segmentData)
             }
 

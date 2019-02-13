@@ -192,15 +192,15 @@ export class ImageStore {
 
     @action removeMarker = (markerName:string) => {
         if(this.imageData != null && markerName in this.imageData.data){
-        this.setErrorMessage("Removing " + markerName + " from the list of loaded images.")
-        // Unset the marker if it is being used
-        for(let s of ['rChannel', 'bChannel', 'gChannel']){
-            let curChannel = s as ChannelName
-            if(this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
-        }
-        // Delete it from image data
-        this.imageData.removeChannel(markerName)
-        this.updateChannelSelectOption()
+            this.setErrorMessage("Images cannot be loaded for visualization and segmentation. Removing " + markerName + " from the list of loaded images.")
+            // Unset the marker if it is being used
+            for(let s of ['rChannel', 'bChannel', 'gChannel']){
+                let curChannel = s as ChannelName
+                if(this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
+            }
+            // Delete it from image data
+            this.imageData.removeChannel(markerName)
+            this.updateChannelSelectOption()
         }
     }
 
