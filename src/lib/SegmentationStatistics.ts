@@ -26,8 +26,6 @@ export class SegmentationStatistics {
     private statisticsLoadComplete() {
         // If the number of channels loaded is equal to the total number of channels we are done!
         if(this.numWorkersComplete == this.numWorkers){
-            console.log(this.meanMinMaxMap)
-            console.log(this.medianMinMaxMap)
             this.onReady(this)
         }
     } 
@@ -104,7 +102,7 @@ export class SegmentationStatistics {
         for (let key in intensityMap) {
             let {channel, segmentId} = this.splitMapKey(key)
             if(channel == selectedChannel && segmentId){
-                let curIntensity = intensityMap.key
+                let curIntensity = intensityMap[key]
                 if (min <= curIntensity && curIntensity <= max){
                     segments.push(Number(segmentId))
                 }

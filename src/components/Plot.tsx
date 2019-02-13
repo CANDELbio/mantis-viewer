@@ -98,8 +98,6 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
     parseHistogramEvent(data: {points:any, range:any, lassoPoints: any}) {
         let minMax:{min:null|number, max:null|number} = {min: null, max: null}
         if(data != null) {
-            console.log("Selected from Plot")
-            console.log(data)
             if(data.range != null){
                 minMax.min = Math.min(...data.range.x)
                 minMax.max = Math.max(...data.range.x)

@@ -42,7 +42,7 @@ export class ImageStore {
 
     @observable channelMarker: Record<ChannelName, string | null>
 
-    @observable errorMessage: string | null
+    @observable message: string | null
 
     @observable currentSelection: {
         x: [number, number]
@@ -191,7 +191,7 @@ export class ImageStore {
 
     @action removeMarker = (markerName:string) => {
         if(this.imageData != null && markerName in this.imageData.data){
-            this.setErrorMessage("Images cannot be loaded for visualization and segmentation. Removing " + markerName + " from the list of loaded images.")
+            this.setMessage(markerName + " is being removed from the list of available markers since it is being loaded as segmentation data.")
             // Unset the marker if it is being used
             for(let s of ['rChannel', 'bChannel', 'gChannel']){
                 let curChannel = s as ChannelName
@@ -223,12 +223,12 @@ export class ImageStore {
         this.canvasImageData = data
     }
 
-    @action setErrorMessage = (message:string) => {
-        this.errorMessage = message
+    @action setMessage = (message:string) => {
+        this.message = message
     }
 
-    @action clearErrorMessage = () => {
-        this.errorMessage = null
+    @action clearMessage = () => {
+        this.message = null
     }
 
     // Somewhat hacky feeling workaround

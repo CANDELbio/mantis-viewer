@@ -163,10 +163,10 @@ Mobx.autorun(() => {
 })
 
 Mobx.autorun(() => {
-    if(projectStore.activeImageStore && projectStore.activeImageStore.errorMessage != null){
-        let msg = projectStore.activeImageStore.errorMessage
-        ipcRenderer.send('mainWindow-show-error-dialog', msg)
-        projectStore.activeImageStore.clearErrorMessage()
+    if(projectStore.activeImageStore && projectStore.activeImageStore.message != null){
+        let msg = projectStore.activeImageStore.message
+        ipcRenderer.send('mainWindow-show-info-dialog', msg)
+        projectStore.activeImageStore.clearMessage()
     }
 })
 
