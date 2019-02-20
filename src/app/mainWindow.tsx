@@ -50,6 +50,14 @@ ipcRenderer.on("export-image", (event:Electron.Event, filename:string) => {
     projectStore.activeImageStore.setImageExportFilename(filename)
 })
 
+ipcRenderer.on("export-mean-intensities", (event:Electron.Event, filename:string) => {
+    projectStore.exportChannelIntensisties(filename, 'mean')
+})
+
+ipcRenderer.on("export-median-intensities", (event:Electron.Event, filename:string) => {
+    projectStore.exportChannelIntensisties(filename, 'median')
+})
+
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on("window-size", (event:Electron.Event, width:number, height: number) => {
     projectStore.setWindowDimensions(width, height)
@@ -65,7 +73,6 @@ ipcRenderer.on("delete-active-image-set", (event:Electron.Event) => {
     projectStore.deleteActiveImageSet()
 })
 
-
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event:Electron.Event, inMain: boolean) => {
     projectStore.setPlotInMainWindow(inMain)
@@ -77,11 +84,19 @@ ipcRenderer.on('set-plot-channels', (event:Electron.Event, channels: string[]) =
 })
 
 ipcRenderer.on('set-plot-statistic', (event:Electron.Event, statistic: any) => {
-    projectStore.activePlotStore.setScatterPlotStatistic(statistic)
+    projectStore.activePlotStore.setPlotStatistic(statistic)
 })
 
 ipcRenderer.on('set-plot-transform', (event:Electron.Event, transform: any) => {
-    projectStore.activePlotStore.setScatterPlotTransform(transform)
+    projectStore.activePlotStore.setPlotTransform(transform)
+})
+
+ipcRenderer.on('set-plot-type', (event:Electron.Event, type: any) => {
+    projectStore.activePlotStore.setPlotType(type)
+})
+
+ipcRenderer.on('set-plot-normalization', (event:Electron.Event, normalization: any) => {
+    projectStore.activePlotStore.setPlotNormalization(normalization)
 })
 
 ipcRenderer.on('add-plot-selected-population', (event:Electron.Event, segmentIds: number[]) => {
@@ -92,16 +107,22 @@ ipcRenderer.on('set-plot-hovered-segments', (event:Electron.Event, segmentIds: n
     projectStore.activePlotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
+ipcRenderer.on('add-plot-population-from-range', (event:Electron.Event, min: number, max:number) => {
+    projectStore.addPopulationFromRange(min, max)
+})
+
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore
     let plotStore = projectStore.activePlotStore
     ipcRenderer.send('mainWindow-set-plot-data',
-        imageStore.channelSelectOptions.get(),
+        imageStore.channelSelectOptions,
         plotStore.selectedPlotChannels,
-        plotStore.scatterPlotStatistic,
-        plotStore.scatterPlotTransform,
-        plotStore.scatterPlotData
+        plotStore.plotStatistic,
+        plotStore.plotTransform,
+        plotStore.plotType,
+        plotStore.plotNormalization,
+        plotStore.plotData
     )
 })
 
@@ -130,6 +151,22 @@ Mobx.autorun(() => {
         let msg = "Error(s) opening tiffs for the following channels: " + projectStore.activeImageStore.imageData.errors.join(', ')
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         projectStore.activeImageStore.imageData.clearErrors()
+    }
+})
+
+Mobx.autorun(() => {
+    if(projectStore.activeImageStore.segmentationData && projectStore.activeImageStore.segmentationData.errorLoading){
+        let msg = "Error opening segmentation data."
+        ipcRenderer.send('mainWindow-show-error-dialog', msg)
+        projectStore.activeImageStore.clearSegmentationData()
+    }
+})
+
+Mobx.autorun(() => {
+    if(projectStore.activeImageStore && projectStore.activeImageStore.message != null){
+        let msg = projectStore.activeImageStore.message
+        ipcRenderer.send('mainWindow-show-info-dialog', msg)
+        projectStore.activeImageStore.clearMessage()
     }
 })
 

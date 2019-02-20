@@ -12,7 +12,7 @@ import { ChannelName, WindowHeightBufferSize } from "../interfaces/UIDefinitions
 import { ImageViewer } from "./ImageViewer"
 import { ImageSetSelector } from "./ImageSetSelector"
 import { SegmentationControls } from "./SegmentationControls"
-import { ScatterPlot } from "./ScatterPlot"
+import { Plot } from "./Plot"
 import { SelectedPopulations } from "./SelectedPopulations"
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
@@ -141,7 +141,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         sliderMax = {this.getChannelMax(s)}
                         sliderValue = {imageStore.channelDomain[s]}
                         onSliderChange = {projectStore.setChannelDomainCallback(s)}
-                        selectOptions = {imageStore.channelSelectOptions.get()}
+                        selectOptions = {imageStore.channelSelectOptions}
                         selectValue = {imageStore.channelMarker[s]}
                         onSelectChange = {projectStore.setChannelMarkerCallback(s)}
                         windowWidth = {projectStore.windowWidth}
@@ -161,18 +161,23 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
 
                 if(projectStore.plotInMainWindow) {
-                    scatterPlot = <ScatterPlot
+                    scatterPlot = <Plot
                         windowWidth = {projectStore.windowWidth}
-                        channelSelectOptions = {imageStore.channelSelectOptions.get()}
+                        channelSelectOptions = {imageStore.channelSelectOptions}
                         selectedPlotChannels = {plotStore.selectedPlotChannels}
                         setSelectedPlotChannels = {projectStore.setSelectedPlotChannels}
-                        selectedStatistic= {plotStore.scatterPlotStatistic}
-                        setSelectedStatistic = {plotStore.setScatterPlotStatistic}
-                        selectedTransform = {plotStore.scatterPlotTransform}
-                        setSelectedTransform = {plotStore.setScatterPlotTransform}
+                        selectedStatistic= {plotStore.plotStatistic}
+                        setSelectedStatistic = {plotStore.setPlotStatistic}
+                        selectedTransform = {plotStore.plotTransform}
+                        setSelectedTransform = {plotStore.setPlotTransform}
+                        selectedType = {plotStore.plotType}
+                        setSelectedType = {plotStore.setPlotType}
+                        selectedNormalization = {plotStore.plotNormalization}
+                        setSelectedNormalization = {plotStore.setPlotNormalization}
                         setSelectedSegments = {this.addSelectedPopulation}
+                        setSelectedRange = {projectStore.addPopulationFromRange}
                         setHoveredSegments = {plotStore.setSegmentsHoveredOnPlot}
-                        scatterPlotData = {plotStore.scatterPlotData}
+                        plotData = {plotStore.plotData}
                     />
                 }
             }

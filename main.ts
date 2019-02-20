@@ -150,6 +150,31 @@ function generateMenuTemplate() {
           ]
         },
         {
+          label: "Summary Statistics",
+          submenu: [
+            {
+              label: "Mean intensities for active image set",
+              enabled: imageLoaded && segmentationLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'csv', extensions: ['csv'] }]}, (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-mean-intensities", filename)
+                })
+              }
+            },
+            {
+              label: "Median intensities for active image set",
+              enabled: imageLoaded && segmentationLoaded,
+              click: () => {
+                dialog.showSaveDialog({filters: [{ name: 'csv', extensions: ['csv'] }]}, (filename:string) => {
+                  if(mainWindow != null && filename != null)
+                    mainWindow.webContents.send("export-median-intensities", filename)
+                })
+              }
+            }
+          ]
+        },
+        {
           label: "Image",
           submenu: [
             {
@@ -383,6 +408,9 @@ ipcMain.on('set-active-image-directory', (event:Electron.Event, directory:string
   setMenu()
 })
 
+ipcMain.on('mainWindow-show-info-dialog', (event:Electron.Event, message:string) => {
+  if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "info", message: message})
+})
 // Show an error dialog with the message passed in.
 ipcMain.on('mainWindow-show-error-dialog', (event:Electron.Event, message:string) => {
   if(mainWindow != null) dialog.showMessageBox(mainWindow, {type: "error", message: message})
@@ -403,9 +431,11 @@ ipcMain.on('mainWindow-set-plot-data', (event:Electron.Event,
   plotChannels: string[],
   statistic: string,
   transform: string,
-  plotData: any) => {
-
-  if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, plotData)
+  type: string,
+  normalization: string,
+  plotData: any) =>
+{
+  if(plotWindow != null) plotWindow.webContents.send("set-plot-data", selectOptions, plotChannels, statistic, transform, type, normalization, plotData)
 })
 
 // Functions to relay data from the plotWindow to the mainWindow
@@ -421,10 +451,22 @@ ipcMain.on('plotWindow-set-transform', (event:Electron.Event, transform: any) =>
   if(mainWindow != null) mainWindow.webContents.send('set-plot-transform', transform)
 })
 
+ipcMain.on('plotWindow-set-type', (event:Electron.Event, type: any) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-type', type)
+})
+
+ipcMain.on('plotWindow-set-normalization', (event:Electron.Event, normalization: any) => {
+  if(mainWindow != null) mainWindow.webContents.send('set-plot-normalization', normalization)
+})
+
 ipcMain.on('plotWindow-add-selected-population', (event:Electron.Event, segmentIds: number[]) => {
   if(mainWindow != null) mainWindow.webContents.send('add-plot-selected-population', segmentIds)
 })
 
 ipcMain.on('plotWindow-set-hovered-segments', (event:Electron.Event, segmentIds: number[]) => {
   if(mainWindow != null) mainWindow.webContents.send('set-plot-hovered-segments', segmentIds)
+})
+
+ipcMain.on('plotWindow-add-population-from-range', (event:Electron.Event, min: number, max:number) => {
+  if(mainWindow != null) mainWindow.webContents.send('add-plot-population-from-range', min, max)
 })

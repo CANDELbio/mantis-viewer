@@ -1,11 +1,15 @@
 import { observable, 
     action } from "mobx"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { PlotData } from "../lib/PlotData"
 
 import { PlotStatistic,
     PlotStatisticOptions,
     PlotTransform,
-    PlotTransformOptions } from "../interfaces/UIDefinitions"
+    PlotTransformOptions,
+    PlotType,
+    PlotTypeOptions,
+    PlotNormalization,
+    PlotNormalizationOptions} from "../interfaces/UIDefinitions"
 
 
 export class PlotStore {
@@ -14,28 +18,32 @@ export class PlotStore {
         this.initialize()
     }
 
-    @observable.ref scatterPlotData: ScatterPlotData | null
+    @observable.ref plotData: PlotData | null
     // Array of segment IDs that have been hovered on the graph.
     @observable segmentsHoveredOnPlot: number[]
 
-    @observable scatterPlotStatistic: PlotStatistic
-    @observable scatterPlotTransform: PlotTransform
+    @observable plotStatistic: PlotStatistic
+    @observable plotTransform: PlotTransform
+    @observable plotType: PlotType
+    @observable plotNormalization: PlotNormalization
 
     @observable.ref selectedPlotChannels: string[]
 
     @action initialize = () => {
-        this.scatterPlotStatistic = PlotStatisticOptions[0].value as PlotStatistic
-        this.scatterPlotTransform = PlotTransformOptions[0].value as PlotTransform
+        this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
+        this.plotTransform = PlotTransformOptions[0].value as PlotTransform
+        this.plotType = PlotTypeOptions[0].value as PlotType
+        this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.selectedPlotChannels = []
         this.segmentsHoveredOnPlot = []
     }
 
-    @action setScatterPlotData = (data: ScatterPlotData) => {
-        this.scatterPlotData = data
+    @action setPlotData = (data: PlotData) => {
+        this.plotData = data
     }
 
-    @action clearScatterPlotData = () => {
-        this.scatterPlotData = null
+    @action clearPlotData = () => {
+        this.plotData = null
     }
 
     @action setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {
@@ -50,13 +58,21 @@ export class PlotStore {
         this.selectedPlotChannels = []
     }
 
-    @action setScatterPlotStatistic = (x: PlotStatistic) => {
-        this.scatterPlotStatistic = x
-
+    @action setPlotStatistic = (x: PlotStatistic) => {
+        this.plotStatistic = x
     }
 
-    @action setScatterPlotTransform = (x: PlotTransform) => {
-        this.scatterPlotTransform = x
+    @action setPlotTransform = (x: PlotTransform) => {
+        this.plotTransform = x
+    }
+
+    @action setPlotNormalization = (x: PlotNormalization) => {
+        this.plotNormalization = x
+    }
+
+    @action setPlotType = (x: PlotType) => {
+        this.plotType = x
+        this.clearSelectedPlotChannels()
     }   
 
 }

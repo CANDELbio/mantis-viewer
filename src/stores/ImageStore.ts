@@ -1,12 +1,14 @@
 import { observable, 
     action,
-    computed } from "mobx"
+    autorun} from "mobx"
 import * as _ from "underscore"
+import * as path from "path"
 
 import { ImageData } from "../lib/ImageData"
 import { SegmentationData } from "../lib/SegmentationData"
+import { SegmentationStatistics } from "../lib/SegmentationStatistics"
 import { ChannelName,
-    D3BrushExtent, 
+    D3BrushExtent,
     LabelLayer } from "../interfaces/UIDefinitions"
 
 export class ImageStore {
@@ -23,11 +25,14 @@ export class ImageStore {
     @observable imageExportFilename: string | null
 
     @observable.ref segmentationData: SegmentationData | null
+    @observable.ref segmentationStatistics: SegmentationStatistics | null
 
     @observable selectedDirectory: string | null
     @observable selectedSegmentationFile: string | null
 
     @observable channelDomain: Record<ChannelName, [number, number]> 
+
+    @observable channelSelectOptions: { value: string, label: string }[]
 
     @observable segmentationFillAlpha: number
     @observable segmentationOutlineAlpha: number
@@ -37,17 +42,24 @@ export class ImageStore {
 
     @observable channelMarker: Record<ChannelName, string | null>
 
+    @observable message: string | null
+
     @observable currentSelection: {
         x: [number, number]
         y: [number, number]
     } | null
 
-    channelSelectOptions = computed(() => {
-        if(this.imageData) {
-            return this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
+    calculateSegmentationStatistics = autorun(() => {
+        if(this.imageData && this.segmentationData){
+            let statistics = new SegmentationStatistics()
+            statistics.generateStatistics(this.imageData, this.segmentationData, this.setSegmentationStatistics)
         } else {
-            return []
+            this.setSegmentationStatistics(null)
         }
+    })
+
+    setChannelSelectOptions = autorun(() => {
+        if(this.imageData){ this.updateChannelSelectOption() }
     })
 
     @action initialize = () => {
@@ -56,6 +68,8 @@ export class ImageStore {
             gChannel: [0, 100],
             bChannel: [0, 100]
         }
+
+        this.channelSelectOptions = []
 
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
@@ -105,12 +119,6 @@ export class ImageStore {
 
     @action setCentroidVisibility = (visible: boolean) => {
         this.segmentationCentroidsVisible = visible
-    }
-
-    @action clearSegmentationData = () => {
-        this.selectedSegmentationFile = null
-        this.segmentationData = null
-        this.segmentationFillAlpha = 0
     }
 
     getChannelDomainPercentage = (name: ChannelName) => {
@@ -167,9 +175,40 @@ export class ImageStore {
         this.segmentationData = data
     }
 
+    @action clearSegmentationData = () => {
+        this.selectedSegmentationFile = null
+        this.segmentationData = null
+        this.segmentationFillAlpha = 0
+    }
+
+    @action setSegmentationStatistics = (statistics: SegmentationStatistics|null) => {
+        this.segmentationStatistics = statistics
+    }
+
+    @action clearSegmentationStatistics = () => {
+        this.segmentationStatistics = null
+    }
+
+    @action removeMarker = (markerName:string) => {
+        if(this.imageData != null && markerName in this.imageData.data){
+            this.setMessage(markerName + " is being removed from the list of available markers since it is being loaded as segmentation data.")
+            // Unset the marker if it is being used
+            for(let s of ['rChannel', 'bChannel', 'gChannel']){
+                let curChannel = s as ChannelName
+                if(this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
+            }
+            // Delete it from image data
+            this.imageData.removeChannel(markerName)
+            this.updateChannelSelectOption()
+        }
+    }
+
     @action setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
-        this.setSegmentationData(SegmentationData.newFromFile(this.selectedSegmentationFile))
+        let basename = path.parse(fName).name
+        this.removeMarker(basename)
+        let segmentationData = new SegmentationData()
+        segmentationData.loadFile(fName, this.setSegmentationData)
     }
 
     @action setImageExportFilename = (fName: string) => {
@@ -182,6 +221,25 @@ export class ImageStore {
 
     @action setCanvasImageData = (data:ImageData) => {
         this.canvasImageData = data
+    }
+
+    @action setMessage = (message:string) => {
+        this.message = message
+    }
+
+    @action clearMessage = () => {
+        this.message = null
+    }
+
+    // Somewhat hacky feeling workaround
+    // channelSelectOptions used to be computed, but was not refreshing when a marker was being removed (for segmentation data)
+    // Moved it here so that it can be called manually when we remove the segmentation data tiff from image data.
+    @action updateChannelSelectOption = () => {
+        if(this.imageData) {
+            this.channelSelectOptions = this.imageData.channelNames.map((s) => { return({value: s, label: s}) })
+        } else {
+            this.channelSelectOptions = []
+        }
     }
 
     @action doSegmentation = () => {

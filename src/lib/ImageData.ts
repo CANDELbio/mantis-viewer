@@ -1,8 +1,8 @@
 import * as _ from "underscore"
-import * as PIXI from "pixi.js"
 import * as fs from "fs"
 import * as path from "path"
 import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from "../interfaces/ImageInterfaces"
+import { imageBitmapToSprite } from "./GraphicsHelper"
 
 import ImageWorker = require("worker-loader?name=dist/[name].js!../workers/ImageDataWorker")
 
@@ -43,56 +43,6 @@ export class ImageData {
         }
     }
 
-    meanPixelIntensity(chName:string, pixels:number[]):number {
-        if(chName in this.data) {
-            let chData = this.data[chName]
-            let sum = 0
-            let count = 0
-            for (let curPixel of pixels){
-                sum += chData[curPixel]
-                count += 1
-            }
-            return sum/count
-        }
-        else {
-            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString())
-        }
-    }
-
-    medianPixelIntensity(chName:string, pixels:number[]):number {
-        if(chName in this.data) {
-            let chData = this.data[chName]
-            let values = []
-            for (let curPixel of pixels){
-                values.push(chData[curPixel])
-            }
-            // Find the median! Sort the intensity values by intensity.
-            values.sort()
-            let length = values.length
-            if(length % 2 == 0){
-                // If even take the average of the two middle intensity values
-                return (values[(length/2) - 1] + values[length/2])/2
-            } else {
-                // If odd return the middle intensity value
-                return values[Math.ceil(length/2) - 1]
-            }
-        }
-        else {
-            throw new Error('Channel name ' + chName + ' not found in ' + this.channelNames.toString())
-        }
-    }
-
-    private imageBitmapToSprite(bitmap: ImageBitmap) {
-        let offScreen = document.createElement("canvas")
-
-        offScreen.width = bitmap.width
-        offScreen.height = bitmap.height
-
-        let ctx = offScreen.getContext("2d")
-        if(ctx) ctx.drawImage(bitmap, 0, 0)
-        return new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen))
-    }
-
     private fileLoadComplete() {
         let channelsLoaded = _.keys(this.data)
         // If the number of channels loaded is equal to the total number of channels we are done!
@@ -102,13 +52,11 @@ export class ImageData {
     }
 
     private async loadFileData(fData: ImageDataWorkerResult){
-        console.log("Done loading channel " + fData.chName)
-
         let chName = fData.chName
         this.width = fData.width
         this.height = fData.height
         this.data[chName] = fData.data
-        this.sprites[chName] = this.imageBitmapToSprite(fData.bitmap)
+        this.sprites[chName] = imageBitmapToSprite(fData.bitmap)
         this.minmax[chName] = fData.minmax
         this.fileLoadComplete()
     }
@@ -119,6 +67,15 @@ export class ImageData {
         this.errors.push(fError.chName)
         this.numChannels -= 1
         this.fileLoadComplete()
+    }
+
+    removeChannel(chName: string){
+        if(chName in this.data){
+            this.numChannels -= 1
+            delete this.data[chName]
+            delete this.sprites[chName]
+            delete this.minmax[chName]
+        }
     }
 
     // Loads a folder in the background using ImageDataWorkers

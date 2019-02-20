@@ -12,11 +12,29 @@ export const PlotStatisticOptions = [
 
 export type PlotStatistic = "mean" | "median"
 
+export const PlotTypeOptions = [
+    {label: "Scatter Plot", value: "scatter"},
+    {label: "Histogram", value: "histogram"},
+    {label: "Heatmap", value: "heatmap"},
+]
+
+export type PlotType = "scatter" | "histogram" | "heatmap"
+
 export const PlotTransformOptions = [
     {label: "No Tranformation", value: "none"},
     {label: "ArcSinh", value: "arcsinh"},
     {label: "Log10", value: "log"},
 ]
+
+export type PlotTransform = "none" | "arcsinh" | "log"
+
+export const PlotNormalizationOptions = [
+    {label: "No Normalization", value: "none"},
+    {label: "Normalize per Population", value: "population"},
+    {label: "Normalize per Marker/Channel", value: "marker"},
+]
+
+export type PlotNormalization = "none" | "population" | "marker"
 
 export const WindowHeightBufferSize = 40
 export const SelectedRegionAlpha = 0.4
@@ -30,8 +48,6 @@ export const UnselectedCentroidColor = 0xf1c40f // yellow
 export const SelectedCentroidColor = 0xffffff // white
 export const SegmentOutlineColor = 0xffffff // white
 export const HighlightedSegmentOutlineColor = 0xff0000 // red
-
-export type PlotTransform = "none" | "arcsinh" | "log"
 
 export class LabelLayer {
     @observable name:string

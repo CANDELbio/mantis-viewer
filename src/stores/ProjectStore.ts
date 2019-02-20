@@ -5,15 +5,16 @@ import { observable,
     when} from "mobx"
 import * as fs from 'fs'
 import * as path from "path"
+import * as stringify from 'csv-stringify'
 
 import { ImageStore } from "../stores/ImageStore"
 import { PopulationStore } from "../stores/PopulationStore"
 import { PlotStore } from "../stores/PlotStore"
-import { ScatterPlotData } from "../lib/ScatterPlotData"
+import { PlotData } from "../lib/PlotData"
 import { SelectedPopulation } from "../interfaces/ImageInterfaces"
 import { SegmentationData } from "../lib/SegmentationData"
 import { ImageData } from "../lib/ImageData"
-import { SelectOption, ChannelName } from "../interfaces/UIDefinitions"
+import { SelectOption, ChannelName, PlotStatistic } from "../interfaces/UIDefinitions"
 import * as ConfigurationHelper from "../lib/ConfigurationHelper"
 
 interface ImageSet {
@@ -80,27 +81,29 @@ export class ProjectStore {
         this.nullImageSet = {imageStore: this.activeImageStore, plotStore: this.activePlotStore, populationStore: this.activePopulationStore}
     }
 
-    setScatterPlotData = autorun(() => {
+    setPlotData = autorun(() => {
         let imageStore = this.activeImageStore
         let populationStore = this.activePopulationStore
         let plotStore = this.activePlotStore
 
         if(imageStore && populationStore && plotStore){
-            if(plotStore.selectedPlotChannels.length == 2){
-                let ch1 = plotStore.selectedPlotChannels[0]
-                let ch2 = plotStore.selectedPlotChannels[1]
-                if(imageStore.imageData != null && imageStore.segmentationData != null){
-                    plotStore.setScatterPlotData(new ScatterPlotData(ch1,
-                        ch2,
-                        imageStore.imageData,
+            let loadHistogram = plotStore.selectedPlotChannels.length == 1 && plotStore.plotType == 'histogram'
+            let loadScatter = plotStore.selectedPlotChannels.length == 2 && plotStore.plotType == 'scatter'
+            let loadHeatmap = plotStore.plotType == 'heatmap'
+            if(loadHistogram || loadScatter || loadHeatmap){
+                if(imageStore.segmentationData != null && imageStore.segmentationStatistics != null){
+                    plotStore.setPlotData(new PlotData(plotStore.selectedPlotChannels,
                         imageStore.segmentationData,
-                        plotStore.scatterPlotStatistic,
-                        plotStore.scatterPlotTransform,
+                        imageStore.segmentationStatistics,
+                        plotStore.plotType,
+                        plotStore.plotStatistic,
+                        plotStore.plotTransform,
+                        plotStore.plotNormalization,
                         populationStore.selectedPopulations
                     ))
                 }
             } else {
-                plotStore.clearScatterPlotData()
+                plotStore.clearPlotData()
             }
         }
     })
@@ -360,8 +363,9 @@ export class ProjectStore {
     }
 
     @action copyPlotStoreSettings = (sourcePlotStore:PlotStore, destinationImageStore:ImageStore, destinationPlotStore:PlotStore) => {
-        destinationPlotStore.setScatterPlotStatistic(sourcePlotStore.scatterPlotStatistic)
-        destinationPlotStore.setScatterPlotTransform(sourcePlotStore.scatterPlotTransform)
+        destinationPlotStore.setPlotType(sourcePlotStore.plotType)
+        destinationPlotStore.setPlotStatistic(sourcePlotStore.plotStatistic)
+        destinationPlotStore.setPlotTransform(sourcePlotStore.plotTransform)
         // Check if the source selected plot channels are in the destination image set. If they are, use them.
         this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
     }
@@ -477,6 +481,7 @@ export class ProjectStore {
                     exportingContent.segmentation = {
                         width: imageStore.segmentationData.width,
                         height: imageStore.segmentationData.height,
+                        bytesPerElement: imageStore.segmentationData.data.BYTES_PER_ELEMENT,
                         data: Array.from(imageStore.segmentationData.data)
                     }
                 }
@@ -520,13 +525,90 @@ export class ProjectStore {
             // Import Segmentation Data
             let importingSegmentation = importingContent.segmentation
             if(importingSegmentation){
-                let importedDataArray = Float32Array.from(importingSegmentation.data)
-                let importedSegmentationData = new SegmentationData(importingSegmentation.width, importingSegmentation.height, importedDataArray)
-                imageStore.setSegmentationData(importedSegmentationData)
+                let importedDataBytes = importingSegmentation.bytesPerElement
+                let importedDataTypeMapping:Record<number, any> = {4: Float32Array, 2: Uint16Array, 1: Uint8Array}
+                if(importedDataBytes in importedDataTypeMapping){
+                    let arrayType = importedDataTypeMapping[importedDataBytes]
+                    let importedDataArray = arrayType.from(importingSegmentation.data)
+                    let importedSegmentation = new SegmentationData()
+                    importedSegmentation.loadTiffData(importedDataArray,
+                        importingSegmentation.width,
+                        importingSegmentation.height,
+                        imageStore.setSegmentationData
+                    )
+                }
             }
             // Import saved populations
             let importingPopulations = importingContent.populations
-            if(importingPopulations) populationStore.setSelectedPopulations(importingPopulations)
+            if(importingPopulations){
+                // When segmentation data has been loaded or if we're not loading segmentation data
+                when(() => !importingSegmentation || imageStore.segmentationData != null,
+                     () => populationStore.setSelectedPopulations(importingPopulations)
+                    )
+            }
+        }
+    }
+
+    exportChannelIntensisties = (filename:string, statistic: PlotStatistic) => {
+        let imageStore = this.activeImageStore
+        let imageData = imageStore.imageData
+        let segmentationData = imageStore.segmentationData
+        let segmentationStatistics = imageStore.segmentationStatistics
+        let populationStore = this.activePopulationStore
+        if(imageData != null && segmentationData != null && segmentationStatistics != null){
+            let channels = imageData.channelNames
+            let data = [] as string[][]
+
+            // Generate the header
+            let columns = ['Segment ID']
+            for(let channel of channels){
+                columns.push(channel)
+            }
+            columns.push('Populations')
+
+            // Iterate through the segments and calculate the intensity for each channel
+            let indexMap = segmentationData.segmentIndexMap
+            for(let s in indexMap){
+                let segmentId = parseInt(s)
+                let segmentData = [s] as string[]
+                for(let channel of channels){
+                    if(statistic == 'mean'){
+                        segmentData.push(segmentationStatistics.meanIntensity(channel, [segmentId]).toString())
+                    } else{
+                        segmentData.push(segmentationStatistics.medianIntensity(channel, [segmentId]).toString())
+                    }
+                }
+
+                // Figure out which populations this segment belongs to
+                let populations = []
+                for(let population of populationStore.selectedPopulations){
+                    if(population.selectedSegments.indexOf(segmentId) > -1) populations.push(population.name)
+                }
+                segmentData.push(populations.join(','))
+
+                data.push(segmentData)
+            }
+
+            // Write to a CSV
+            stringify(data, { header: true, columns: columns }, (err, output) => {
+                if (err) console.log('Error saving intensities ' + err)
+                fs.writeFile(filename, output, (err) => {
+                  if (err) console.log('Error saving intensities ' + err)
+                  console.log(statistic + ' intensities saved to ' + filename)
+                })
+            })
+        }
+    }
+
+    @action addPopulationFromRange = (min: number, max: number) => {
+        let plotStore = this.activePlotStore
+        let populationStore = this.activePopulationStore
+        let segmentationStatistics = this.activeImageStore.segmentationStatistics
+        if(segmentationStatistics != null) {
+            let channel = plotStore.selectedPlotChannels[0]
+            let selectedStatistic = plotStore.plotStatistic
+            let segmentIds = segmentationStatistics.segmentsInIntensityRange(channel, min, max, selectedStatistic == 'mean')
+            if(segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
         }
     }
 

@@ -1,14 +1,13 @@
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
-const ctx: Worker = self as any;
+const ctx: Worker = self as any
 
 import * as d3Scale from "d3-scale"
-import { MinMax } from "../interfaces/ImageInterfaces"
-import * as fs from "fs"
 import * as path from "path"
 
-const tiff = require("tiff")
+import { MinMax, ImageDataWorkerResult } from "../interfaces/ImageInterfaces"
+import { readTiffData } from "../lib/TiffHelper"
 
-async function bitmapFromData(v: Float32Array | Uint16Array, width: number, height: number, minmax: MinMax) {
+async function bitmapFromData(v: Float32Array | Uint16Array | Uint8Array, width: number, height: number, minmax: MinMax) {
     // @ts-ignore
     let offScreen = new OffscreenCanvas(width, height)
 
@@ -40,7 +39,7 @@ async function bitmapFromData(v: Float32Array | Uint16Array, width: number, heig
     return(bitmap)
 }
 
-function calculateMinMax(v: Float32Array | Uint16Array) {
+function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array) {
     let min = v[0]
     let max = v[0]
     for (let curValue of v){
@@ -50,22 +49,20 @@ function calculateMinMax(v: Float32Array | Uint16Array) {
     return({min: min, max: max})
 }
 
-async function loadFile(filepath: string, onError: (err:any) => void) {
+async function readFile(filepath: string, onError: (err:any) => void):Promise<ImageDataWorkerResult> {
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {
-        //Decode tiff data
-        let data = fs.readFileSync(filepath)
-        let tiffData = tiff.decode(data)[0]
+        let tiffData = await readTiffData(filepath)
+        let {data, width, height} = tiffData
 
-        let width = tiffData.width
-        let height = tiffData.height
-        let minmax = calculateMinMax(tiffData.data)
+        // Calculate the minimum and maximum channel intensity
+        let minmax = calculateMinMaxIntensity(data)
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
-        let bitmap = await bitmapFromData(tiffData.data, width, height, minmax)
+        let bitmap = await bitmapFromData(data, width, height, minmax)
 
-        return({chName: chName, width: width, height: height, data: tiffData.data, bitmap: bitmap, minmax: minmax})
+        return({chName: chName, width: width, height: height, data: data, bitmap: bitmap, minmax: minmax})
     } catch (err) {
         onError({error: err.message, chName: chName})
     }
@@ -73,13 +70,13 @@ async function loadFile(filepath: string, onError: (err:any) => void) {
 
 ctx.addEventListener('message', (message) => {
     var data = message.data
-    loadFile(data.filepath, (err) => {
+    readFile(data.filepath, (err) => {
         // If we have an error, send the message.
         ctx.postMessage(err)
     }).then((message) => {
         // Send the message and then specify the large data array and bitmap as transferrables
         // Using transferrables dramatically speeds up transfer back to the main thread
         // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-        if(message) ctx.postMessage(message, [message.data.buffer, message.bitmap])
+        if(message && 'data' in message && 'bitmap' in message) ctx.postMessage(message, [message.data.buffer, message.bitmap])
     })
 }, false)
