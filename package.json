@@ -1,95 +1,124 @@
 {
-  "name": "mantis-viewer",
-  "version": "0.9.0-alpha.1",
-  "description": "Electron application to visualize multidimensional microscopy data",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "build": "tsc main.ts --sourceMap && webpack",
-    "pack": "build --dir",
-    "dist": "build -mwl --x64"
-  },
-  "repository": "https://github.com/ParkerICI/imc-viewer-js",
-  "keywords": [
-    "Electron",
-    "Microscopy"
-  ],
-  "build": {
-    "appId": "com.mantis-viewer.app",
-    "mac": {
-      "category": "public.app-category.medical",
-      "target": "dmg"
+    "name": "mantis-viewer",
+    "version": "0.9.0-alpha.1",
+    "description": "Electron application to visualize multidimensional microscopy data",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build": "tsc main.ts --sourceMap && webpack",
+        "pack": "build --dir",
+        "dist": "build -mwl --x64",
+        "eslint": "eslint --ext .tsx --ext .ts .",
+        "eslint-fix": "eslint --fix --ext .tsx --ext .ts ."
     },
-    "win": {
-      "target": "nsis"
+    "repository": "https://github.com/ParkerICI/imc-viewer-js",
+    "keywords": [
+        "Electron",
+        "Microscopy"
+    ],
+    "build": {
+        "appId": "com.mantis-viewer.app",
+        "mac": {
+            "category": "public.app-category.medical",
+            "target": "dmg"
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowElevation": false
+        },
+        "linux": {
+            "target": "AppImage",
+            "category": "Development"
+        }
     },
-    "nsis": {
-      "oneClick": false,
-      "allowElevation": false
+    "author": "pici",
+    "license": "GPL-3.0",
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
     },
-    "linux": {
-      "target": "AppImage",
-      "category": "Development"
+    "lint-staged": {
+        "*.js": [
+            "eslint --fix",
+            "prettier --write",
+            "git add"
+        ],
+        "*.{ts,tsx}": [
+            "eslint --fix",
+            "prettier --write",
+            "git add"
+        ]
+    },
+    "devDependencies": {
+        "@types/concaveman": "^1.1.3",
+        "@types/csv-parse": "^1.1.11",
+        "@types/csv-stringify": "^1.4.2",
+        "@types/d3-scale": "^2.0.1",
+        "@types/node": "^10.12.10",
+        "@types/pixi.js": "^4.8.6",
+        "@types/plotly.js": "^1.38.13",
+        "@types/react": "16.8.4",
+        "@types/react-collapse": "^4.0.2",
+        "@types/react-color": "^2.13.6",
+        "@types/react-dom": "^16.8.2",
+        "@types/react-motion": "0.0.27",
+        "@types/react-select": "^1.3.4",
+        "@types/shortid": "0.0.29",
+        "@types/underscore": "^1.8.0",
+        "@typescript-eslint/eslint-plugin": "^1.4.0",
+        "@typescript-eslint/parser": "^1.4.0",
+        "acorn": "^6.1.0",
+        "css-loader": "^0.27.3",
+        "electron": "^4.0.5",
+        "electron-builder": "^20.38.5",
+        "eslint": "^5.14.1",
+        "eslint-config-prettier": "^4.0.0",
+        "eslint-plugin-prettier": "^3.0.1",
+        "eslint-plugin-react": "^7.12.4",
+        "husky": "^1.3.1",
+        "ify-loader": "^1.1.0",
+        "lint-staged": "^8.1.4",
+        "prettier": "^1.16.4",
+        "source-map-loader": "^0.2.4",
+        "style-loader": "^0.16.0",
+        "ts-loader": "^5.2.2",
+        "typescript": "^3.2.4",
+        "webpack": "~4.29.5",
+        "webpack-cli": "^3.2.3",
+        "worker-loader": "^2.0.0"
+    },
+    "dependencies": {
+        "@blueprintjs/core": "^3.6.1",
+        "@types/electron-is-dev": "^0.3.0",
+        "about-window": "^1.12.1",
+        "bootstrap": "^4.1.3",
+        "concaveman": "^1.1.1",
+        "csv-parse": "^3.1.3",
+        "csv-stringify": "^5.0.0",
+        "d3-scale": "^2.1.2",
+        "electron-is-dev": "^1.0.1",
+        "jquery": "^3.3.1",
+        "mobx": "^5.9.0",
+        "mobx-react": "^5.4.3",
+        "mobx-utils": "^5.1.0",
+        "normalize.css": "^5.0.0",
+        "pixi.js": "^4.8.6",
+        "plotly.js": "^1.44.4",
+        "react": "^16.8.2",
+        "react-collapse": "^4.0.3",
+        "react-color": "^2.14.1",
+        "react-dom": "^16.8.2",
+        "react-flexbox-grid": "^2.1.2",
+        "react-motion": "^0.5.2",
+        "react-select": "^1.3.0",
+        "react-sizeme": "^2.5.2",
+        "react-spinners": "^0.4.5",
+        "react-transition-group": "^2.5.0",
+        "shortid": "^2.2.13",
+        "underscore": "^1.8.3"
     }
-  },
-  "author": "pici",
-  "license": "GPL-3.0",
-  "devDependencies": {
-    "@types/concaveman": "^1.1.3",
-    "@types/csv-parse": "^1.1.11",
-    "@types/csv-stringify": "^1.4.2",
-    "@types/d3-scale": "^2.0.1",
-    "@types/node": "^10.12.10",
-    "@types/pixi.js": "^4.8.6",
-    "@types/plotly.js": "^1.38.13",
-    "@types/react": "16.8.4",
-    "@types/react-collapse": "^4.0.2",
-    "@types/react-color": "^2.13.6",
-    "@types/react-dom": "^16.8.2",
-    "@types/react-motion": "0.0.27",
-    "@types/react-select": "^1.3.4",
-    "@types/shortid": "0.0.29",
-    "@types/underscore": "^1.8.0",
-    "acorn": "^6.1.0",
-    "css-loader": "^0.27.3",
-    "electron": "^4.0.5",
-    "electron-builder": "^20.38.5",
-    "ify-loader": "^1.1.0",
-    "source-map-loader": "^0.2.4",
-    "style-loader": "^0.16.0",
-    "ts-loader": "^5.2.2",
-    "typescript": "^3.2.4",
-    "webpack": "~4.29.5",
-    "webpack-cli": "^3.2.3",
-    "worker-loader": "^2.0.0"
-  },
-  "dependencies": {
-    "@blueprintjs/core": "^3.6.1",
-    "about-window": "^1.12.1",
-    "bootstrap": "^4.1.3",
-    "concaveman": "^1.1.1",
-    "csv-parse": "^3.1.3",
-    "csv-stringify": "^5.0.0",
-    "d3-scale": "^2.1.2",
-    "electron-is-dev": "^1.0.1",
-    "jquery": "^3.3.1",
-    "mobx": "^5.9.0",
-    "mobx-react": "^5.4.3",
-    "mobx-utils": "^5.1.0",
-    "normalize.css": "^5.0.0",
-    "pixi.js": "^4.8.6",
-    "plotly.js": "^1.44.4",
-    "react": "^16.8.2",
-    "react-collapse": "^4.0.3",
-    "react-color": "^2.14.1",
-    "react-dom": "^16.8.2",
-    "react-flexbox-grid": "^2.1.2",
-    "react-motion": "^0.5.2",
-    "react-select": "^1.3.0",
-    "react-sizeme": "^2.5.2",
-    "react-spinners": "^0.4.5",
-    "react-transition-group": "^2.5.0",
-    "shortid": "^2.2.13",
-    "underscore": "^1.8.3"
-  }
 }
