@@ -4,7 +4,7 @@ import { ipcRenderer } from 'electron'
 import { PlotData } from "../lib/PlotData"
 import { Plot } from "../components/Plot";
 
-let channelSelectOptions: { value: string, label: string}[] | null
+let channelSelectOptions: { value: string, label: string}[]
 let selectedPlotChannels: string[] | null
 let selectedStatistic: string | null
 let selectedTransform: string | null
@@ -85,7 +85,6 @@ ipcRenderer.on('set-plot-data', (event:Electron.Event,
     normalization: string,
     data: any) =>
 {
-
     channelSelectOptions = selectOptions
     selectedPlotChannels = plotChannels
     selectedStatistic = statistic
