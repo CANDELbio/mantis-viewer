@@ -32,7 +32,7 @@ export class ImageStore {
 
     @observable channelDomain: Record<ChannelName, [number, number]> 
 
-    @observable channelSelectOptions: { value: string, label: string }[]
+    @observable.ref channelSelectOptions: { value: string, label: string }[]
 
     @observable segmentationFillAlpha: number
     @observable segmentationOutlineAlpha: number
