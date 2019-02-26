@@ -1,53 +1,54 @@
-import * as React from "react"
-import { Button, Slider, Checkbox } from "@blueprintjs/core"
-import { observer } from "mobx-react"
+import * as React from 'react'
+import { Button, Slider, Checkbox } from '@blueprintjs/core'
+import { observer } from 'mobx-react'
 
 export interface SegmentationControlsProps {
     fillAlpha: number
     outlineAlpha: number
 
-    onFillAlphaChange: ((value: number) => void)
-    onOutlineAlphaChange: ((value: number) => void)
+    onFillAlphaChange: (value: number) => void
+    onOutlineAlphaChange: (value: number) => void
 
     centroidsVisible: boolean
-    setCentroidsVisible: ((visible: boolean) => void)
+    setCentroidsVisible: (visible: boolean) => void
 
-    onClearSegmentation: (() => void)
+    onClearSegmentation: () => void
 }
 
 @observer
 export class SegmentationControls extends React.Component<SegmentationControlsProps, {}> {
-
-    constructor(props: SegmentationControlsProps) {
+    public constructor(props: SegmentationControlsProps) {
         super(props)
     }
 
-    sliderMax = 10
+    private sliderMax = 10
 
-    onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value/this.sliderMax)
-    onOutlineAlphaSliderChange = (value:number) => this.props.onOutlineAlphaChange(value/this.sliderMax)
-    onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) => this.props.setCentroidsVisible(event.currentTarget.checked)
+    private onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value / this.sliderMax)
+    private onOutlineAlphaSliderChange = (value: number) => this.props.onOutlineAlphaChange(value / this.sliderMax)
+    private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
+        this.props.setCentroidsVisible(event.currentTarget.checked)
 
-    render() {
-        return(
+    public render(): React.ReactElement {
+        return (
             <div>
-                <Checkbox checked={this.props.centroidsVisible} label="Show Centroids" onChange={this.onCentroidVisibilityChange} />
+                <Checkbox
+                    checked={this.props.centroidsVisible}
+                    label="Show Centroids"
+                    onChange={this.onCentroidVisibilityChange}
+                />
                 Segmentation Outline Alpha
                 <Slider
-                    value = {this.props.outlineAlpha * this.sliderMax}
-                    onChange = {this.onOutlineAlphaSliderChange}
-                    max = {this.sliderMax}
+                    value={this.props.outlineAlpha * this.sliderMax}
+                    onChange={this.onOutlineAlphaSliderChange}
+                    max={this.sliderMax}
                 />
                 Segmentation Fill Alpha
                 <Slider
-                    value = {this.props.fillAlpha * this.sliderMax}
-                    onChange = {this.onFillAlphaSliderChange}
-                    max = {this.sliderMax}
+                    value={this.props.fillAlpha * this.sliderMax}
+                    onChange={this.onFillAlphaSliderChange}
+                    max={this.sliderMax}
                 />
-                <Button
-                    text = {"Clear Segmentation"}
-                    onClick = {this.props.onClearSegmentation}
-                />
+                <Button text={'Clear Segmentation'} onClick={this.props.onClearSegmentation} />
             </div>
         )
     }
