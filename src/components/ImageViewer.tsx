@@ -28,7 +28,6 @@ export interface ImageProps {
     segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
     channelMarker: Record<ChannelName, string | null>
-    onCanvasDataLoaded: (data: ImageData) => void
     selectedRegions: SelectedPopulation[] | null
     addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void
     hightlightedRegions: string[]
@@ -122,7 +121,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selecting = false
     }
 
-    private onCanvasDataLoaded = (data: ImageData) => this.props.onCanvasDataLoaded(data)
     private onExportComplete = () => this.props.onExportComplete()
     private addSelectedRegionToStore = (selectedRegion: number[] | null, selectedSegments: number[], color: number) => {
         this.props.addSelectedRegion(selectedRegion, selectedSegments, color)

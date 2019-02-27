@@ -1,35 +1,34 @@
-import { observable, 
-    action } from "mobx"
-import { PlotData } from "../lib/PlotData"
+import { observable, action } from 'mobx'
+import { PlotData } from '../lib/PlotData'
 
-import { PlotStatistic,
+import {
+    PlotStatistic,
     PlotStatisticOptions,
     PlotTransform,
     PlotTransformOptions,
     PlotType,
     PlotTypeOptions,
     PlotNormalization,
-    PlotNormalizationOptions} from "../interfaces/UIDefinitions"
-
+    PlotNormalizationOptions,
+} from '../interfaces/UIDefinitions'
 
 export class PlotStore {
-
-    constructor() {
+    public constructor() {
         this.initialize()
     }
 
-    @observable.ref plotData: PlotData | null
+    @observable.ref public plotData: PlotData | null
     // Array of segment IDs that have been hovered on the graph.
-    @observable segmentsHoveredOnPlot: number[]
+    @observable public segmentsHoveredOnPlot: number[]
 
-    @observable plotStatistic: PlotStatistic
-    @observable plotTransform: PlotTransform
-    @observable plotType: PlotType
-    @observable plotNormalization: PlotNormalization
+    @observable public plotStatistic: PlotStatistic
+    @observable public plotTransform: PlotTransform
+    @observable public plotType: PlotType
+    @observable public plotNormalization: PlotNormalization
 
-    @observable.ref selectedPlotChannels: string[]
+    @observable.ref public selectedPlotChannels: string[]
 
-    @action initialize = () => {
+    @action public initialize = () => {
         this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.plotTransform = PlotTransformOptions[0].value as PlotTransform
         this.plotType = PlotTypeOptions[0].value as PlotType
@@ -38,41 +37,40 @@ export class PlotStore {
         this.segmentsHoveredOnPlot = []
     }
 
-    @action setPlotData = (data: PlotData) => {
+    @action public setPlotData = (data: PlotData) => {
         this.plotData = data
     }
 
-    @action clearPlotData = () => {
+    @action public clearPlotData = () => {
         this.plotData = null
     }
 
-    @action setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {
+    @action public setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {
         this.segmentsHoveredOnPlot = hoveredSegments
     }
 
-    @action setSelectedPlotChannels = (x: string[]) => {
+    @action public setSelectedPlotChannels = (x: string[]) => {
         this.selectedPlotChannels = x
     }
 
-    @action clearSelectedPlotChannels = () => {
+    @action public clearSelectedPlotChannels = () => {
         this.selectedPlotChannels = []
     }
 
-    @action setPlotStatistic = (x: PlotStatistic) => {
+    @action public setPlotStatistic = (x: PlotStatistic) => {
         this.plotStatistic = x
     }
 
-    @action setPlotTransform = (x: PlotTransform) => {
+    @action public setPlotTransform = (x: PlotTransform) => {
         this.plotTransform = x
     }
 
-    @action setPlotNormalization = (x: PlotNormalization) => {
+    @action public setPlotNormalization = (x: PlotNormalization) => {
         this.plotNormalization = x
     }
 
-    @action setPlotType = (x: PlotType) => {
+    @action public setPlotType = (x: PlotType) => {
         this.plotType = x
         this.clearSelectedPlotChannels()
-    }   
-
+    }
 }

@@ -1,14 +1,14 @@
-import { PlotStatistic } from "./UIDefinitions"
+import { PlotStatistic } from './UIDefinitions'
 
 export interface PixelLocation {
-    x: number,
-    y: number,
+    x: number
+    y: number
 }
 
 export interface SelectedPopulation {
     id: string
     // The coordinates of the selected region. In PIXI polygon format [x1, y1, x2, y2, ...]
-    selectedRegion: number[]|null
+    selectedRegion: number[] | null
     // The IDs of the selected segments
     selectedSegments: number[]
     name: string
@@ -17,8 +17,8 @@ export interface SelectedPopulation {
     visible: boolean
 }
 
-export interface TiffDataMap   {
-    [key: string] : Float32Array | Uint16Array | Uint8Array
+export interface TiffDataMap {
+    [key: string]: Float32Array | Uint16Array | Uint8Array
 }
 
 export interface MinMax {
@@ -27,29 +27,29 @@ export interface MinMax {
 }
 
 export interface MinMaxMap {
-    [key: string] : MinMax
+    [key: string]: MinMax
 }
 
 export interface SpriteMap {
-    [key:string] : PIXI.Sprite
+    [key: string]: PIXI.Sprite
 }
 
 export interface RGBColor {
-    r: number,
-    g: number,
+    r: number
+    g: number
     b: number
 }
 
 export interface RGBColorCollection {
-    [key: string] : RGBColor
+    [key: string]: RGBColor
 }
 
 export interface ImageDataWorkerResult {
-    chName: string,
-    width: number,
-    height: number,
-    data: Float32Array | Uint16Array | Uint8Array,
-    bitmap: ImageBitmap,
+    chName: string
+    width: number
+    height: number
+    data: Float32Array | Uint16Array | Uint8Array
+    bitmap: ImageBitmap
     minmax: MinMax
 }
 
@@ -68,7 +68,7 @@ export interface SegmentationDataWorkerResult {
     // Mapping of segmentId to the pixel that represents the centroid
     centroidMap: Record<number, PixelLocation>
     // Bitmap of segment fill
-    fillBitmap: ImageBitmap,
+    fillBitmap: ImageBitmap
 }
 
 export interface SegmentationStatisticWorkerResult {
@@ -76,6 +76,6 @@ export interface SegmentationStatisticWorkerResult {
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
     statistic: PlotStatistic
     // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
-    map: Record<string,number>
-    minmax:MinMax
+    map: Record<string, number>
+    minmax: MinMax
 }

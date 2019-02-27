@@ -80,7 +80,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         channelMarker: Record<ChannelName, string | null>,
         maxWidth: number,
         windowHeight: number | null,
-        onCanvasDataLoaded: (data: ImageData) => void,
         addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void,
         selectedRegions: SelectedPopulation[] | null,
         hightlightedRegions: string[],
@@ -101,7 +100,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     channelDomain={channelDomain}
                     channelMarker={channelMarker}
                     maxRendererSize={maxRendererSize}
-                    onCanvasDataLoaded={onCanvasDataLoaded}
                     addSelectedRegion={addSelectedRegion}
                     selectedRegions={selectedRegions}
                     hightlightedRegions={hightlightedRegions}
@@ -223,7 +221,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let channelDomain = imageStore.channelDomain
         let channelMarker = imageStore.channelMarker
         let windowHeight = projectStore.windowHeight
-        let onCanvasDataLoaded = imageStore.setCanvasImageData
         let addSelectedRegion = populationStore.addSelectedPopulation
         let selectedRegions = populationStore.selectedPopulations
         let hightlightedRegions = populationStore.highlightedPopulations
@@ -268,7 +265,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                                     channelMarker,
                                                     size.width,
                                                     windowHeight,
-                                                    onCanvasDataLoaded,
                                                     addSelectedRegion,
                                                     selectedRegions,
                                                     hightlightedRegions,
