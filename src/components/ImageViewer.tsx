@@ -81,10 +81,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         [key: string]: { region: PIXI.Graphics | null; outline: PIXI.Graphics | null }
     } | null
 
-    // Same as selected regions stuff above but for segments that have been selected on the scatterplot and need to be highlighted.
-    private selectedSegmentsFromGraph: number[] = []
-    private selectedSegmentsFromGraphGraphics: { segments: PIXI.Sprite; centroids: PIXI.Graphics } | null
-
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private dragging: boolean
     private selecting: boolean
