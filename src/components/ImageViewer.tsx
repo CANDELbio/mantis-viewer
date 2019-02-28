@@ -18,6 +18,7 @@ import {
 } from '../interfaces/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
+import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
 export interface ImageProps {
@@ -241,7 +242,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
             if (altPressed) {
                 this.selecting = true
-                selectionColor = GraphicsHelper.randomHexColor()
+                selectionColor = randomHexColor()
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 selection.push(pos.x)
                 selection.push(pos.y)

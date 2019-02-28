@@ -5,7 +5,7 @@ import * as csvParse from 'csv-parse'
 import * as _ from 'underscore'
 
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import * as GraphicsHelper from '../lib/GraphicsHelper'
+import { randomHexColor } from '../lib/ColorHelper'
 
 export class PopulationStore {
     public constructor() {
@@ -44,7 +44,7 @@ export class PopulationStore {
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(),
             notes: null,
-            color: color ? color : GraphicsHelper.randomHexColor(),
+            color: color ? color : randomHexColor(),
             visible: true,
         }
         this.selectedPopulations = this.selectedPopulations.concat([newRegion])
@@ -146,7 +146,7 @@ export class PopulationStore {
             }
         }).on('end', () => {
             for (let population in populations) {
-                this.addSelectedPopulation(null, populations[population], GraphicsHelper.randomHexColor(), population)
+                this.addSelectedPopulation(null, populations[population], randomHexColor(), population)
             }
         })
     }

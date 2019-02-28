@@ -4,7 +4,7 @@ import { SegmentationData } from './SegmentationData'
 import { SegmentationStatistics } from './SegmentationStatistics'
 import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../interfaces/UIDefinitions'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import { hexToRGB } from './GraphicsHelper'
+import { hexToRGB } from './ColorHelper'
 import { calculateMean } from '../lib/StatsHelper'
 
 export const DefaultSelectionName = 'All Segments'

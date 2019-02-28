@@ -8,15 +8,7 @@ import * as concaveman from 'concaveman'
 import { RGBColorCollection, SegmentationDataWorkerResult } from '../interfaces/ImageInterfaces'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
-
-// TO DO: DRY this up. randomRGB is also used in GraphicsHelper, but can't import from there as importing PIXI causes errors in webworkers.
-function randomRGBColor(): { r: number; g: number; b: number } {
-    let c = Math.round(0xffffff * Math.random())
-    let r = c >> 16
-    let g = (c >> 8) & 255
-    let b = c & 255
-    return { r: r, g: g, b: b }
-}
+import { randomRGBColor } from '../lib/ColorHelper'
 
 function getPixelColor(segmentId: number, colors: RGBColorCollection): { r: number; g: number; b: number } {
     if (!(segmentId in colors)) {
