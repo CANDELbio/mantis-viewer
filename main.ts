@@ -6,7 +6,6 @@ import * as _ from 'underscore'
 
 import path = require('path')
 import url = require('url')
-import isDev = require('electron-is-dev')
 const openAboutWindow = require('about-window').default
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -22,6 +21,14 @@ let imageLoaded = false
 let projectLoaded = false
 let segmentationLoaded = false
 let populationsSelected = false
+
+function debugging(): boolean {
+    let argv = process.argv
+    if (argv.length > 2 && argv[2] == 'debug') {
+        return true
+    }
+    return false
+}
 
 function openImageSet(path: string): void {
     if (mainWindow != null) {
@@ -393,7 +400,7 @@ function createMainWindow(): void {
     )
 
     // Open the DevTools.
-    if (isDev) mainWindow.webContents.openDevTools()
+    if (debugging()) mainWindow.webContents.openDevTools()
 
     // Use throttle so that when we resize we only send the window size every 333 ms
     mainWindow.on('resize', _.throttle(sendWindowSize, 333))
@@ -437,7 +444,7 @@ function createPlotWindow(): void {
         }),
     )
 
-    if (isDev) plotWindow.webContents.openDevTools()
+    if (debugging()) plotWindow.webContents.openDevTools()
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
     plotWindow.on('close', function(event: Electron.Event) {
