@@ -1,5 +1,5 @@
 export function calculateMedian(input: number[]): number {
-    let sorted = input.sort()
+    let sorted = input.sort((n1, n2) => n1 - n2)
     let length = sorted.length
     if (length % 2 == 0) {
         // If even take the average of the two middle intensity values
