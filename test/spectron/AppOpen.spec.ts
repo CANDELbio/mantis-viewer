@@ -1,22 +1,25 @@
 import * as electron from 'electron'
 import { Application } from 'spectron'
-import { expect } from 'chai'
+import { use, expect } from 'chai'
+import * as chaiAsPromised from 'chai-as-promised'
 import 'mocha'
 
-describe('application launch', function() {
+describe('Application launch', function() {
     this.timeout(10000)
 
-    let app: Application
+    before(() => {
+        use(chaiAsPromised)
+    })
+
+    let app: Application = new Application({
+        // path to electron app
+        args: ['./main.js'],
+        path: '' + electron,
+        startTimeout: 30000,
+        waitTimeout: 30000,
+    })
 
     beforeEach(function() {
-        // start application
-        app = new Application({
-            // path to electron app
-            args: ['./main.js'],
-            path: '' + electron,
-            startTimeout: 30000,
-            waitTimeout: 30000,
-        })
         return app.start()
     })
 
@@ -25,9 +28,6 @@ describe('application launch', function() {
     })
 
     it('shows an initial window', function() {
-        return app.client.getWindowCount().then(function(count: number) {
-            // 2 because there are two windows (plot starts hidden)
-            expect(count).to.eql(2)
-        })
+        expect(app.client.getWindowCount()).to.eventually.equal(2)
     })
 })
