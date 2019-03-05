@@ -28,21 +28,6 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /(node_modules)/,
             },
-            // For Plotly https://github.com/plotly/plotly.js/blob/master/BUILDING.md
-            {
-                test: /\.js$/,
-                loader: 'ify-loader',
-            },
-            /*
-            {
-                test: /node_modules/,
-                loader: 'ify-loader',
-                enforce: 'post'
-            },*/
-            /*{
-                test: /\.(html|css)?$/,
-                loader: 'file-loader?name=[name].[ext]'
-            },*/
             {
                 test: /\.css$/,
                 loader: 'style-loader!css-loader',
@@ -56,13 +41,8 @@ module.exports = {
             },
         ],
     },
-    // When importing a module whose path matches one of the following, just
-    // assume a corresponding global variable exists and use that instead.
-    // This is important because it allows us to avoid bundling all of our
-    // dependencies, which allows browsers to cache those libraries between builds.
-    // externals: {
-    //     "react": "React",
-    //     "react-dom": "ReactDOM",
-    // },
-    target: 'electron-main',
+    externals: {
+        canvas: 'commonjs canvas', // Excludes canvas from being bundled. Use canvas for pixi
+    },
+    target: 'node',
 }

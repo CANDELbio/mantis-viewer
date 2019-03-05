@@ -18,9 +18,9 @@ async function bitmapFromData(
     // @ts-ignore
     let offScreen = new OffscreenCanvas(width, height)
 
-    let ctx = offScreen.getContext('2d')
-    if (ctx) {
-        let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
+    let thisCtx = offScreen.getContext('2d')
+    if (thisCtx) {
+        let imageData = thisCtx.getImageData(0, 0, offScreen.width, offScreen.height)
         let canvasData = imageData.data
 
         let colorScale = d3Scale
@@ -39,7 +39,7 @@ async function bitmapFromData(
             canvasData[canvasIndex + 2] = x // b
             canvasData[canvasIndex + 3] = 255 // a
         }
-        ctx.putImageData(imageData, 0, 0)
+        thisCtx.putImageData(imageData, 0, 0)
     }
 
     let bitmap = await createImageBitmap(offScreen)
@@ -57,7 +57,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
     return { min: min, max: max }
 }
 
-async function readFile(filepath: string, onError: (err: any) => void): Promise<ImageDataWorkerResult> {
+async function readFile(filepath: string, onError: (err: any) => void): Promise<ImageDataWorkerResult | void> {
     let parsed = path.parse(filepath)
     let chName = parsed.name
     try {

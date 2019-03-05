@@ -53,6 +53,11 @@ export interface ImageDataWorkerResult {
     minmax: MinMax
 }
 
+export interface ImageDataWorkerError {
+    error: string
+    chName: string
+}
+
 export interface SegmentationDataWorkerResult {
     width: number
     height: number

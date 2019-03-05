@@ -17,7 +17,7 @@
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true
     },
-    //Adding files here individually is required to have VisualStudio Code 
+    //Adding files here individually is required to have VisualStudio Code
     //accept the decorator syntax. Hopefully this will be fixed in the future
     "files": [
         "./main.ts",
