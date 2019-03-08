@@ -3,8 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
 import { imageBitmapToSprite } from './GraphicsHelper'
-
-import ImageWorker = require('worker-loader?name=dist/[name].js!../workers/ImageDataWorker')
+import { ImageDataWorker } from '../workers/ImageDataWorker'
 
 // Class to store ImageData
 // Needs to have loadFolder invoked after creation to actually load and store data.
@@ -22,7 +21,7 @@ export class ImageData {
     private numChannels: number
     // Keep track of workers created
     // Was going to terminate them when done, but broke using Transferrable objects.
-    private workers: ImageWorker[]
+    private workers: ImageDataWorker[]
 
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (imageData: ImageData) => void
@@ -98,7 +97,7 @@ export class ImageData {
 
             // Create a webworker for each tiff and return the results to loadFileData.
             tiffs.forEach(f => {
-                let worker = new ImageWorker()
+                let worker = new ImageDataWorker()
                 worker.addEventListener(
                     'message',
                     function(e: { data: any }) {

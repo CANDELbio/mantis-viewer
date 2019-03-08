@@ -2,6 +2,7 @@ import * as fs from 'fs'
 
 // Importing from a file for now. This package is available on npm, but hasn't been updated in a few months.
 // The newest version on github supports a compression format that a user requested support for.
+//@ts-ignore
 import GeoTIFF = require('../modules/geotiff.bundle.min.js')
 
 export async function readTiffData(filepath: string): Promise<{ data: any; width: number; height: number }> {

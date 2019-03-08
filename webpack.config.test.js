@@ -5,7 +5,7 @@ module.exports = {
         plotWindow: './src/app/plotWindow.tsx',
     },
     output: {
-        path: __dirname + '/app',
+        path: __dirname + '/app-test',
         filename: '[name].js',
     },
     // Enable sourcemaps for debugging webpack's output.

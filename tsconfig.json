@@ -21,6 +21,8 @@
     //accept the decorator syntax. Hopefully this will be fixed in the future
     "files": [
         "./main.ts",
+        "./typings/custom.d.ts",
+        "./typings/reactSizeme.d.ts",
         "./src/app/mainWindow.tsx",
         "./src/app/plotWindow.tsx",
         "./src/stores/ImageStore.ts",
@@ -33,7 +35,7 @@
         "./src/components/SegmentationControls.tsx",
         "./src/components/Plot.tsx",
         "./src/components/SelectedPopulations.tsx",
-        "./src/typings/custom.d.ts",
-        "./src/typings/reactSizeme.d.ts"
+        "./src/workers/ImageDataWorker.ts",
+        "./src/workers/ImageDataWorker.worker.ts"
     ]
 }
