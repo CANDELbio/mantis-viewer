@@ -1,4 +1,12 @@
-jest.mock('./ImageDataWorker.worker')
+jest.mock(
+    'worker-loader?name=dist/[name].js!../workers/ImageDataWorker.worker',
+    () => {
+        return jest.fn().mockImplementation(() => {
+            return {}
+        })
+    },
+    { virtual: true },
+)
 import { ImageDataWorker } from './ImageDataWorker'
 
 test('terminate', function() {
