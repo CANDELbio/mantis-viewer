@@ -145,6 +145,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onSliderChange={projectStore.setChannelDomainCallback(s)}
                         selectOptions={imageStore.channelSelectOptions}
                         selectValue={imageStore.channelMarker[s]}
+                        allSelectedValues={Object.values(imageStore.channelMarker)}
                         onSelectChange={projectStore.setChannelMarkerCallback(s)}
                         windowWidth={projectStore.windowWidth}
                     />

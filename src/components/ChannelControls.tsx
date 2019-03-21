@@ -11,6 +11,7 @@ export interface ChannelControlsProps {
 
     selectOptions: { value: string; label: string }[]
     selectValue: string | null
+    allSelectedValues: (string | null)[]
     onSelectChange: (x: { value: string; label: string }) => void
 
     windowWidth: number | null
@@ -31,11 +32,21 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         let roundedStepSize = Math.round(unroundedStepSize)
         let stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
 
+        // Remove nulls and the value selected for this channel from the list of all selected values
+        let filteredSelectedValues = this.props.allSelectedValues.filter(value => {
+            return value != null && value != this.props.selectValue
+        })
+        // Remove all select options in the list of filtered, selected values from above.
+        // This is so that a marker cannot be selected to be displayed in two channels.
+        let filteredSelectOptions = this.props.selectOptions.filter(option => {
+            return !filteredSelectedValues.includes(option.value)
+        })
+
         return (
             <div>
                 <Select
                     value={this.props.selectValue == null ? undefined : this.props.selectValue}
-                    options={this.props.selectOptions}
+                    options={filteredSelectOptions}
                     onChange={this.props.onSelectChange}
                 />
                 <RangeSlider
