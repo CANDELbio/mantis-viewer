@@ -190,10 +190,26 @@ export function generateBrightnessFilterCode(
     uniform float b;
     uniform float m;
 
+    uniform bool red;
+    uniform bool green;
+    uniform bool blue;
+
     void main(void)
     {
         gl_FragColor = texture2D(uSampler, vTextureCoord);
-        gl_FragColor.${channel} = min((gl_FragColor.${channel} * m) + b, 1.0);
+        if(red == true)
+        {
+            gl_FragColor.r = min((gl_FragColor.r * m) + b, 1.0);
+        }
+        else if(green == true)
+        {
+            gl_FragColor.g = min((gl_FragColor.g * m) + b, 1.0);
+        }
+        else if (blue == true)
+        {
+            gl_FragColor.b = min((gl_FragColor.b * m) + b, 1.0);
+        }
+
     }`
 
     return { code: filterCode, m: m, b: b }

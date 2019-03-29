@@ -370,6 +370,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                     type: 'f',
                     value: filter.b,
                 },
+                red: {
+                    type: 'b',
+                    value: curChannel == 'rChannel',
+                },
+                green: {
+                    type: 'b',
+                    value: curChannel == 'gChannel',
+                },
+                blue: {
+                    type: 'b',
+                    value: curChannel == 'bChannel',
+                },
             }
             let brightnessFilter = new PIXI.Filter(undefined, filter.code, uniforms)
             // Delete sprite filters so they get cleared from memory before adding new ones
