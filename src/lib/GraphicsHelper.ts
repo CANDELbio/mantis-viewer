@@ -162,7 +162,7 @@ export function generateBrightnessFilterCode(
     imcData: ImageData,
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
-): string {
+): { code: string; m: number; b: number } {
     let curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
@@ -176,8 +176,8 @@ export function generateBrightnessFilterCode(
     let channel = channelName.charAt(0)
 
     // Using slider values to generate m and b for a linear transformation (y = mx + b).
-    let b = (curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax).toFixed(4)
-    let m = (curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])).toFixed(4)
+    let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
+    let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
 
     let filterCode = `
     varying vec2 vTextureCoord;
@@ -187,11 +187,14 @@ export function generateBrightnessFilterCode(
     uniform vec4 uTextureClamp;
     uniform vec4 uColor;
 
+    uniform float b;
+    uniform float m;
+
     void main(void)
     {
         gl_FragColor = texture2D(uSampler, vTextureCoord);
-        gl_FragColor.${channel} = min((gl_FragColor.${channel} * ${m}) + ${b}, 1.0);
+        gl_FragColor.${channel} = min((gl_FragColor.${channel} * m) + b, 1.0);
     }`
 
-    return filterCode
+    return { code: filterCode, m: m, b: b }
 }

@@ -360,13 +360,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let curMarker = channelMarker[curChannel]
         if (curMarker != null) {
             let sprite = imcData.sprites[curMarker]
-            let brightnessFilterCode = GraphicsHelper.generateBrightnessFilterCode(
-                curChannel,
-                imcData,
-                channelMarker,
-                channelDomain,
-            )
-            let brightnessFilter = new PIXI.Filter(undefined, brightnessFilterCode, undefined)
+            let filter = GraphicsHelper.generateBrightnessFilterCode(curChannel, imcData, channelMarker, channelDomain)
+            let uniforms = {
+                m: {
+                    type: 'f',
+                    value: filter.m,
+                },
+                b: {
+                    type: 'f',
+                    value: filter.b,
+                },
+            }
+            let brightnessFilter = new PIXI.Filter(undefined, filter.code, uniforms)
             // Delete sprite filters so they get cleared from memory before adding new ones
             sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
             this.stage.addChild(sprite)
