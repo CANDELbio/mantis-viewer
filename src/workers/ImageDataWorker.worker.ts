@@ -57,9 +57,13 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
     return { min: min, max: max }
 }
 
-export async function readFile(filepath: string, onError: (err: any) => void): Promise<ImageDataWorkerResult | void> {
+export async function readFile(
+    useExtForChName: string,
+    filepath: string,
+    onError: (err: any) => void,
+): Promise<ImageDataWorkerResult | void> {
     let parsed = path.parse(filepath)
-    let chName = parsed.name
+    let chName = useExtForChName ? parsed.base : parsed.name
     try {
         let tiffData = await readTiffData(filepath)
         let { data, width, height } = tiffData
@@ -80,7 +84,7 @@ ctx.addEventListener(
     'message',
     message => {
         var data = message.data
-        readFile(data.filepath, err => {
+        readFile(data.useExtForChName, data.filepath, err => {
             // If we have an error, send the message.
             ctx.postMessage(err)
         }).then(message => {

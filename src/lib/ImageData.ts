@@ -94,6 +94,12 @@ export class ImageData {
         } else {
             let loadFileData = (data: ImageDataWorkerResult): Promise<void> => this.loadFileData(data)
             let loadFileError = (data: { error: any; chName: string }): Promise<void> => this.loadFileError(data)
+            let baseNames = tiffs.map((v: string) => {
+                return path.parse(v).name
+            })
+
+            // If there are any files with the same names and different extensions then we want to use extension for chNames
+            let useExtForChName = baseNames.length !== new Set(baseNames).size
 
             // Create a webworker for each tiff and return the results to loadFileData.
             tiffs.forEach(f => {
@@ -109,7 +115,7 @@ export class ImageData {
                     },
                     false,
                 )
-                worker.postMessage({ filepath: path.join(dirName, f) })
+                worker.postMessage({ useExtForChName: useExtForChName, filepath: path.join(dirName, f) })
                 this.workers.push(worker)
             })
         }
