@@ -157,28 +157,7 @@ export function drawOutlines(
 
 // Generating brightness filter code for the passed in channel.
 // Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
-export function generateBrightnessFilterCode(
-    channelName: ChannelName,
-    imcData: ImageData,
-    channelMarker: Record<ChannelName, string | null>,
-    channelDomain: Record<ChannelName, [number, number]>,
-): { code: string; m: number; b: number } {
-    let curChannelDomain = channelDomain[channelName]
-
-    // Get the max value for the given channel.
-    let marker = channelMarker[channelName]
-    let channelMax = 100.0
-    if (marker != null) {
-        channelMax = imcData.minmax[marker].max
-    }
-
-    // Get the PIXI channel name (i.e. r, g, b) from the first character of the channelName.
-    let channel = channelName.charAt(0)
-
-    // Using slider values to generate m and b for a linear transformation (y = mx + b).
-    let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
-    let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
-
+export function generateBrightnessFilterCode(): string {
     let filterCode = `
     varying vec2 vTextureCoord;
     varying vec4 vColor;
@@ -212,5 +191,48 @@ export function generateBrightnessFilterCode(
 
     }`
 
-    return { code: filterCode, m: m, b: b }
+    return filterCode
+}
+
+export function generateBrightnessFilterUniforms(
+    channelName: ChannelName,
+    imcData: ImageData,
+    channelMarker: Record<ChannelName, string | null>,
+    channelDomain: Record<ChannelName, [number, number]>,
+): PIXI.UniformDataMap<Record<string, any>> {
+    let curChannelDomain = channelDomain[channelName]
+
+    // Get the max value for the given channel.
+    let marker = channelMarker[channelName]
+    let channelMax = 100.0
+    if (marker != null) {
+        channelMax = imcData.minmax[marker].max
+    }
+
+    // Using slider values to generate m and b for a linear transformation (y = mx + b).
+    let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
+    let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
+
+    return {
+        m: {
+            type: 'f',
+            value: m,
+        },
+        b: {
+            type: 'f',
+            value: b,
+        },
+        red: {
+            type: 'b',
+            value: channelName == 'rChannel',
+        },
+        green: {
+            type: 'b',
+            value: channelName == 'gChannel',
+        },
+        blue: {
+            type: 'b',
+            value: channelName == 'bChannel',
+        },
+    }
 }
