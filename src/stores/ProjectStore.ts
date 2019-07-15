@@ -35,8 +35,6 @@ export class ProjectStore {
     @observable.ref public activePlotStore: PlotStore
     @observable.ref public configurationHelper: ConfigurationHelper
 
-    @observable public copyImageSetSettingsEnabled: boolean
-
     // Storing channel marker and channel domain on the project store
     // So that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
@@ -63,8 +61,6 @@ export class ProjectStore {
 
     @action public initialize = () => {
         this.initializeImageSets()
-
-        this.copyImageSetSettingsEnabled = true
 
         this.plotInMainWindow = true
 
@@ -117,21 +113,6 @@ export class ProjectStore {
             return { value: s, label: path.basename(s) }
         })
     })
-
-    @action public setCopyImageSetSettings = (value: boolean) => {
-        this.copyImageSetSettingsEnabled = value
-        // if setting to true, copy the values from active image store to the project store.
-        if (value) {
-            for (let s of ['rChannel', 'gChannel', 'bChannel']) {
-                let channelName = s as ChannelName
-                this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(
-                    channelName,
-                )
-                this.channelMarker[channelName] = this.activeImageStore.channelMarker[channelName]
-            }
-            this.selectedPlotChannels = this.activePlotStore.selectedPlotChannels
-        }
-    }
 
     @action public initializeImageSets = () => {
         this.imageSetPaths = []
@@ -221,10 +202,7 @@ export class ProjectStore {
     @action public setDefaultImageSetSettings = (imageStore: ImageStore) => {
         let markers = this.channelMarker
         // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
-        if (
-            !this.copyImageSetSettingsEnabled ||
-            (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null)
-        ) {
+        if (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null) {
             this.setChannelMarkerDefaults(imageStore)
             this.setChannelDomainDefaults(imageStore)
         }
@@ -312,12 +290,10 @@ export class ProjectStore {
             // We want to set the image store segmentation file if segmentation file basename is not null.
             this.setImageStoreSegmentationFile(destinationImageStore)
             // If the user wants to persist image set settings
-            if (this.copyImageSetSettingsEnabled) {
-                this.copyImageStoreChannelMarkers(destinationImageStore)
-                this.setImageStoreChannelDomains(destinationImageStore)
-                this.copySegmentationSettings(sourceImageStore, destinationImageStore)
-                this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
-            }
+            this.copyImageStoreChannelMarkers(destinationImageStore)
+            this.setImageStoreChannelDomains(destinationImageStore)
+            this.copySegmentationSettings(sourceImageStore, destinationImageStore)
+            this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
         }
     }
 

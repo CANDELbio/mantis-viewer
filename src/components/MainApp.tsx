@@ -129,8 +129,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedImageSet={projectStore.activeImageSetPath}
                 imageSetOptions={projectStore.imageSetPathOptions.get()}
                 setSelectedImageSet={projectStore.setActiveImageSetCallback()}
-                persistData={projectStore.copyImageSetSettingsEnabled}
-                setPersistData={projectStore.setCopyImageSetSettings}
             />
         )
 
