@@ -11,7 +11,7 @@ import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { SegmentationData } from '../lib/SegmentationData'
 import { ImageData } from '../lib/ImageData'
 import { SelectOption, ChannelName, PlotStatistic } from '../interfaces/UIDefinitions'
-import * as ConfigurationHelper from '../lib/ConfigurationHelper'
+import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 
 interface ImageSet {
     imageStore: ImageStore
@@ -33,6 +33,7 @@ export class ProjectStore {
     @observable.ref public activeImageStore: ImageStore
     @observable.ref public activePopulationStore: PopulationStore
     @observable.ref public activePlotStore: PlotStore
+    @observable.ref public configurationHelper: ConfigurationHelper
 
     @observable public copyImageSetSettingsEnabled: boolean
 
@@ -73,6 +74,7 @@ export class ProjectStore {
         this.activeImageStore = new ImageStore()
         this.activePopulationStore = new PopulationStore()
         this.activePlotStore = new PlotStore()
+        this.configurationHelper = new ConfigurationHelper()
         this.nullImageSet = {
             imageStore: this.activeImageStore,
             plotStore: this.activePlotStore,
@@ -231,7 +233,7 @@ export class ProjectStore {
     // If the image store has image data, sets the defaults based on the configuration helper.
     @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
         if (imageStore.imageData != null) {
-            let defaultValues = ConfigurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
+            let defaultValues = this.configurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
             for (let s in defaultValues) {
                 let channelName = s as ChannelName
                 let markerName = defaultValues[channelName]
@@ -241,7 +243,7 @@ export class ProjectStore {
     }
 
     @action public setChannelDomainDefaults = (imageStore: ImageStore) => {
-        let defaultValues = ConfigurationHelper.getDefaultChannelDomains()
+        let defaultValues = this.configurationHelper.getDefaultChannelDomains()
         for (let s in defaultValues) {
             let channelName = s as ChannelName
             let defaultDomain = defaultValues[channelName]
@@ -425,7 +427,7 @@ export class ProjectStore {
         this.channelMarker[channelName] = markerName
         this.activeImageStore.setChannelMarker(channelName, markerName)
         // Set the channel domain to the default for that channel when we change it.
-        let domainPercentage = ConfigurationHelper.getDefaultChannelDomains()[channelName]
+        let domainPercentage = this.configurationHelper.getDefaultChannelDomains()[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
         this.activeImageStore.setChannelDomainFromPercentage(channelName, domainPercentage)
     }
