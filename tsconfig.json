@@ -29,6 +29,7 @@
         "./src/stores/PopulationStore.ts",
         "./src/stores/PlotStore.ts",
         "./src/stores/ProjectStore.ts",
+        "./src/stores/SettingStore.ts",
         "./src/components/ImageViewer.tsx",
         "./src/components/MainApp.tsx",
         "./src/components/ChannelControls.tsx",

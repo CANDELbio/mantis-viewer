@@ -6,6 +6,7 @@ import * as stringify from 'csv-stringify'
 import { ImageStore } from '../stores/ImageStore'
 import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
+import { SettingStore } from '../stores/SettingStore'
 import { PlotData } from '../lib/PlotData'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { SegmentationData } from '../lib/SegmentationData'
@@ -33,17 +34,8 @@ export class ProjectStore {
     @observable.ref public activeImageStore: ImageStore
     @observable.ref public activePopulationStore: PopulationStore
     @observable.ref public activePlotStore: PlotStore
+    @observable.ref public settingStore: SettingStore
     @observable.ref public configurationHelper: ConfigurationHelper
-
-    // Storing channel marker and channel domain on the project store
-    // So that we can copy across image sets even if a channel is missing in a set
-    @observable public channelMarker: Record<ChannelName, string | null>
-    // channelDomain stored here as percentages.
-    @observable public channelDomainPercentage: Record<ChannelName, [number, number]>
-    // segmentation file basename when a segmentation file is selected for the whole project
-    @observable public segmentationBasename: string | null
-    // selected plot channels to be copied
-    @observable.ref public selectedPlotChannels: string[]
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -64,18 +56,29 @@ export class ProjectStore {
 
         this.plotInMainWindow = true
 
+        this.configurationHelper = new ConfigurationHelper()
+        this.settingStore = new SettingStore()
+
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
         this.activeImageStore = new ImageStore()
         this.activePopulationStore = new PopulationStore()
         this.activePlotStore = new PlotStore()
-        this.configurationHelper = new ConfigurationHelper()
         this.nullImageSet = {
             imageStore: this.activeImageStore,
             plotStore: this.activePlotStore,
             populationStore: this.activePopulationStore,
         }
+    }
+
+    @action public initializeImageSets = () => {
+        this.imageSetPaths = []
+        this.imageSets = {}
+
+        this.activeImageSetPath = null
+
+        this.lastActiveImageSetPath = null
     }
 
     private setPlotData = autorun(() => {
@@ -113,29 +116,6 @@ export class ProjectStore {
             return { value: s, label: path.basename(s) }
         })
     })
-
-    @action public initializeImageSets = () => {
-        this.imageSetPaths = []
-        this.imageSets = {}
-
-        this.channelMarker = {
-            rChannel: null,
-            gChannel: null,
-            bChannel: null,
-        }
-
-        this.channelDomainPercentage = {
-            rChannel: [0, 1],
-            gChannel: [0, 1],
-            bChannel: [0, 1],
-        }
-
-        this.selectedPlotChannels = []
-
-        this.activeImageSetPath = null
-
-        this.lastActiveImageSetPath = null
-    }
 
     @action public openImageSet = (dirName: string) => {
         // Clear out old image sets
@@ -196,38 +176,10 @@ export class ProjectStore {
         }
 
         // Set defaults once image data has loaded
-        when(() => !this.activeImageStore.imageDataLoading, () => this.setDefaultImageSetSettings(imageStore))
-    }
-
-    @action public setDefaultImageSetSettings = (imageStore: ImageStore) => {
-        let markers = this.channelMarker
-        // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
-        if (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null) {
-            this.setChannelMarkerDefaults(imageStore)
-            this.setChannelDomainDefaults(imageStore)
-        }
-    }
-
-    // If the image store has image data, sets the defaults based on the configuration helper.
-    @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
-        if (imageStore.imageData != null) {
-            let defaultValues = this.configurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
-            for (let s in defaultValues) {
-                let channelName = s as ChannelName
-                let markerName = defaultValues[channelName]
-                if (markerName != null) this.setChannelMarker(channelName, markerName)
-            }
-        }
-    }
-
-    @action public setChannelDomainDefaults = (imageStore: ImageStore) => {
-        let defaultValues = this.configurationHelper.getDefaultChannelDomains()
-        for (let s in defaultValues) {
-            let channelName = s as ChannelName
-            let defaultDomain = defaultValues[channelName]
-            this.channelDomainPercentage[channelName] = defaultDomain
-            imageStore.setChannelDomainFromPercentage(channelName, defaultDomain)
-        }
+        when(
+            () => !this.activeImageStore.imageDataLoading,
+            () => this.settingStore.setDefaultImageSetSettings(imageStore, this.configurationHelper),
+        )
     }
 
     @action public setActiveStores = (dirName: string) => {
@@ -288,98 +240,13 @@ export class ProjectStore {
             let destinationImageStore = this.activeImageStore
             let destinationPlotStore = this.activePlotStore
             // We want to set the image store segmentation file if segmentation file basename is not null.
-            this.setImageStoreSegmentationFile(destinationImageStore)
+            this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
             // If the user wants to persist image set settings
-            this.copyImageStoreChannelMarkers(destinationImageStore)
-            this.setImageStoreChannelDomains(destinationImageStore)
-            this.copySegmentationSettings(sourceImageStore, destinationImageStore)
-            this.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
+            this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
+            this.settingStore.setImageStoreChannelDomains(destinationImageStore)
+            this.settingStore.copySegmentationSettings(sourceImageStore, destinationImageStore)
+            this.settingStore.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
         }
-    }
-
-    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action public setImageStoreSegmentationFile = (destinationImageStore: ImageStore) => {
-        if (this.segmentationBasename != null) {
-            let destinationPath = destinationImageStore.selectedDirectory
-            if (destinationPath != null) {
-                let destinationSegmentationFile = path.join(destinationPath, this.segmentationBasename)
-                // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
-                if (
-                    fs.existsSync(destinationSegmentationFile) &&
-                    destinationImageStore.selectedSegmentationFile == null
-                ) {
-                    destinationImageStore.setSegmentationFile(destinationSegmentationFile)
-                }
-            }
-        }
-    }
-
-    // Copies channel markers from the project store to the image store being passed in
-    // If a channel marker isn't present in the image store that channel is unset.
-    @action public copyImageStoreChannelMarkers = (imageStore: ImageStore) => {
-        if (imageStore.imageData != null) {
-            for (let s in this.channelMarker) {
-                let channelName = s as ChannelName
-                let channelValue = this.channelMarker[channelName]
-                if (channelValue != null) {
-                    if (imageStore.imageData.channelNames.indexOf(channelValue) != -1) {
-                        // If the file selected is not null and the destination has a file with the same name set that
-                        imageStore.setChannelMarker(channelName, channelValue)
-                    } else {
-                        // Otherwise unset that channel for the destination
-                        imageStore.unsetChannelMarker(channelName)
-                    }
-                } else {
-                    // Unset the channel for the destination if it's unset in the source
-                    imageStore.unsetChannelMarker(channelName)
-                }
-            }
-        }
-    }
-
-    @action public setImageStoreChannelDomains = (destinationImageStore: ImageStore) => {
-        if (destinationImageStore.imageData != null) {
-            for (let s in this.channelDomainPercentage) {
-                let channelName = s as ChannelName
-                let channelPercentages = this.channelDomainPercentage[channelName]
-                let destinationChannelMarker = destinationImageStore.channelMarker[channelName]
-                // Copy the domain if it's not null and if the channelMarker in the destination is the same.
-                if (destinationChannelMarker != null && destinationChannelMarker == this.channelMarker[channelName]) {
-                    destinationImageStore.setChannelDomainFromPercentage(channelName, channelPercentages)
-                }
-            }
-        }
-    }
-
-    @action public copyPlotStoreSettings = (
-        sourcePlotStore: PlotStore,
-        destinationImageStore: ImageStore,
-        destinationPlotStore: PlotStore,
-    ) => {
-        destinationPlotStore.setPlotType(sourcePlotStore.plotType)
-        destinationPlotStore.setPlotStatistic(sourcePlotStore.plotStatistic)
-        destinationPlotStore.setPlotTransform(sourcePlotStore.plotTransform)
-        // Check if the source selected plot channels are in the destination image set. If they are, use them.
-        this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
-    }
-
-    @action public setPlotStoreChannels = (destinationImageStore: ImageStore, destinationPlotStore: PlotStore) => {
-        let destinationImageData = destinationImageStore.imageData
-        if (destinationImageData != null) {
-            let selectedPlotChannels = []
-            for (let channel of this.selectedPlotChannels) {
-                if (destinationImageData.channelNames.indexOf(channel) != -1) {
-                    selectedPlotChannels.push(channel)
-                }
-            }
-            destinationPlotStore.setSelectedPlotChannels(selectedPlotChannels)
-        }
-    }
-
-    @action public copySegmentationSettings = (sourceImageStore: ImageStore, destinationImageStore: ImageStore) => {
-        destinationImageStore.setSegmentationFillAlpha(sourceImageStore.segmentationFillAlpha)
-        destinationImageStore.setSegmentationOutlineAlpha(sourceImageStore.segmentationOutlineAlpha)
-        destinationImageStore.setCentroidVisibility(sourceImageStore.segmentationCentroidsVisible)
     }
 
     @action public setActiveImageSetCallback = () => {
@@ -399,30 +266,14 @@ export class ProjectStore {
         }
     }
 
-    @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
-        this.channelMarker[channelName] = markerName
-        this.activeImageStore.setChannelMarker(channelName, markerName)
-        // Set the channel domain to the default for that channel when we change it.
-        let domainPercentage = this.configurationHelper.getDefaultChannelDomains()[channelName]
-        this.channelDomainPercentage[channelName] = domainPercentage
-        this.activeImageStore.setChannelDomainFromPercentage(channelName, domainPercentage)
-    }
-
-    @action public unsetChannelMarker = (channelName: ChannelName) => {
-        this.channelMarker[channelName] = null
-        this.activeImageStore.unsetChannelMarker(channelName)
-        // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
-        this.channelDomainPercentage[channelName] = this.activeImageStore.getChannelDomainPercentage(channelName)
-    }
-
     @action public setChannelMarkerCallback = (name: ChannelName) => {
         return action((x: SelectOption) => {
             // If the SelectOption has a value.
             if (x != null) {
-                this.setChannelMarker(name, x.value)
+                this.settingStore.setChannelMarker(this.activeImageStore, this.configurationHelper, name, x.value)
                 // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
             } else {
-                this.unsetChannelMarker(name)
+                this.settingStore.unsetChannelMarker(this.activeImageStore, name)
             }
         })
     }
@@ -430,23 +281,23 @@ export class ProjectStore {
     @action public setChannelDomainCallback = (name: ChannelName) => {
         return action((value: [number, number]) => {
             this.activeImageStore.setChannelDomain(name, value)
-            this.channelDomainPercentage[name] = this.activeImageStore.getChannelDomainPercentage(name)
+            this.settingStore.setChannelDomainPercentage(name, this.activeImageStore.getChannelDomainPercentage(name))
         })
     }
 
     @action public setSegmentationBasename = (fName: string) => {
         let basename = path.basename(fName)
-        this.segmentationBasename = basename
+        this.settingStore.setSegmentationBasename(basename)
         this.activeImageStore.setSegmentationFile(fName)
     }
 
     @action public setSelectedPlotChannels = (x: string[]) => {
-        this.selectedPlotChannels = x
+        this.settingStore.setSelectedPlotChannels(x)
         this.activePlotStore.setSelectedPlotChannels(x)
     }
 
     @action public clearSelectedPlotChannels = () => {
-        this.selectedPlotChannels = []
+        this.settingStore.clearSelectedPlotChannels()
         this.activePlotStore.clearSelectedPlotChannels()
     }
 
