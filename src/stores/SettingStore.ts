@@ -2,14 +2,16 @@ import { observable, action } from 'mobx'
 import * as path from 'path'
 import * as fs from 'fs'
 
-import { ChannelName } from '../interfaces/UIDefinitions'
+import { ChannelName, PlotNormalization } from '../interfaces/UIDefinitions'
 import { ImageStore } from '../stores/ImageStore'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { PlotStore } from '../stores/PlotStore'
 
+import { PlotStatistic, PlotTransform, PlotType } from '../interfaces/UIDefinitions'
+
 export class SettingStore {
-    public constructor() {
-        this.initialize()
+    public constructor(imageStore: ImageStore, plotStore: PlotStore) {
+        this.initialize(imageStore, plotStore)
     }
 
     // Storing channel marker and channel domain on the project store
@@ -22,7 +24,16 @@ export class SettingStore {
     // selected plot channels to be copied
     @observable.ref public selectedPlotChannels: string[]
 
-    @action public initialize = () => {
+    @observable public plotStatistic: PlotStatistic
+    @observable public plotTransform: PlotTransform
+    @observable public plotType: PlotType
+    @observable public plotNormalization: PlotNormalization
+
+    @observable public segmentationFillAlpha: number
+    @observable public segmentationOutlineAlpha: number
+    @observable public segmentationCentroidsVisible: boolean
+
+    @action public initialize = (imageStore: ImageStore, plotStore: PlotStore) => {
         this.channelMarker = {
             rChannel: null,
             gChannel: null,
@@ -38,6 +49,43 @@ export class SettingStore {
         this.segmentationBasename = null
 
         this.selectedPlotChannels = []
+
+        this.plotStatistic = plotStore.plotStatistic
+        this.plotTransform = plotStore.plotTransform
+        this.plotType = plotStore.plotType
+        this.plotNormalization = plotStore.plotNormalization
+
+        this.segmentationFillAlpha = imageStore.segmentationFillAlpha
+        this.segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
+        this.segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
+    }
+
+    @action public setPlotStatistic = (statistic: PlotStatistic) => {
+        this.plotStatistic = statistic
+    }
+
+    @action public setPlotTransform = (transform: PlotTransform) => {
+        this.plotTransform = transform
+    }
+
+    @action public setPlotType = (type: PlotType) => {
+        this.plotType = type
+    }
+
+    @action public setPlotNormalization = (normalization: PlotNormalization) => {
+        this.plotNormalization = normalization
+    }
+
+    @action public setSegmentationFillAlpha = (alpha: number) => {
+        this.segmentationFillAlpha = alpha
+    }
+
+    @action public setSegmentationOutlineAlpha = (alpha: number) => {
+        this.segmentationOutlineAlpha = alpha
+    }
+
+    @action public setSegmentationCentroidsVisible = (visible: boolean) => {
+        this.segmentationCentroidsVisible = visible
     }
 
     @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
@@ -160,34 +208,31 @@ export class SettingStore {
     }
 
     // TODO:
-    @action public copyPlotStoreSettings = (
-        sourcePlotStore: PlotStore,
-        destinationImageStore: ImageStore,
-        destinationPlotStore: PlotStore,
-    ) => {
-        destinationPlotStore.setPlotType(sourcePlotStore.plotType)
-        destinationPlotStore.setPlotStatistic(sourcePlotStore.plotStatistic)
-        destinationPlotStore.setPlotTransform(sourcePlotStore.plotTransform)
+    @action public copyPlotStoreSettings = (imageStore: ImageStore, plotStore: PlotStore) => {
+        plotStore.setPlotType(this.plotType)
+        plotStore.setPlotStatistic(this.plotStatistic)
+        plotStore.setPlotTransform(this.plotTransform)
+        plotStore.setPlotNormalization(this.plotNormalization)
         // Check if the source selected plot channels are in the destination image set. If they are, use them.
-        this.setPlotStoreChannels(destinationImageStore, destinationPlotStore)
+        this.setPlotStoreChannels(imageStore, plotStore)
     }
 
-    @action public setPlotStoreChannels = (destinationImageStore: ImageStore, destinationPlotStore: PlotStore) => {
-        let destinationImageData = destinationImageStore.imageData
-        if (destinationImageData != null) {
+    @action public setPlotStoreChannels = (imageStore: ImageStore, plotStore: PlotStore) => {
+        let imageData = imageStore.imageData
+        if (imageData != null) {
             let selectedPlotChannels = []
             for (let channel of this.selectedPlotChannels) {
-                if (destinationImageData.channelNames.indexOf(channel) != -1) {
+                if (imageData.channelNames.indexOf(channel) != -1) {
                     selectedPlotChannels.push(channel)
                 }
             }
-            destinationPlotStore.setSelectedPlotChannels(selectedPlotChannels)
+            plotStore.setSelectedPlotChannels(selectedPlotChannels)
         }
     }
 
-    @action public copySegmentationSettings = (sourceImageStore: ImageStore, destinationImageStore: ImageStore) => {
-        destinationImageStore.setSegmentationFillAlpha(sourceImageStore.segmentationFillAlpha)
-        destinationImageStore.setSegmentationOutlineAlpha(sourceImageStore.segmentationOutlineAlpha)
-        destinationImageStore.setCentroidVisibility(sourceImageStore.segmentationCentroidsVisible)
+    @action public copySegmentationSettings = (imageStore: ImageStore) => {
+        imageStore.setSegmentationFillAlpha(this.segmentationFillAlpha)
+        imageStore.setSegmentationOutlineAlpha(this.segmentationOutlineAlpha)
+        imageStore.setCentroidVisibility(this.segmentationCentroidsVisible)
     }
 }

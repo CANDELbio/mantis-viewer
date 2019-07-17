@@ -155,10 +155,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     <SegmentationControls
                         fillAlpha={imageStore.segmentationFillAlpha}
                         outlineAlpha={imageStore.segmentationOutlineAlpha}
-                        onFillAlphaChange={imageStore.setSegmentationFillAlpha}
-                        onOutlineAlphaChange={imageStore.setSegmentationOutlineAlpha}
+                        onFillAlphaChange={projectStore.setSegmentationFillAlpha}
+                        onOutlineAlphaChange={projectStore.setSegmentationOutlineAlpha}
                         centroidsVisible={imageStore.segmentationCentroidsVisible}
-                        setCentroidsVisible={imageStore.setCentroidVisibility}
+                        setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
                         onClearSegmentation={projectStore.clearActiveSegmentationData}
                     />
                 )
@@ -171,13 +171,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             selectedPlotChannels={plotStore.selectedPlotChannels}
                             setSelectedPlotChannels={projectStore.setSelectedPlotChannels}
                             selectedStatistic={plotStore.plotStatistic}
-                            setSelectedStatistic={plotStore.setPlotStatistic}
+                            setSelectedStatistic={projectStore.setPlotStatistic}
                             selectedTransform={plotStore.plotTransform}
-                            setSelectedTransform={plotStore.setPlotTransform}
+                            setSelectedTransform={projectStore.setPlotTransform}
                             selectedType={plotStore.plotType}
-                            setSelectedType={plotStore.setPlotType}
+                            setSelectedType={projectStore.setPlotType}
                             selectedNormalization={plotStore.plotNormalization}
-                            setSelectedNormalization={plotStore.setPlotNormalization}
+                            setSelectedNormalization={projectStore.setPlotNormalization}
                             setSelectedSegments={this.addSelectedPopulation}
                             setSelectedRange={projectStore.addPopulationFromRange}
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}

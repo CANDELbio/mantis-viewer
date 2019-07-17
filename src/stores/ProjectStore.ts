@@ -11,7 +11,14 @@ import { PlotData } from '../lib/PlotData'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { SegmentationData } from '../lib/SegmentationData'
 import { ImageData } from '../lib/ImageData'
-import { SelectOption, ChannelName, PlotStatistic } from '../interfaces/UIDefinitions'
+import {
+    SelectOption,
+    ChannelName,
+    PlotStatistic,
+    PlotTransform,
+    PlotType,
+    PlotNormalization,
+} from '../interfaces/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 
 interface ImageSet {
@@ -57,7 +64,6 @@ export class ProjectStore {
         this.plotInMainWindow = true
 
         this.configurationHelper = new ConfigurationHelper()
-        this.settingStore = new SettingStore()
 
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
@@ -70,6 +76,8 @@ export class ProjectStore {
             plotStore: this.activePlotStore,
             populationStore: this.activePopulationStore,
         }
+
+        this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
     }
 
     @action public initializeImageSets = () => {
@@ -204,15 +212,12 @@ export class ProjectStore {
 
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
-        when(
-            () => !this.activeImageStore.imageDataLoading,
-            () => this.finalizeActiveImageSet(this.lastActiveImageSetPath),
-        )
+        when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet())
     }
 
     // Make any changes or checks that require image data to be loaded.
-    @action public finalizeActiveImageSet = (sourceImageSetPath: string | null) => {
-        this.copyImageSetSettings(sourceImageSetPath)
+    @action public finalizeActiveImageSet = () => {
+        this.copyImageSetSettings()
         this.setImageSetWarnings()
     }
 
@@ -233,20 +238,16 @@ export class ProjectStore {
 
     // Copy settings from old imageSet to new one once image data has loaded.
     // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
-    @action public copyImageSetSettings = (sourceImageSetPath: string | null) => {
-        if (sourceImageSetPath != null) {
-            let sourceImageStore = this.imageSets[sourceImageSetPath].imageStore
-            let sourcePlotStore = this.imageSets[sourceImageSetPath].plotStore
-            let destinationImageStore = this.activeImageStore
-            let destinationPlotStore = this.activePlotStore
-            // We want to set the image store segmentation file if segmentation file basename is not null.
-            this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
-            // If the user wants to persist image set settings
-            this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
-            this.settingStore.setImageStoreChannelDomains(destinationImageStore)
-            this.settingStore.copySegmentationSettings(sourceImageStore, destinationImageStore)
-            this.settingStore.copyPlotStoreSettings(sourcePlotStore, destinationImageStore, destinationPlotStore)
-        }
+    @action public copyImageSetSettings = () => {
+        let destinationImageStore = this.activeImageStore
+        let destinationPlotStore = this.activePlotStore
+        // We want to set the image store segmentation file if segmentation file basename is not null.
+        this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
+        // If the user wants to persist image set settings
+        this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
+        this.settingStore.setImageStoreChannelDomains(destinationImageStore)
+        this.settingStore.copySegmentationSettings(destinationImageStore)
+        this.settingStore.copyPlotStoreSettings(destinationImageStore, destinationPlotStore)
     }
 
     @action public setActiveImageSetCallback = () => {
@@ -477,5 +478,44 @@ export class ProjectStore {
 
     @action public setPlotInMainWindow = (inWindow: boolean) => {
         this.plotInMainWindow = inWindow
+    }
+
+    // Could possible achieve the following effects by using mobx observe functions
+    // and destroying/recreating them when the active image set changes.
+    // Might be cleaner, but This seemed easier for now though.
+
+    @action public setPlotStatistic = (statistic: PlotStatistic) => {
+        this.settingStore.setPlotStatistic(statistic)
+        this.activePlotStore.setPlotStatistic(statistic)
+    }
+
+    @action public setPlotTransform = (transform: PlotTransform) => {
+        this.settingStore.setPlotTransform(transform)
+        this.activePlotStore.setPlotTransform(transform)
+    }
+
+    @action public setPlotType = (type: PlotType) => {
+        this.settingStore.setPlotType(type)
+        this.activePlotStore.setPlotType(type)
+    }
+
+    @action public setPlotNormalization = (normalization: PlotNormalization) => {
+        this.settingStore.setPlotNormalization(normalization)
+        this.activePlotStore.setPlotNormalization(normalization)
+    }
+
+    @action public setSegmentationFillAlpha = (alpha: number) => {
+        this.settingStore.setSegmentationFillAlpha(alpha)
+        this.activeImageStore.setSegmentationFillAlpha(alpha)
+    }
+
+    @action public setSegmentationOutlineAlpha = (alpha: number) => {
+        this.settingStore.setSegmentationOutlineAlpha(alpha)
+        this.activeImageStore.setSegmentationOutlineAlpha(alpha)
+    }
+
+    @action public setSegmentationCentroidsVisible = (visible: boolean) => {
+        this.settingStore.setSegmentationCentroidsVisible(visible)
+        this.activeImageStore.setCentroidVisibility(visible)
     }
 }

@@ -30,8 +30,6 @@ export class ImageStore {
     @observable public segmentationOutlineAlpha: number
     @observable public segmentationCentroidsVisible: boolean
 
-    @observable public segmentationOutlinesVisible: boolean
-
     @observable public channelMarker: Record<ChannelName, string | null>
 
     @observable public message: string | null
@@ -68,7 +66,6 @@ export class ImageStore {
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
         this.segmentationCentroidsVisible = false
-        this.segmentationOutlinesVisible = true
 
         this.channelMarker = {
             rChannel: null,
