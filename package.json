@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "0.9.0-alpha.1",
+    "version": "0.9.0",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "main.js",
     "scripts": {
@@ -107,6 +107,7 @@
         "mobx-react": "^5.4.3",
         "mobx-utils": "^5.1.0",
         "normalize.css": "^5.0.0",
+        "npm": "^6.10.1",
         "pixi.js": "^4.8.8",
         "plotly.js": "^1.48.3",
         "popper.js": "^1.15.0",
