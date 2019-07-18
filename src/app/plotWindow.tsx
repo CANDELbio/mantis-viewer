@@ -3,7 +3,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { ipcRenderer } from 'electron'
-import { PlotData } from '../lib/PlotData'
+import { PlotData } from '../interfaces/DataInterfaces'
 import { Plot } from '../components/Plot'
 
 let channelSelectOptions: { value: string; label: string }[]

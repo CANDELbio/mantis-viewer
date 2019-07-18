@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { PlotStatistic } from '../interfaces/UIDefinitions'
+import { PlotStatistic } from '../definitions/UIDefinitions'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface

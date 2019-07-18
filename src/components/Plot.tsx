@@ -6,14 +6,15 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 
-import { PlotData, DefaultSelectionName } from '../lib/PlotData'
-import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from '../interfaces/UIDefinitions'
+import { PlotData } from '../interfaces/DataInterfaces'
+import { DefaultSelectionName } from '../definitions/PlotDefinitions'
+import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from '../definitions/UIDefinitions'
 import {
     PlotStatisticOptions,
     PlotTransformOptions,
     PlotNormalizationOptions,
     PlotNormalization,
-} from '../interfaces/UIDefinitions'
+} from '../definitions/UIDefinitions'
 
 export interface ScatterPlotProps {
     channelSelectOptions: { value: string; label: string }[]

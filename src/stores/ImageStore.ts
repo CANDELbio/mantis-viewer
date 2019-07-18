@@ -4,7 +4,7 @@ import * as path from 'path'
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
 import { SegmentationStatistics } from '../lib/SegmentationStatistics'
-import { ChannelName } from '../interfaces/UIDefinitions'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 export class ImageStore {
     public constructor() {

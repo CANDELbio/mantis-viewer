@@ -1,5 +1,5 @@
 import { observable, action } from 'mobx'
-import { PlotData } from '../lib/PlotData'
+import { PlotData } from '../interfaces/DataInterfaces'
 
 import {
     PlotStatistic,
@@ -10,7 +10,7 @@ import {
     PlotTypeOptions,
     PlotNormalization,
     PlotNormalizationOptions,
-} from '../interfaces/UIDefinitions'
+} from '../definitions/UIDefinitions'
 
 export class PlotStore {
     public constructor() {

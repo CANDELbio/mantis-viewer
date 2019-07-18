@@ -2,12 +2,12 @@ import { observable, action } from 'mobx'
 import * as path from 'path'
 import * as fs from 'fs'
 
-import { ChannelName, PlotNormalization } from '../interfaces/UIDefinitions'
+import { ChannelName, PlotNormalization } from '../definitions/UIDefinitions'
 import { ImageStore } from '../stores/ImageStore'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { PlotStore } from '../stores/PlotStore'
 
-import { PlotStatistic, PlotTransform, PlotType } from '../interfaces/UIDefinitions'
+import { PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
 
 export class SettingStore {
     public constructor(imageStore: ImageStore, plotStore: PlotStore) {

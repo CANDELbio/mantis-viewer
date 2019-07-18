@@ -1,7 +1,8 @@
 import * as _ from 'underscore'
 import * as fs from 'fs'
 import * as path from 'path'
-import { TiffDataMap, ImageDataWorkerResult, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
+import { TiffDataMap, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
+import { ImageDataWorkerResult } from '../interfaces/WorkerInterfaces'
 import { imageBitmapToSprite } from './GraphicsHelper'
 import { ImageDataWorker } from '../workers/ImageDataWorker'
 

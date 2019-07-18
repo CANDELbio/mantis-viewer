@@ -15,7 +15,7 @@ import {
     SelectedSegmentOutlineWidth,
     SegmentOutlineColor,
     SegmentOutlineWidth,
-} from '../interfaces/UIDefinitions'
+} from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
 import { randomHexColor } from '../lib/ColorHelper'

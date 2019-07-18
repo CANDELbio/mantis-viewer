@@ -7,7 +7,7 @@ import { ImageStore } from '../stores/ImageStore'
 import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
-import { PlotData } from '../lib/PlotData'
+import { generatePlotData } from '../lib/plot/Index'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { SegmentationData } from '../lib/SegmentationData'
 import { ImageData } from '../lib/ImageData'
@@ -18,7 +18,7 @@ import {
     PlotTransform,
     PlotType,
     PlotNormalization,
-} from '../interfaces/UIDefinitions'
+} from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 
 interface ImageSet {
@@ -100,18 +100,17 @@ export class ProjectStore {
             let loadHeatmap = plotStore.plotType == 'heatmap'
             if (loadHistogram || loadScatter || loadHeatmap) {
                 if (imageStore.segmentationData != null && imageStore.segmentationStatistics != null) {
-                    plotStore.setPlotData(
-                        new PlotData(
-                            plotStore.selectedPlotChannels,
-                            imageStore.segmentationData,
-                            imageStore.segmentationStatistics,
-                            plotStore.plotType,
-                            plotStore.plotStatistic,
-                            plotStore.plotTransform,
-                            plotStore.plotNormalization,
-                            populationStore.selectedPopulations,
-                        ),
+                    let plotData = generatePlotData(
+                        plotStore.selectedPlotChannels,
+                        imageStore.segmentationData,
+                        imageStore.segmentationStatistics,
+                        plotStore.plotType,
+                        plotStore.plotStatistic,
+                        plotStore.plotTransform,
+                        plotStore.plotNormalization,
+                        populationStore.selectedPopulations,
                     )
+                    if (plotData != null) plotStore.setPlotData(plotData)
                 }
             } else {
                 plotStore.clearPlotData()

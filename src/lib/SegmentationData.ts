@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import { imageBitmapToSprite } from './GraphicsHelper'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from '../lib/GraphicsHelper'
-import { SegmentationDataWorkerResult } from '../interfaces/ImageInterfaces'
+import { SegmentationDataWorkerResult } from '../interfaces/WorkerInterfaces'
 
 import SegmentationWorker = require('worker-loader?name=dist/[name].js!../workers/SegmentationDataWorker')
 

@@ -1,6 +1,7 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { SegmentationStatisticWorkerResult, MinMax } from '../interfaces/ImageInterfaces'
+import { MinMax } from '../interfaces/ImageInterfaces'
+import { SegmentationStatisticWorkerResult } from '../interfaces/WorkerInterfaces'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 
 import StatisticWorker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker')

@@ -6,7 +6,8 @@ const ctx: Worker = self as any
 import * as d3Scale from 'd3-scale'
 import * as path from 'path'
 
-import { MinMax, ImageDataWorkerResult } from '../interfaces/ImageInterfaces'
+import { MinMax } from '../interfaces/ImageInterfaces'
+import { ImageDataWorkerResult } from '../interfaces/WorkerInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
 
 async function bitmapFromData(
@@ -20,6 +21,7 @@ async function bitmapFromData(
 
     let thisCtx = offScreen.getContext('2d')
     if (thisCtx) {
+        // @ts-ignore
         let imageData = thisCtx.getImageData(0, 0, offScreen.width, offScreen.height)
         let canvasData = imageData.data
 
@@ -39,6 +41,7 @@ async function bitmapFromData(
             canvasData[canvasIndex + 2] = x // b
             canvasData[canvasIndex + 3] = 255 // a
         }
+        // @ts-ignore
         thisCtx.putImageData(imageData, 0, 0)
     }
 

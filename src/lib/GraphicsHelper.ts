@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { ChannelName, DefaultSegmentOutlineAlpha } from '../interfaces/UIDefinitions'
+import { ChannelName, DefaultSegmentOutlineAlpha } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {

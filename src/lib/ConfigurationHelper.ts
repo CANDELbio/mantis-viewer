@@ -1,4 +1,4 @@
-import { ChannelName } from '../interfaces/UIDefinitions'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 export class ConfigurationHelper {
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
