@@ -18,8 +18,8 @@ export class ImageData {
 
     public errors: string[]
 
-    // Keep track of the number of channels. Used to know when all workers have completed.
-    private numChannels: number
+    // Keep track of the number of markers. Used to know when all workers have completed.
+    private numMarkers: number
     // Keep track of workers created
     // Was going to terminate them when done, but broke using Transferrable objects.
     private workers: ImageDataWorker[]
@@ -27,9 +27,9 @@ export class ImageData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (imageData: ImageData) => void
 
-    public get channelNames(): string[] {
-        let channelNames = _.keys(this.data).sort()
-        return channelNames
+    public get markerNames(): string[] {
+        let markerNames = _.keys(this.data).sort()
+        return markerNames
     }
 
     public clearErrors(): void {
@@ -43,37 +43,37 @@ export class ImageData {
     }
 
     private fileLoadComplete(): void {
-        let channelsLoaded = _.keys(this.data)
-        // If the number of channels loaded is equal to the total number of channels we are done!
-        if (channelsLoaded.length == this.numChannels) {
+        let markersLoaded = _.keys(this.data)
+        // If the number of markers loaded is equal to the total number of markers we are done!
+        if (markersLoaded.length == this.numMarkers) {
             this.onReady(this)
         }
     }
 
     private async loadFileData(fData: ImageDataWorkerResult): Promise<void> {
-        let chName = fData.chName
+        let markerName = fData.markerName
         this.width = fData.width
         this.height = fData.height
-        this.data[chName] = fData.data
-        this.sprites[chName] = imageBitmapToSprite(fData.bitmap)
-        this.minmax[chName] = fData.minmax
+        this.data[markerName] = fData.data
+        this.sprites[markerName] = imageBitmapToSprite(fData.bitmap)
+        this.minmax[markerName] = fData.minmax
         this.fileLoadComplete()
     }
 
-    private async loadFileError(fError: { error: string; chName: string }): Promise<void> {
-        let err = 'Error loading channel ' + fError.chName + ': ' + fError.error
+    private async loadFileError(fError: { error: string; markerName: string }): Promise<void> {
+        let err = 'Error loading marker ' + fError.markerName + ': ' + fError.error
         console.log(err)
-        this.errors.push(fError.chName)
-        this.numChannels -= 1
+        this.errors.push(fError.markerName)
+        this.numMarkers -= 1
         this.fileLoadComplete()
     }
 
-    public removeChannel(chName: string): void {
-        if (chName in this.data) {
-            this.numChannels -= 1
-            delete this.data[chName]
-            delete this.sprites[chName]
-            delete this.minmax[chName]
+    public removeMarker(markerName: string): void {
+        if (markerName in this.data) {
+            this.numMarkers -= 1
+            delete this.data[markerName]
+            delete this.sprites[markerName]
+            delete this.minmax[markerName]
         }
     }
 
@@ -87,20 +87,20 @@ export class ImageData {
 
         console.log(tiffs)
         // Store the number of tiffs being loaded so we know when all the background workers have finished
-        this.numChannels = tiffs.length
+        this.numMarkers = tiffs.length
 
         if (tiffs.length == 0) {
             // If no tiffs are present in the directory, just return an empty image data.
             this.onReady(this)
         } else {
             let loadFileData = (data: ImageDataWorkerResult): Promise<void> => this.loadFileData(data)
-            let loadFileError = (data: { error: any; chName: string }): Promise<void> => this.loadFileError(data)
+            let loadFileError = (data: { error: any; markerName: string }): Promise<void> => this.loadFileError(data)
             let baseNames = tiffs.map((v: string) => {
                 return path.parse(v).name
             })
 
-            // If there are any files with the same names and different extensions then we want to use extension for chNames
-            let useExtForChName = baseNames.length !== new Set(baseNames).size
+            // If there are any files with the same names and different extensions then we want to use extension for markerNames
+            let useExtForMarkerName = baseNames.length !== new Set(baseNames).size
 
             // Create a webworker for each tiff and return the results to loadFileData.
             tiffs.forEach(f => {
@@ -116,7 +116,7 @@ export class ImageData {
                     },
                     false,
                 )
-                worker.postMessage({ useExtForChName: useExtForChName, filepath: path.join(dirName, f) })
+                worker.postMessage({ useExtForMarkerName: useExtForMarkerName, filepath: path.join(dirName, f) })
                 this.workers.push(worker)
             })
         }

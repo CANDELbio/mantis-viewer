@@ -24,7 +24,7 @@ export class ImageStore {
 
     @observable public channelDomain: Record<ChannelName, [number, number]>
 
-    @observable.ref public channelSelectOptions: { value: string; label: string }[]
+    @observable.ref public markerSelectOptions: { value: string; label: string }[]
 
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
@@ -48,9 +48,9 @@ export class ImageStore {
         }
     })
 
-    private setChannelSelectOptions = autorun(() => {
+    private setMarkerSelectOptions = autorun(() => {
         if (this.imageData) {
-            this.updateChannelSelectOption()
+            this.updateMarkerSelectOption()
         }
     })
 
@@ -61,7 +61,7 @@ export class ImageStore {
             bChannel: [0, 100],
         }
 
-        this.channelSelectOptions = []
+        this.markerSelectOptions = []
 
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
@@ -185,8 +185,8 @@ export class ImageStore {
                 if (this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
             }
             // Delete it from image data
-            this.imageData.removeChannel(markerName)
-            this.updateChannelSelectOption()
+            this.imageData.removeMarker(markerName)
+            this.updateMarkerSelectOption()
         }
     }
 
@@ -215,15 +215,15 @@ export class ImageStore {
     }
 
     // Somewhat hacky feeling workaround
-    // channelSelectOptions used to be computed, but was not refreshing when a marker was being removed (for segmentation data)
+    // markerSelectOptions used to be computed, but was not refreshing when a marker was being removed (for segmentation data)
     // Moved it here so that it can be called manually when we remove the segmentation data tiff from image data.
-    @action public updateChannelSelectOption = () => {
+    @action public updateMarkerSelectOption = () => {
         if (this.imageData) {
-            this.channelSelectOptions = this.imageData.channelNames.map(s => {
+            this.markerSelectOptions = this.imageData.markerNames.map(s => {
                 return { value: s, label: s }
             })
         } else {
-            this.channelSelectOptions = []
+            this.markerSelectOptions = []
         }
     }
 }

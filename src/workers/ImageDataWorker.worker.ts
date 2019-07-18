@@ -61,25 +61,25 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
 }
 
 export async function readFile(
-    useExtForChName: string,
+    useExtForMarkerName: string,
     filepath: string,
     onError: (err: any) => void,
 ): Promise<ImageDataWorkerResult | void> {
     let parsed = path.parse(filepath)
-    let chName = useExtForChName ? parsed.base : parsed.name
+    let markerName = useExtForMarkerName ? parsed.base : parsed.name
     try {
         let tiffData = await readTiffData(filepath)
         let { data, width, height } = tiffData
 
-        // Calculate the minimum and maximum channel intensity
+        // Calculate the minimum and maximum marker intensity
         let minmax = calculateMinMaxIntensity(data)
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
         let bitmap = await bitmapFromData(data, width, height, minmax)
 
-        return { chName: chName, width: width, height: height, data: data, bitmap: bitmap, minmax: minmax }
+        return { markerName: markerName, width: width, height: height, data: data, bitmap: bitmap, minmax: minmax }
     } catch (err) {
-        onError({ error: err.message, chName: chName })
+        onError({ error: err.message, markerName: markerName })
     }
 }
 
@@ -87,7 +87,7 @@ ctx.addEventListener(
     'message',
     message => {
         var data = message.data
-        readFile(data.useExtForChName, data.filepath, err => {
+        readFile(data.useExtForMarkerName, data.filepath, err => {
             // If we have an error, send the message.
             ctx.postMessage(err)
         }).then(message => {

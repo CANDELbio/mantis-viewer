@@ -29,7 +29,7 @@ export type PlotTransform = 'none' | 'arcsinh' | 'log'
 export const PlotNormalizationOptions = [
     { label: 'No Normalization', value: 'none' },
     { label: 'Normalize per Population', value: 'population' },
-    { label: 'Normalize per Marker/Channel', value: 'marker' },
+    { label: 'Normalize per Marker', value: 'marker' },
 ]
 
 export type PlotNormalization = 'none' | 'population' | 'marker'

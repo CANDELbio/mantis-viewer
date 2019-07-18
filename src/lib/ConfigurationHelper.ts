@@ -10,7 +10,7 @@ export class ConfigurationHelper {
 
     private channelSelectionOrder: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
-    private useAnyChannelIfNoMatch = true
+    private useAnyMarkerIfNoMatch = true
 
     // Not the fastest way to do this, but realistically the list of default values and incoming markerNames should be small.
     // If we want to optimize we could do one pass through all of the incoming markerNames and store highest priority hit from each channel.
@@ -36,8 +36,8 @@ export class ConfigurationHelper {
             }
         }
 
-        // If useAnyChannelIfNoMatch, goes and fills the defaults with the first unused value in markerNames.
-        if (this.useAnyChannelIfNoMatch) {
+        // If useAnyMarkerIfNoMatch, goes and fills the defaults with the first unused value in markerNames.
+        if (this.useAnyMarkerIfNoMatch) {
             for (let s in defaultMarkers) {
                 let curChannel = s as ChannelName
                 if (defaultMarkers[curChannel] == null) {

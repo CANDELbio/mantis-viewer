@@ -2,7 +2,7 @@ import { PlotStatistic } from '../definitions/UIDefinitions'
 import { MinMax, PixelLocation } from './ImageInterfaces'
 
 export interface ImageDataWorkerResult {
-    chName: string
+    markerName: string
     width: number
     height: number
     data: Float32Array | Uint16Array | Uint8Array
@@ -12,7 +12,7 @@ export interface ImageDataWorkerResult {
 
 export interface ImageDataWorkerError {
     error: string
-    chName: string
+    markerName: string
 }
 
 export interface SegmentationDataWorkerResult {
@@ -34,10 +34,10 @@ export interface SegmentationDataWorkerResult {
 }
 
 export interface SegmentationStatisticWorkerResult {
-    chName: string
-    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    markerName: string
+    // Map of marker/marker names plus segment id (marker_segmentid) the median intensity for that marker and segment
     statistic: PlotStatistic
-    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    // Map of marker/marker names plus segment id (marker_segmentid) the median intensity for that marker and segment
     map: Record<string, number>
     minmax: MinMax
 }

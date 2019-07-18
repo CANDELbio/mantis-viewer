@@ -52,7 +52,7 @@ function calculateHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
-    let channels = segmentationStatistics.channels
+    let markers = segmentationStatistics.markers
     let selectionIds = buildSelectionIdArray(selectedPopulations)
     let intensities = []
     // Builds a map of selected region ids to their regions.
@@ -65,18 +65,18 @@ function calculateHeatmapData(
             selectionId == DefaultSelectionId
                 ? segmentationData.segmentIds
                 : selectedRegionMap[selectionId].selectedSegments
-        let channelIntensities = []
-        for (let channel of channels) {
+        let markerIntensities = []
+        for (let marker of markers) {
             let intensity = getSegmentIntensity(
                 plotStatistic,
-                channel,
+                marker,
                 selectedSegments,
                 plotTransform,
                 segmentationStatistics,
             )
-            channelIntensities.push(intensity)
+            markerIntensities.push(intensity)
         }
-        intensities.push(channelIntensities)
+        intensities.push(markerIntensities)
     }
 
     let heatmapData = Array<Plotly.Data>()
@@ -84,7 +84,7 @@ function calculateHeatmapData(
     // TO-DO: y should be selection names.
     heatmapData.push({
         z: normalizeHeatmapIntensities(intensities, plotNormalization),
-        x: channels,
+        x: markers,
         y: selectionIds.map((selectionId: string) => {
             return getSelectionName(selectionId, selectedRegionMap)
         }),
@@ -95,7 +95,7 @@ function calculateHeatmapData(
 }
 
 export function buildHeatmapData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
@@ -111,6 +111,6 @@ export function buildHeatmapData(
         plotNormalization,
         selectedPopulations,
     )
-    let layout = { title: 'Heatmap of Channel Intensity', xaxis: { tickangle: 45 } }
-    return { channels: channels, data: data, layout: layout }
+    let layout = { title: 'Heatmap of Marker Intensity', xaxis: { tickangle: 45 } }
+    return { markers: markers, data: data, layout: layout }
 }

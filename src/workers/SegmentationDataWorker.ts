@@ -5,7 +5,8 @@ const ctx: Worker = self as any
 
 import * as concaveman from 'concaveman'
 
-import { RGBColorCollection, SegmentationDataWorkerResult } from '../interfaces/ImageInterfaces'
+import { RGBColorCollection } from '../interfaces/ImageInterfaces'
+import { SegmentationDataWorkerResult } from '../interfaces/WorkerInterfaces'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
 import { randomRGBColor } from '../lib/ColorHelper'
@@ -57,6 +58,7 @@ async function segmentationFillBitmap(
 
     let ctx = offScreen.getContext('2d')
     if (ctx) {
+        //@ts-ignore
         let imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
         let canvasData = imageData.data
 
@@ -65,7 +67,7 @@ async function segmentationFillBitmap(
         for (let i = 0; i < v.length; ++i) {
             drawPixel(v[i], colors, i, canvasData)
         }
-
+        //@ts-ignore
         ctx.putImageData(imageData, 0, 0)
     }
 

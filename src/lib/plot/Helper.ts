@@ -1,18 +1,7 @@
-import * as Plotly from 'plotly.js'
-
-import { SegmentationData } from '../SegmentationData'
 import { SegmentationStatistics } from '../SegmentationStatistics'
-import { PlotStatistic, PlotTransform, PlotType } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
-import { hexToRGB } from '../ColorHelper'
-import { PlotData } from '../../interfaces/DataInterfaces'
 
-import {
-    DefaultSelectionName,
-    DefaultSelectionId,
-    DefaultSelectionColor,
-    NumHistogramBins,
-} from '../../definitions/PlotDefinitions'
+import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDefinitions'
 
 // Currently sorts them by name. Will want to remove sorting by name once we allow user to choose the render order.
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
@@ -43,7 +32,7 @@ export function buildSelectedRegionMap(
 
 export function getSegmentIntensity(
     plotStatistic: string,
-    channel: string,
+    marker: string,
     segmentIds: number[],
     plotTransform: string,
     segmentationStatistics: SegmentationStatistics,
@@ -52,9 +41,9 @@ export function getSegmentIntensity(
 
     // Get the mean or median depending on what the user selected.
     if (plotStatistic == 'mean') {
-        result = segmentationStatistics.meanIntensity(channel, segmentIds)
+        result = segmentationStatistics.meanIntensity(marker, segmentIds)
     } else {
-        result = segmentationStatistics.medianIntensity(channel, segmentIds)
+        result = segmentationStatistics.medianIntensity(marker, segmentIds)
     }
 
     // If the user has selected a transform, apply it.

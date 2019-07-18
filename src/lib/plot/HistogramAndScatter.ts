@@ -53,7 +53,7 @@ function newPlotDatum(numValues: number): { values: number[][]; text: string[] }
 }
 
 function calculateRawPlotData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
@@ -86,9 +86,9 @@ function calculateRawPlotData(
 
         // Calculate the mean or median intensity of the pixels in the segment
         let curValues = []
-        for (let ch of channels) {
+        for (let marker of markers) {
             curValues.push(
-                getSegmentIntensity(plotStatistic, ch, [parseInt(segment)], plotTransform, segmentationStatistics),
+                getSegmentIntensity(plotStatistic, marker, [parseInt(segment)], plotTransform, segmentationStatistics),
             )
         }
 
@@ -97,7 +97,7 @@ function calculateRawPlotData(
         // as a space delimited string with the last element being the segment id
         // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
         for (let selectionId of selections) {
-            if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(channels.length)
+            if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(markers.length)
             plotData[selectionId].text.push('Segment ' + segment)
             for (let i in curValues) {
                 let v = curValues[i]
@@ -110,7 +110,7 @@ function calculateRawPlotData(
 }
 
 export function calculatePlotData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotType: PlotType,
@@ -119,7 +119,7 @@ export function calculatePlotData(
     selectedRegions: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
     let rawPlotData = calculateRawPlotData(
-        channels,
+        markers,
         segmentationData,
         segmentationStatistics,
         plotStatistic,
@@ -129,9 +129,11 @@ export function calculatePlotData(
 
     let plotData = Array<Plotly.Data>()
 
-    let ch = channels[0]
+    let marker = markers[0]
     let minMax =
-        plotStatistic == 'mean' ? segmentationStatistics.meanMinMaxMap[ch] : segmentationStatistics.medianMinMaxMap[ch]
+        plotStatistic == 'mean'
+            ? segmentationStatistics.meanMinMaxMap[marker]
+            : segmentationStatistics.medianMinMaxMap[marker]
 
     // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
     let sortedSelectionIds = buildSelectionIdArray(selectedRegions)
@@ -171,7 +173,7 @@ export function calculatePlotData(
 }
 
 export function buildHistogramData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
@@ -179,7 +181,7 @@ export function buildHistogramData(
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
     let data = calculatePlotData(
-        channels,
+        markers,
         segmentationData,
         segmentationStatistics,
         'histogram',
@@ -187,12 +189,12 @@ export function buildHistogramData(
         plotTransform,
         selectedPopulations,
     )
-    let layout: Partial<Plotly.Layout> = { title: channels[0], xaxis: { title: channels[0] }, barmode: 'overlay' }
-    return { channels: channels, data: data, layout: layout }
+    let layout: Partial<Plotly.Layout> = { title: markers[0], xaxis: { title: markers[0] }, barmode: 'overlay' }
+    return { markers: markers, data: data, layout: layout }
 }
 
 export function buildScatterData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
@@ -200,7 +202,7 @@ export function buildScatterData(
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
     let data = calculatePlotData(
-        channels,
+        markers,
         segmentationData,
         segmentationStatistics,
         'scatter',
@@ -209,9 +211,9 @@ export function buildScatterData(
         selectedPopulations,
     )
     let layout = {
-        title: channels[0] + ' versus ' + channels[1],
-        xaxis: { title: channels[0] },
-        yaxis: { title: channels[1] },
+        title: markers[0] + ' versus ' + markers[1],
+        xaxis: { title: markers[0] },
+        yaxis: { title: markers[1] },
     }
-    return { channels: channels, data: data, layout: layout }
+    return { markers: markers, data: data, layout: layout }
 }

@@ -95,13 +95,13 @@ export class ProjectStore {
         let plotStore = this.activePlotStore
 
         if (imageStore && populationStore && plotStore) {
-            let loadHistogram = plotStore.selectedPlotChannels.length == 1 && plotStore.plotType == 'histogram'
-            let loadScatter = plotStore.selectedPlotChannels.length == 2 && plotStore.plotType == 'scatter'
+            let loadHistogram = plotStore.selectedPlotMarkers.length == 1 && plotStore.plotType == 'histogram'
+            let loadScatter = plotStore.selectedPlotMarkers.length == 2 && plotStore.plotType == 'scatter'
             let loadHeatmap = plotStore.plotType == 'heatmap'
             if (loadHistogram || loadScatter || loadHeatmap) {
                 if (imageStore.segmentationData != null && imageStore.segmentationStatistics != null) {
                     let plotData = generatePlotData(
-                        plotStore.selectedPlotChannels,
+                        plotStore.selectedPlotMarkers,
                         imageStore.segmentationData,
                         imageStore.segmentationStatistics,
                         plotStore.plotType,
@@ -226,7 +226,7 @@ export class ProjectStore {
         if (this.activeImageSetPath != null) {
             let imageStore = this.activeImageStore
             if (imageStore.imageData != null) {
-                if (imageStore.imageData.channelNames.length == 0) {
+                if (imageStore.imageData.markerNames.length == 0) {
                     let msg = 'Warning: No tiffs found in ' + path.basename(this.activeImageSetPath) + '.'
                     msg += ' Do you wish to remove it from the list of image sets?'
                     this.removeMessage = msg
@@ -262,7 +262,7 @@ export class ProjectStore {
         let plotStore = this.activePlotStore
         if (imageStore && plotStore) {
             imageStore.clearSegmentationData()
-            this.clearSelectedPlotChannels()
+            this.clearSelectedPlotMarkers()
         }
     }
 
@@ -291,14 +291,14 @@ export class ProjectStore {
         this.activeImageStore.setSegmentationFile(fName)
     }
 
-    @action public setSelectedPlotChannels = (x: string[]) => {
-        this.settingStore.setSelectedPlotChannels(x)
-        this.activePlotStore.setSelectedPlotChannels(x)
+    @action public setSelectedPlotMarkers = (x: string[]) => {
+        this.settingStore.setSelectedPlotMarkers(x)
+        this.activePlotStore.setSelectedPlotMarkers(x)
     }
 
-    @action public clearSelectedPlotChannels = () => {
-        this.settingStore.clearSelectedPlotChannels()
-        this.activePlotStore.clearSelectedPlotChannels()
+    @action public clearSelectedPlotMarkers = () => {
+        this.settingStore.clearSelectedPlotMarkers()
+        this.activePlotStore.clearSelectedPlotMarkers()
     }
 
     // Exports user data (i.e populations and segmentation) for the all image sets
@@ -394,33 +394,33 @@ export class ProjectStore {
         }
     }
 
-    public exportChannelIntensisties = (filename: string, statistic: PlotStatistic) => {
+    public exportMarkerIntensisties = (filename: string, statistic: PlotStatistic) => {
         let imageStore = this.activeImageStore
         let imageData = imageStore.imageData
         let segmentationData = imageStore.segmentationData
         let segmentationStatistics = imageStore.segmentationStatistics
         let populationStore = this.activePopulationStore
         if (imageData != null && segmentationData != null && segmentationStatistics != null) {
-            let channels = imageData.channelNames
+            let markers = imageData.markerNames
             let data = [] as string[][]
 
             // Generate the header
             let columns = ['Segment ID']
-            for (let channel of channels) {
-                columns.push(channel)
+            for (let marker of markers) {
+                columns.push(marker)
             }
             columns.push('Populations')
 
-            // Iterate through the segments and calculate the intensity for each channel
+            // Iterate through the segments and calculate the intensity for each marker
             let indexMap = segmentationData.segmentIndexMap
             for (let s in indexMap) {
                 let segmentId = parseInt(s)
                 let segmentData = [s] as string[]
-                for (let channel of channels) {
+                for (let marker of markers) {
                     if (statistic == 'mean') {
-                        segmentData.push(segmentationStatistics.meanIntensity(channel, [segmentId]).toString())
+                        segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]).toString())
                     } else {
-                        segmentData.push(segmentationStatistics.medianIntensity(channel, [segmentId]).toString())
+                        segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]).toString())
                     }
                 }
 
@@ -450,10 +450,10 @@ export class ProjectStore {
         let populationStore = this.activePopulationStore
         let segmentationStatistics = this.activeImageStore.segmentationStatistics
         if (segmentationStatistics != null) {
-            let channel = plotStore.selectedPlotChannels[0]
+            let marker = plotStore.selectedPlotMarkers[0]
             let selectedStatistic = plotStore.plotStatistic
             let segmentIds = segmentationStatistics.segmentsInIntensityRange(
-                channel,
+                marker,
                 min,
                 max,
                 selectedStatistic == 'mean',

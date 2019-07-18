@@ -1,5 +1,5 @@
 export interface PlotData {
-    channels: string[]
+    markers: string[]
     data: Plotly.Data[]
     layout: Partial<Plotly.Layout>
 }

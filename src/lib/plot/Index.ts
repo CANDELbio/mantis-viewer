@@ -7,7 +7,7 @@ import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 import { PlotData } from '../../interfaces/DataInterfaces'
 
 export function generatePlotData(
-    channels: string[],
+    markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
     plotType: PlotType,
@@ -17,18 +17,18 @@ export function generatePlotData(
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData | null {
     let plotData: PlotData | null = null
-    if (plotType == 'histogram' && channels.length == 1) {
+    if (plotType == 'histogram' && markers.length == 1) {
         plotData = buildHistogramData(
-            channels,
+            markers,
             segmentationData,
             segmentationStatistics,
             plotStatistic,
             plotTransform,
             selectedPopulations,
         )
-    } else if (plotType == 'scatter' && channels.length == 2) {
+    } else if (plotType == 'scatter' && markers.length == 2) {
         plotData = buildScatterData(
-            channels,
+            markers,
             segmentationData,
             segmentationStatistics,
             plotStatistic,
@@ -37,7 +37,7 @@ export function generatePlotData(
         )
     } else if (plotType == 'heatmap') {
         plotData = buildHeatmapData(
-            channels,
+            markers,
             segmentationData,
             segmentationStatistics,
             plotStatistic,

@@ -133,18 +133,18 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         )
 
         if (imageStore.imageData != null) {
-            if (imageStore.imageData.channelNames.length > 0) {
+            if (imageStore.imageData.markerNames.length > 0) {
                 channelControls = ['rChannel', 'gChannel', 'bChannel'].map((s: ChannelName) => (
                     <ChannelControls
                         key={s}
                         sliderMin={this.getChannelMin(s)}
                         sliderMax={this.getChannelMax(s)}
                         sliderValue={imageStore.channelDomain[s]}
-                        onSliderChange={projectStore.setChannelDomainCallback(s)}
-                        selectOptions={imageStore.channelSelectOptions}
+                        onDomainChange={projectStore.setChannelDomainCallback(s)}
+                        selectOptions={imageStore.markerSelectOptions}
                         selectValue={imageStore.channelMarker[s]}
                         allSelectedValues={Object.values(imageStore.channelMarker)}
-                        onSelectChange={projectStore.setChannelMarkerCallback(s)}
+                        onMarkerChange={projectStore.setChannelMarkerCallback(s)}
                         windowWidth={projectStore.windowWidth}
                     />
                 ))
@@ -167,9 +167,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     scatterPlot = (
                         <Plot
                             windowWidth={projectStore.windowWidth}
-                            channelSelectOptions={imageStore.channelSelectOptions}
-                            selectedPlotChannels={plotStore.selectedPlotChannels}
-                            setSelectedPlotChannels={projectStore.setSelectedPlotChannels}
+                            markerSelectOptions={imageStore.markerSelectOptions}
+                            selectedPlotMarkers={plotStore.selectedPlotMarkers}
+                            setSelectedPlotMarkers={projectStore.setSelectedPlotMarkers}
                             selectedStatistic={plotStore.plotStatistic}
                             setSelectedStatistic={projectStore.setPlotStatistic}
                             selectedTransform={plotStore.plotTransform}

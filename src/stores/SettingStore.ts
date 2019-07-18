@@ -14,15 +14,14 @@ export class SettingStore {
         this.initialize(imageStore, plotStore)
     }
 
-    // Storing channel marker and channel domain on the project store
-    // So that we can copy across image sets even if a channel is missing in a set
+    // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
     // channelDomain stored here as percentages.
     @observable public channelDomainPercentage: Record<ChannelName, [number, number]>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
     // selected plot channels to be copied
-    @observable.ref public selectedPlotChannels: string[]
+    @observable.ref public selectedPlotMarkers: string[]
 
     @observable public plotStatistic: PlotStatistic
     @observable public plotTransform: PlotTransform
@@ -48,7 +47,7 @@ export class SettingStore {
 
         this.segmentationBasename = null
 
-        this.selectedPlotChannels = []
+        this.selectedPlotMarkers = []
 
         this.plotStatistic = plotStore.plotStatistic
         this.plotTransform = plotStore.plotTransform
@@ -96,12 +95,12 @@ export class SettingStore {
         this.segmentationBasename = basename
     }
 
-    @action public setSelectedPlotChannels = (channels: string[]) => {
-        this.selectedPlotChannels = channels
+    @action public setSelectedPlotMarkers = (markers: string[]) => {
+        this.selectedPlotMarkers = markers
     }
 
-    @action public clearSelectedPlotChannels = () => {
-        this.selectedPlotChannels = []
+    @action public clearSelectedPlotMarkers = () => {
+        this.selectedPlotMarkers = []
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
@@ -116,7 +115,7 @@ export class SettingStore {
     // If the image store has image data, sets the defaults based on the configuration helper.
     @action public setChannelMarkerDefaults = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
         if (imageStore.imageData != null) {
-            let defaultValues = configurationHelper.getDefaultChannelMarkers(imageStore.imageData.channelNames)
+            let defaultValues = configurationHelper.getDefaultChannelMarkers(imageStore.imageData.markerNames)
             for (let s in defaultValues) {
                 let channelName = s as ChannelName
                 let markerName = defaultValues[channelName]
@@ -178,7 +177,7 @@ export class SettingStore {
                 let channelName = s as ChannelName
                 let channelValue = this.channelMarker[channelName]
                 if (channelValue != null) {
-                    if (imageStore.imageData.channelNames.indexOf(channelValue) != -1) {
+                    if (imageStore.imageData.markerNames.indexOf(channelValue) != -1) {
                         // If the file selected is not null and the destination has a file with the same name set that
                         imageStore.setChannelMarker(channelName, channelValue)
                     } else {
@@ -207,26 +206,25 @@ export class SettingStore {
         }
     }
 
-    // TODO:
     @action public copyPlotStoreSettings = (imageStore: ImageStore, plotStore: PlotStore) => {
         plotStore.setPlotType(this.plotType)
         plotStore.setPlotStatistic(this.plotStatistic)
         plotStore.setPlotTransform(this.plotTransform)
         plotStore.setPlotNormalization(this.plotNormalization)
-        // Check if the source selected plot channels are in the destination image set. If they are, use them.
-        this.setPlotStoreChannels(imageStore, plotStore)
+        // Check if the source selected plot markers are in the destination image set. If they are, use them.
+        this.setPlotStoreMarkers(imageStore, plotStore)
     }
 
-    @action public setPlotStoreChannels = (imageStore: ImageStore, plotStore: PlotStore) => {
+    @action public setPlotStoreMarkers = (imageStore: ImageStore, plotStore: PlotStore) => {
         let imageData = imageStore.imageData
         if (imageData != null) {
-            let selectedPlotChannels = []
-            for (let channel of this.selectedPlotChannels) {
-                if (imageData.channelNames.indexOf(channel) != -1) {
-                    selectedPlotChannels.push(channel)
+            let selectedPlotMarkers = []
+            for (let marker of this.selectedPlotMarkers) {
+                if (imageData.markerNames.indexOf(marker) != -1) {
+                    selectedPlotMarkers.push(marker)
                 }
             }
-            plotStore.setSelectedPlotChannels(selectedPlotChannels)
+            plotStore.setSelectedPlotMarkers(selectedPlotMarkers)
         }
     }
 

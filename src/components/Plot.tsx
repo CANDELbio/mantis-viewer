@@ -17,9 +17,9 @@ import {
 } from '../definitions/UIDefinitions'
 
 export interface ScatterPlotProps {
-    channelSelectOptions: { value: string; label: string }[]
-    selectedPlotChannels: string[]
-    setSelectedPlotChannels: (x: string[]) => void
+    markerSelectOptions: { value: string; label: string }[]
+    selectedPlotMarkers: string[]
+    setSelectedPlotMarkers: (x: string[]) => void
     selectedStatistic: string
     setSelectedStatistic: (x: PlotStatistic) => void
     selectedTransform: string
@@ -43,9 +43,9 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
         super(props)
     }
 
-    private channelSelectOptions: { value: string; label: string }[]
+    private markerSelectOptions: { value: string; label: string }[]
 
-    private onPlotChannelSelect = (x: SelectOption[]) => this.props.setSelectedPlotChannels(_.pluck(x, 'value'))
+    private onPlotMarkerSelect = (x: SelectOption[]) => this.props.setSelectedPlotMarkers(_.pluck(x, 'value'))
     private onStatisticSelect = (x: SelectOption) => {
         if (x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
     }
@@ -144,35 +144,35 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
         // Dereferencing here so we re-render on resize
         let windowWidth = this.props.windowWidth
 
-        this.channelSelectOptions = this.props.channelSelectOptions
+        this.markerSelectOptions = this.props.markerSelectOptions
 
-        // Can only select two channels for a scatter plot or one for histogram.
-        // If max channels are selected, set the options for selecting equal to the currently selected options
-        let maximumScatterChannelsSelected =
-            this.props.selectedPlotChannels.length == 2 && this.props.selectedType == 'scatter'
-        let maximumHistogramChannelsSelected =
-            this.props.selectedPlotChannels.length == 1 && this.props.selectedType == 'histogram'
-        if (maximumScatterChannelsSelected || maximumHistogramChannelsSelected) {
-            this.channelSelectOptions = this.props.selectedPlotChannels.map(s => {
+        // Can only select two markers for a scatter plot or one for histogram.
+        // If max markers are selected, set the options for selecting equal to the currently selected options
+        let maximumScatterMarkersSelected =
+            this.props.selectedPlotMarkers.length == 2 && this.props.selectedType == 'scatter'
+        let maximumHistogramMarkersSelected =
+            this.props.selectedPlotMarkers.length == 1 && this.props.selectedType == 'histogram'
+        if (maximumScatterMarkersSelected || maximumHistogramMarkersSelected) {
+            this.markerSelectOptions = this.props.selectedPlotMarkers.map(s => {
                 return { value: s, label: s }
             })
         }
 
         // Clear the plot element if we don't have scatterPlot data.
-        let channelControls = null
+        let markerControls = null
         let plot = null
         let statisticControls = null
         let transformControls = null
         let normalizationControls = null
 
         if (this.props.selectedType != 'heatmap') {
-            channelControls = (
+            markerControls = (
                 <div>
-                    <div>Plot Channels</div>
+                    <div>Plot Markers</div>
                     <Select
-                        value={this.props.selectedPlotChannels}
-                        options={this.channelSelectOptions}
-                        onChange={this.onPlotChannelSelect}
+                        value={this.props.selectedPlotMarkers}
+                        options={this.markerSelectOptions}
+                        onChange={this.onPlotMarkerSelect}
                         multi={true}
                     />
                 </div>
@@ -222,7 +222,7 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
                     onChange={this.onTypeSelect}
                     clearable={false}
                 />
-                {channelControls}
+                {markerControls}
                 {plot}
                 {statisticControls}
                 {transformControls}

@@ -24,7 +24,7 @@ function medianPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array,
 }
 
 function generateStatisticMap(
-    channel: string,
+    marker: string,
     tiffData: Float32Array | Uint16Array | Uint8Array,
     segmentIndexMap: Record<number, number[]>,
     statistic: PlotStatistic,
@@ -32,7 +32,7 @@ function generateStatisticMap(
     let min: number, max: number
     let statisticMap = {}
     for (let segmentId in segmentIndexMap) {
-        let mapKey = channel + '_' + segmentId
+        let mapKey = marker + '_' + segmentId
         let curIntensity: number
         if (statistic == 'mean') {
             curIntensity = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
@@ -40,7 +40,7 @@ function generateStatisticMap(
             curIntensity = medianPixelIntensity(tiffData, segmentIndexMap[segmentId])
         }
         statisticMap[mapKey] = curIntensity
-        // Calculate the min and max for this channel
+        // Calculate the min and max for this marker
         if (min == undefined) min = curIntensity
         if (max == undefined) max = curIntensity
         if (curIntensity < min) min = curIntensity
@@ -53,8 +53,8 @@ ctx.addEventListener(
     'message',
     message => {
         let data = message.data
-        let { map, minMax } = generateStatisticMap(data.channel, data.tiffData, data.segmentIndexMap, data.statistic)
-        ctx.postMessage({ statistic: data.statistic, map: map, minmax: minMax, chName: data.channel })
+        let { map, minMax } = generateStatisticMap(data.marker, data.tiffData, data.segmentIndexMap, data.statistic)
+        ctx.postMessage({ statistic: data.statistic, map: map, minmax: minMax, markerName: data.marker })
     },
     false,
 )

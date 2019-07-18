@@ -6,8 +6,8 @@ import { ipcRenderer } from 'electron'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { Plot } from '../components/Plot'
 
-let channelSelectOptions: { value: string; label: string }[]
-let selectedPlotChannels: string[] | null
+let markerSelectOptions: { value: string; label: string }[]
+let selectedPlotMarkers: string[] | null
 let selectedStatistic: string | null
 let selectedTransform: string | null
 let selectedType: string | null
@@ -15,8 +15,8 @@ let selectedNormalization: string | null
 let plotData: PlotData | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
-let setSelectedPlotChannels = (channels: string[]): void => {
-    ipcRenderer.send('plotWindow-set-channels', channels)
+let setSelectedPlotMarkers = (markers: string[]): void => {
+    ipcRenderer.send('plotWindow-set-markers', markers)
 }
 
 let setSelectedStatistic = (statistic: any): void => {
@@ -49,8 +49,8 @@ let setHoveredSegments = (segmentIds: number[]): void => {
 
 function render(): void {
     if (
-        channelSelectOptions &&
-        selectedPlotChannels &&
+        markerSelectOptions &&
+        selectedPlotMarkers &&
         selectedStatistic &&
         selectedTransform &&
         selectedType &&
@@ -61,9 +61,9 @@ function render(): void {
             <div>
                 <Plot
                     windowWidth={null}
-                    channelSelectOptions={channelSelectOptions}
-                    selectedPlotChannels={selectedPlotChannels}
-                    setSelectedPlotChannels={setSelectedPlotChannels}
+                    markerSelectOptions={markerSelectOptions}
+                    selectedPlotMarkers={selectedPlotMarkers}
+                    setSelectedPlotMarkers={setSelectedPlotMarkers}
                     selectedStatistic={selectedStatistic}
                     setSelectedStatistic={setSelectedStatistic}
                     selectedTransform={selectedTransform}
@@ -89,15 +89,15 @@ ipcRenderer.on(
     (
         event: Electron.Event,
         selectOptions: { value: string; label: string }[],
-        plotChannels: string[],
+        plotMarkers: string[],
         statistic: string,
         transform: string,
         type: string,
         normalization: string,
         data: any,
     ) => {
-        channelSelectOptions = selectOptions
-        selectedPlotChannels = plotChannels
+        markerSelectOptions = selectOptions
+        selectedPlotMarkers = plotMarkers
         selectedStatistic = statistic
         selectedTransform = transform
         selectedType = type

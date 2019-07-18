@@ -53,11 +53,11 @@ ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {
 })
 
 ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportChannelIntensisties(filename, 'mean')
+    projectStore.exportMarkerIntensisties(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportChannelIntensisties(filename, 'median')
+    projectStore.exportMarkerIntensisties(filename, 'median')
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
@@ -81,8 +81,8 @@ ipcRenderer.on('plot-in-main-window', (event: Electron.Event, inMain: boolean) =
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
-ipcRenderer.on('set-plot-channels', (event: Electron.Event, channels: string[]) => {
-    projectStore.activePlotStore.setSelectedPlotChannels(channels)
+ipcRenderer.on('set-plot-markers', (event: Electron.Event, markers: string[]) => {
+    projectStore.activePlotStore.setSelectedPlotMarkers(markers)
 })
 
 ipcRenderer.on('set-plot-statistic', (event: Electron.Event, statistic: any) => {
@@ -119,8 +119,8 @@ Mobx.autorun(() => {
     let plotStore = projectStore.activePlotStore
     ipcRenderer.send(
         'mainWindow-set-plot-data',
-        imageStore.channelSelectOptions,
-        plotStore.selectedPlotChannels,
+        imageStore.markerSelectOptions,
+        plotStore.selectedPlotMarkers,
         plotStore.plotStatistic,
         plotStore.plotTransform,
         plotStore.plotType,
@@ -152,7 +152,7 @@ Mobx.autorun(() => {
 Mobx.autorun(() => {
     if (projectStore.activeImageStore.imageData && projectStore.activeImageStore.imageData.errors.length > 0) {
         let msg =
-            'Error(s) opening tiffs for the following channels: ' +
+            'Error(s) opening tiffs for the following markers: ' +
             projectStore.activeImageStore.imageData.errors.join(', ')
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         projectStore.activeImageStore.imageData.clearErrors()

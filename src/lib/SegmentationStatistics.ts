@@ -7,16 +7,16 @@ import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 import StatisticWorker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker')
 
 export class SegmentationStatistics {
-    public channels: string[]
-    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    public markers: string[]
+    // Map of marker/marker names plus segment id (marker_segmentid) the median intensity for that marker and segment
     private meanMap: Record<string, number>
-    // Map of channel/marker names plus segment id (channel_segmentid) the median intensity for that channel and segment
+    // Map of marker/marker names plus segment id (_segmentid) the median intensity for that marker and segment
     private medianMap: Record<string, number>
 
     public meanMinMaxMap: Record<string, MinMax>
     public medianMinMaxMap: Record<string, MinMax>
 
-    // Keep track of the number of channels to calculate statistics for and the number complete
+    // Keep track of the number of markers to calculate statistics for and the number complete
     private numWorkers: number
     private numWorkersComplete: number
     // Array of the workers
@@ -25,7 +25,7 @@ export class SegmentationStatistics {
     private onReady: (statistics: SegmentationStatistics) => void
 
     private statisticsLoadComplete(): void {
-        // If the number of channels loaded is equal to the total number of channels we are done!
+        // If the number of markers loaded is equal to the total number of markers we are done!
         if (this.numWorkersComplete == this.numWorkers) {
             this.onReady(this)
         }
@@ -36,12 +36,12 @@ export class SegmentationStatistics {
             for (let key in data.map) {
                 this.meanMap[key] = data.map[key]
             }
-            this.meanMinMaxMap[data.chName] = data.minmax
+            this.meanMinMaxMap[data.markerName] = data.minmax
         } else if (data.statistic == 'median') {
             for (let key in data.map) {
                 this.medianMap[key] = data.map[key]
             }
-            this.medianMinMaxMap[data.chName] = data.minmax
+            this.medianMinMaxMap[data.markerName] = data.minmax
         }
         this.numWorkersComplete += 1
         this.statisticsLoadComplete()
@@ -71,13 +71,13 @@ export class SegmentationStatistics {
         segmentationData: SegmentationData,
         onReady: (statistics: SegmentationStatistics) => void,
     ): void {
-        for (let channel in imageData.data) {
-            this.channels.push(channel)
+        for (let marker in imageData.data) {
+            this.markers.push(marker)
             this.numWorkers += 2
-            let tiffData = imageData.data[channel]
+            let tiffData = imageData.data[marker]
             this.loadInWorker(
                 {
-                    channel: channel,
+                    marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,
                     statistic: 'mean',
@@ -86,7 +86,7 @@ export class SegmentationStatistics {
             )
             this.loadInWorker(
                 {
-                    channel: channel,
+                    marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,
                     statistic: 'median',
@@ -96,37 +96,37 @@ export class SegmentationStatistics {
         }
     }
 
-    private intensity(channel: string, segmentIds: number[], mean: boolean): number {
+    private intensity(marker: string, segmentIds: number[], mean: boolean): number {
         let intensities = []
         for (let segmentId of segmentIds) {
-            let mapKey = channel + '_' + segmentId
+            let mapKey = marker + '_' + segmentId
             let curIntensity = mean ? this.meanMap[mapKey] : this.medianMap[mapKey]
             intensities.push(curIntensity)
         }
         return mean ? calculateMean(intensities) : calculateMedian(intensities)
     }
 
-    public meanIntensity(channel: string, segmentIds: number[]): number {
-        return this.intensity(channel, segmentIds, true)
+    public meanIntensity(marker: string, segmentIds: number[]): number {
+        return this.intensity(marker, segmentIds, true)
     }
 
-    public medianIntensity(channel: string, segmentIds: number[]): number {
-        return this.intensity(channel, segmentIds, false)
+    public medianIntensity(marker: string, segmentIds: number[]): number {
+        return this.intensity(marker, segmentIds, false)
     }
 
-    private splitMapKey(key: string): { channel: string; segmentId: string | undefined } {
+    private splitMapKey(key: string): { marker: string; segmentId: string | undefined } {
         let splat = key.split('_')
         let segmentId = splat.pop()
-        let channel = splat.join('_')
-        return { channel: channel, segmentId: segmentId }
+        let marker = splat.join('_')
+        return { marker: marker, segmentId: segmentId }
     }
 
-    public segmentsInIntensityRange(selectedChannel: string, min: number, max: number, mean: boolean): number[] {
+    public segmentsInIntensityRange(selectedMarker: string, min: number, max: number, mean: boolean): number[] {
         let segments = []
         let intensityMap = mean ? this.meanMap : this.medianMap
         for (let key in intensityMap) {
-            let { channel, segmentId } = this.splitMapKey(key)
-            if (channel == selectedChannel && segmentId) {
+            let { marker: marker, segmentId } = this.splitMapKey(key)
+            if (marker == selectedMarker && segmentId) {
                 let curIntensity = intensityMap[key]
                 if (min <= curIntensity && curIntensity <= max) {
                     segments.push(Number(segmentId))
@@ -140,7 +140,7 @@ export class SegmentationStatistics {
         this.numWorkers = 0
         this.numWorkersComplete = 0
         this.workers = []
-        this.channels = []
+        this.markers = []
         this.meanMap = {}
         this.medianMap = {}
         this.meanMinMaxMap = {}

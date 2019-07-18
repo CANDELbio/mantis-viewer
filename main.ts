@@ -556,8 +556,8 @@ ipcMain.on(
 )
 
 // Functions to relay data from the plotWindow to the mainWindow
-ipcMain.on('plotWindow-set-channels', (event: Electron.Event, channels: string[]) => {
-    if (mainWindow != null) mainWindow.webContents.send('set-plot-channels', channels)
+ipcMain.on('plotWindow-set-markers', (event: Electron.Event, markers: string[]) => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-markers', markers)
 })
 
 ipcMain.on('plotWindow-set-statistic', (event: Electron.Event, statistic: any) => {
