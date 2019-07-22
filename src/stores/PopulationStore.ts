@@ -43,7 +43,6 @@ export class PopulationStore {
             selectedRegion: selectedRegion,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(),
-            notes: null,
             color: color ? color : randomHexColor(),
             visible: true,
         }
@@ -70,19 +69,6 @@ export class PopulationStore {
             this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
                 if (region.id == id) {
                     region.name = newName
-                    return region
-                } else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action public updateSelectedPopulationNotes = (id: string, newNotes: string) => {
-        if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
-                if (region.id == id) {
-                    region.notes = newNotes
                     return region
                 } else {
                     return region

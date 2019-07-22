@@ -6,7 +6,6 @@ import { CompactPicker, ColorResult } from 'react-color'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
-    updateNotes: (id: string, notes: string) => void
     updateColor: (id: string, color: number) => void
     updateVisibility: (id: string, visibility: boolean) => void
     deletePopulation: (id: string) => void
@@ -46,10 +45,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             this.props.updateName(this.props.population.id, name)
         }
 
-        private updateNotes = (notes: string) => {
-            this.props.updateNotes(this.props.population.id, notes)
-        }
-
         private updateColor = (color: number) => {
             this.props.updateColor(this.props.population.id, color)
         }
@@ -76,7 +71,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }
 
         public render(): React.ReactElement {
-            let thisNotes = this.props.population.notes == null ? '' : this.props.population.notes
             return (
                 <tr onMouseEnter={this.highlightPopulation} onMouseLeave={this.unhighlightPopulation}>
                     <td>
@@ -91,9 +85,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                 />
                             </div>
                         )}
-                    </td>
-                    <td>
-                        <EditableText defaultValue={thisNotes} onConfirm={this.updateNotes} />
                     </td>
                     <td>
                         <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
@@ -114,7 +105,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         key={population.id}
                         population={population}
                         updateName={this.props.updateName}
-                        updateNotes={this.props.updateNotes}
                         deletePopulation={this.props.deletePopulation}
                         updateColor={this.props.updateColor}
                         updateVisibility={this.props.updateVisibility}
@@ -163,7 +153,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         <tr>
                             <th>Name</th>
                             <th>Color</th>
-                            <th>Notes</th>
                             <th>
                                 <Checkbox
                                     checked={this.anyVisible()}

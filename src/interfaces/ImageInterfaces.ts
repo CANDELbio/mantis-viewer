@@ -10,7 +10,6 @@ export interface SelectedPopulation {
     // The IDs of the selected segments
     selectedSegments: number[]
     name: string
-    notes: string | null
     color: number
     visible: boolean
 }

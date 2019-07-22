@@ -196,7 +196,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             <SelectedPopulations
                 populations={populationStore.selectedPopulations}
                 updateName={populationStore.updateSelectedPopulationName}
-                updateNotes={populationStore.updateSelectedPopulationNotes}
                 updateColor={populationStore.updateSelectedPopulationColor}
                 updateVisibility={populationStore.updateSelectedPopulationVisibility}
                 deletePopulation={populationStore.deleteSelectedPopulation}
