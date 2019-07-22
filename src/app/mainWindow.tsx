@@ -6,6 +6,7 @@ import { MainApp } from '../components/MainApp'
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
 import { ProjectStore } from '../stores/ProjectStore'
+import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -102,7 +103,7 @@ ipcRenderer.on('set-plot-normalization', (event: Electron.Event, normalization: 
 })
 
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]) => {
-    projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds)
+    projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
 })
 
 ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: number[]) => {

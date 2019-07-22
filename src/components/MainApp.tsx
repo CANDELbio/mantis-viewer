@@ -17,6 +17,7 @@ import { SelectedPopulations } from './SelectedPopulations'
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import { GraphSelectionPrefix, ImageSelectionPrefix } from '../definitions/UIDefinitions'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -47,9 +48,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     private handleSegmentationClick = () => this.setState({ segmentationOpen: !this.state.segmentationOpen })
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
 
-    private addSelectedPopulation = (segmentIds: number[]) => {
+    private addSelectedPopulationFromGraph = (segmentIds: number[]) => {
         let populationStore = this.props.projectStore.activePopulationStore
-        if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
+        if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+    }
+
+    private addSelectedPopulationFromImage = (selectedRegion: number[], segmentIds: number[]) => {
+        let populationStore = this.props.projectStore.activePopulationStore
+        if (segmentIds.length > 0)
+            populationStore.addSelectedPopulation(selectedRegion, segmentIds, ImageSelectionPrefix)
     }
 
     private getChannelMin(s: ChannelName): number {
@@ -80,7 +87,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         channelMarker: Record<ChannelName, string | null>,
         maxWidth: number,
         windowHeight: number | null,
-        addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void,
+        addSelectedPopulation: (selectedRegion: number[], selectedSegments: number[], color: number) => void,
         selectedRegions: SelectedPopulation[] | null,
         hightlightedRegions: string[],
         highlightedSegments: number[],
@@ -100,7 +107,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     channelDomain={channelDomain}
                     channelMarker={channelMarker}
                     maxRendererSize={maxRendererSize}
-                    addSelectedRegion={addSelectedRegion}
+                    addSelectedRegion={addSelectedPopulation}
                     selectedRegions={selectedRegions}
                     hightlightedRegions={hightlightedRegions}
                     highlightedSegmentsFromPlot={highlightedSegments}
@@ -178,7 +185,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             setSelectedType={projectStore.setPlotType}
                             selectedNormalization={plotStore.plotNormalization}
                             setSelectedNormalization={projectStore.setPlotNormalization}
-                            setSelectedSegments={this.addSelectedPopulation}
+                            setSelectedSegments={this.addSelectedPopulationFromGraph}
                             setSelectedRange={projectStore.addPopulationFromRange}
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                             plotData={plotStore.plotData}
@@ -219,7 +226,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let channelDomain = imageStore.channelDomain
         let channelMarker = imageStore.channelMarker
         let windowHeight = projectStore.windowHeight
-        let addSelectedRegion = populationStore.addSelectedPopulation
         let selectedRegions = populationStore.selectedPopulations
         let hightlightedRegions = populationStore.highlightedPopulations
         let highlightedSegmentsFromPlot = plotStore.segmentsHoveredOnPlot
@@ -263,7 +269,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                                     channelMarker,
                                                     size.width,
                                                     windowHeight,
-                                                    addSelectedRegion,
+                                                    this.addSelectedPopulationFromImage,
                                                     selectedRegions,
                                                     hightlightedRegions,
                                                     highlightedSegmentsFromPlot,

@@ -20,6 +20,7 @@ import {
     PlotNormalization,
 } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
+import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
 interface ImageSet {
     imageStore: ImageStore
@@ -458,7 +459,7 @@ export class ProjectStore {
                 max,
                 selectedStatistic == 'mean',
             )
-            if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds)
+            if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
         }
     }
 

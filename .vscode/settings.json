@@ -2,16 +2,16 @@
     "typescript.tsdk": "./node_modules/typescript/lib",
     "editor.formatOnSave": true,
     "[javascript]": {
-        "editor.formatOnSave": false,
+        "editor.formatOnSave": false
     },
     "[javascriptreact]": {
-        "editor.formatOnSave": false,
+        "editor.formatOnSave": false
     },
     "[typescript]": {
-        "editor.formatOnSave": false,
+        "editor.formatOnSave": true
     },
     "[typescriptreact]": {
-        "editor.formatOnSave": false,
+        "editor.formatOnSave": true
     },
     "eslint.autoFixOnSave": true,
     "eslint.validate": [
@@ -25,5 +25,5 @@
             "language": "typescriptreact",
             "autoFix": true
         }
-    ],
+    ]
 }

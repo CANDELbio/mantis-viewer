@@ -21,9 +21,10 @@ export class PopulationStore {
         this.highlightedPopulations = []
     }
 
-    private newROIName(): string {
-        if (this.selectedPopulations == null) return 'Selection 1'
-        return 'Selection ' + (this.selectedPopulations.length + 1).toString()
+    private newROIName(namePrefix: string | null): string {
+        let name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
+        if (this.selectedPopulations == null) return name + '1'
+        return name + (this.selectedPopulations.length + 1).toString()
     }
 
     @action public setSelectedPopulations = (populations: SelectedPopulation[]) => {
@@ -32,17 +33,20 @@ export class PopulationStore {
         }
     }
 
+    // Can pass in a namePrefix or null to just use the default ROI name. Prefix gets stuck in front of the ROI name.
+    // If name is passed in, it overrides namePrefix/default ROI name.
     @action public addSelectedPopulation = (
         selectedRegion: number[] | null,
         selectedSegments: number[],
-        color?: number,
+        namePrefix: string | null,
         name?: string,
+        color?: number,
     ) => {
         let newRegion = {
             id: shortId.generate(),
             selectedRegion: selectedRegion,
             selectedSegments: selectedSegments,
-            name: name ? name : this.newROIName(),
+            name: name ? name : this.newROIName(namePrefix),
             color: color ? color : randomHexColor(),
             visible: true,
         }
@@ -131,8 +135,8 @@ export class PopulationStore {
                 }
             }
         }).on('end', () => {
-            for (let population in populations) {
-                this.addSelectedPopulation(null, populations[population], randomHexColor(), population)
+            for (let populationName in populations) {
+                this.addSelectedPopulation(null, populations[populationName], null, populationName, randomHexColor())
             }
         })
     }
