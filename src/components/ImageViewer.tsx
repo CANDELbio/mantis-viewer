@@ -5,6 +5,7 @@ import { observer } from 'mobx-react'
 
 import { ImageData } from '../lib/ImageData'
 import {
+    ImageChannels,
     ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
@@ -106,10 +107,25 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         blueFilter.matrix = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         blueFilter.blendMode = PIXI.BLEND_MODES.ADD
 
+        let cyanFilter = new PIXI.filters.ColorMatrixFilter()
+        cyanFilter.matrix = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+        cyanFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+        let magentaFilter = new PIXI.filters.ColorMatrixFilter()
+        magentaFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+        magentaFilter.blendMode = PIXI.BLEND_MODES.ADD
+
+        let yellowFilter = new PIXI.filters.ColorMatrixFilter()
+        yellowFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+        yellowFilter.blendMode = PIXI.BLEND_MODES.ADD
+
         this.channelFilters = {
             rChannel: redFilter,
             gChannel: greenFilter,
             bChannel: blueFilter,
+            cChannel: cyanFilter,
+            mChannel: magentaFilter,
+            yChannel: yellowFilter,
         }
 
         this.minScale = 1.0
@@ -538,7 +554,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.removeChildren()
 
         // For each channel setting the brightness and color filters
-        for (let s of ['rChannel', 'gChannel', 'bChannel']) {
+        for (let s of ImageChannels) {
             let curChannel = s as ChannelName
             this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
         }
@@ -577,11 +593,17 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             rChannel: this.props.channelMarker.rChannel,
             gChannel: this.props.channelMarker.gChannel,
             bChannel: this.props.channelMarker.bChannel,
+            cChannel: this.props.channelMarker.cChannel,
+            mChannel: this.props.channelMarker.mChannel,
+            yChannel: this.props.channelMarker.yChannel,
         }
         let channelDomain = {
             rChannel: this.props.channelDomain.rChannel,
             gChannel: this.props.channelDomain.gChannel,
             bChannel: this.props.channelDomain.bChannel,
+            cChannel: this.props.channelDomain.cChannel,
+            mChannel: this.props.channelDomain.mChannel,
+            yChannel: this.props.channelDomain.yChannel,
         }
 
         let imcData = this.props.imageData

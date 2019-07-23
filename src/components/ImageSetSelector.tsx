@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Select from 'react-select'
-import { Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 
 export interface ImageSetSelectorProps {

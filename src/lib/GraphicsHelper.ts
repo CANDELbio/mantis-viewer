@@ -156,7 +156,6 @@ export function drawOutlines(
 }
 
 // Generating brightness filter code for the passed in channel.
-// Somewhat hacky workaround without uniforms because uniforms weren't working with Typescript.
 export function generateBrightnessFilterCode(): string {
     let filterCode = `
     varying vec2 vTextureCoord;
@@ -180,11 +179,11 @@ export function generateBrightnessFilterCode(): string {
         {
             gl_FragColor.r = min((gl_FragColor.r * m) + b, 1.0);
         }
-        else if(green == true)
+        if(green == true)
         {
             gl_FragColor.g = min((gl_FragColor.g * m) + b, 1.0);
         }
-        else if (blue == true)
+        if (blue == true)
         {
             gl_FragColor.b = min((gl_FragColor.b * m) + b, 1.0);
         }
@@ -224,15 +223,15 @@ export function generateBrightnessFilterUniforms(
         },
         red: {
             type: 'b',
-            value: channelName == 'rChannel',
+            value: channelName == 'rChannel' || channelName == 'mChannel' || channelName == 'yChannel',
         },
         green: {
             type: 'b',
-            value: channelName == 'gChannel',
+            value: channelName == 'gChannel' || channelName == 'cChannel' || channelName == 'yChannel',
         },
         blue: {
             type: 'b',
-            value: channelName == 'bChannel',
+            value: channelName == 'bChannel' || channelName == 'cChannel' || channelName == 'mChannel',
         },
     }
 }

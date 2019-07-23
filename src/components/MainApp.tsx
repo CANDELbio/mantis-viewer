@@ -17,7 +17,7 @@ import { SelectedPopulations } from './SelectedPopulations'
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import { GraphSelectionPrefix, ImageSelectionPrefix } from '../definitions/UIDefinitions'
+import { ImageChannels, GraphSelectionPrefix, ImageSelectionPrefix } from '../definitions/UIDefinitions'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -43,9 +43,19 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         plotOpen: false,
     }
 
-    private handleChannelClick = () => this.setState({ channelsOpen: !this.state.channelsOpen })
+    // If opening channels, close segmentation controls
+    private handleChannelClick = () => {
+        let newChannelsOpenValue = !this.state.channelsOpen
+        this.setState({ channelsOpen: newChannelsOpenValue })
+        if (newChannelsOpenValue) this.setState({ segmentationOpen: false })
+    }
+    // If opening segmentation controls, close channels
+    private handleSegmentationClick = () => {
+        let newSegmentationOpenValue = !this.state.segmentationOpen
+        this.setState({ segmentationOpen: newSegmentationOpenValue })
+        if (newSegmentationOpenValue) this.setState({ channelsOpen: false })
+    }
     private handleRegionsClick = () => this.setState({ regionsOpen: !this.state.regionsOpen })
-    private handleSegmentationClick = () => this.setState({ segmentationOpen: !this.state.segmentationOpen })
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
 
     private addSelectedPopulationFromGraph = (segmentIds: number[]) => {
@@ -141,7 +151,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         if (imageStore.imageData != null) {
             if (imageStore.imageData.markerNames.length > 0) {
-                channelControls = ['rChannel', 'gChannel', 'bChannel'].map((s: ChannelName) => (
+                channelControls = ImageChannels.map((s: ChannelName) => (
                     <ChannelControls
                         key={s}
                         sliderMin={this.getChannelMin(s)}

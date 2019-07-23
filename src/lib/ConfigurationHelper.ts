@@ -6,16 +6,27 @@ export class ConfigurationHelper {
         rChannel: ['catenin', 'CD8', 'CD4', 'CD20', 'CD68'],
         gChannel: ['CD8', 'CD4', 'CD20', 'CD68', 'catenin'],
         bChannel: ['DAPI', '191 Ir', '191Ir', '193 Ir', '193Ir', 'DNA', 'nucleus'],
+        cChannel: [],
+        mChannel: [],
+        yChannel: [],
     }
 
     private channelSelectionOrder: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
+    private channelsToAssign: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
     private useAnyMarkerIfNoMatch = true
 
     // Not the fastest way to do this, but realistically the list of default values and incoming markerNames should be small.
     // If we want to optimize we could do one pass through all of the incoming markerNames and store highest priority hit from each channel.
     public getDefaultChannelMarkers(markerNames: string[]): Record<ChannelName, string | null> {
-        let defaultMarkers: Record<ChannelName, string | null> = { rChannel: null, gChannel: null, bChannel: null }
+        let defaultMarkers: Record<ChannelName, string | null> = {
+            rChannel: null,
+            gChannel: null,
+            bChannel: null,
+            cChannel: null,
+            mChannel: null,
+            yChannel: null,
+        }
         // Iterate through the channels in the order they should be selected
         for (let curChannel of this.channelSelectionOrder) {
             let channelDefaults: string[] = this.defaultChannelMarkers[curChannel]
@@ -50,6 +61,11 @@ export class ConfigurationHelper {
             }
         }
 
+        // Don't want defaults for CMY right now.
+        defaultMarkers.cChannel = null
+        defaultMarkers.mChannel = null
+        defaultMarkers.yChannel = null
+
         return defaultMarkers
     }
 
@@ -58,6 +74,9 @@ export class ConfigurationHelper {
             rChannel: [0, 0.7] as [number, number],
             gChannel: [0, 0.7] as [number, number],
             bChannel: [0, 0.7] as [number, number],
+            cChannel: [0, 0.7] as [number, number],
+            mChannel: [0, 0.7] as [number, number],
+            yChannel: [0, 0.7] as [number, number],
         }
     }
 }

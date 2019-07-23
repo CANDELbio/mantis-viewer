@@ -1,4 +1,6 @@
-export type ChannelName = 'rChannel' | 'gChannel' | 'bChannel'
+export type ChannelName = 'rChannel' | 'gChannel' | 'bChannel' | 'cChannel' | 'mChannel' | 'yChannel'
+export const ImageChannels: ChannelName[] = ['rChannel', 'gChannel', 'bChannel', 'cChannel', 'mChannel', 'yChannel']
+
 export type D3BrushExtent = [[number, number], [number, number]]
 export type BrushEventHandler = (extent: D3BrushExtent) => void
 export interface SelectOption {

@@ -2,12 +2,18 @@ import { observable, action } from 'mobx'
 import * as path from 'path'
 import * as fs from 'fs'
 
-import { ChannelName, PlotNormalization } from '../definitions/UIDefinitions'
 import { ImageStore } from '../stores/ImageStore'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { PlotStore } from '../stores/PlotStore'
 
-import { PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
+import {
+    ImageChannels,
+    ChannelName,
+    PlotNormalization,
+    PlotStatistic,
+    PlotTransform,
+    PlotType,
+} from '../definitions/UIDefinitions'
 
 export class SettingStore {
     public constructor(imageStore: ImageStore, plotStore: PlotStore) {
@@ -37,12 +43,18 @@ export class SettingStore {
             rChannel: null,
             gChannel: null,
             bChannel: null,
+            cChannel: null,
+            mChannel: null,
+            yChannel: null,
         }
 
         this.channelDomainPercentage = {
             rChannel: [0, 1],
             gChannel: [0, 1],
             bChannel: [0, 1],
+            cChannel: [0, 1],
+            mChannel: [0, 1],
+            yChannel: [0, 1],
         }
 
         this.segmentationBasename = null
@@ -105,8 +117,13 @@ export class SettingStore {
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
         let markers = this.channelMarker
-        // Set defaults if copyImageSettings is disabled or if the project markers are uninitialized
-        if (markers['rChannel'] == null && markers['gChannel'] == null && markers['bChannel'] == null) {
+        // Set defaults if the project markers are uninitialized
+        let allMarkersUninitalized = ImageChannels.map((value: ChannelName) => {
+            return markers[value] == null
+        }).reduce((previous: boolean, current: boolean) => {
+            return previous && current
+        })
+        if (allMarkersUninitalized) {
             this.setChannelMarkerDefaults(imageStore, configurationHelper)
             this.setChannelDomainDefaults(imageStore, configurationHelper)
         }

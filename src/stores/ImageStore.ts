@@ -4,7 +4,7 @@ import * as path from 'path'
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
 import { SegmentationStatistics } from '../lib/SegmentationStatistics'
-import { ChannelName } from '../definitions/UIDefinitions'
+import { ImageChannels, ChannelName } from '../definitions/UIDefinitions'
 
 export class ImageStore {
     public constructor() {
@@ -59,6 +59,9 @@ export class ImageStore {
             rChannel: [0, 100],
             gChannel: [0, 100],
             bChannel: [0, 100],
+            cChannel: [0, 100],
+            mChannel: [0, 100],
+            yChannel: [0, 100],
         }
 
         this.markerSelectOptions = []
@@ -71,6 +74,9 @@ export class ImageStore {
             rChannel: null,
             gChannel: null,
             bChannel: null,
+            cChannel: null,
+            mChannel: null,
+            yChannel: null,
         }
 
         this.imageDataLoading = false
@@ -86,7 +92,7 @@ export class ImageStore {
     }
 
     @action public clearImageData = () => {
-        for (let s of ['rChannel', 'bChannel', 'gChannel']) {
+        for (let s of ImageChannels) {
             let curChannel = s as ChannelName
             this.unsetChannelMarker(curChannel)
         }
@@ -180,7 +186,7 @@ export class ImageStore {
                     ' is being removed from the list of available markers since it is being loaded as segmentation data.',
             )
             // Unset the marker if it is being used
-            for (let s of ['rChannel', 'bChannel', 'gChannel']) {
+            for (let s of ImageChannels) {
                 let curChannel = s as ChannelName
                 if (this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
             }
