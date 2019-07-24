@@ -62,6 +62,7 @@ export class ImageStore {
             cChannel: [0, 100],
             mChannel: [0, 100],
             yChannel: [0, 100],
+            kChannel: [0, 100],
         }
 
         this.markerSelectOptions = []
@@ -77,6 +78,7 @@ export class ImageStore {
             cChannel: null,
             mChannel: null,
             yChannel: null,
+            kChannel: null,
         }
 
         this.imageDataLoading = false

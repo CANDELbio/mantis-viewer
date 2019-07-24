@@ -119,6 +119,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         yellowFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         yellowFilter.blendMode = PIXI.BLEND_MODES.ADD
 
+        let blackFilter = new PIXI.filters.ColorMatrixFilter()
+        blackFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+        blackFilter.blendMode = PIXI.BLEND_MODES.ADD
+
         this.channelFilters = {
             rChannel: redFilter,
             gChannel: greenFilter,
@@ -126,6 +130,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             cChannel: cyanFilter,
             mChannel: magentaFilter,
             yChannel: yellowFilter,
+            kChannel: blackFilter,
         }
 
         this.minScale = 1.0
@@ -596,6 +601,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             cChannel: this.props.channelMarker.cChannel,
             mChannel: this.props.channelMarker.mChannel,
             yChannel: this.props.channelMarker.yChannel,
+            kChannel: this.props.channelMarker.kChannel,
         }
         let channelDomain = {
             rChannel: this.props.channelDomain.rChannel,
@@ -604,6 +610,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             cChannel: this.props.channelDomain.cChannel,
             mChannel: this.props.channelDomain.mChannel,
             yChannel: this.props.channelDomain.yChannel,
+            kChannel: this.props.channelDomain.kChannel,
         }
 
         let imcData = this.props.imageData

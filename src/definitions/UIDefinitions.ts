@@ -1,5 +1,15 @@
-export type ChannelName = 'rChannel' | 'gChannel' | 'bChannel' | 'cChannel' | 'mChannel' | 'yChannel'
-export const ImageChannels: ChannelName[] = ['rChannel', 'gChannel', 'bChannel', 'cChannel', 'mChannel', 'yChannel']
+export type ChannelName = 'rChannel' | 'gChannel' | 'bChannel' | 'cChannel' | 'mChannel' | 'yChannel' | 'kChannel'
+// Order is important in this list. This is used for the render order on the stage.
+// k (white/black) must be rendered first, otherwise other channels will not be visible.
+export const ImageChannels: ChannelName[] = [
+    'kChannel',
+    'yChannel',
+    'mChannel',
+    'cChannel',
+    'bChannel',
+    'gChannel',
+    'rChannel',
+]
 
 export type D3BrushExtent = [[number, number], [number, number]]
 export type BrushEventHandler = (extent: D3BrushExtent) => void

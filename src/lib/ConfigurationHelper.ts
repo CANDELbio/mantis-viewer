@@ -9,10 +9,10 @@ export class ConfigurationHelper {
         cChannel: [],
         mChannel: [],
         yChannel: [],
+        kChannel: [],
     }
 
     private channelSelectionOrder: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
-    private channelsToAssign: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
     private useAnyMarkerIfNoMatch = true
 
@@ -26,6 +26,7 @@ export class ConfigurationHelper {
             cChannel: null,
             mChannel: null,
             yChannel: null,
+            kChannel: null,
         }
         // Iterate through the channels in the order they should be selected
         for (let curChannel of this.channelSelectionOrder) {
@@ -65,6 +66,7 @@ export class ConfigurationHelper {
         defaultMarkers.cChannel = null
         defaultMarkers.mChannel = null
         defaultMarkers.yChannel = null
+        defaultMarkers.kChannel = null
 
         return defaultMarkers
     }
@@ -77,6 +79,7 @@ export class ConfigurationHelper {
             cChannel: [0, 0.7] as [number, number],
             mChannel: [0, 0.7] as [number, number],
             yChannel: [0, 0.7] as [number, number],
+            kChannel: [0, 0.7] as [number, number],
         }
     }
 }

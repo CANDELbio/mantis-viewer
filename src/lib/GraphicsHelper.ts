@@ -223,15 +223,15 @@ export function generateBrightnessFilterUniforms(
         },
         red: {
             type: 'b',
-            value: channelName == 'rChannel' || channelName == 'mChannel' || channelName == 'yChannel',
+            value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
         },
         green: {
             type: 'b',
-            value: channelName == 'gChannel' || channelName == 'cChannel' || channelName == 'yChannel',
+            value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
         },
         blue: {
             type: 'b',
-            value: channelName == 'bChannel' || channelName == 'cChannel' || channelName == 'mChannel',
+            value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
         },
     }
 }

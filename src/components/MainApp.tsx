@@ -43,6 +43,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         plotOpen: false,
     }
 
+    // Reverse ImageChannels so that select order is RGBCMYK
+    private imageChannelsForControls = ImageChannels.slice().reverse()
+
     // If opening channels, close segmentation controls
     private handleChannelClick = () => {
         let newChannelsOpenValue = !this.state.channelsOpen
@@ -151,7 +154,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         if (imageStore.imageData != null) {
             if (imageStore.imageData.markerNames.length > 0) {
-                channelControls = ImageChannels.map((s: ChannelName) => (
+                channelControls = this.imageChannelsForControls.map((s: ChannelName) => (
                     <ChannelControls
                         key={s}
                         sliderMin={this.getChannelMin(s)}

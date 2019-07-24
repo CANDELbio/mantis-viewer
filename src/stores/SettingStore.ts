@@ -46,6 +46,7 @@ export class SettingStore {
             cChannel: null,
             mChannel: null,
             yChannel: null,
+            kChannel: null,
         }
 
         this.channelDomainPercentage = {
@@ -55,6 +56,7 @@ export class SettingStore {
             cChannel: [0, 1],
             mChannel: [0, 1],
             yChannel: [0, 1],
+            kChannel: [0, 1],
         }
 
         this.segmentationBasename = null
