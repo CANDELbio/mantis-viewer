@@ -60,8 +60,6 @@ export class ProjectStore {
     @observable public removeMessage: string | null
 
     @action public initialize = () => {
-        this.initializeImageSets()
-
         this.plotInMainWindow = true
 
         this.configurationHelper = new ConfigurationHelper()
@@ -79,6 +77,7 @@ export class ProjectStore {
         }
 
         this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
+        this.initializeImageSets()
     }
 
     @action public initializeImageSets = () => {
@@ -86,8 +85,9 @@ export class ProjectStore {
         this.imageSets = {}
 
         this.activeImageSetPath = null
-
         this.lastActiveImageSetPath = null
+
+        this.settingStore.initialize(this.nullImageSet.imageStore, this.nullImageSet.plotStore)
     }
 
     private setPlotData = autorun(() => {
