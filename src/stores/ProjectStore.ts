@@ -129,6 +129,7 @@ export class ProjectStore {
         // Clear out old image sets
         this.initializeImageSets()
         this.setActiveImageSet(dirName)
+        this.settingStore.setBasePath(dirName)
     }
 
     @action public openProject = (dirName: string) => {
@@ -141,6 +142,7 @@ export class ProjectStore {
         if (paths.length > 0) {
             // Clear out old image sets
             this.initializeImageSets()
+            this.settingStore.setBasePath(dirName)
             this.imageSetPaths = paths
             this.setActiveImageSet(this.imageSetPaths[0])
         } else {

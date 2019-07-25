@@ -13,12 +13,30 @@ import {
     PlotStatistic,
     PlotTransform,
     PlotType,
+    ImageSettingsFilename,
 } from '../definitions/UIDefinitions'
+
+interface SettingStoreData {
+    channelMarker: Record<ChannelName, string | null>
+    channelDomainPercentage: Record<ChannelName, [number, number]>
+    segmentationBasename: string | null
+    selectedPlotMarkers: string[]
+    plotStatistic: PlotStatistic
+    plotTransform: PlotTransform
+    plotType: PlotType
+    plotNormalization: PlotNormalization
+    segmentationFillAlpha: number
+    segmentationOutlineAlpha: number
+    segmentationCentroidsVisible: boolean
+}
 
 export class SettingStore {
     public constructor(imageStore: ImageStore, plotStore: PlotStore) {
         this.initialize(imageStore, plotStore)
     }
+
+    // Storing the base path of the image set or project path for saving/loading settings from a file.
+    @observable public basePath: string | null
 
     // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
@@ -39,6 +57,8 @@ export class SettingStore {
     @observable public segmentationCentroidsVisible: boolean
 
     @action public initialize = (imageStore: ImageStore, plotStore: PlotStore) => {
+        this.basePath = null
+
         this.channelMarker = {
             rChannel: null,
             gChannel: null,
@@ -73,48 +93,64 @@ export class SettingStore {
         this.segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
     }
 
+    @action public setBasePath = (path: string) => {
+        this.basePath = path
+        this.importSettingsFromFile()
+    }
+
     @action public setPlotStatistic = (statistic: PlotStatistic) => {
         this.plotStatistic = statistic
+        this.exportSettings()
     }
 
     @action public setPlotTransform = (transform: PlotTransform) => {
         this.plotTransform = transform
+        this.exportSettings()
     }
 
     @action public setPlotType = (type: PlotType) => {
         this.plotType = type
+        this.exportSettings()
     }
 
     @action public setPlotNormalization = (normalization: PlotNormalization) => {
         this.plotNormalization = normalization
+        this.exportSettings()
     }
 
     @action public setSegmentationFillAlpha = (alpha: number) => {
         this.segmentationFillAlpha = alpha
+        this.exportSettings()
     }
 
     @action public setSegmentationOutlineAlpha = (alpha: number) => {
         this.segmentationOutlineAlpha = alpha
+        this.exportSettings()
     }
 
     @action public setSegmentationCentroidsVisible = (visible: boolean) => {
         this.segmentationCentroidsVisible = visible
+        this.exportSettings()
     }
 
     @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
         this.channelDomainPercentage[name] = value
+        this.exportSettings()
     }
 
     @action public setSegmentationBasename = (basename: string) => {
         this.segmentationBasename = basename
+        this.exportSettings()
     }
 
     @action public setSelectedPlotMarkers = (markers: string[]) => {
         this.selectedPlotMarkers = markers
+        this.exportSettings()
     }
 
     @action public clearSelectedPlotMarkers = () => {
         this.selectedPlotMarkers = []
+        this.exportSettings()
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
@@ -165,6 +201,7 @@ export class SettingStore {
         let domainPercentage = configurationHelper.getDefaultChannelDomains()[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
         imageStore.setChannelDomainFromPercentage(channelName, domainPercentage)
+        this.exportSettings()
     }
 
     @action public unsetChannelMarker = (imageStore: ImageStore, channelName: ChannelName) => {
@@ -172,6 +209,7 @@ export class SettingStore {
         imageStore.unsetChannelMarker(channelName)
         // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
         this.channelDomainPercentage[channelName] = imageStore.getChannelDomainPercentage(channelName)
+        this.exportSettings()
     }
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
@@ -251,5 +289,56 @@ export class SettingStore {
         imageStore.setSegmentationFillAlpha(this.segmentationFillAlpha)
         imageStore.setSegmentationOutlineAlpha(this.segmentationOutlineAlpha)
         imageStore.setCentroidVisibility(this.segmentationCentroidsVisible)
+    }
+
+    // Was an autorun function, but then was getting triggered on first create/initialize and then clobbering any saved settings.
+    // As a result, we need to manually call this from any function that we want to trigger an update of settings.
+    private exportSettings = () => {
+        if (this.basePath != null) {
+            let exporting: SettingStoreData = {
+                channelMarker: this.channelMarker,
+                channelDomainPercentage: this.channelDomainPercentage,
+                segmentationBasename: this.segmentationBasename,
+                selectedPlotMarkers: this.selectedPlotMarkers,
+                plotStatistic: this.plotStatistic,
+                plotTransform: this.plotTransform,
+                plotType: this.plotType,
+                plotNormalization: this.plotNormalization,
+                segmentationFillAlpha: this.segmentationFillAlpha,
+                segmentationOutlineAlpha: this.segmentationOutlineAlpha,
+                segmentationCentroidsVisible: this.segmentationCentroidsVisible,
+            }
+            let exportingString = JSON.stringify(exporting)
+            let filename = path.join(this.basePath, ImageSettingsFilename)
+            // Write data to file
+            fs.writeFile(filename, exportingString, 'utf8', function(err) {
+                if (err) {
+                    console.log('An error occured while writing image settings to file.')
+                    return console.log(err)
+                }
+                console.log('Image settings file has been saved.')
+            })
+        }
+    }
+
+    @action private importSettingsFromFile = () => {
+        if (this.basePath != null) {
+            let filename = path.join(this.basePath, ImageSettingsFilename)
+            if (fs.existsSync(filename)) {
+                console.log('Importing image settings from file ' + filename)
+                let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
+                this.channelMarker = importingContent.channelMarker
+                this.channelDomainPercentage = importingContent.channelDomainPercentage
+                this.segmentationBasename = importingContent.segmentationBasename
+                this.selectedPlotMarkers = importingContent.selectedPlotMarkers
+                this.plotStatistic = importingContent.plotStatistic
+                this.plotTransform = importingContent.plotTransform
+                this.plotType = importingContent.plotType
+                this.plotNormalization = importingContent.plotNormalization
+                this.segmentationFillAlpha = importingContent.segmentationFillAlpha
+                this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
+                this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
+            }
+        }
     }
 }

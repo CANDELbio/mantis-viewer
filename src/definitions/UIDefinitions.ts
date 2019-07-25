@@ -59,6 +59,8 @@ export const SelectedCentroidColor = 0xffffff // white
 export const SegmentOutlineColor = 0xffffff // white
 export const HighlightedSegmentOutlineColor = 0xff0000 // red
 
-// Prefixes for
+// Prefixes for new populations selected from graph or image.
 export const GraphSelectionPrefix = 'Graph'
 export const ImageSelectionPrefix = 'Image'
+
+export const ImageSettingsFilename = '.mantisImageSettings'
