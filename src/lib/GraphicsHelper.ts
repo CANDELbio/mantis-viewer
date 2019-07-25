@@ -80,19 +80,25 @@ export function drawSelectedRegion(selection: number[], color: number, alpha: nu
 }
 
 // Returns an array of segmentIds whose centroids collide with the selection in selectionGraphics
-function findSegmentsInSelection(selectionGraphics: PIXI.Graphics, segmentationData: SegmentationData): number[] {
+export function findSegmentsInSelection(
+    selectionGraphics: PIXI.Graphics,
+    segmentationData: SegmentationData | null,
+): number[] {
     let selectedSegments: number[] = []
-    for (let segmentId in segmentationData.centroidMap) {
-        let centroid = segmentationData.centroidMap[segmentId]
-        let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
-        if (selectionGraphics.containsPoint(centroidPoint)) {
-            selectedSegments.push(Number(segmentId))
+    if (segmentationData != null) {
+        for (let segmentId in segmentationData.centroidMap) {
+            let centroid = segmentationData.centroidMap[segmentId]
+            let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
+            if (selectionGraphics.containsPoint(centroidPoint)) {
+                selectedSegments.push(Number(segmentId))
+            }
         }
     }
     return selectedSegments
 }
 
 // Cleans up the graphics/sprites passed in.
+// Used to delete selectionGraphics and segmentOutlineGraphics when a user is actively selecting.
 export function cleanUpStage(
     stage: PIXI.Container,
     selectionGraphics: PIXI.Graphics | null,
@@ -107,25 +113,6 @@ export function cleanUpStage(
         stage.removeChild(segmentOutlineGraphics)
         segmentOutlineGraphics.destroy()
     }
-}
-
-// Deletes the selectionGraphics and centroidGraphics being passed in (important when the user is actively selecting and these are being redrawn)
-// Then draws a new selectionGraphics of the region, finds the segments and their centroids in that selectionGraphics, and draws the selectedCentroids.
-// Returns the selectedCentroids and the graphics objects so that they can be deleted if we are re-drawing.
-export function selectRegion(
-    selection: number[],
-    segmentationData: SegmentationData | null,
-    color: number,
-    alpha: number,
-): { selectionGraphics: PIXI.Graphics; selectedSegments: number[] } {
-    let selectionGraphics = drawSelectedRegion(selection, color, alpha)
-
-    let selectedSegments: number[] = []
-    if (segmentationData != null) {
-        selectedSegments = findSegmentsInSelection(selectionGraphics, segmentationData)
-    }
-
-    return { selectionGraphics: selectionGraphics, selectedSegments: selectedSegments }
 }
 
 // Expects an array containing arrays of pixel locations.

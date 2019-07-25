@@ -32,6 +32,7 @@ export interface ImageProps {
     channelMarker: Record<ChannelName, string | null>
     selectedRegions: SelectedPopulation[] | null
     addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void
+    updateSelectedRegions: (selectedRegions: SelectedPopulation[]) => void
     hightlightedRegions: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
@@ -142,6 +143,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private onExportComplete = () => this.props.onExportComplete()
     private addSelectedRegionToStore = (selectedRegion: number[] | null, selectedSegments: number[], color: number) => {
         this.props.addSelectedRegion(selectedRegion, selectedSegments, color)
+    }
+    private updateSelectedRegionsInStore = (selectedRegions: SelectedPopulation[]) => {
+        this.props.updateSelectedRegions(selectedRegions)
     }
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
@@ -274,25 +278,17 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 selection.push(pos.y)
 
                 GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
-                let toUnpack = GraphicsHelper.selectRegion(
-                    selection,
-                    this.segmentationData,
-                    selectionColor,
-                    SelectedRegionAlpha,
-                )
 
-                selectionGraphics = toUnpack.selectionGraphics
-                selectedSegments = toUnpack.selectedSegments
+                selectionGraphics = GraphicsHelper.drawSelectedRegion(selection, selectionColor, SelectedRegionAlpha)
+                selectedSegments = GraphicsHelper.findSegmentsInSelection(selectionGraphics, this.segmentationData)
+                this.stage.addChild(selectionGraphics)
 
-                if (this.segmentationData != null)
+                if (this.segmentationData != null) {
                     segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(
                         selectionColor,
                         SelectedSegmentOutlineWidth,
                         selectedSegments,
                     )
-
-                this.stage.addChild(selectionGraphics)
-                if (segmentOutlineGraphics != null) {
                     segmentOutlineGraphics.alpha = SelectedSegmentOutlineAlpha
                     this.stage.addChild(segmentOutlineGraphics)
                 }
@@ -395,14 +391,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
-    // Add segmentation data to the stage.
-    private loadSegmentationGraphics(
-        segmentationData: SegmentationData,
-        segmentationFillAlpha: number,
-        segmentationOutlineAlpha: number,
-        centroidsVisible: boolean,
-    ): void {
-        if (segmentationData != this.segmentationData) {
+    private refreshSegmentationGraphicsIfChanged(segmentationData: SegmentationData | null): boolean {
+        let segmentationDataChanged = segmentationData != this.segmentationData
+        if (segmentationDataChanged && segmentationData) {
+            // If the segmentation data has changed and segmentation data is not null then refresh the sprites and graphics
             this.segmentationData = segmentationData
             this.segmentationSprite = segmentationData.segmentFillSprite
             this.segmentationOutlineGraphics = segmentationData.segmentOutlineGraphics(
@@ -413,7 +405,22 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 segmentationData.centroidMap,
                 UnselectedCentroidColor,
             )
+        } else if (segmentationDataChanged && segmentationData == null) {
+            // If the segmentation data has changed and has been cleared, then clear the sprites and graphics
+            this.segmentationData = segmentationData
+            this.segmentationSprite = null
+            this.segmentationOutlineGraphics = null
+            this.segmentationCentroidGraphics = null
         }
+        return segmentationDataChanged
+    }
+
+    // Add segmentation data to the stage.
+    private loadSegmentationGraphics(
+        segmentationFillAlpha: number,
+        segmentationOutlineAlpha: number,
+        centroidsVisible: boolean,
+    ): void {
         // Add segmentation cells
         if (this.segmentationSprite != null) {
             this.segmentationSprite.alpha = segmentationFillAlpha
@@ -432,31 +439,50 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Generates the graphics objects for regions or segment/cell populations selected by users.
-    private generateSelectedRegionGraphics(selectedRegions: SelectedPopulation[]): void {
-        this.selectedRegions = selectedRegions
-        this.selectedRegionGraphics = {}
-        for (let region of selectedRegions) {
-            if (region.visible) {
-                this.selectedRegionGraphics[region.id] = { region: null, outline: null }
-                if (region.selectedRegion != null)
-                    this.selectedRegionGraphics[region.id].region = GraphicsHelper.drawSelectedRegion(
-                        region.selectedRegion,
-                        region.color,
-                        SelectedRegionAlpha,
-                    )
-                if (region.selectedSegments != null && this.segmentationData != null) {
-                    this.selectedRegionGraphics[region.id].outline = this.segmentationData.segmentOutlineGraphics(
-                        region.color,
-                        SelectedSegmentOutlineWidth,
-                        region.selectedSegments,
-                    )
+    private refreshSelectedRegionGraphicsIfChanged(
+        segmentationDataChanged: boolean,
+        selectedRegions: SelectedPopulation[] | null,
+    ): void {
+        if (selectedRegions != this.selectedRegions || segmentationDataChanged) {
+            this.selectedRegions = selectedRegions
+            this.selectedRegionGraphics = {}
+            if (selectedRegions != null) {
+                for (let region of selectedRegions) {
+                    if (region.visible) {
+                        let regionGraphics: PIXI.Graphics | null = null
+                        let outlineGraphics: PIXI.Graphics | null = null
+                        // Refresh the selected region graphics
+                        if (region.selectedRegion != null)
+                            regionGraphics = GraphicsHelper.drawSelectedRegion(
+                                region.selectedRegion,
+                                region.color,
+                                SelectedRegionAlpha,
+                            )
+                        // Refresh the selected segments for the region if segmentation data has changed
+                        if (regionGraphics != null && segmentationDataChanged) {
+                            region.selectedSegments = GraphicsHelper.findSegmentsInSelection(
+                                regionGraphics,
+                                this.segmentationData,
+                            )
+                        }
+                        // Refresh the segment outline graphics
+                        if (region.selectedSegments != null && this.segmentationData != null) {
+                            outlineGraphics = this.segmentationData.segmentOutlineGraphics(
+                                region.color,
+                                SelectedSegmentOutlineWidth,
+                                region.selectedSegments,
+                            )
+                        }
+                        this.selectedRegionGraphics[region.id] = { region: regionGraphics, outline: outlineGraphics }
+                    }
                 }
+                this.updateSelectedRegionsInStore(selectedRegions)
             }
         }
     }
 
     // Adds the graphics for regions or segment/cell populations selected by users to the stage.
-    private addSelectedRegionGraphicsToStage(stage: PIXI.Container, highlightedRegions: string[]): void {
+    private loadSelectedRegionGraphics(stage: PIXI.Container, highlightedRegions: string[]): void {
         if (this.selectedRegionGraphics != null) {
             for (let regionId in this.selectedRegionGraphics) {
                 let curGraphics = this.selectedRegionGraphics[regionId]
@@ -481,16 +507,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 }
             }
         }
-    }
-
-    // Add the selected ROIs to the stage. Regenerates the PIXI layers if they aren't present.
-    private loadSelectedRegionGraphics(selectedRegions: SelectedPopulation[], highlightedRegions: string[]): void {
-        // Regenerate the region graphics and the centroids they contain if the selectedRegions have changed
-        if (selectedRegions != this.selectedRegions) {
-            this.generateSelectedRegionGraphics(selectedRegions)
-        }
-        // Add them to the stage
-        this.addSelectedRegionGraphicsToStage(this.stage, highlightedRegions)
     }
 
     // Generates and adds segments highlighted/moused over on the graph.
@@ -564,18 +580,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
         }
 
-        if (segmentationData != null) {
-            this.loadSegmentationGraphics(
-                segmentationData,
-                segmentationFillAlpha,
-                segmentationOutlineAlpha,
-                segmentationCentroidsVisible,
-            )
-        }
+        // Update and load segmentation data graphics
+        let segmentationDataChanged = this.refreshSegmentationGraphicsIfChanged(segmentationData)
+        this.loadSegmentationGraphics(segmentationFillAlpha, segmentationOutlineAlpha, segmentationCentroidsVisible)
 
-        if (selectedRegions != null) {
-            this.loadSelectedRegionGraphics(selectedRegions, highlightedRegions)
-        }
+        // Update and load selected region graphics
+        this.refreshSelectedRegionGraphicsIfChanged(segmentationDataChanged, selectedRegions)
+        this.loadSelectedRegionGraphics(this.stage, highlightedRegions)
 
         if (segmentationData != null) {
             this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)

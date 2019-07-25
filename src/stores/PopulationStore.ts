@@ -39,7 +39,7 @@ export class PopulationStore {
         selectedRegion: number[] | null,
         selectedSegments: number[],
         namePrefix: string | null,
-        name?: string,
+        name?: string | null,
         color?: number,
     ) => {
         let newRegion = {
@@ -112,6 +112,19 @@ export class PopulationStore {
             this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
                 region.visible = visible
                 return region
+            })
+        }
+    }
+
+    @action public updateSelectedPopulationSegments = (id: string, segments: number[]) => {
+        if (this.selectedPopulations != null) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+                if (region.id == id) {
+                    region.selectedSegments = segments
+                    return region
+                } else {
+                    return region
+                }
             })
         }
     }
