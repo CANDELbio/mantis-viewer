@@ -21,11 +21,7 @@ ipcRenderer.on('open-project', async (event: Electron.Event, dirName: string) =>
     projectStore.openProject(dirName)
 })
 
-ipcRenderer.on('open-active-segmentation-file', (event: Electron.Event, filename: string) => {
-    projectStore.activeImageStore.setSegmentationFile(filename)
-})
-
-ipcRenderer.on('open-project-segmentation-file', (event: Electron.Event, filename: string) => {
+ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: string) => {
     projectStore.setSegmentationBasename(filename)
 })
 

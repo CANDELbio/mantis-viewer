@@ -105,42 +105,17 @@ function generateMenuTemplate(): any {
                     submenu: [
                         {
                             label: 'Segmentation',
-                            submenu: [
-                                {
-                                    label: 'For active image set',
-                                    enabled: imageLoaded,
-                                    click: () => {
-                                        dialog.showOpenDialog(
-                                            { properties: ['openFile'], defaultPath: activeImageDirectory },
-                                            (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames != null) {
-                                                    mainWindow.webContents.send(
-                                                        'open-active-segmentation-file',
-                                                        fileNames[0],
-                                                    )
-                                                }
-                                            },
-                                        )
+                            enabled: imageLoaded,
+                            click: () => {
+                                dialog.showOpenDialog(
+                                    { properties: ['openFile'], defaultPath: activeImageDirectory },
+                                    (fileNames: string[]) => {
+                                        if (mainWindow != null && fileNames != null) {
+                                            mainWindow.webContents.send('open-segmentation-file', fileNames[0])
+                                        }
                                     },
-                                },
-                                {
-                                    label: 'For project',
-                                    enabled: projectLoaded,
-                                    click: () => {
-                                        dialog.showOpenDialog(
-                                            { properties: ['openFile'], defaultPath: activeImageDirectory },
-                                            (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames != null) {
-                                                    mainWindow.webContents.send(
-                                                        'open-project-segmentation-file',
-                                                        fileNames[0],
-                                                    )
-                                                }
-                                            },
-                                        )
-                                    },
-                                },
-                            ],
+                                )
+                            },
                         },
                         {
                             label: 'Populations',
