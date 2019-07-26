@@ -5,6 +5,8 @@ import * as _ from 'underscore'
 import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
+import { Grid, Row, Col } from 'react-flexbox-grid'
+import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
 
 import { PlotData } from '../interfaces/DataInterfaces'
 import { DefaultSelectionName } from '../definitions/PlotDefinitions'
@@ -16,7 +18,7 @@ import {
     PlotNormalization,
 } from '../definitions/UIDefinitions'
 
-export interface ScatterPlotProps {
+interface PlotProps {
     markerSelectOptions: { value: string; label: string }[]
     selectedPlotMarkers: string[]
     setSelectedPlotMarkers: (x: string[]) => void
@@ -35,13 +37,24 @@ export interface ScatterPlotProps {
     windowWidth: number | null
 }
 
+interface PlotState {
+    popoverOpen: boolean
+}
+
 @observer
-export class Plot extends React.Component<ScatterPlotProps, {}> {
+export class Plot extends React.Component<PlotProps, {}> {
     public container: Plotly.PlotlyHTMLElement | null = null
 
-    public constructor(props: ScatterPlotProps) {
+    public constructor(props: PlotProps) {
         super(props)
     }
+
+    public state = {
+        popoverOpen: false, // TODO: Delete when removing popover
+    }
+
+    // TODO: Delete when removing popover
+    private togglePopover = () => this.setState({ popoverOpen: !this.state.popoverOpen })
 
     private markerSelectOptions: { value: string; label: string }[]
 
@@ -159,25 +172,23 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
         }
 
         // Clear the plot element if we don't have scatterPlot data.
-        let markerControls = null
         let plot = null
+        let plotSettings = null
+        let plotType = null
+        let markerControls = null
         let statisticControls = null
         let transformControls = null
         let normalizationControls = null
 
-        if (this.props.selectedType != 'heatmap') {
-            markerControls = (
-                <div>
-                    <div>Plot Markers</div>
-                    <Select
-                        value={this.props.selectedPlotMarkers}
-                        options={this.markerSelectOptions}
-                        onChange={this.onPlotMarkerSelect}
-                        multi={true}
-                    />
-                </div>
-            )
-        }
+        plotType = (
+            <Select
+                value={this.props.selectedType}
+                options={PlotTypeOptions}
+                onChange={this.onTypeSelect}
+                clearable={false}
+            />
+        )
+
         if (this.props.plotData != null) {
             statisticControls = (
                 <Select
@@ -213,20 +224,54 @@ export class Plot extends React.Component<ScatterPlotProps, {}> {
             this.cleanupPlotly()
         }
 
+        markerControls = (
+            <Select
+                value={this.props.selectedPlotMarkers}
+                options={this.markerSelectOptions}
+                onChange={this.onPlotMarkerSelect}
+                multi={true}
+                disabled={this.props.selectedType == 'heatmap'}
+                placeholder="Select plot markers..."
+            />
+        )
+
+        plotSettings = (
+            <div>
+                <Grid fluid={true}>
+                    <Row between="xs">
+                        <Col xs={10} sm={10} md={10} lg={10}>
+                            {markerControls}
+                        </Col>
+                        <Col xs={2} sm={2} md={2} lg={2}>
+                            <Button id="controls" type="button" size="sm">
+                                Controls
+                            </Button>
+                        </Col>
+                    </Row>
+                </Grid>
+                <Popover
+                    placement="bottom"
+                    isOpen={this.state.popoverOpen}
+                    trigger="legacy"
+                    target="controls"
+                    toggle={this.togglePopover}
+                    style={{ width: '180px' }}
+                >
+                    <PopoverHeader>Plot Controls</PopoverHeader>
+                    <PopoverBody>
+                        {plotType}
+                        {statisticControls}
+                        {transformControls}
+                        {normalizationControls}
+                    </PopoverBody>
+                </Popover>
+            </div>
+        )
+
         return (
             <div>
-                <div>Plot Type</div>
-                <Select
-                    value={this.props.selectedType}
-                    options={PlotTypeOptions}
-                    onChange={this.onTypeSelect}
-                    clearable={false}
-                />
-                {markerControls}
+                <div>{plotSettings}</div>
                 {plot}
-                {statisticControls}
-                {transformControls}
-                {normalizationControls}
             </div>
         )
     }

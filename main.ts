@@ -358,7 +358,7 @@ function createMainWindow(): void {
         width: 1540,
         height: 740,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true },
+        webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true },
     })
     setMenu()
 
