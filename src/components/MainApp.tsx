@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { UnmountClosed } from 'react-collapse'
-import { Button } from '@blueprintjs/core'
 import { ClipLoader } from 'react-spinners'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { SizeMe } from 'react-sizeme'
+import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
 
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelControls } from './ChannelControls'
@@ -28,6 +28,7 @@ interface MainAppState {
     regionsOpen: boolean
     segmentationOpen: boolean
     plotOpen: boolean
+    popoverOpen: boolean // TODO: Delete when removing popover
 }
 
 @observer
@@ -41,6 +42,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         regionsOpen: true,
         segmentationOpen: false,
         plotOpen: false,
+        popoverOpen: false, // TODO: Delete when removing popover
     }
 
     // Reverse ImageChannels so that select order is RGBCMYK
@@ -60,6 +62,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
     private handleRegionsClick = () => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
+
+    // TODO: Delete when removing popover
+    private togglePopover = () => this.setState({ popoverOpen: !this.state.popoverOpen })
 
     private addSelectionFromGraph = (segmentIds: number[]) => {
         let populationStore = this.props.projectStore.activePopulationStore
@@ -231,6 +236,27 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             />
         )
 
+        // TODO: Delete when removing popover
+        let popOver = (
+            <div>
+                <Button id="Popover1" type="button">
+                    Launch Test Popover
+                </Button>
+                <Popover
+                    placement="right"
+                    isOpen={this.state.popoverOpen}
+                    target="Popover1"
+                    toggle={this.togglePopover}
+                >
+                    <PopoverHeader>Popover Title</PopoverHeader>
+                    <PopoverBody>
+                        Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia
+                        quam venenatis vestibulum.
+                    </PopoverBody>
+                </Popover>
+            </div>
+        )
+
         let fullWidth = { width: '100%' }
         let paddingStyle = { paddingTop: '10px' }
 
@@ -256,7 +282,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
-                            <Button onClick={this.handleChannelClick} style={fullWidth}>
+                            <Button onClick={this.handleChannelClick} style={fullWidth} size="sm">
                                 {this.state.channelsOpen ? 'Hide' : 'Show'} Channel Controls
                             </Button>
                             <UnmountClosed isOpened={this.state.channelsOpen} style={fullWidth}>
@@ -264,13 +290,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{channelControls ? 'Channel Controls:' : null}</div>
                                 <div>{channelControls}</div>
                             </UnmountClosed>
-                            <br />
-                            <Button onClick={this.handleSegmentationClick} style={fullWidth}>
+                            <div>
+                                <br />
+                            </div>
+                            <Button onClick={this.handleSegmentationClick} style={fullWidth} size="sm">
                                 {this.state.segmentationOpen ? 'Hide' : 'Show'} Segmentation Controls
                             </Button>
                             <UnmountClosed isOpened={this.state.segmentationOpen} style={fullWidth}>
                                 <div>{segmentationControls}</div>
                             </UnmountClosed>
+                            <div>{popOver}</div>
                         </Col>
                         <SizeMe>
                             {({ size }) => (
@@ -304,13 +333,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             )}
                         </SizeMe>
                         <Col xs={4} sm={4} md={4} lg={4}>
-                            <Button onClick={this.handleRegionsClick} style={fullWidth}>
+                            <Button onClick={this.handleRegionsClick} style={fullWidth} size="sm">
                                 {this.state.regionsOpen ? 'Hide' : 'Show'} Selected Regions
                             </Button>
                             <UnmountClosed isOpened={this.state.regionsOpen} style={fullWidth}>
                                 {selectedPopulations}
                             </UnmountClosed>
-                            <Button onClick={this.handlePlotClick} style={fullWidth}>
+                            <div>
+                                <br />
+                            </div>
+                            <Button onClick={this.handlePlotClick} style={fullWidth} size="sm">
                                 {this.state.plotOpen ? 'Hide' : 'Show'} Plot Pane
                             </Button>
                             <UnmountClosed isOpened={this.state.plotOpen} style={fullWidth}>
