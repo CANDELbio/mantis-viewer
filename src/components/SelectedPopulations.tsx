@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import { EditableText, Button, Checkbox } from '@blueprintjs/core'
+import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
+import { Button } from 'reactstrap'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -90,7 +91,9 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
                     </td>
                     <td>
-                        <Button text={'Delete'} onClick={this.deletePopulation} />
+                        <Button onClick={this.deletePopulation} color="danger" size="sm">
+                            Delete
+                        </Button>
                     </td>
                 </tr>
             )

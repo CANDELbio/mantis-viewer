@@ -264,7 +264,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{channelControls ? 'Channel Controls:' : null}</div>
                                 <div>{channelControls}</div>
                             </Collapse>
-                            <Button onClick={this.handleSegmentationClick} style={fullWidthBottomSpaced} size="sm">
+                            <Button
+                                onClick={this.handleSegmentationClick}
+                                style={fullWidthBottomSpaced}
+                                size="sm"
+                                disabled={imageStore.segmentationData == null}
+                            >
                                 {this.state.segmentationOpen ? 'Hide' : 'Show'} Segmentation Controls
                             </Button>
                             <Collapse isOpen={this.state.segmentationOpen} style={fullWidth}>
@@ -309,7 +314,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             <Collapse isOpen={this.state.regionsOpen} style={fullWidth}>
                                 {selectedPopulations}
                             </Collapse>
-                            <Button onClick={this.handlePlotClick} style={fullWidthBottomSpaced} size="sm">
+                            <Button
+                                onClick={this.handlePlotClick}
+                                style={fullWidthBottomSpaced}
+                                size="sm"
+                                disabled={imageStore.segmentationData == null}
+                            >
                                 {this.state.plotOpen ? 'Hide' : 'Show'} Plot Pane
                             </Button>
                             <Collapse isOpen={this.state.plotOpen} style={fullWidth}>

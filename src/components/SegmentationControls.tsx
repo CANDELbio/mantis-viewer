@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { Button, Slider, Checkbox } from '@blueprintjs/core'
+import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
+import { Button } from 'reactstrap'
 
 export interface SegmentationControlsProps {
     fillAlpha: number
@@ -25,6 +26,8 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
 
     private onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value / this.sliderMax)
     private onOutlineAlphaSliderChange = (value: number) => this.props.onOutlineAlphaChange(value / this.sliderMax)
+    private onReactAlphaSliderChange = (event: React.FormEvent<HTMLInputElement>) =>
+        this.props.onOutlineAlphaChange(event.currentTarget.valueAsNumber / this.sliderMax)
     private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
         this.props.setCentroidsVisible(event.currentTarget.checked)
 
@@ -48,7 +51,9 @@ export class SegmentationControls extends React.Component<SegmentationControlsPr
                     onChange={this.onFillAlphaSliderChange}
                     max={this.sliderMax}
                 />
-                <Button text={'Clear Segmentation'} onClick={this.props.onClearSegmentation} />
+                <Button onClick={this.props.onClearSegmentation} color="danger" size="sm">
+                    Clear Segmentation
+                </Button>
             </div>
         )
     }
