@@ -2,6 +2,7 @@ import { observable, action } from 'mobx'
 import * as fs from 'fs'
 import * as shortId from 'shortid'
 import * as csvParse from 'csv-parse'
+import * as stringify from 'csv-stringify'
 import * as _ from 'underscore'
 
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
@@ -129,6 +130,33 @@ export class PopulationStore {
         }
     }
 
+    @action public addPopulationsFromJSON = (filename: string) => {
+        let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
+        let importingPopulations: SelectedPopulation[] = importingContent
+        importingPopulations.map((population: SelectedPopulation) => {
+            this.addSelectedPopulation(
+                population.selectedRegion,
+                population.selectedSegments,
+                null,
+                population.name,
+                population.color,
+            )
+        })
+    }
+
+    public exportPopulationsToJSON = (filename: string) => {
+        let popluationsString = JSON.stringify(this.selectedPopulations)
+
+        // Write data to file
+        fs.writeFile(filename, popluationsString, 'utf8', function(err) {
+            if (err) {
+                console.log('An error occured while writing populations to JSON file.')
+                return console.log(err)
+            }
+            console.log('Populations JSON file has been saved.')
+        })
+    }
+
     @action public addPopulationsFromCSV = (filename: string) => {
         console.log('Add populations from ' + filename)
 
@@ -151,6 +179,22 @@ export class PopulationStore {
             for (let populationName in populations) {
                 this.addSelectedPopulation(null, populations[populationName], null, populationName, randomHexColor())
             }
+        })
+    }
+
+    @action public exportPopulationsToCSV = (filename: string) => {
+        let data: string[][] = []
+        this.selectedPopulations.map((population: SelectedPopulation) => {
+            population.selectedSegments.map((segmentId: number) => {
+                data.push([segmentId.toString(), population.name])
+            })
+        })
+        stringify(data, { header: false }, (err, output) => {
+            if (err) console.log('Error exporting populations to CSV ' + err)
+            fs.writeFile(filename, output, err => {
+                if (err) console.log('Error exporting populations to CSV ' + err)
+                console.log('Populaitions csv saved to ' + filename)
+            })
         })
     }
 }

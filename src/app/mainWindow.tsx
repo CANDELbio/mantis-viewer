@@ -25,24 +25,20 @@ ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: strin
     projectStore.setSegmentationBasename(filename)
 })
 
-ipcRenderer.on('import-active-selected-populations', (event: Electron.Event, filename: string) => {
-    projectStore.importActiveUserData(filename)
+ipcRenderer.on('add-populations-json', (event: Electron.Event, filename: string) => {
+    projectStore.activePopulationStore.addPopulationsFromJSON(filename)
 })
 
-ipcRenderer.on('import-project-selected-populations', (event: Electron.Event, filename: string) => {
-    projectStore.importAllUserData(filename)
-})
-
-ipcRenderer.on('export-active-selected-populations', (event: Electron.Event, filename: string) => {
-    projectStore.exportActiveUserData(filename)
-})
-
-ipcRenderer.on('export-project-selected-populations', (event: Electron.Event, filename: string) => {
-    projectStore.exportAllUserData(filename)
+ipcRenderer.on('export-populations-json', (event: Electron.Event, filename: string) => {
+    projectStore.activePopulationStore.exportPopulationsToJSON(filename)
 })
 
 ipcRenderer.on('add-populations-csv', (event: Electron.Event, filename: string) => {
     projectStore.activePopulationStore.addPopulationsFromCSV(filename)
+})
+
+ipcRenderer.on('export-populations-csv', (event: Electron.Event, filename: string) => {
+    projectStore.activePopulationStore.exportPopulationsToCSV(filename)
 })
 
 ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {

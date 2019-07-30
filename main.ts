@@ -149,30 +149,7 @@ function generateMenuTemplate(): any {
                                             },
                                             (fileNames: string[]) => {
                                                 if (mainWindow != null && fileNames != null)
-                                                    mainWindow.webContents.send(
-                                                        'import-active-selected-populations',
-                                                        fileNames[0],
-                                                    )
-                                            },
-                                        )
-                                    },
-                                },
-                                {
-                                    label: 'For project from JSON',
-                                    enabled: projectLoaded,
-                                    click: () => {
-                                        dialog.showOpenDialog(
-                                            {
-                                                properties: ['openFile'],
-                                                defaultPath: activeImageDirectory,
-                                                filters: [{ name: 'json', extensions: ['json'] }],
-                                            },
-                                            (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames != null)
-                                                    mainWindow.webContents.send(
-                                                        'import-project-selected-populations',
-                                                        fileNames[0],
-                                                    )
+                                                    mainWindow.webContents.send('add-populations-json', fileNames[0])
                                             },
                                         )
                                     },
@@ -198,29 +175,23 @@ function generateMenuTemplate(): any {
                                             },
                                             (filename: string) => {
                                                 if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send(
-                                                        'export-active-selected-populations',
-                                                        filename,
-                                                    )
+                                                    mainWindow.webContents.send('export-populations-json', filename)
                                             },
                                         )
                                     },
                                 },
                                 {
-                                    label: 'For project to JSON',
-                                    enabled: projectLoaded && populationsSelected,
+                                    label: 'For active image set to CSV',
+                                    enabled: imageLoaded && populationsSelected,
                                     click: () => {
                                         dialog.showSaveDialog(
                                             {
-                                                filters: [{ name: 'json', extensions: ['json'] }],
+                                                filters: [{ name: 'csv', extensions: ['csv'] }],
                                                 defaultPath: activeImageDirectory,
                                             },
                                             (filename: string) => {
                                                 if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send(
-                                                        'export-project-selected-populations',
-                                                        filename,
-                                                    )
+                                                    mainWindow.webContents.send('export-populations-csv', filename)
                                             },
                                         )
                                     },

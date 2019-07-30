@@ -8,8 +8,6 @@ import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
 import { generatePlotData } from '../lib/plot/Index'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import { SegmentationData } from '../lib/SegmentationData'
 import { ImageData } from '../lib/ImageData'
 import {
     SelectOption,
@@ -302,99 +300,6 @@ export class ProjectStore {
     @action public clearSelectedPlotMarkers = () => {
         this.settingStore.clearSelectedPlotMarkers()
         this.activePlotStore.clearSelectedPlotMarkers()
-    }
-
-    // Exports user data (i.e populations and segmentation) for the all image sets
-    // Exports to a file named filename in each image sets's directory.
-    public exportAllUserData = (filename: string) => {
-        let basename = path.basename(filename)
-        for (let curPath of this.imageSetPaths) {
-            let exportFilename = path.join(curPath, basename)
-            this.exportActiveUserData(exportFilename, curPath)
-        }
-    }
-
-    // Exports user data (i.e populations and segmentation) for the active image set
-    public exportActiveUserData = (filename: string, dirName = this.activeImageSetPath) => {
-        let exportingContent = { populations: [] as SelectedPopulation[], segmentation: {} }
-        if (dirName != null && dirName in this.imageSets) {
-            let imageStore = this.imageSets[dirName].imageStore
-            let populationStore = this.imageSets[dirName].populationStore
-            // Prepare segmentation data for export
-            // Dump Float32Array to normal array as JSON.stringify/parse don't support typed arrays.
-            if (imageStore && populationStore && populationStore.selectedPopulations.length > 0) {
-                if (imageStore.segmentationData != null) {
-                    exportingContent.segmentation = {
-                        width: imageStore.segmentationData.width,
-                        height: imageStore.segmentationData.height,
-                        bytesPerElement: imageStore.segmentationData.data.BYTES_PER_ELEMENT,
-                        data: Array.from(imageStore.segmentationData.data),
-                    }
-                }
-                // Prepare selected populations for export
-                exportingContent.populations = populationStore.selectedPopulations
-
-                let exportingString = JSON.stringify(exportingContent)
-
-                // Write data to file
-                fs.writeFile(filename, exportingString, 'utf8', function(err) {
-                    if (err) {
-                        console.log('An error occured while writing regions of interest to file.')
-                        return console.log(err)
-                    }
-                    console.log('Regions of interest file has been saved.')
-                })
-            }
-        }
-    }
-
-    // Imports user data (i.e populations and segmentation) for the all image sets
-    // Imports from a file named filename in each image sets's directory.
-    @action public importAllUserData = (filename: string) => {
-        let basename = path.basename(filename)
-        for (let curPath of this.imageSetPaths) {
-            let importFilename = path.join(curPath, basename)
-            if (fs.existsSync(importFilename)) this.importActiveUserData(importFilename, curPath)
-        }
-    }
-
-    // Imports segmentation data and selected populations from file
-    // TODO: Some sanity checks to make sure imported data makes sense
-    @action public importActiveUserData = (filename: string, dirName = this.activeImageSetPath) => {
-        let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
-        if (dirName != null) {
-            // If the user has not viewed the image set we're importing for yet we need to initialize the stores for it first.
-            if (!(dirName in this.imageSets)) this.initializeStores(dirName)
-            let imageStore = this.imageSets[dirName].imageStore
-            let populationStore = this.imageSets[dirName].populationStore
-
-            // Import Segmentation Data
-            let importingSegmentation = importingContent.segmentation
-            if (importingSegmentation) {
-                let importedDataBytes = importingSegmentation.bytesPerElement
-                let importedDataTypeMapping: Record<number, any> = { 4: Float32Array, 2: Uint16Array, 1: Uint8Array }
-                if (importedDataBytes in importedDataTypeMapping) {
-                    let arrayType = importedDataTypeMapping[importedDataBytes]
-                    let importedDataArray = arrayType.from(importingSegmentation.data)
-                    let importedSegmentation = new SegmentationData()
-                    importedSegmentation.loadTiffData(
-                        importedDataArray,
-                        importingSegmentation.width,
-                        importingSegmentation.height,
-                        imageStore.setSegmentationData,
-                    )
-                }
-            }
-            // Import saved populations
-            let importingPopulations = importingContent.populations
-            if (importingPopulations) {
-                // When segmentation data has been loaded or if we're not loading segmentation data
-                when(
-                    () => !importingSegmentation || imageStore.segmentationData != null,
-                    () => populationStore.setSelectedPopulations(importingPopulations),
-                )
-            }
-        }
     }
 
     public exportMarkerIntensisties = (filename: string, statistic: PlotStatistic) => {
