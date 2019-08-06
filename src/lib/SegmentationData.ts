@@ -32,6 +32,8 @@ export class SegmentationData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
+    public constructor() {}
+
     public segmentOutlineGraphics(color: number, width: number, segments?: number[]): PIXI.Graphics {
         let outlines = []
         for (let segment in this.segmentOutlineMap) {
@@ -87,17 +89,4 @@ export class SegmentationData {
     public loadFile(fName: string, onReady: (SegmentationData: SegmentationData) => void): void {
         this.loadInWorker({ filepath: fName }, onReady)
     }
-
-    public clearData(): void {
-        delete this.data
-        delete this.segmentIds
-        delete this.pixelMap
-        delete this.segmentIndexMap
-        delete this.segmentLocationMap
-        delete this.segmentOutlineMap
-        delete this.centroidMap
-        delete this.segmentFillSprite
-    }
-
-    public constructor() {}
 }

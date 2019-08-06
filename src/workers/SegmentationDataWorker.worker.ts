@@ -215,7 +215,11 @@ ctx.addEventListener(
         let data: SegmentationDataWorkerInput = message.data
         // Callback if an error is raised when loading data.
         loadFile(data.filepath).then(message => {
-            ctx.postMessage(message)
+            if ('error' in message) {
+                ctx.postMessage(message)
+            } else {
+                ctx.postMessage(message, [message.data.buffer])
+            }
         })
     },
     false,

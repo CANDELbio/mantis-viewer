@@ -92,10 +92,7 @@ export class ImageStore {
     }
 
     @action public clearImageData = () => {
-        if (this.imageData != null) {
-            this.imageData.clearData()
-            this.imageData = null
-        }
+        this.imageData = null
     }
 
     @action public setSegmentationFillAlpha = (value: number) => {
@@ -206,10 +203,7 @@ export class ImageStore {
     // Used in clearSegmentationData
     // And when cleaning up memory in the projectStore.
     @action public deleteSegmentationData = () => {
-        if (this.segmentationData != null) {
-            this.segmentationData.clearData()
-            this.segmentationData = null
-        }
+        this.segmentationData = null
     }
 
     @action public refreshSegmentationData = () => {

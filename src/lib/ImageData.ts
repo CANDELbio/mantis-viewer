@@ -114,16 +114,4 @@ export class ImageData {
             })
         }
     }
-
-    public clearData(): void {
-        for (let key in this.data) {
-            delete this.data[key]
-        }
-        delete this.data
-        for (let key in this.sprites) {
-            delete this.sprites[key]
-        }
-        delete this.sprites
-        delete this.minmax
-    }
 }

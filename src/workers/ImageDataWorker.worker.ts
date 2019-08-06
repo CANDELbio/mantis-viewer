@@ -7,7 +7,7 @@ import * as d3Scale from 'd3-scale'
 import * as path from 'path'
 
 import { MinMax } from '../interfaces/ImageInterfaces'
-import { ImageDataWorkerResult, ImageDataWorkerInput } from './ImageDataWorker'
+import { ImageDataWorkerResult, ImageDataWorkerInput, ImageDataWorkerError } from './ImageDataWorker'
 import { readTiffData } from '../lib/TiffHelper'
 
 async function bitmapFromData(
@@ -63,8 +63,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
 export async function readFile(
     useExtForMarkerName: boolean,
     filepath: string,
-    onError: (err: any) => void,
-): Promise<ImageDataWorkerResult | void> {
+): Promise<ImageDataWorkerResult | ImageDataWorkerError> {
     let parsed = path.parse(filepath)
     let markerName = useExtForMarkerName ? parsed.base : parsed.name
     try {
@@ -87,7 +86,7 @@ export async function readFile(
             minmax: minmax,
         }
     } catch (err) {
-        onError({ filepath: filepath, error: err.message, markerName: markerName })
+        return { filepath: filepath, error: err.message, markerName: markerName }
     }
 }
 
@@ -95,14 +94,14 @@ ctx.addEventListener(
     'message',
     message => {
         var data: ImageDataWorkerInput = message.data
-        readFile(data.useExtForMarkerName, data.filepath, err => {
-            // If we have an error, send the message.
-            ctx.postMessage(err)
-        }).then(message => {
+        readFile(data.useExtForMarkerName, data.filepath).then(message => {
             // Send the message and then specify the large data array and bitmap as transferrables
             // Using transferrables dramatically speeds up transfer back to the main thread
-            // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-            if (message && 'data' in message && 'bitmap' in message) ctx.postMessage(message)
+            if ('error' in message) {
+                ctx.postMessage(message)
+            } else {
+                ctx.postMessage(message, [message.data.buffer, message.bitmap])
+            }
         })
     },
     false,
