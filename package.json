@@ -6,8 +6,8 @@
     "scripts": {
         "start": "electron . debug",
         "build": "tsc main.ts --sourceMap && webpack",
-        "pack": "build --dir",
-        "dist": "build -mwl --x64",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder -mwl --x64",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts ."
