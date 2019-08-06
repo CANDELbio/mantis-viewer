@@ -7,7 +7,7 @@ import * as d3Scale from 'd3-scale'
 import * as path from 'path'
 
 import { MinMax } from '../interfaces/ImageInterfaces'
-import { ImageDataWorkerResult } from '../interfaces/WorkerInterfaces'
+import { ImageDataWorkerResult, ImageDataWorkerInput } from './ImageDataWorker'
 import { readTiffData } from '../lib/TiffHelper'
 
 async function bitmapFromData(
@@ -61,7 +61,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
 }
 
 export async function readFile(
-    useExtForMarkerName: string,
+    useExtForMarkerName: boolean,
     filepath: string,
     onError: (err: any) => void,
 ): Promise<ImageDataWorkerResult | void> {
@@ -77,16 +77,24 @@ export async function readFile(
         // ImageBitmaps are rendered canvases can be passed between processes
         let bitmap = await bitmapFromData(data, width, height, minmax)
 
-        return { markerName: markerName, width: width, height: height, data: data, bitmap: bitmap, minmax: minmax }
+        return {
+            filepath: filepath,
+            markerName: markerName,
+            width: width,
+            height: height,
+            data: data,
+            bitmap: bitmap,
+            minmax: minmax,
+        }
     } catch (err) {
-        onError({ error: err.message, markerName: markerName })
+        onError({ filepath: filepath, error: err.message, markerName: markerName })
     }
 }
 
 ctx.addEventListener(
     'message',
     message => {
-        var data = message.data
+        var data: ImageDataWorkerInput = message.data
         readFile(data.useExtForMarkerName, data.filepath, err => {
             // If we have an error, send the message.
             ctx.postMessage(err)
@@ -94,8 +102,7 @@ ctx.addEventListener(
             // Send the message and then specify the large data array and bitmap as transferrables
             // Using transferrables dramatically speeds up transfer back to the main thread
             // However, closing/terminating the worker causes this to fail and crash (bug in Chromium maybe?)
-            if (message && 'data' in message && 'bitmap' in message)
-                ctx.postMessage(message, [message.data.buffer, message.bitmap])
+            if (message && 'data' in message && 'bitmap' in message) ctx.postMessage(message)
         })
     },
     false,

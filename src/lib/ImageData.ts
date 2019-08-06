@@ -2,9 +2,9 @@ import * as _ from 'underscore'
 import * as fs from 'fs'
 import * as path from 'path'
 import { TiffDataMap, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
-import { ImageDataWorkerResult } from '../interfaces/WorkerInterfaces'
 import { imageBitmapToSprite } from './GraphicsHelper'
-import { ImageDataWorker } from '../workers/ImageDataWorker'
+import { ImageDataWorkerResult, ImageDataWorkerError } from '../workers/ImageDataWorker'
+import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
 
 // Class to store ImageData
 // Needs to have loadFolder invoked after creation to actually load and store data.
@@ -20,9 +20,13 @@ export class ImageData {
 
     // Keep track of the number of markers. Used to know when all workers have completed.
     private numMarkers: number
-    // Keep track of workers created
-    // Was going to terminate them when done, but broke using Transferrable objects.
-    private workers: ImageDataWorker[]
+
+    public constructor() {
+        this.data = {}
+        this.minmax = {}
+        this.sprites = {}
+        this.errors = []
+    }
 
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (imageData: ImageData) => void
@@ -34,12 +38,6 @@ export class ImageData {
 
     public clearErrors(): void {
         this.errors = []
-    }
-
-    public terminateWorkers(): void {
-        for (let worker of this.workers) {
-            worker.terminate()
-        }
     }
 
     private fileLoadComplete(): void {
@@ -93,8 +91,14 @@ export class ImageData {
             // If no tiffs are present in the directory, just return an empty image data.
             this.onReady(this)
         } else {
-            let loadFileData = (data: ImageDataWorkerResult): Promise<void> => this.loadFileData(data)
-            let loadFileError = (data: { error: any; markerName: string }): Promise<void> => this.loadFileError(data)
+            let onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
+                if ('error' in data) {
+                    this.loadFileError(data)
+                } else {
+                    this.loadFileData(data)
+                }
+            }
+
             let baseNames = tiffs.map((v: string) => {
                 return path.parse(v).name
             })
@@ -102,31 +106,24 @@ export class ImageData {
             // If there are any files with the same names and different extensions then we want to use extension for markerNames
             let useExtForMarkerName = baseNames.length !== new Set(baseNames).size
 
-            // Create a webworker for each tiff and return the results to loadFileData.
             tiffs.forEach(f => {
-                let worker = new ImageDataWorker()
-                worker.addEventListener(
-                    'message',
-                    function(e: { data: any }) {
-                        if ('error' in e.data) {
-                            loadFileError(e.data)
-                        } else {
-                            loadFileData(e.data)
-                        }
-                    },
-                    false,
+                submitImageDataJob(
+                    { useExtForMarkerName: useExtForMarkerName, filepath: path.join(dirName, f) },
+                    onComplete,
                 )
-                worker.postMessage({ useExtForMarkerName: useExtForMarkerName, filepath: path.join(dirName, f) })
-                this.workers.push(worker)
             })
         }
     }
 
-    public constructor() {
-        this.data = {}
-        this.minmax = {}
-        this.sprites = {}
-        this.workers = []
-        this.errors = []
+    public clearData(): void {
+        for (let key in this.data) {
+            delete this.data[key]
+        }
+        delete this.data
+        for (let key in this.sprites) {
+            delete this.sprites[key]
+        }
+        delete this.sprites
+        delete this.minmax
     }
 }

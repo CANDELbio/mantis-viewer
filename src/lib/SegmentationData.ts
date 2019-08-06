@@ -2,9 +2,12 @@ import * as PIXI from 'pixi.js'
 import { imageBitmapToSprite } from './GraphicsHelper'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from '../lib/GraphicsHelper'
-import { SegmentationDataWorkerResult } from '../interfaces/WorkerInterfaces'
-
-import SegmentationWorker = require('worker-loader?name=dist/[name].js!../workers/SegmentationDataWorker')
+import {
+    SegmentationDataWorkerResult,
+    SegmentationDataWorkerInput,
+    SegmentationDataWorkerError,
+} from '../workers/SegmentationDataWorker'
+import { submitSegmentationDataJob } from '../workers/SegmentationDataWorkerPool'
 
 export class SegmentationData {
     public width: number
@@ -26,7 +29,6 @@ export class SegmentationData {
 
     public errorLoading: boolean
 
-    private worker: SegmentationWorker
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
@@ -41,10 +43,6 @@ export class SegmentationData {
             }
         }
         return drawOutlines(outlines, color, width)
-    }
-
-    public terminateWorker(): void {
-        this.worker.terminate()
     }
 
     private async loadFileError(fError: { error: string }): Promise<void> {
@@ -70,46 +68,35 @@ export class SegmentationData {
         this.onReady(this)
     }
 
-    private loadInWorker(message: any, onReady: (SegmentationData: SegmentationData) => void): void {
+    private loadInWorker(
+        message: SegmentationDataWorkerInput,
+        onReady: (SegmentationData: SegmentationData) => void,
+    ): void {
         this.errorLoading = false
         this.onReady = onReady
 
-        let loadFileData = (data: SegmentationDataWorkerResult): Promise<void> => this.loadFileData(data)
-        let loadFileError = (data: { error: any }): Promise<void> => this.loadFileError(data)
-
-        let worker = new SegmentationWorker()
-        worker.addEventListener(
-            'message',
-            function(e: { data: SegmentationDataWorkerResult }) {
-                if ('error' in e.data) {
-                    loadFileError(e.data)
-                } else {
-                    loadFileData(e.data)
-                }
-            },
-            false,
-        )
-
-        if ('tiffData' in message) {
-            worker.postMessage(message, [message.tiffData.buffer])
-        } else {
-            worker.postMessage(message)
+        let onComplete = (data: SegmentationDataWorkerResult | SegmentationDataWorkerError): void => {
+            if ('error' in data) {
+                this.loadFileError(data)
+            } else this.loadFileData(data)
         }
 
-        this.worker = worker
+        submitSegmentationDataJob(message, onComplete)
     }
 
     public loadFile(fName: string, onReady: (SegmentationData: SegmentationData) => void): void {
         this.loadInWorker({ filepath: fName }, onReady)
     }
 
-    public async loadTiffData(
-        data: Float32Array | Uint16Array | Uint8Array,
-        width: number,
-        height: number,
-        onReady: (SegmentationData: SegmentationData) => void,
-    ): Promise<void> {
-        this.loadInWorker({ tiffData: data, width: width, height: height }, onReady)
+    public clearData(): void {
+        delete this.data
+        delete this.segmentIds
+        delete this.pixelMap
+        delete this.segmentIndexMap
+        delete this.segmentLocationMap
+        delete this.segmentOutlineMap
+        delete this.centroidMap
+        delete this.segmentFillSprite
     }
 
     public constructor() {}

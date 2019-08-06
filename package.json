@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "0.9.5-alpha",
+    "version": "0.9.5-alpha.1",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "main.js",
     "scripts": {
@@ -70,8 +70,8 @@
         "acorn": "^6.1.0",
         "canvas": "^2.3.1",
         "css-loader": "^0.27.3",
-        "electron": "^4.0.5",
-        "electron-builder": "^20.38.5",
+        "electron": "^6.0.0",
+        "electron-builder": "^21.2.0",
         "eslint": "^5.14.1",
         "eslint-config-prettier": "^4.0.0",
         "eslint-plugin-prettier": "^3.0.1",
@@ -96,7 +96,7 @@
     "dependencies": {
         "@blueprintjs/core": "^3.6.1",
         "@types/reactstrap": "^8.0.1",
-        "about-window": "^1.12.1",
+        "about-window": "^1.13.1",
         "bootstrap": "^4.3.1",
         "concaveman": "^1.1.1",
         "csv-parse": "^3.1.3",
@@ -111,6 +111,7 @@
         "pixi.js": "^4.8.8",
         "plotly.js": "^1.48.3",
         "popper.js": "^1.15.0",
+        "pretty-ms": "^5.0.0",
         "react": "^16.8.2",
         "react-color": "^2.14.1",
         "react-dom": "^16.8.2",

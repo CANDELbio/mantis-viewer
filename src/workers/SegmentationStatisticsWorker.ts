@@ -1,60 +1,44 @@
-/* eslint @typescript-eslint/no-explicit-any: 0 */
-
+import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker.worker')
+import { MinMax } from '../interfaces/ImageInterfaces'
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 
-//Typescript workaround so that we're interacting with a Worker instead of a Window interface
-const ctx: Worker = self as any
-
-function meanPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, pixels: number[]): number {
-    let values = []
-    for (let curPixel of pixels) {
-        values.push(tiffData[curPixel])
-    }
-    return calculateMean(values)
+export interface SegmentationStatisticsWorkerInput {
+    jobId?: string
+    marker: string
+    tiffData: Float32Array | Uint16Array | Uint8Array
+    segmentIndexMap: Record<number, number[]>
+    statistic: PlotStatistic
 }
 
-function medianPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, pixels: number[]): number {
-    let values = []
-    for (let curPixel of pixels) {
-        values.push(tiffData[curPixel])
-    }
-    return calculateMedian(values)
-    // Find the median! Sort the intensity values by intensity.
+export interface SegmentationStatisticsWorkerResult {
+    jobId: string
+    statistic: PlotStatistic
+    map: Record<string, number>
+    minmax: MinMax
+    markerName: string
 }
 
-function generateStatisticMap(
-    marker: string,
-    tiffData: Float32Array | Uint16Array | Uint8Array,
-    segmentIndexMap: Record<number, number[]>,
-    statistic: PlotStatistic,
-): { map: Record<string, number>; minMax: { min: number; max: number } } {
-    let min: number, max: number
-    let statisticMap = {}
-    for (let segmentId in segmentIndexMap) {
-        let mapKey = marker + '_' + segmentId
-        let curIntensity: number
-        if (statistic == 'mean') {
-            curIntensity = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
-        } else if (statistic == 'median') {
-            curIntensity = medianPixelIntensity(tiffData, segmentIndexMap[segmentId])
-        }
-        statisticMap[mapKey] = curIntensity
-        // Calculate the min and max for this marker
-        if (min == undefined) min = curIntensity
-        if (max == undefined) max = curIntensity
-        if (curIntensity < min) min = curIntensity
-        if (curIntensity > max) max = curIntensity
-    }
-    return { map: statisticMap, minMax: { min: min, max: max } }
-}
+export type OnSegmentationStatisticsWorkerComplete = (data: SegmentationStatisticsWorkerResult) => void
 
-ctx.addEventListener(
-    'message',
-    message => {
-        let data = message.data
-        let { map, minMax } = generateStatisticMap(data.marker, data.tiffData, data.segmentIndexMap, data.statistic)
-        ctx.postMessage({ statistic: data.statistic, map: map, minmax: minMax, markerName: data.marker })
-    },
-    false,
-)
+export class SegmentationStatisticsWorker {
+    private worker: Worker
+
+    public constructor(onComplete: OnSegmentationStatisticsWorkerComplete) {
+        this.worker = new Worker()
+        this.worker.addEventListener(
+            'message',
+            function(e: { data: SegmentationStatisticsWorkerResult }) {
+                onComplete(e.data)
+            },
+            false,
+        )
+    }
+
+    public terminate(): void {
+        this.worker.terminate
+    }
+
+    public postMessage(message: SegmentationStatisticsWorkerInput): void {
+        this.worker.postMessage(message)
+    }
+}

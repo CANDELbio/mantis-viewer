@@ -58,12 +58,6 @@ ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: num
     projectStore.setWindowDimensions(width, height)
 })
 
-ipcRenderer.on('clean-up-webworkers', () => {
-    if (projectStore.activeImageStore.imageData != null) {
-        projectStore.activeImageStore.imageData.terminateWorkers()
-    }
-})
-
 ipcRenderer.on('delete-active-image-set', () => {
     projectStore.deleteActiveImageSet()
 })

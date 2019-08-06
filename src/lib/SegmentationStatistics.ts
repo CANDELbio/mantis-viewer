@@ -1,10 +1,9 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { MinMax } from '../interfaces/ImageInterfaces'
-import { SegmentationStatisticWorkerResult } from '../interfaces/WorkerInterfaces'
+import { SegmentationStatisticsWorkerResult } from '../workers/SegmentationStatisticsWorker'
+import { submitSegmentationStatisticsJob } from '../workers/SegmentationStatisticsWorkerPool'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
-
-import StatisticWorker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker')
 
 export class SegmentationStatistics {
     public markers: string[]
@@ -17,21 +16,30 @@ export class SegmentationStatistics {
     public medianMinMaxMap: Record<string, MinMax>
 
     // Keep track of the number of markers to calculate statistics for and the number complete
-    private numWorkers: number
-    private numWorkersComplete: number
-    // Array of the workers
-    private workers: StatisticWorker[]
+    private numStatistics: number
+    private numStatisticsComplete: number
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (statistics: SegmentationStatistics) => void
 
+    public constructor(onReady: (statistics: SegmentationStatistics) => void) {
+        this.numStatistics = 0
+        this.numStatisticsComplete = 0
+        this.markers = []
+        this.meanMap = {}
+        this.medianMap = {}
+        this.meanMinMaxMap = {}
+        this.medianMinMaxMap = {}
+        this.onReady = onReady
+    }
+
     private statisticsLoadComplete(): void {
         // If the number of markers loaded is equal to the total number of markers we are done!
-        if (this.numWorkersComplete == this.numWorkers) {
+        if (this.numStatisticsComplete == this.numStatistics) {
             this.onReady(this)
         }
     }
 
-    private async loadStatisticData(data: SegmentationStatisticWorkerResult): Promise<void> {
+    private async loadStatisticData(data: SegmentationStatisticsWorkerResult): Promise<void> {
         if (data.statistic == 'mean') {
             for (let key in data.map) {
                 this.meanMap[key] = data.map[key]
@@ -43,55 +51,36 @@ export class SegmentationStatistics {
             }
             this.medianMinMaxMap[data.markerName] = data.minmax
         }
-        this.numWorkersComplete += 1
+        this.numStatisticsComplete += 1
         this.statisticsLoadComplete()
     }
 
-    private loadInWorker(message: any, onReady: (statistics: SegmentationStatistics) => void): void {
-        this.onReady = onReady
+    public generateStatistics(imageData: ImageData, segmentationData: SegmentationData): void {
+        let onComplete = (data: SegmentationStatisticsWorkerResult): Promise<void> => this.loadStatisticData(data)
 
-        let loadStatisticData = (data: SegmentationStatisticWorkerResult): Promise<void> => this.loadStatisticData(data)
-
-        let worker = new StatisticWorker()
-        worker.addEventListener(
-            'message',
-            function(e: { data: SegmentationStatisticWorkerResult }) {
-                loadStatisticData(e.data)
-            },
-            false,
-        )
-
-        worker.postMessage(message)
-
-        this.workers.push(worker)
-    }
-
-    public generateStatistics(
-        imageData: ImageData,
-        segmentationData: SegmentationData,
-        onReady: (statistics: SegmentationStatistics) => void,
-    ): void {
         for (let marker in imageData.data) {
             this.markers.push(marker)
-            this.numWorkers += 2
+            this.numStatistics += 2
             let tiffData = imageData.data[marker]
-            this.loadInWorker(
+
+            submitSegmentationStatisticsJob(
                 {
                     marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,
                     statistic: 'mean',
                 },
-                onReady,
+                onComplete,
             )
-            this.loadInWorker(
+
+            submitSegmentationStatisticsJob(
                 {
                     marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,
                     statistic: 'median',
                 },
-                onReady,
+                onComplete,
             )
         }
     }
@@ -134,16 +123,5 @@ export class SegmentationStatistics {
             }
         }
         return segments
-    }
-
-    public constructor() {
-        this.numWorkers = 0
-        this.numWorkersComplete = 0
-        this.workers = []
-        this.markers = []
-        this.meanMap = {}
-        this.medianMap = {}
-        this.meanMinMaxMap = {}
-        this.medianMinMaxMap = {}
     }
 }

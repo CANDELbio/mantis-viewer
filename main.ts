@@ -35,15 +35,13 @@ function openImageSet(path: string): void {
         if (imageLoaded || projectLoaded) {
             let message =
                 'Warning: Opening a new image set will close all open image sets. Are you sure you wish to do this?'
-            dialog.showMessageBox(
-                mainWindow,
-                { type: 'warning', message: message, buttons: ['No', 'Yes'] },
-                (response: number) => {
-                    if (response == 1) {
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue) => {
+                    if (value.response == 1) {
                         if (mainWindow != null) mainWindow.webContents.send('open-image-set', path)
                     }
-                },
-            )
+                })
         } else {
             mainWindow.webContents.send('open-image-set', path)
         }
@@ -55,15 +53,13 @@ function openProject(path: string): void {
         if (imageLoaded || projectLoaded) {
             let message =
                 'Warning: Opening a new project will close all open image sets. Are you sure you wish to do this?'
-            dialog.showMessageBox(
-                mainWindow,
-                { type: 'warning', message: message, buttons: ['No', 'Yes'] },
-                (response: number) => {
-                    if (response == 1) {
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue) => {
+                    if (value.response == 1) {
                         if (mainWindow != null) mainWindow.webContents.send('open-project', path)
                     }
-                },
-            )
+                })
         } else {
             mainWindow.webContents.send('open-project', path)
         }
@@ -168,32 +164,32 @@ function generateMenuTemplate(): any {
                                     label: 'For active image set to JSON',
                                     enabled: imageLoaded && populationsSelected,
                                     click: () => {
-                                        dialog.showSaveDialog(
-                                            {
+                                        dialog
+                                            .showSaveDialog({
                                                 filters: [{ name: 'json', extensions: ['json'] }],
                                                 defaultPath: activeImageDirectory,
-                                            },
-                                            (filename: string) => {
+                                            })
+                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                let filename = value.filePath
                                                 if (mainWindow != null && filename != null)
                                                     mainWindow.webContents.send('export-populations-json', filename)
-                                            },
-                                        )
+                                            })
                                     },
                                 },
                                 {
                                     label: 'For active image set to CSV',
                                     enabled: imageLoaded && populationsSelected,
                                     click: () => {
-                                        dialog.showSaveDialog(
-                                            {
+                                        dialog
+                                            .showSaveDialog({
                                                 filters: [{ name: 'csv', extensions: ['csv'] }],
                                                 defaultPath: activeImageDirectory,
-                                            },
-                                            (filename: string) => {
+                                            })
+                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                let filename = value.filePath
                                                 if (mainWindow != null && filename != null)
                                                     mainWindow.webContents.send('export-populations-csv', filename)
-                                            },
-                                        )
+                                            })
                                     },
                                 },
                             ],
@@ -205,26 +201,26 @@ function generateMenuTemplate(): any {
                                     label: 'Mean intensities for active image set',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: () => {
-                                        dialog.showSaveDialog(
-                                            { filters: [{ name: 'csv', extensions: ['csv'] }] },
-                                            (filename: string) => {
+                                        dialog
+                                            .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
+                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                let filename = value.filePath
                                                 if (mainWindow != null && filename != null)
                                                     mainWindow.webContents.send('export-mean-intensities', filename)
-                                            },
-                                        )
+                                            })
                                     },
                                 },
                                 {
                                     label: 'Median intensities for active image set',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: () => {
-                                        dialog.showSaveDialog(
-                                            { filters: [{ name: 'csv', extensions: ['csv'] }] },
-                                            (filename: string) => {
+                                        dialog
+                                            .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
+                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                let filename = value.filePath
                                                 if (mainWindow != null && filename != null)
                                                     mainWindow.webContents.send('export-median-intensities', filename)
-                                            },
-                                        )
+                                            })
                                     },
                                 },
                             ],
@@ -236,13 +232,13 @@ function generateMenuTemplate(): any {
                                     label: 'Current image and layers',
                                     enabled: imageLoaded,
                                     click: () => {
-                                        dialog.showSaveDialog(
-                                            { filters: [{ name: 'png', extensions: ['png'] }] },
-                                            (filename: string) => {
+                                        dialog
+                                            .showSaveDialog({ filters: [{ name: 'png', extensions: ['png'] }] })
+                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                let filename = value.filePath
                                                 if (mainWindow != null && filename != null)
                                                     mainWindow.webContents.send('export-image', filename)
-                                            },
-                                        )
+                                            })
                                     },
                                 },
                             ],
@@ -353,12 +349,6 @@ function createMainWindow(): void {
     mainWindow.on('enter-full-screen', sendWindowSize)
     mainWindow.on('leave-full-screen', sendWindowSize)
 
-    // Emitted when the user requests to close but before the window is actually closed.
-    mainWindow.on('close', function() {
-        // Clean up the webworkers. We don't do this earlier as it causes issues with transferrables.
-        if (mainWindow != null) mainWindow.webContents.send('clean-up-webworkers')
-    })
-
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {
         // Dereference the window object, usually you would store windows
@@ -379,7 +369,7 @@ function createPlotWindow(): void {
         width: 800,
         height: 800,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: true },
+        webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: false },
     })
 
     plotWindow.loadURL(
@@ -463,15 +453,13 @@ ipcMain.on('mainWindow-show-error-dialog', (event: Electron.Event, message: stri
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
 ipcMain.on('mainWindow-show-remove-dialog', (event: Electron.Event, message: string) => {
     if (mainWindow != null)
-        dialog.showMessageBox(
-            mainWindow,
-            { type: 'warning', message: message, buttons: ['No', 'Yes'] },
-            (response: number) => {
-                if (response == 1) {
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue) => {
+                if (value.response == 1) {
                     if (mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
                 }
-            },
-        )
+            })
 })
 
 // Functions to relay data from the mainWindow to the plotWindow

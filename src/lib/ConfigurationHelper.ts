@@ -1,6 +1,8 @@
 import { ChannelName } from '../definitions/UIDefinitions'
 
 export class ConfigurationHelper {
+    public maxImageSetsInMemory = 3
+
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
     private defaultChannelMarkers: Record<ChannelName, string[]> = {
         rChannel: ['catenin', 'CD8', 'CD4', 'CD20', 'CD68'],

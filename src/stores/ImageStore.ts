@@ -41,8 +41,8 @@ export class ImageStore {
 
     private calculateSegmentationStatistics = autorun(() => {
         if (this.imageData && this.segmentationData) {
-            let statistics = new SegmentationStatistics()
-            statistics.generateStatistics(this.imageData, this.segmentationData, this.setSegmentationStatistics)
+            let statistics = new SegmentationStatistics(this.setSegmentationStatistics)
+            statistics.generateStatistics(this.imageData, this.segmentationData)
         } else {
             this.setSegmentationStatistics(null)
         }
@@ -67,9 +67,7 @@ export class ImageStore {
 
         this.markerSelectOptions = []
 
-        this.segmentationFillAlpha = 0
-        this.segmentationOutlineAlpha = 0.7
-        this.segmentationCentroidsVisible = false
+        this.initializeSegmentationSettings()
 
         this.channelMarker = {
             rChannel: null,
@@ -94,11 +92,10 @@ export class ImageStore {
     }
 
     @action public clearImageData = () => {
-        for (let s of ImageChannels) {
-            let curChannel = s as ChannelName
-            this.unsetChannelMarker(curChannel)
+        if (this.imageData != null) {
+            this.imageData.clearData()
+            this.imageData = null
         }
-        this.imageData = null
     }
 
     @action public setSegmentationFillAlpha = (value: number) => {
@@ -163,16 +160,6 @@ export class ImageStore {
         this.selectedDirectory = dirName
     }
 
-    @action public setSegmentationData = (data: SegmentationData) => {
-        this.segmentationData = data
-    }
-
-    @action public clearSegmentationData = () => {
-        this.selectedSegmentationFile = null
-        this.segmentationData = null
-        this.segmentationFillAlpha = 0
-    }
-
     @action public setSegmentationStatistics = (statistics: SegmentationStatistics | null) => {
         this.segmentationStatistics = statistics
     }
@@ -198,12 +185,45 @@ export class ImageStore {
         }
     }
 
+    @action public initializeSegmentationSettings = () => {
+        this.segmentationFillAlpha = 0
+        this.segmentationOutlineAlpha = 0.7
+        this.segmentationCentroidsVisible = false
+    }
+
+    @action public setSegmentationData = (data: SegmentationData) => {
+        this.segmentationData = data
+    }
+
+    // Deletes the segmentation data and resets the selected segmentation file and alpha
+    @action public clearSegmentationData = () => {
+        this.selectedSegmentationFile = null
+        this.initializeSegmentationSettings()
+        this.deleteSegmentationData()
+    }
+
+    // Just deletes the associated segmentation data.
+    // Used in clearSegmentationData
+    // And when cleaning up memory in the projectStore.
+    @action public deleteSegmentationData = () => {
+        if (this.segmentationData != null) {
+            this.segmentationData.clearData()
+            this.segmentationData = null
+        }
+    }
+
+    @action public refreshSegmentationData = () => {
+        if (this.selectedSegmentationFile != null && this.segmentationData == null) {
+            let segmentationData = new SegmentationData()
+            segmentationData.loadFile(this.selectedSegmentationFile, this.setSegmentationData)
+        }
+    }
+
     @action public setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
         let basename = path.parse(fName).name
         this.removeMarker(basename)
-        let segmentationData = new SegmentationData()
-        segmentationData.loadFile(fName, this.setSegmentationData)
+        this.refreshSegmentationData()
     }
 
     @action public setImageExportFilename = (fName: string) => {

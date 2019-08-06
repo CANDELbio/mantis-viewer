@@ -35,8 +35,6 @@
         "./src/components/ChannelControls.tsx",
         "./src/components/SegmentationControls.tsx",
         "./src/components/Plot.tsx",
-        "./src/components/SelectedPopulations.tsx",
-        "./src/workers/ImageDataWorker.ts",
-        "./src/workers/ImageDataWorker.worker.ts"
+        "./src/components/SelectedPopulations.tsx"
     ]
 }

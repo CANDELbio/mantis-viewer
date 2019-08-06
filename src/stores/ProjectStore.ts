@@ -57,6 +57,10 @@ export class ProjectStore {
     // Message to be shown if the user is being prompted to delete the active image set.
     @observable public removeMessage: string | null
 
+    // An array to keep track of the imageSets that have been recently used/
+    // Used to clear old image sets to clean up memory.
+    private imageSetHistory: string[]
+
     @action public initialize = () => {
         this.plotInMainWindow = true
 
@@ -75,6 +79,7 @@ export class ProjectStore {
         }
 
         this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
+        this.imageSetHistory = []
         this.initializeImageSets()
     }
 
@@ -151,7 +156,6 @@ export class ProjectStore {
     @action public deleteActiveImageSet = () => {
         if (this.activeImageSetPath != null) {
             // Clear the active image set
-            if (this.activeImageStore.imageData) this.activeImageStore.imageData.terminateWorkers()
             this.imageSetPaths = this.imageSetPaths.filter(p => p != this.activeImageSetPath)
             delete this.imageSets[this.activeImageSetPath]
             this.activeImageSetPath = null
@@ -165,32 +169,36 @@ export class ProjectStore {
         }
     }
 
-    @action public initializeStores = (dirName: string) => {
-        // Set up the image store
-        let imageStore = new ImageStore()
-        imageStore.setImageDataLoading(true)
-        imageStore.selectDirectory(dirName)
-        imageStore.clearImageData()
-        // Load image data in the background and set on the image store once it's loaded.
-        let imageData = new ImageData()
-        imageData.loadFolder(dirName, data => {
-            imageStore.setImageData(data)
-        })
+    @action private initializeStores = (dirName: string) => {
         // Save in imageSets
         this.imageSets[dirName] = {
-            imageStore: imageStore,
+            imageStore: new ImageStore(),
             populationStore: new PopulationStore(),
             plotStore: new PlotStore(),
         }
-
-        // Set defaults once image data has loaded
-        when(
-            () => !this.activeImageStore.imageDataLoading,
-            () => this.settingStore.setDefaultImageSetSettings(imageStore, this.configurationHelper),
-        )
     }
 
-    @action public setActiveStores = (dirName: string) => {
+    @action private loadImageStoreData = (dirName: string) => {
+        let imageStore = this.imageSets[dirName].imageStore
+        if (imageStore.imageData == null) {
+            imageStore.setImageDataLoading(true)
+            imageStore.selectDirectory(dirName)
+
+            // Load image data in the background and set on the image store once it's loaded.
+            let imageData = new ImageData()
+            imageData.loadFolder(dirName, data => {
+                imageStore.setImageData(data)
+            })
+
+            // Set defaults once image data has loaded
+            when(
+                () => !this.activeImageStore.imageDataLoading,
+                () => this.settingStore.setDefaultImageSetSettings(imageStore, this.configurationHelper),
+            )
+        }
+    }
+
+    @action private setActiveStores = (dirName: string) => {
         this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
         this.activeImageStore = this.imageSets[dirName].imageStore
@@ -198,11 +206,32 @@ export class ProjectStore {
         this.activePlotStore = this.imageSets[dirName].plotStore
     }
 
+    // Adds dirName to the image set history.
+    // Cleans up the oldest image set ImageStore if there are too many in memory.
+    @action private cleanImageSetHistory = (dirName: string) => {
+        // If dirName is already in the history, remove it and readd it to the front
+        let historyIndex = this.imageSetHistory.indexOf(dirName)
+        if (historyIndex > -1) this.imageSetHistory.splice(historyIndex, 1)
+        this.imageSetHistory.push(dirName)
+        if (this.imageSetHistory.length > this.configurationHelper.maxImageSetsInMemory) {
+            let setToClean = this.imageSetHistory.shift()
+            let imageSet = null
+            if (setToClean) imageSet = this.imageSets[setToClean]
+            if (imageSet) {
+                imageSet.imageStore.clearImageData()
+                // imageSet.imageStore.clearSegmentationData()
+            }
+        }
+    }
+
     @action public setActiveImageSet = (dirName: string) => {
         // If we haven't loaded this directory, initialize the stores and load it.
         if (!(dirName in this.imageSets)) {
             this.initializeStores(dirName)
         }
+
+        this.loadImageStoreData(dirName)
+        this.cleanImageSetHistory(dirName)
 
         // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
         if (this.imageSetPaths.indexOf(dirName) == -1) this.imageSetPaths.push(dirName)
