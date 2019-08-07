@@ -23,6 +23,7 @@ export class ImageStore {
     @observable public selectedSegmentationFile: string | null
 
     @observable public channelDomain: Record<ChannelName, [number, number]>
+    @observable public channelVisibility: Record<ChannelName, boolean>
 
     @observable.ref public markerSelectOptions: { value: string; label: string }[]
 
@@ -65,6 +66,16 @@ export class ImageStore {
             kChannel: [0, 100],
         }
 
+        this.channelVisibility = {
+            rChannel: true,
+            gChannel: true,
+            bChannel: true,
+            cChannel: true,
+            mChannel: true,
+            yChannel: true,
+            kChannel: true,
+        }
+
         this.markerSelectOptions = []
 
         this.initializeSegmentationSettings()
@@ -105,6 +116,10 @@ export class ImageStore {
 
     @action public setCentroidVisibility = (visible: boolean) => {
         this.segmentationCentroidsVisible = visible
+    }
+
+    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
+        this.channelVisibility[name] = visible
     }
 
     public getChannelDomainPercentage = (name: ChannelName) => {

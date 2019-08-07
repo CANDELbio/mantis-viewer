@@ -17,17 +17,18 @@ import {
 } from '../definitions/UIDefinitions'
 
 interface SettingStoreData {
-    channelMarker: Record<ChannelName, string | null>
-    channelDomainPercentage: Record<ChannelName, [number, number]>
+    channelMarker: Record<ChannelName, string | null> | null
+    channelDomainPercentage: Record<ChannelName, [number, number]> | null
+    channelVisibility: Record<ChannelName, boolean> | null
     segmentationBasename: string | null
-    selectedPlotMarkers: string[]
-    plotStatistic: PlotStatistic
-    plotTransform: PlotTransform
-    plotType: PlotType
-    plotNormalization: PlotNormalization
-    segmentationFillAlpha: number
-    segmentationOutlineAlpha: number
-    segmentationCentroidsVisible: boolean
+    selectedPlotMarkers: string[] | null
+    plotStatistic: PlotStatistic | null
+    plotTransform: PlotTransform | null
+    plotType: PlotType | null
+    plotNormalization: PlotNormalization | null
+    segmentationFillAlpha: number | null
+    segmentationOutlineAlpha: number | null
+    segmentationCentroidsVisible: boolean | null
 }
 
 export class SettingStore {
@@ -42,6 +43,8 @@ export class SettingStore {
     @observable public channelMarker: Record<ChannelName, string | null>
     // channelDomain stored here as percentages.
     @observable public channelDomainPercentage: Record<ChannelName, [number, number]>
+    // Which channels are visible
+    @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
     // selected plot channels to be copied
@@ -77,6 +80,16 @@ export class SettingStore {
             mChannel: [0, 1],
             yChannel: [0, 1],
             kChannel: [0, 1],
+        }
+
+        this.channelVisibility = {
+            rChannel: true,
+            gChannel: true,
+            bChannel: true,
+            cChannel: true,
+            mChannel: true,
+            yChannel: true,
+            kChannel: true,
         }
 
         this.segmentationBasename = null
@@ -135,6 +148,11 @@ export class SettingStore {
 
     @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
         this.channelDomainPercentage[name] = value
+        this.exportSettings()
+    }
+
+    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
+        this.channelVisibility[name] = visible
         this.exportSettings()
     }
 
@@ -249,6 +267,13 @@ export class SettingStore {
         }
     }
 
+    @action public copyImageStoreChannelVisibility = (imageStore: ImageStore) => {
+        for (let s in this.channelMarker) {
+            let channel = s as ChannelName
+            imageStore.setChannelVisibility(channel, this.channelVisibility[channel])
+        }
+    }
+
     @action public setImageStoreChannelDomains = (imageStore: ImageStore) => {
         if (imageStore.imageData != null) {
             for (let s in this.channelDomainPercentage) {
@@ -297,6 +322,7 @@ export class SettingStore {
         if (this.basePath != null) {
             let exporting: SettingStoreData = {
                 channelMarker: this.channelMarker,
+                channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
                 segmentationBasename: this.segmentationBasename,
                 selectedPlotMarkers: this.selectedPlotMarkers,
@@ -327,17 +353,23 @@ export class SettingStore {
             if (fs.existsSync(filename)) {
                 console.log('Importing image settings from file ' + filename)
                 let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
-                this.channelMarker = importingContent.channelMarker
-                this.channelDomainPercentage = importingContent.channelDomainPercentage
+                if (importingContent.channelMarker) this.channelMarker = importingContent.channelMarker
+                if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility
+                if (importingContent.channelDomainPercentage)
+                    this.channelDomainPercentage = importingContent.channelDomainPercentage
                 this.segmentationBasename = importingContent.segmentationBasename
-                this.selectedPlotMarkers = importingContent.selectedPlotMarkers
-                this.plotStatistic = importingContent.plotStatistic
-                this.plotTransform = importingContent.plotTransform
-                this.plotType = importingContent.plotType
-                this.plotNormalization = importingContent.plotNormalization
-                this.segmentationFillAlpha = importingContent.segmentationFillAlpha
-                this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
-                this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
+                if (importingContent.selectedPlotMarkers)
+                    this.selectedPlotMarkers = importingContent.selectedPlotMarkers
+                if (importingContent.plotStatistic) this.plotStatistic = importingContent.plotStatistic
+                if (importingContent.plotTransform) this.plotTransform = importingContent.plotTransform
+                if (importingContent.plotType) this.plotType = importingContent.plotType
+                if (importingContent.plotNormalization) this.plotNormalization = importingContent.plotNormalization
+                if (importingContent.segmentationFillAlpha)
+                    this.segmentationFillAlpha = importingContent.segmentationFillAlpha
+                if (importingContent.segmentationOutlineAlpha)
+                    this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
+                if (importingContent.segmentationCentroidsVisible)
+                    this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
             }
         }
     }

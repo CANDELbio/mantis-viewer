@@ -265,6 +265,7 @@ export class ProjectStore {
         }
     }
 
+    // TODO: Would it be better to just not store these settings on the ImageStore and PlotStore at all?
     // Copy settings from old imageSet to new one once image data has loaded.
     // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
     @action public copyImageSetSettings = () => {
@@ -275,6 +276,7 @@ export class ProjectStore {
         // If the user wants to persist image set settings
         this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
         this.settingStore.setImageStoreChannelDomains(destinationImageStore)
+        this.settingStore.copyImageStoreChannelVisibility(destinationImageStore)
         this.settingStore.copySegmentationSettings(destinationImageStore)
         this.settingStore.copyPlotStoreSettings(destinationImageStore, destinationPlotStore)
     }
@@ -294,6 +296,13 @@ export class ProjectStore {
             imageStore.clearSegmentationData()
             this.clearSelectedPlotMarkers()
         }
+    }
+
+    @action public setChannelVisibilityCallback = (name: ChannelName) => {
+        return action((value: boolean) => {
+            this.activeImageStore.setChannelVisibility(name, value)
+            this.settingStore.setChannelVisibility(name, value)
+        })
     }
 
     @action public setChannelMarkerCallback = (name: ChannelName) => {

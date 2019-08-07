@@ -29,6 +29,7 @@ export interface ImageProps {
     segmentationOutlineAlpha: number
     segmentationCentroidsVisible: boolean
     channelDomain: Record<ChannelName, [number, number]>
+    channelVisibility: Record<ChannelName, boolean>
     channelMarker: Record<ChannelName, string | null>
     selectedRegions: SelectedPopulation[] | null
     addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void
@@ -543,6 +544,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         imcData: ImageData,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>,
+        channelVisibility: Record<ChannelName, boolean>,
         segmentationData: SegmentationData | null,
         segmentationFillAlpha: number,
         segmentationOutlineAlpha: number,
@@ -577,7 +579,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // For each channel setting the brightness and color filters
         for (let s of ImageChannels) {
             let curChannel = s as ChannelName
-            this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
+            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
         }
 
         // Update and load segmentation data graphics
@@ -614,6 +616,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             yChannel: this.props.channelMarker.yChannel,
             kChannel: this.props.channelMarker.kChannel,
         }
+
         let channelDomain = {
             rChannel: this.props.channelDomain.rChannel,
             gChannel: this.props.channelDomain.gChannel,
@@ -622,6 +625,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             mChannel: this.props.channelDomain.mChannel,
             yChannel: this.props.channelDomain.yChannel,
             kChannel: this.props.channelDomain.kChannel,
+        }
+
+        let channelVisibility = {
+            rChannel: this.props.channelVisibility.rChannel,
+            gChannel: this.props.channelVisibility.gChannel,
+            bChannel: this.props.channelVisibility.bChannel,
+            cChannel: this.props.channelVisibility.cChannel,
+            mChannel: this.props.channelVisibility.mChannel,
+            yChannel: this.props.channelVisibility.yChannel,
+            kChannel: this.props.channelVisibility.kChannel,
         }
 
         let imcData = this.props.imageData
@@ -650,6 +663,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                         imcData,
                         channelMarker,
                         channelDomain,
+                        channelVisibility,
                         segmentationData,
                         segmentationFillAlpha,
                         segmentationOutlineAlpha,

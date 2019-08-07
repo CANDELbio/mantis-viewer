@@ -100,6 +100,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         segmentationOutlineAlpha: number,
         segmentationCentroidsVisible: boolean,
         channelDomain: Record<ChannelName, [number, number]>,
+        channelVisibility: Record<ChannelName, boolean>,
         channelMarker: Record<ChannelName, string | null>,
         maxWidth: number,
         windowHeight: number | null,
@@ -122,6 +123,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentationOutlineAlpha={segmentationOutlineAlpha}
                     segmentationCentroidsVisible={segmentationCentroidsVisible}
                     channelDomain={channelDomain}
+                    channelVisibility={channelVisibility}
                     channelMarker={channelMarker}
                     maxRendererSize={maxRendererSize}
                     addSelectedRegion={addSelectedPopulation}
@@ -162,6 +164,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 channelControls = this.imageChannelsForControls.map((s: ChannelName) => (
                     <ChannelControls
                         key={s}
+                        channel={s}
+                        channelVisible={imageStore.channelVisibility[s]}
+                        onVisibilityChange={projectStore.setChannelVisibilityCallback(s)}
                         sliderMin={this.getChannelMin(s)}
                         sliderMax={this.getChannelMax(s)}
                         sliderValue={imageStore.channelDomain[s]}
@@ -231,7 +236,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         )
 
         let fullWidth = { width: '100%' }
-        let fullWidthBottomSpaced = { marginBottom: '1rem', width: '100%' }
+        let fullWidthBottomSpaced = { marginBottom: '0.5rem', width: '100%' }
         let paddingStyle = { paddingTop: '10px' }
 
         // Dereferencing these here for rendering the image viewer
@@ -243,6 +248,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
         let segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
         let channelDomain = imageStore.channelDomain
+        let channelVisibility = imageStore.channelVisibility
         let channelMarker = imageStore.channelMarker
         let windowHeight = projectStore.windowHeight
         let selectedRegions = populationStore.selectedPopulations
@@ -256,12 +262,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
+                            <div style={fullWidthBottomSpaced}>{imageSetSelector}</div>
                             <Button onClick={this.handleChannelClick} style={fullWidthBottomSpaced} size="sm">
                                 {this.state.channelsOpen ? 'Hide' : 'Show'} Channel Controls
                             </Button>
                             <Collapse isOpen={this.state.channelsOpen} style={fullWidth}>
-                                <div>{imageSetSelector}</div>
-                                <div>{channelControls ? 'Channel Controls:' : null}</div>
                                 <div>{channelControls}</div>
                             </Collapse>
                             <Button
@@ -289,6 +294,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                                     segmentationOutlineAlpha,
                                                     segmentationCentroidsVisible,
                                                     channelDomain,
+                                                    channelVisibility,
                                                     channelMarker,
                                                     size.width,
                                                     windowHeight,
