@@ -154,14 +154,6 @@ Mobx.autorun(() => {
     }
 })
 
-Mobx.autorun(() => {
-    if (projectStore.activeImageStore && projectStore.activeImageStore.message != null) {
-        let msg = projectStore.activeImageStore.message
-        ipcRenderer.send('mainWindow-show-info-dialog', msg)
-        projectStore.activeImageStore.clearMessage()
-    }
-})
-
 // Update the main thread on whether or not an image store with image data loaded is selected.
 Mobx.autorun(() => {
     ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)

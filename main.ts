@@ -442,9 +442,6 @@ ipcMain.on('set-active-image-directory', (event: Electron.Event, directory: stri
     setMenu()
 })
 
-ipcMain.on('mainWindow-show-info-dialog', (event: Electron.Event, message: string) => {
-    if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'info', message: message })
-})
 // Show an error dialog with the message passed in.
 ipcMain.on('mainWindow-show-error-dialog', (event: Electron.Event, message: string) => {
     if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'error', message: message })

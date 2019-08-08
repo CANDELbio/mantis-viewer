@@ -33,8 +33,6 @@ export class ImageStore {
 
     @observable public channelMarker: Record<ChannelName, string | null>
 
-    @observable public message: string | null
-
     @observable public currentSelection: {
         x: [number, number]
         y: [number, number]
@@ -182,10 +180,6 @@ export class ImageStore {
 
     @action public removeMarker = (markerName: string) => {
         if (this.imageData != null && markerName in this.imageData.data) {
-            this.setMessage(
-                markerName +
-                    ' is being removed from the list of available markers since it is being loaded as segmentation data.',
-            )
             // Unset the marker if it is being used
             for (let s of ImageChannels) {
                 let curChannel = s as ChannelName
@@ -241,14 +235,6 @@ export class ImageStore {
 
     @action public clearImageExportFilename = () => {
         this.imageExportFilename = null
-    }
-
-    @action public setMessage = (message: string) => {
-        this.message = message
-    }
-
-    @action public clearMessage = () => {
-        this.message = null
     }
 
     // Somewhat hacky feeling workaround
