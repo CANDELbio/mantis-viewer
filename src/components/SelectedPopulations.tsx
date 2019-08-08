@@ -75,9 +75,16 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             return (
                 <tr onMouseEnter={this.highlightPopulation} onMouseLeave={this.unhighlightPopulation}>
                     <td>
-                        <EditableText defaultValue={this.props.population.name} onConfirm={this.updateName} />
+                        <EditableText
+                            defaultValue={this.props.population.name}
+                            onConfirm={this.updateName}
+                            selectAllOnFocus={true}
+                        />
                     </td>
-                    <td onClick={this.onTogglePicker} style={{ backgroundColor: this.backgroundColor() }}>
+                    <td
+                        onClick={this.onTogglePicker}
+                        style={{ backgroundColor: this.backgroundColor(), cursor: 'pointer' }}
+                    >
                         {this.state.pickerVisible && (
                             <div style={{ position: 'absolute', zIndex: 9999 }}>
                                 <CompactPicker
@@ -151,7 +158,10 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         let populations = this.props.populations
         return (
             <div>
-                <table className="table table-hover">
+                <style>{'table.population-table th{padding:0.45rem;}'}</style>
+                <style>{'table.population-table td{padding:0.35em;}'}</style>
+
+                <table className="table table-hover population-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -162,6 +172,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                     onChange={this.setVisibility}
                                     label="Visible"
                                     disabled={this.visibleCheckboxDisabled()}
+                                    style={{ display: 'table-cell' }}
                                 />
                             </th>
                             <th> </th>

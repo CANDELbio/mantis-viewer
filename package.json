@@ -94,7 +94,7 @@
         "worker-loader": "^2.0.0"
     },
     "dependencies": {
-        "@blueprintjs/core": "^3.6.1",
+        "@blueprintjs/core": "^3.18.0",
         "@types/reactstrap": "^8.0.1",
         "about-window": "^1.13.1",
         "bootstrap": "^4.3.1",
