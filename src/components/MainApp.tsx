@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { ClipLoader } from 'react-spinners'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { SizeMe } from 'react-sizeme'
-import { Button, Collapse } from 'reactstrap'
+import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner } from 'reactstrap'
 
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelControls } from './ChannelControls'
@@ -91,6 +90,24 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
+    }
+
+    private loadingModal(imageDataLoading: boolean, segmentationDataLoading: boolean): JSX.Element | null {
+        let modal = null
+        if (imageDataLoading || segmentationDataLoading) {
+            let modalType = imageDataLoading ? 'Image Data' : 'Segmentation Data'
+            modal = (
+                <Modal isOpen={true}>
+                    <ModalHeader>{modalType} is loading...</ModalHeader>
+                    <ModalBody>
+                        <div style={{ textAlign: 'center' }}>
+                            <Spinner style={{ width: '5rem', height: '5rem' }} />
+                        </div>
+                    </ModalBody>
+                </Modal>
+            )
+        }
+        return modal
     }
 
     private renderImageViewer(
@@ -218,10 +235,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             }
         }
 
-        let imageLoading = (
-            <ClipLoader sizeUnit={'px'} size={150} color={'#123abc'} loading={imageStore.imageDataLoading} />
-        )
-
         let selectedPopulations = (
             <SelectedPopulations
                 populations={populationStore.selectedPopulations}
@@ -257,8 +270,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let exportPath = imageStore.imageExportFilename
         let onExportComplete = imageStore.clearImageExportFilename
 
+        let imageDataLoading = imageStore.imageDataLoading
+        let segmentationDataLoading = imageStore.segmentationDataLoading
+
         return (
             <div>
+                {this.loadingModal(imageDataLoading, segmentationDataLoading)}
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
@@ -306,7 +323,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                                     exportPath,
                                                     onExportComplete,
                                                 )}
-                                                {imageLoading}
                                             </Col>
                                         </Row>
                                     </Grid>

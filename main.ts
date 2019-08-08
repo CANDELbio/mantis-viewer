@@ -78,7 +78,7 @@ function generateMenuTemplate(): any {
                             label: 'Image Set',
                             click: () => {
                                 dialog.showOpenDialog({ properties: ['openDirectory'] }, (dirName: string[]) => {
-                                    if (mainWindow != null && dirName != null) {
+                                    if (mainWindow != null && dirName.length == 1) {
                                         openImageSet(dirName[0])
                                     }
                                 })
@@ -88,7 +88,7 @@ function generateMenuTemplate(): any {
                             label: 'Project',
                             click: () => {
                                 dialog.showOpenDialog({ properties: ['openDirectory'] }, (dirName: string[]) => {
-                                    if (mainWindow != null && dirName != null) {
+                                    if (mainWindow != null && dirName.length == 1) {
                                         openProject(dirName[0])
                                     }
                                 })
@@ -106,7 +106,7 @@ function generateMenuTemplate(): any {
                                 dialog.showOpenDialog(
                                     { properties: ['openFile'], defaultPath: activeImageDirectory },
                                     (fileNames: string[]) => {
-                                        if (mainWindow != null && fileNames != null) {
+                                        if (mainWindow != null && fileNames.length == 1) {
                                             mainWindow.webContents.send('open-segmentation-file', fileNames[0])
                                         }
                                     },
@@ -127,7 +127,7 @@ function generateMenuTemplate(): any {
                                                 filters: [{ name: 'csv', extensions: ['csv'] }],
                                             },
                                             (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames != null)
+                                                if (mainWindow != null && fileNames.length == 1)
                                                     mainWindow.webContents.send('add-populations-csv', fileNames[0])
                                             },
                                         )
@@ -144,7 +144,7 @@ function generateMenuTemplate(): any {
                                                 filters: [{ name: 'json', extensions: ['json'] }],
                                             },
                                             (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames != null)
+                                                if (mainWindow != null && fileNames.length == 1)
                                                     mainWindow.webContents.send('add-populations-json', fileNames[0])
                                             },
                                         )

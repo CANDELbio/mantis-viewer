@@ -17,6 +17,7 @@ export class ImageStore {
     @observable public imageExportFilename: string | null
 
     @observable.ref public segmentationData: SegmentationData | null
+    @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationStatistics: SegmentationStatistics | null
 
     @observable public selectedDirectory: string | null
@@ -89,6 +90,7 @@ export class ImageStore {
         }
 
         this.imageDataLoading = false
+        this.segmentationDataLoading = false
     }
 
     @action public setImageDataLoading = (status: boolean) => {
@@ -191,14 +193,19 @@ export class ImageStore {
         }
     }
 
-    @action public initializeSegmentationSettings = () => {
+    @action private initializeSegmentationSettings = () => {
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
         this.segmentationCentroidsVisible = false
     }
 
-    @action public setSegmentationData = (data: SegmentationData) => {
+    @action private setSegmentationDataLoadingStatus = (status: boolean) => {
+        this.segmentationDataLoading = status
+    }
+
+    @action private setSegmentationData = (data: SegmentationData) => {
         this.segmentationData = data
+        this.setSegmentationDataLoadingStatus(false)
     }
 
     // Deletes the segmentation data and resets the selected segmentation file and alpha
@@ -217,6 +224,7 @@ export class ImageStore {
 
     @action public refreshSegmentationData = () => {
         if (this.selectedSegmentationFile != null && this.segmentationData == null) {
+            this.setSegmentationDataLoadingStatus(true)
             let segmentationData = new SegmentationData()
             segmentationData.loadFile(this.selectedSegmentationFile, this.setSegmentationData)
         }
