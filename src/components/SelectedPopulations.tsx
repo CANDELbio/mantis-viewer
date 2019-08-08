@@ -3,7 +3,7 @@ import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
-import { Button } from 'reactstrap'
+import { Badge } from 'reactstrap'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -83,7 +83,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                     </td>
                     <td
                         onClick={this.onTogglePicker}
-                        style={{ backgroundColor: this.backgroundColor(), cursor: 'pointer' }}
+                        style={{ backgroundColor: this.backgroundColor(), cursor: 'pointer', width: '50px' }}
                     >
                         {this.state.pickerVisible && (
                             <div style={{ position: 'absolute', zIndex: 9999 }}>
@@ -98,9 +98,11 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
                     </td>
                     <td>
-                        <Button onClick={this.deletePopulation} color="danger" size="sm">
-                            Delete
-                        </Button>
+                        <h5>
+                            <Badge onClick={this.deletePopulation} color="danger" style={{ cursor: 'pointer' }}>
+                                Delete
+                            </Badge>
+                        </h5>
                     </td>
                 </tr>
             )
