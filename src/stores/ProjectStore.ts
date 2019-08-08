@@ -239,6 +239,10 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
+        // Set the segmentation file to the active image store here instead of in finalizeActiveImageSet
+        // So that segmentation and image data can load at the same time instead of waiting for image to load
+        this.settingStore.setImageStoreSegmentationFile(this.activeImageStore)
+
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet())
@@ -271,8 +275,6 @@ export class ProjectStore {
     @action public copyImageSetSettings = () => {
         let destinationImageStore = this.activeImageStore
         let destinationPlotStore = this.activePlotStore
-        // We want to set the image store segmentation file if segmentation file basename is not null.
-        this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
         // If the user wants to persist image set settings
         this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
         this.settingStore.setImageStoreChannelDomains(destinationImageStore)
