@@ -64,3 +64,7 @@ export const GraphSelectionPrefix = 'Graph'
 export const ImageSelectionPrefix = 'Image'
 
 export const ImageSettingsFilename = '.mantisImageSettings'
+
+// Combined height of the leftmost pannel when channel and segmentation are both open.
+// If this ends up being different on differnt OSes or we are restyling often, might be better to use sizeme instead
+export const ChannelSegmentationCombinedHeight = 910

@@ -6,7 +6,7 @@ import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner } from 'reacts
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelControls } from './ChannelControls'
 import { observer } from 'mobx-react'
-import { ChannelName, WindowHeightBufferSize } from '../definitions/UIDefinitions'
+import { ChannelName, WindowHeightBufferSize, ChannelSegmentationCombinedHeight } from '../definitions/UIDefinitions'
 import { ImageViewer } from './ImageViewer'
 import { ImageSetSelector } from './ImageSetSelector'
 import { SegmentationControls } from './SegmentationControls'
@@ -44,17 +44,25 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     // Reverse ImageChannels so that select order is RGBCMYK
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
+    private notEnoughSpaceForChannelAndSegmentation = () => {
+        let windowHeight = this.props.projectStore.windowHeight
+        if (windowHeight && windowHeight < ChannelSegmentationCombinedHeight) return true
+        return false
+    }
+
     // If opening channels, close segmentation controls
     private handleChannelClick = () => {
         let newChannelsOpenValue = !this.state.channelsOpen
         this.setState({ channelsOpen: newChannelsOpenValue })
-        if (newChannelsOpenValue) this.setState({ segmentationOpen: false })
+        if (newChannelsOpenValue && this.notEnoughSpaceForChannelAndSegmentation())
+            this.setState({ segmentationOpen: false })
     }
     // If opening segmentation controls, close channels
     private handleSegmentationClick = () => {
         let newSegmentationOpenValue = !this.state.segmentationOpen
         this.setState({ segmentationOpen: newSegmentationOpenValue })
-        if (newSegmentationOpenValue) this.setState({ channelsOpen: false })
+        if (newSegmentationOpenValue && this.notEnoughSpaceForChannelAndSegmentation())
+            this.setState({ channelsOpen: false })
     }
     private handleRegionsClick = () => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
@@ -155,6 +163,22 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         }
 
         return viewer
+    }
+
+    public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
+        let windowHeight = props.projectStore.windowHeight
+        console.log(windowHeight)
+        // If window height is defined, and we are now too short for both segmentation and channels to be open, close segmentation.
+        if (
+            windowHeight &&
+            windowHeight < ChannelSegmentationCombinedHeight &&
+            state.channelsOpen &&
+            state.segmentationOpen
+        )
+            return {
+                segmentationOpen: false,
+            }
+        return null
     }
 
     public render(): React.ReactNode {
