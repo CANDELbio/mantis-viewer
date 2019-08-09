@@ -2,11 +2,13 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
+
 import * as _ from 'underscore'
 
 import path = require('path')
 import url = require('url')
 const openAboutWindow = require('about-window').default
+const contextMenu = require('electron-context-menu').default
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -342,7 +344,10 @@ function createMainWindow(): void {
     )
 
     // Open the DevTools.
-    if (debugging()) mainWindow.webContents.openDevTools()
+    if (debugging()) {
+        mainWindow.webContents.openDevTools()
+        contextMenu({ showInspectElement: true })
+    }
 
     // Use throttle so that when we resize we only send the window size every 333 ms
     mainWindow.on('resize', _.throttle(sendWindowSize, 333))

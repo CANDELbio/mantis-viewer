@@ -2,9 +2,10 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { MainApp } from '../components/MainApp'
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
+
+import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 

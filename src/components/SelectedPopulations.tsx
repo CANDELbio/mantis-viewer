@@ -120,8 +120,12 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             toggle={this.onTogglePicker}
                             style={{ backgroundColor: 'transparent' }}
                         >
-                            <PopoverBody>
+                            {/* Compact picker is meant to be used as its own popover element, but doesn't work with ReactTableContainer */}
+                            {/* Instead we style the compact-picker element to have a box-shadow to mask its default box-shadow */}
+                            {/* And we set padding of PopoverBody to 6.8px to reduce the padding around compact picker and make it look natural */}
+                            <PopoverBody style={{ padding: '6.8px' }}>
                                 <div style={{ position: 'relative' }}>
+                                    <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
                                     <CompactPicker
                                         color={'#' + this.props.population.color.toString(16)}
                                         onChangeComplete={this.handleColorChange}
