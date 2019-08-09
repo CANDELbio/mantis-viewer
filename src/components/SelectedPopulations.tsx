@@ -1,9 +1,13 @@
 import * as React from 'react'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import * as _ from 'underscore'
 import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
+import { Popover, PopoverBody } from 'reactstrap'
 import { Badge } from 'reactstrap'
+import ReactTableContainer from 'react-table-container'
+
+import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -21,19 +25,28 @@ interface SelectedPopulationProps extends SelectedProps {
 
 interface SelectedDataRowProps extends SelectedProps {
     population: SelectedPopulation
+    tableScrolling: boolean
 }
 
-interface TableRowState {
+interface SelectedPopulationState {
+    tableScrolling: boolean
+}
+
+interface SelectedDataRowState {
     pickerVisible: boolean
 }
 
 @observer
-export class SelectedPopulations extends React.Component<SelectedPopulationProps, {}> {
+export class SelectedPopulations extends React.Component<SelectedPopulationProps, SelectedPopulationState> {
     public constructor(props: SelectedPopulationProps) {
         super(props)
     }
 
-    private TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, TableRowState> {
+    public state = {
+        tableScrolling: false,
+    }
+
+    private TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, SelectedDataRowState> {
         public state = {
             pickerVisible: false,
         }
@@ -71,6 +84,19 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             return '#' + hex
         }
 
+        // Use this special function to turn off the picker whenever the user starts scrolling on the parent table.
+        public static getDerivedStateFromProps(
+            props: SelectedDataRowProps,
+            state: SelectedDataRowState,
+        ): SelectedDataRowState | null {
+            if (state.pickerVisible && props.tableScrolling) {
+                return {
+                    pickerVisible: false,
+                }
+            }
+            return null
+        }
+
         public render(): React.ReactElement {
             return (
                 <tr onMouseEnter={this.highlightPopulation} onMouseLeave={this.unhighlightPopulation}>
@@ -82,17 +108,27 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         />
                     </td>
                     <td
+                        id={'color-' + this.props.population.id}
                         onClick={this.onTogglePicker}
                         style={{ backgroundColor: this.backgroundColor(), cursor: 'pointer', width: '50px' }}
                     >
-                        {this.state.pickerVisible && (
-                            <div style={{ position: 'absolute', zIndex: 9999 }}>
-                                <CompactPicker
-                                    color={'#' + this.props.population.color.toString(16)}
-                                    onChangeComplete={this.handleColorChange}
-                                />
-                            </div>
-                        )}
+                        <Popover
+                            placement="left"
+                            isOpen={this.state.pickerVisible && !this.props.tableScrolling}
+                            trigger="legacy"
+                            target={'color-' + this.props.population.id}
+                            toggle={this.onTogglePicker}
+                            style={{ backgroundColor: 'transparent' }}
+                        >
+                            <PopoverBody>
+                                <div style={{ position: 'relative' }}>
+                                    <CompactPicker
+                                        color={'#' + this.props.population.color.toString(16)}
+                                        onChangeComplete={this.handleColorChange}
+                                    />
+                                </div>
+                            </PopoverBody>
+                        </Popover>
                     </td>
                     <td>
                         <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
@@ -109,7 +145,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }
     }
 
-    private populationRows(populations: SelectedPopulation[] | null): JSX.Element[] | null {
+    private populationRows(populations: SelectedPopulation[] | null, tableScrolling: boolean): JSX.Element[] | null {
         if (populations != null) {
             return populations.map(population => {
                 return (
@@ -122,6 +158,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                         updateVisibility={this.props.updateVisibility}
                         highlightPopulation={this.props.highlightPopulation}
                         unhighlightPopulation={this.props.unhighlightPopulation}
+                        tableScrolling={tableScrolling}
                     />
                 )
             })
@@ -156,32 +193,43 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }
     }
 
+    private setDebounceTableScrolling = () => {
+        this.setState({ tableScrolling: true })
+        _.debounce((): void => {
+            this.setState({ tableScrolling: false })
+        }, 200)()
+    }
+
     public render(): React.ReactElement {
         let populations = this.props.populations
         return (
             <div>
                 <style>{'table.population-table th{padding:0.45rem;}'}</style>
                 <style>{'table.population-table td{padding:0.35em;}'}</style>
-
-                <table className="table table-hover population-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Color</th>
-                            <th>
-                                <Checkbox
-                                    checked={this.anyVisible()}
-                                    onChange={this.setVisibility}
-                                    label="Visible"
-                                    disabled={this.visibleCheckboxDisabled()}
-                                    style={{ display: 'table-cell' }}
-                                />
-                            </th>
-                            <th> </th>
-                        </tr>
-                    </thead>
-                    <tbody>{this.populationRows(populations)}</tbody>
-                </table>
+                <ReactTableContainer width="100%" height="200px">
+                    <table
+                        className="table table-hover population-table"
+                        onWheel={_.throttle(this.setDebounceTableScrolling, 100)}
+                    >
+                        <thead style={{ backgroundColor: 'white' }}>
+                            <tr>
+                                <th>Name</th>
+                                <th>Color</th>
+                                <th>
+                                    <Checkbox
+                                        checked={this.anyVisible()}
+                                        onChange={this.setVisibility}
+                                        label="Visible"
+                                        disabled={this.visibleCheckboxDisabled()}
+                                        style={{ display: 'table-cell' }}
+                                    />
+                                </th>
+                                <th> </th>
+                            </tr>
+                        </thead>
+                        <tbody>{this.populationRows(populations, this.state.tableScrolling)}</tbody>
+                    </table>
+                </ReactTableContainer>
             </div>
         )
     }
