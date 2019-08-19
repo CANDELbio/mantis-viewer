@@ -167,7 +167,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
         let windowHeight = props.projectStore.windowHeight
-        console.log(windowHeight)
         // If window height is defined, and we are now too short for both segmentation and channels to be open, close segmentation.
         if (
             windowHeight &&

@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "0.9.5-alpha.3",
+    "version": "0.9.5-alpha.4",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "main.js",
     "scripts": {
@@ -70,7 +70,7 @@
         "acorn": "^6.1.0",
         "canvas": "^2.3.1",
         "css-loader": "^0.27.3",
-        "electron": "^6.0.0",
+        "electron": "^6.0.2",
         "electron-builder": "^21.2.0",
         "eslint": "^5.14.1",
         "eslint-config-prettier": "^4.0.0",

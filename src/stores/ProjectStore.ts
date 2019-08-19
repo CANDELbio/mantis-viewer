@@ -145,9 +145,9 @@ export class ProjectStore {
         if (paths.length > 0) {
             // Clear out old image sets
             this.initializeImageSets()
+            this.imageSetPaths = paths
             this.settingStore.setBasePath(dirName)
             this.setActiveImageSet(this.imageSetPaths[0])
-            this.imageSetPaths = paths
         } else {
             this.errorMessage = 'Warning: No image set directories found in ' + path.basename(dirName) + '.'
         }

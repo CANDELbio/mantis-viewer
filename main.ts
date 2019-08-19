@@ -79,21 +79,27 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Image Set',
                             click: () => {
-                                dialog.showOpenDialog({ properties: ['openDirectory'] }, (dirName: string[]) => {
-                                    if (mainWindow != null && dirName.length == 1) {
-                                        openImageSet(dirName[0])
-                                    }
-                                })
+                                dialog
+                                    .showOpenDialog({ properties: ['openDirectory'] })
+                                    .then((value: Electron.OpenDialogReturnValue) => {
+                                        let filePaths = value.filePaths
+                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
+                                            openImageSet(filePaths[0])
+                                        }
+                                    })
                             },
                         },
                         {
                             label: 'Project',
                             click: () => {
-                                dialog.showOpenDialog({ properties: ['openDirectory'] }, (dirName: string[]) => {
-                                    if (mainWindow != null && dirName.length == 1) {
-                                        openProject(dirName[0])
-                                    }
-                                })
+                                dialog
+                                    .showOpenDialog({ properties: ['openDirectory'] })
+                                    .then((value: Electron.OpenDialogReturnValue) => {
+                                        let filePaths = value.filePaths
+                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
+                                            openProject(filePaths[0])
+                                        }
+                                    })
                             },
                         },
                     ],
@@ -105,14 +111,14 @@ function generateMenuTemplate(): any {
                             label: 'Segmentation',
                             enabled: imageLoaded,
                             click: () => {
-                                dialog.showOpenDialog(
-                                    { properties: ['openFile'], defaultPath: activeImageDirectory },
-                                    (fileNames: string[]) => {
-                                        if (mainWindow != null && fileNames.length == 1) {
-                                            mainWindow.webContents.send('open-segmentation-file', fileNames[0])
+                                dialog
+                                    .showOpenDialog({ properties: ['openFile'], defaultPath: activeImageDirectory })
+                                    .then((value: Electron.OpenDialogReturnValue) => {
+                                        let filePaths = value.filePaths
+                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
+                                            mainWindow.webContents.send('open-segmentation-file', filePaths[0])
                                         }
-                                    },
-                                )
+                                    })
                             },
                         },
                         {
@@ -122,34 +128,36 @@ function generateMenuTemplate(): any {
                                     label: 'For active image set from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: () => {
-                                        dialog.showOpenDialog(
-                                            {
+                                        dialog
+                                            .showOpenDialog({
                                                 properties: ['openFile'],
                                                 defaultPath: activeImageDirectory,
                                                 filters: [{ name: 'csv', extensions: ['csv'] }],
-                                            },
-                                            (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames.length == 1)
-                                                    mainWindow.webContents.send('add-populations-csv', fileNames[0])
-                                            },
-                                        )
+                                            })
+                                            .then((value: Electron.OpenDialogReturnValue) => {
+                                                let filePaths = value.filePaths
+                                                if (mainWindow != null && filePaths && filePaths.length == 1) {
+                                                    mainWindow.webContents.send('add-populations-csv', filePaths[0])
+                                                }
+                                            })
                                     },
                                 },
                                 {
                                     label: 'For active image set from JSON',
                                     enabled: imageLoaded,
                                     click: () => {
-                                        dialog.showOpenDialog(
-                                            {
+                                        dialog
+                                            .showOpenDialog({
                                                 properties: ['openFile'],
                                                 defaultPath: activeImageDirectory,
                                                 filters: [{ name: 'json', extensions: ['json'] }],
-                                            },
-                                            (fileNames: string[]) => {
-                                                if (mainWindow != null && fileNames.length == 1)
-                                                    mainWindow.webContents.send('add-populations-json', fileNames[0])
-                                            },
-                                        )
+                                            })
+                                            .then((value: Electron.OpenDialogReturnValue) => {
+                                                let filePaths = value.filePaths
+                                                if (mainWindow != null && filePaths && filePaths.length == 1) {
+                                                    mainWindow.webContents.send('add-populations-json', filePaths[0])
+                                                }
+                                            })
                                     },
                                 },
                             ],
