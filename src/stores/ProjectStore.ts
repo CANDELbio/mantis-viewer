@@ -291,6 +291,28 @@ export class ProjectStore {
         })
     }
 
+    // Jumps to the previous image set in the list of image sets
+    @action public setPreviousImageSet = () => {
+        let activeImageSetPath = this.activeImageSetPath
+        let imageSetPaths = this.imageSetPaths
+        if (activeImageSetPath) {
+            let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
+            let previousImageSetIndex = activeImageSetIndex == 0 ? imageSetPaths.length - 1 : activeImageSetIndex - 1
+            this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
+        }
+    }
+
+    // Jumps to the next image set in the list of image sets.
+    @action public setNextImageSet = () => {
+        let activeImageSetPath = this.activeImageSetPath
+        let imageSetPaths = this.imageSetPaths
+        if (activeImageSetPath) {
+            let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
+            let previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
+            this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
+        }
+    }
+
     @action public clearActiveSegmentationData = () => {
         let imageStore = this.activeImageStore
         let plotStore = this.activePlotStore
