@@ -262,7 +262,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener('mousedown', () => {
             let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
-            if (altPressed) {
+            let metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+            if (altPressed || metaPressed) {
                 this.selecting = true
                 selectionColor = randomHexColor()
                 let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)

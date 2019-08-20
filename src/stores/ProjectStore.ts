@@ -295,7 +295,7 @@ export class ProjectStore {
     @action public setPreviousImageSet = () => {
         let activeImageSetPath = this.activeImageSetPath
         let imageSetPaths = this.imageSetPaths
-        if (activeImageSetPath) {
+        if (activeImageSetPath && imageSetPaths.length > 1) {
             let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
             let previousImageSetIndex = activeImageSetIndex == 0 ? imageSetPaths.length - 1 : activeImageSetIndex - 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
@@ -306,7 +306,7 @@ export class ProjectStore {
     @action public setNextImageSet = () => {
         let activeImageSetPath = this.activeImageSetPath
         let imageSetPaths = this.imageSetPaths
-        if (activeImageSetPath) {
+        if (activeImageSetPath && imageSetPaths.length > 1) {
             let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
             let previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])

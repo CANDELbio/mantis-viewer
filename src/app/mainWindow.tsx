@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Mobx from 'mobx'
 import { ipcRenderer } from 'electron'
+import * as Mousetrap from 'mousetrap'
 
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
@@ -99,6 +100,15 @@ ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: 
 
 ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: number, max: number) => {
     projectStore.addPopulationFromRange(min, max)
+})
+
+// Keyboard shortcuts!
+Mousetrap.bind(['command+left', 'alt+left'], function() {
+    projectStore.setPreviousImageSet()
+})
+
+Mousetrap.bind(['command+right', 'alt+right'], function() {
+    projectStore.setNextImageSet()
 })
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
