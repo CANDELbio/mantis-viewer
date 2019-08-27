@@ -10,6 +10,6 @@ jest.mock(
 import { ImageDataWorker } from './ImageDataWorker'
 
 test('terminate', function() {
-    let worker = new ImageDataWorker()
+    let worker = new ImageDataWorker(() => {})
     worker.terminate()
 })

@@ -29,23 +29,26 @@ function generateStatisticMap(
     tiffData: Float32Array | Uint16Array | Uint8Array,
     segmentIndexMap: Record<number, number[]>,
     statistic: PlotStatistic,
-): { map: Record<string, number>; minMax: { min: number; max: number } } {
-    let min: number, max: number
-    let statisticMap = {}
+): { map: Record<string, number>; minMax: { min: number | null; max: number | null } } {
+    let min: number | null = null
+    let max: number | null = null
+    let statisticMap: Record<string, number> = {}
     for (let segmentId in segmentIndexMap) {
         let mapKey = marker + '_' + segmentId
-        let curIntensity: number
+        let curIntensity: number | null = null
         if (statistic == 'mean') {
             curIntensity = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
         } else if (statistic == 'median') {
             curIntensity = medianPixelIntensity(tiffData, segmentIndexMap[segmentId])
         }
-        statisticMap[mapKey] = curIntensity
-        // Calculate the min and max for this marker
-        if (min == undefined) min = curIntensity
-        if (max == undefined) max = curIntensity
-        if (curIntensity < min) min = curIntensity
-        if (curIntensity > max) max = curIntensity
+        if (curIntensity != null) {
+            statisticMap[mapKey] = curIntensity
+            // Calculate the min and max for this marker
+            if (min == null) min = curIntensity
+            if (max == null) max = curIntensity
+            if (curIntensity < min) min = curIntensity
+            if (curIntensity > max) max = curIntensity
+        }
     }
     return { map: statisticMap, minMax: { min: min, max: max } }
 }

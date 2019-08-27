@@ -4,6 +4,7 @@
         "sourceMap": true,
         "module": "commonjs",
         "target": "es2018",
+        "lib": ["dom", "dom.iterable", "webworker", "es2018", "scripthost"],
         "jsx": "react",
         "moduleResolution": "node",
         "alwaysStrict": true,
@@ -17,24 +18,6 @@
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true
     },
-    //Adding files here individually is required to have VisualStudio Code
-    //accept the decorator syntax. Hopefully this will be fixed in the future
-    "files": [
-        "./main.ts",
-        "./typings/custom.d.ts",
-        "./typings/reactSizeme.d.ts",
-        "./src/app/mainWindow.tsx",
-        "./src/app/plotWindow.tsx",
-        "./src/stores/ImageStore.ts",
-        "./src/stores/PopulationStore.ts",
-        "./src/stores/PlotStore.ts",
-        "./src/stores/ProjectStore.ts",
-        "./src/stores/SettingStore.ts",
-        "./src/components/ImageViewer.tsx",
-        "./src/components/MainApp.tsx",
-        "./src/components/ChannelControls.tsx",
-        "./src/components/SegmentationControls.tsx",
-        "./src/components/Plot.tsx",
-        "./src/components/SelectedPopulations.tsx"
-    ]
+    "include": ["src/**/*.ts", "typings/**/*.ts", "src/**/*.tsx"],
+    "exclude": ["node_modules/**"]
 }

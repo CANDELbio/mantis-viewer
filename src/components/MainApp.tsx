@@ -127,7 +127,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         channelDomain: Record<ChannelName, [number, number]>,
         channelVisibility: Record<ChannelName, boolean>,
         channelMarker: Record<ChannelName, string | null>,
-        maxWidth: number,
+        maxWidth: number | null,
         windowHeight: number | null,
         addSelectedPopulation: (selectedRegion: number[], selectedSegments: number[], color: number) => void,
         updateSelectedPopulations: (selectedRegions: SelectedPopulation[]) => void,
@@ -138,7 +138,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         onExportComplete: () => void,
     ): JSX.Element | null {
         let viewer = null
-        if (imageData != null && windowHeight != null) {
+        if (imageData != null && windowHeight != null && maxWidth != null) {
             let maxRendererSize = { width: maxWidth, height: windowHeight - WindowHeightBufferSize }
             viewer = (
                 <ImageViewer
