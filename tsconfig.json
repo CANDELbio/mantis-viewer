@@ -4,7 +4,6 @@
         "sourceMap": true,
         "module": "commonjs",
         "target": "es2018",
-        "lib": ["dom", "dom.iterable", "webworker", "es2018", "scripthost"],
         "jsx": "react",
         "moduleResolution": "node",
         "alwaysStrict": true,

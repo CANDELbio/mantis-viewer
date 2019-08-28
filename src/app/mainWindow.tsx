@@ -9,6 +9,7 @@ import * as Mousetrap from 'mousetrap'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
+import { writeToFCS } from '../lib/FcsWriter'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -100,6 +101,10 @@ ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: 
 
 ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: number, max: number) => {
     projectStore.addPopulationFromRange(min, max)
+})
+
+ipcRenderer.on('export-to-fcs', (event: Electron.Event, filename: string) => {
+    writeToFCS(filename, ['foo', 'bar', 'baz'], [[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]])
 })
 
 // Keyboard shortcuts!

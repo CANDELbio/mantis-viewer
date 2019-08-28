@@ -236,6 +236,20 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
+                            label: 'FCS Test',
+                            click: () => {
+                                dialog
+                                    .showSaveDialog({
+                                        filters: [{ name: 'fcs', extensions: ['fcs'] }],
+                                    })
+                                    .then((value: Electron.SaveDialogReturnValue) => {
+                                        let filename = value.filePath
+                                        if (mainWindow != null && filename != null)
+                                            mainWindow.webContents.send('export-to-fcs', filename)
+                                    })
+                            },
+                        },
+                        {
                             label: 'Image',
                             submenu: [
                                 {
