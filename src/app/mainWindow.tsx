@@ -9,7 +9,6 @@ import * as Mousetrap from 'mousetrap'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
-import { writeToFCS } from '../lib/FcsWriter'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -42,6 +41,14 @@ ipcRenderer.on('add-populations-csv', (event: Electron.Event, filename: string) 
 
 ipcRenderer.on('export-populations-csv', (event: Electron.Event, filename: string) => {
     projectStore.activePopulationStore.exportPopulationsToCSV(filename)
+})
+
+ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
+    projectStore.exportPopulationsToFCS(dirName, 'mean')
+})
+
+ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string) => {
+    projectStore.exportPopulationsToFCS(dirName, 'median')
 })
 
 ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {
@@ -103,8 +110,12 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
     projectStore.addPopulationFromRange(min, max)
 })
 
-ipcRenderer.on('export-to-fcs', (event: Electron.Event, filename: string) => {
-    writeToFCS(filename, ['foo', 'bar', 'baz'], [[1.0, 2.0, 3.0], [3.0, 2.0, 1.0]])
+ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
+    projectStore.exportToFCS(filename, 'mean')
+})
+
+ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
+    projectStore.exportToFCS(filename, 'median')
 })
 
 // Keyboard shortcuts!

@@ -205,49 +205,139 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
-                            label: 'Summary Statistics',
+                            label: 'Segment Statistics',
                             submenu: [
                                 {
-                                    label: 'Mean intensities for active image set',
-                                    enabled: imageLoaded && segmentationLoaded,
-                                    click: () => {
-                                        dialog
-                                            .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
-                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                let filename = value.filePath
-                                                if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send('export-mean-intensities', filename)
-                                            })
-                                    },
+                                    label: 'To CSV',
+                                    submenu: [
+                                        {
+                                            label: 'Mean intensities for active image set',
+                                            enabled: imageLoaded && segmentationLoaded,
+                                            click: () => {
+                                                dialog
+                                                    .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
+                                                    .then((value: Electron.SaveDialogReturnValue) => {
+                                                        let filename = value.filePath
+                                                        if (mainWindow != null && filename != null)
+                                                            mainWindow.webContents.send(
+                                                                'export-mean-intensities',
+                                                                filename,
+                                                            )
+                                                    })
+                                            },
+                                        },
+                                        {
+                                            label: 'Median intensities for active image set',
+                                            enabled: imageLoaded && segmentationLoaded,
+                                            click: () => {
+                                                dialog
+                                                    .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
+                                                    .then((value: Electron.SaveDialogReturnValue) => {
+                                                        let filename = value.filePath
+                                                        if (mainWindow != null && filename != null)
+                                                            mainWindow.webContents.send(
+                                                                'export-median-intensities',
+                                                                filename,
+                                                            )
+                                                    })
+                                            },
+                                        },
+                                    ],
                                 },
                                 {
-                                    label: 'Median intensities for active image set',
-                                    enabled: imageLoaded && segmentationLoaded,
-                                    click: () => {
-                                        dialog
-                                            .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
-                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                let filename = value.filePath
-                                                if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send('export-median-intensities', filename)
-                                            })
-                                    },
+                                    label: 'To FCS',
+                                    submenu: [
+                                        {
+                                            label: 'All segments',
+                                            submenu: [
+                                                {
+                                                    label: 'Mean intensities for active image set',
+                                                    enabled: imageLoaded && segmentationLoaded,
+                                                    click: () => {
+                                                        dialog
+                                                            .showSaveDialog({
+                                                                filters: [{ name: 'fcs', extensions: ['fcs'] }],
+                                                            })
+                                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                                let filename = value.filePath
+                                                                if (mainWindow != null && filename != null)
+                                                                    mainWindow.webContents.send(
+                                                                        'export-mean-segmentation-to-fcs',
+                                                                        filename,
+                                                                    )
+                                                            })
+                                                    },
+                                                },
+                                                {
+                                                    label: 'Median intensities for active image set',
+                                                    enabled: imageLoaded && segmentationLoaded,
+                                                    click: () => {
+                                                        dialog
+                                                            .showSaveDialog({
+                                                                filters: [{ name: 'fcs', extensions: ['fcs'] }],
+                                                            })
+                                                            .then((value: Electron.SaveDialogReturnValue) => {
+                                                                let filename = value.filePath
+                                                                if (mainWindow != null && filename != null)
+                                                                    mainWindow.webContents.send(
+                                                                        'export-median-segmentation-to-fcs',
+                                                                        filename,
+                                                                    )
+                                                            })
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            label: 'All populations',
+                                            submenu: [
+                                                {
+                                                    label: 'Mean intensities for active image set',
+                                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
+                                                    click: () => {
+                                                        dialog
+                                                            .showOpenDialog({ properties: ['openDirectory'] })
+                                                            .then((value: Electron.OpenDialogReturnValue) => {
+                                                                let filePaths = value.filePaths
+                                                                if (
+                                                                    mainWindow != null &&
+                                                                    filePaths &&
+                                                                    filePaths.length == 1
+                                                                ) {
+                                                                    mainWindow.webContents.send(
+                                                                        'export-mean-populations-fcs',
+                                                                        filePaths[0],
+                                                                    )
+                                                                }
+                                                            })
+                                                    },
+                                                },
+                                                {
+                                                    label: 'Median intensities for active image set',
+                                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
+                                                    click: () => {
+                                                        dialog
+                                                            .showOpenDialog({ properties: ['openDirectory'] })
+                                                            .then((value: Electron.OpenDialogReturnValue) => {
+                                                                let filePaths = value.filePaths
+                                                                if (
+                                                                    mainWindow != null &&
+                                                                    filePaths &&
+                                                                    filePaths.length == 1
+                                                                ) {
+                                                                    mainWindow.webContents.send(
+                                                                        'export-median-populations-fcs',
+                                                                        filePaths[0],
+                                                                    )
+                                                                }
+                                                            })
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    ],
                                 },
                             ],
-                        },
-                        {
-                            label: 'FCS Test',
-                            click: () => {
-                                dialog
-                                    .showSaveDialog({
-                                        filters: [{ name: 'fcs', extensions: ['fcs'] }],
-                                    })
-                                    .then((value: Electron.SaveDialogReturnValue) => {
-                                        let filename = value.filePath
-                                        if (mainWindow != null && filename != null)
-                                            mainWindow.webContents.send('export-to-fcs', filename)
-                                    })
-                            },
                         },
                         {
                             label: 'Image',

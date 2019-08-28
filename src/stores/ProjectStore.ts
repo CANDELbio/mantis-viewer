@@ -19,6 +19,7 @@ import {
 } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
+import { writeToFCS } from '../lib/FcsWriter'
 
 interface ImageSet {
     imageStore: ImageStore
@@ -219,7 +220,7 @@ export class ProjectStore {
             if (setToClean) imageSet = this.imageSets[setToClean]
             if (imageSet) {
                 imageSet.imageStore.clearImageData()
-                // imageSet.imageStore.clearSegmentationData()
+                imageSet.imageStore.clearSegmentationData()
             }
         }
     }
@@ -238,10 +239,6 @@ export class ProjectStore {
 
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
-
-        // Set the segmentation file to the active image store here instead of in finalizeActiveImageSet
-        // So that segmentation and image data can load at the same time instead of waiting for image to load
-        this.settingStore.setImageStoreSegmentationFile(this.activeImageStore)
 
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
@@ -275,7 +272,8 @@ export class ProjectStore {
     @action public copyImageSetSettings = () => {
         let destinationImageStore = this.activeImageStore
         let destinationPlotStore = this.activePlotStore
-        // If the user wants to persist image set settings
+
+        this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
         this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
         this.settingStore.setImageStoreChannelDomains(destinationImageStore)
         this.settingStore.copyImageStoreChannelVisibility(destinationImageStore)
@@ -379,10 +377,13 @@ export class ProjectStore {
             for (let marker of markers) {
                 columns.push(marker)
             }
+            columns.push('Centroid X')
+            columns.push('Centroid Y')
             columns.push('Populations')
 
             // Iterate through the segments and calculate the intensity for each marker
             let indexMap = segmentationData.segmentIndexMap
+            let centroidMap = segmentationData.centroidMap
             for (let s in indexMap) {
                 let segmentId = parseInt(s)
                 let segmentData = [s] as string[]
@@ -393,6 +394,11 @@ export class ProjectStore {
                         segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]).toString())
                     }
                 }
+
+                // Add the Centroid points
+                let segmentCentroid = centroidMap[segmentId]
+                segmentData.push(segmentCentroid.x.toString())
+                segmentData.push(segmentCentroid.y.toString())
 
                 // Figure out which populations this segment belongs to
                 let populations = []
@@ -412,6 +418,52 @@ export class ProjectStore {
                     console.log(statistic + ' intensities saved to ' + filename)
                 })
             })
+        }
+    }
+
+    public exportPopulationsToFCS = (dirName: string, statistic: PlotStatistic) => {
+        let populationStore = this.activePopulationStore
+        for (let population of populationStore.selectedPopulations) {
+            // Replace spaces with underscores in the population name and add the statistic being exported
+            let filename = population.name.replace(/ /g, '_') + '_' + statistic + '.fcs'
+            let filePath = path.join(dirName, filename)
+            if (population.selectedSegments.length > 0) {
+                this.exportToFCS(filePath, statistic, population.selectedSegments)
+            }
+        }
+    }
+
+    public exportToFCS = (filePath: string, statistic: PlotStatistic, segmentIds?: number[]) => {
+        let imageStore = this.activeImageStore
+        let imageData = imageStore.imageData
+        let segmentationData = imageStore.segmentationData
+        let segmentationStatistics = imageStore.segmentationStatistics
+        if (imageData != null && segmentationData != null && segmentationStatistics != null) {
+            let markers = imageData.markerNames
+            let data = [] as number[][]
+            // Iterate through the segments and calculate the intensity for each marker
+            let indexMap = segmentationData.segmentIndexMap
+            let centroidMap = segmentationData.centroidMap
+            for (let s in indexMap) {
+                let segmentId = parseInt(s)
+                // If segmentIds isn't defined include this segment, otherwise check if this segment is in segmentIds
+                if (segmentIds == undefined || segmentIds.includes(segmentId)) {
+                    let segmentData = [] as number[]
+                    for (let marker of markers) {
+                        if (statistic == 'mean') {
+                            segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]))
+                        } else {
+                            segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]))
+                        }
+                    }
+                    let segmentCentroid = centroidMap[segmentId]
+                    segmentData.push(segmentCentroid.x)
+                    segmentData.push(segmentCentroid.y)
+                    segmentData.push(segmentId)
+                    data.push(segmentData)
+                }
+            }
+            writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data)
         }
     }
 

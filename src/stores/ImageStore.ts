@@ -232,9 +232,10 @@ export class ImageStore {
 
     @action public setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
+        this.refreshSegmentationData()
+        //Remove the segmentation file from the list of selectable markers
         let basename = path.parse(fName).name
         this.removeMarker(basename)
-        this.refreshSegmentationData()
     }
 
     @action public setImageExportFilename = (fName: string) => {
