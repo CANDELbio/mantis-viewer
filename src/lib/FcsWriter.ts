@@ -5,11 +5,12 @@ import * as fs from 'fs'
 
 let sanatize: Record<string, string> = { µ: 'u', '²': '2', ' ': '', '?': '', _: '' }
 
+// Use this method to generate a buffer that will allow us to write the floats represented as binary floats instead of strings.
 function floatArrayToBuffer(data: number[]): Buffer {
     let arr = Float32Array.from(data)
     let buffer = new Buffer(arr.length * arr.BYTES_PER_ELEMENT)
     for (let i = 0; i < arr.length; i++) {
-        //write the float in Little-Endian and move the offset
+        // Write the float in Big-Endian and move the offset
         buffer.writeFloatBE(arr[i], i * arr.BYTES_PER_ELEMENT)
     }
     return buffer
@@ -22,7 +23,7 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
         if (chNames.length != value.length) throw 'Length of data content does not match length of chNames'
     })
 
-    // Sanatize Channel Names for Compatability
+    // Sanatize Channel Names for Compatability with FCS Reading Software
     let sanatizedChNames = chNames.map(
         (value: string): string => {
             let sanatized = value
@@ -35,7 +36,6 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
 
     // DATA segment
     let flattenedData = ([] as number[]).concat(...data)
-    console.log(flattenedData)
     let binaryData = floatArrayToBuffer(flattenedData)
 
     // TEXT segment
@@ -46,7 +46,7 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
     // Add placeholders for $BEGINDATA and $ENDDATA, because we don't
     // know yet how long TEXT is.
     text += '/$BEGINDATA/{data_start_byte}/$ENDDATA/{data_end_byte}'
-    // default to Little Endian.
+    // Default to Big Endian. If want to do LE, need to write 1,2,3,4 and switch floatArrayToBuffer method.
     text += '/$BYTEORD/4,3,2,1/$DATATYPE/F'
     text += `/$MODE/L/$NEXTDATA/0/$TOT/${data.length}`
     text += `/$PAR/${chNames.length}`
@@ -75,12 +75,11 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
 
     // HEADER segment
     let ver = 'FCS3.0'
-
     let textFirst = headerSize.toString().padStart(8)
     let textLast = (lenText + headerSize - 1).toString().padStart(8)
 
     // Starting with FCS 3.0, data segment can end beyond byte 99,999,999,
-    //  in which case a zero is written in each of the two header fields (the
+    // in which case a zero is written in each of the two header fields (the
     // values are given in the text segment keywords $BEGINDATA and $ENDDATA)
     let dataFirst = '0'.padStart(8)
     let dataLast = '0'.padStart(8)
@@ -89,6 +88,7 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
         dataLast = dataEndByte.toString().padStart(8)
     }
 
+    // We don't have an analysis segment. Write 0s for the start/end.
     let anaFirst = '0'.padStart(8)
     let anaLast = '0'.padStart(8)
 
@@ -99,6 +99,7 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
     stream.write(Buffer.from(header, 'ascii'))
     stream.write(Buffer.from(text, 'ascii'))
     stream.write(binaryData)
+    // Not doing a CRC. Write all 0s.
     stream.write(Buffer.from('00000000', 'ascii'))
     stream.close()
 }
