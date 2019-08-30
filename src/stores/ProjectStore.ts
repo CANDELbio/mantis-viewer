@@ -8,7 +8,6 @@ import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
 import { generatePlotData } from '../lib/plot/Index'
-import { ImageData } from '../lib/ImageData'
 import {
     SelectOption,
     ChannelName,
@@ -32,6 +31,7 @@ export class ProjectStore {
         this.initialize()
     }
 
+    @observable public projectPath: string | null
     @observable public imageSetPaths: string[]
     @observable public imageSets: Record<string, ImageSet>
     @observable public nullImageSet: ImageSet
@@ -88,6 +88,7 @@ export class ProjectStore {
         this.imageSetPaths = []
         this.imageSets = {}
 
+        this.projectPath = null
         this.activeImageSetPath = null
         this.lastActiveImageSetPath = null
 
@@ -146,6 +147,7 @@ export class ProjectStore {
         if (paths.length > 0) {
             // Clear out old image sets
             this.initializeImageSets()
+            this.projectPath = dirName
             this.imageSetPaths = paths
             this.settingStore.setBasePath(dirName)
             this.setActiveImageSet(this.imageSetPaths[0])
@@ -180,20 +182,22 @@ export class ProjectStore {
     }
 
     @action private loadImageStoreData = (dirName: string) => {
+        // If we haven't loaded this directory, initialize the stores and load it.
+        if (!(dirName in this.imageSets)) {
+            this.initializeStores(dirName)
+        }
+
         let imageStore = this.imageSets[dirName].imageStore
         if (imageStore.imageData == null) {
-            imageStore.setImageDataLoading(true)
+            // Select the directory for image data
             imageStore.selectDirectory(dirName)
 
-            // Load image data in the background and set on the image store once it's loaded.
-            let imageData = new ImageData()
-            imageData.loadFolder(dirName, data => {
-                imageStore.setImageData(data)
-            })
+            // Start loading segmentation data if we know about it for this imageStore
+            this.settingStore.setImageStoreSegmentationFile(imageStore)
 
             // Set defaults once image data has loaded
             when(
-                () => !this.activeImageStore.imageDataLoading,
+                () => !imageStore.imageDataLoading,
                 () => this.settingStore.setDefaultImageSetSettings(imageStore, this.configurationHelper),
             )
         }
@@ -226,11 +230,6 @@ export class ProjectStore {
     }
 
     @action public setActiveImageSet = (dirName: string) => {
-        // If we haven't loaded this directory, initialize the stores and load it.
-        if (!(dirName in this.imageSets)) {
-            this.initializeStores(dirName)
-        }
-
         this.loadImageStoreData(dirName)
         this.cleanImageSetHistory(dirName)
 
@@ -273,7 +272,6 @@ export class ProjectStore {
         let destinationImageStore = this.activeImageStore
         let destinationPlotStore = this.activePlotStore
 
-        this.settingStore.setImageStoreSegmentationFile(destinationImageStore)
         this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
         this.settingStore.setImageStoreChannelDomains(destinationImageStore)
         this.settingStore.copyImageStoreChannelVisibility(destinationImageStore)
@@ -433,8 +431,13 @@ export class ProjectStore {
         }
     }
 
-    public exportToFCS = (filePath: string, statistic: PlotStatistic, segmentIds?: number[]) => {
-        let imageStore = this.activeImageStore
+    public exportToFCS = (
+        filePath: string,
+        statistic: PlotStatistic,
+        segmentIds?: number[],
+        imageStore?: ImageStore,
+    ) => {
+        if (imageStore == undefined) imageStore = this.activeImageStore
         let imageData = imageStore.imageData
         let segmentationData = imageStore.segmentationData
         let segmentationStatistics = imageStore.segmentationStatistics
@@ -464,6 +467,44 @@ export class ProjectStore {
                 }
             }
             writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data)
+        }
+    }
+
+    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic) => {
+        console.log('Exporting FACS for project')
+        for (let curDir in this.imageSetPaths) {
+            console.log('Exporting ' + curDir)
+            this.loadImageStoreData(curDir)
+            let imageStore = this.imageSets[curDir].imageStore
+            when(
+                () => !imageStore.imageDataLoading,
+                () => {
+                    console.log('Image data done loading for ' + curDir)
+                    console.log('Selected segmentation file ' + imageStore.selectedSegmentationFile)
+                    if (imageStore.selectedSegmentationFile != null) {
+                        when(
+                            () => !imageStore.segmentationDataLoading,
+                            () => {
+                                console.log('Segmentation data done loading for ' + curDir)
+                                console.log('Selected directory ' + imageStore.selectedDirectory)
+                                if (imageStore.selectedDirectory) {
+                                    let filename =
+                                        path.basename(imageStore.selectedDirectory) + '_' + statistic + '.fcs'
+                                    let filePath = path.join(dirName, filename)
+                                    console.log('Exporting FACS for ' + imageStore.selectDirectory)
+                                    this.exportToFCS(filePath, statistic)
+                                    // If this image set shouldn't be in memory, clear it out
+                                    if (!this.imageSetHistory.includes(imageStore.selectedDirectory)) {
+                                        console.log('Clearing image data for ' + curDir)
+                                        imageStore.clearImageData()
+                                        imageStore.clearSegmentationData()
+                                    }
+                                }
+                            },
+                        )
+                    }
+                },
+            )
         }
     }
 

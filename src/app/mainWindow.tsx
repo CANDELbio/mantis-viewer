@@ -9,6 +9,7 @@ import * as Mousetrap from 'mousetrap'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
+import { dirname } from 'path'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -43,14 +44,6 @@ ipcRenderer.on('export-populations-csv', (event: Electron.Event, filename: strin
     projectStore.activePopulationStore.exportPopulationsToCSV(filename)
 })
 
-ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportPopulationsToFCS(dirName, 'mean')
-})
-
-ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportPopulationsToFCS(dirName, 'median')
-})
-
 ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {
     projectStore.activeImageStore.setImageExportFilename(filename)
 })
@@ -61,6 +54,14 @@ ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filename: stri
 
 ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: string) => {
     projectStore.exportMarkerIntensisties(filename, 'median')
+})
+
+ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string) => {
+    console.log('TODO')
+})
+
+ipcRenderer.on('export-project-median-intensities', (event: Electron.Event, dirName: string) => {
+    console.log('TODO')
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
@@ -110,12 +111,38 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
     projectStore.addPopulationFromRange(min, max)
 })
 
+ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
+    projectStore.exportPopulationsToFCS(dirName, 'mean')
+})
+
+ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string) => {
+    projectStore.exportPopulationsToFCS(dirName, 'median')
+})
+
+ipcRenderer.on('export-project-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
+    console.log('TODO')
+})
+
+ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, dirName: string) => {
+    console.log('TODO')
+})
+
 ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
     projectStore.exportToFCS(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
     projectStore.exportToFCS(filename, 'median')
+})
+
+ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
+    console.log('Export project to mean fcs at ' + dirname)
+    projectStore.exportProjectToFCS(dirName, 'mean')
+})
+
+ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
+    console.log('Export project to median fcs at ' + dirname)
+    projectStore.exportProjectToFCS(dirName, 'median')
 })
 
 // Keyboard shortcuts!
@@ -147,6 +174,10 @@ Mobx.autorun(() => {
 // Used for setting default menu directories.
 Mobx.autorun(() => {
     ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
+})
+
+Mobx.autorun(() => {
+    ipcRenderer.send('set-project-directory', projectStore.projectPath)
 })
 
 Mobx.autorun(() => {

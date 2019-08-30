@@ -99,6 +99,10 @@ export class ImageStore {
 
     @action public setImageData = (data: ImageData) => {
         this.imageData = data
+        // Segmentation data might have finished loading while image data was loading.
+        // If this happens the segmentation file won't get removed from image data.
+        // So we want to check and remove segmentation once image data is set.
+        this.removeSegmentationFileFromImageData()
         this.setImageDataLoading(false)
     }
 
@@ -170,6 +174,18 @@ export class ImageStore {
 
     @action public selectDirectory = (dirName: string) => {
         this.selectedDirectory = dirName
+        this.refreshImageData()
+    }
+
+    @action public refreshImageData = () => {
+        if (this.selectedDirectory != null && this.imageData == null) {
+            this.setImageDataLoading(true)
+            let imageData = new ImageData()
+            // Load image data in the background and set on the image store once it's loaded.
+            imageData.loadFolder(this.selectedDirectory, data => {
+                this.setImageData(data)
+            })
+        }
     }
 
     @action public setSegmentationStatistics = (statistics: SegmentationStatistics | null) => {
@@ -233,9 +249,14 @@ export class ImageStore {
     @action public setSegmentationFile = (fName: string) => {
         this.selectedSegmentationFile = fName
         this.refreshSegmentationData()
-        //Remove the segmentation file from the list of selectable markers
-        let basename = path.parse(fName).name
-        this.removeMarker(basename)
+        this.removeSegmentationFileFromImageData()
+    }
+
+    @action public removeSegmentationFileFromImageData = () => {
+        if (this.selectedSegmentationFile != null) {
+            let basename = path.parse(this.selectedSegmentationFile).name
+            this.removeMarker(basename)
+        }
     }
 
     @action public setImageExportFilename = (fName: string) => {

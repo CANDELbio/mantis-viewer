@@ -17,6 +17,7 @@ let plotWindow: Electron.BrowserWindow | null
 
 // The current active image directory. Used to set default directories for menu items.
 let activeImageDirectory: string | undefined
+let projectDirectory: string | undefined
 
 // Flags used for whether or not certain things are loaded/selected used for enabling/disabling menu items.
 let imageLoaded = false
@@ -68,6 +69,45 @@ function openProject(path: string): void {
     }
 }
 
+function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?: string): () => void {
+    let dialogOptions: Electron.OpenDialogOptions = { properties: ['openDirectory'] }
+    if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
+    return () => {
+        dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue) => {
+            let filePaths = value.filePaths
+            if (mainWindow != null && filePaths && filePaths.length == 1) {
+                callback(filePaths[0])
+            }
+        })
+    }
+}
+
+function showOpenFileIpcDialog(ipcMessageName: string, defaultPath?: string, fileType?: string): () => void {
+    let dialogOptions: Electron.OpenDialogOptions = { properties: ['openFile'] }
+    if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
+    if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
+    return () => {
+        dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue) => {
+            let filePaths = value.filePaths
+            if (mainWindow != null && filePaths && filePaths.length == 1) {
+                mainWindow.webContents.send(ipcMessageName, filePaths[0])
+            }
+        })
+    }
+}
+
+function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fileType?: string): () => void {
+    let dialogOptions: Electron.SaveDialogOptions = {}
+    if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
+    if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
+    return () => {
+        dialog.showSaveDialog(dialogOptions).then((value: Electron.SaveDialogReturnValue) => {
+            let filename = value.filePath
+            if (mainWindow != null && filename != null) mainWindow.webContents.send(ipcMessageName, filename)
+        })
+    }
+}
+
 function generateMenuTemplate(): any {
     return [
         {
@@ -78,29 +118,11 @@ function generateMenuTemplate(): any {
                     submenu: [
                         {
                             label: 'Image Set',
-                            click: () => {
-                                dialog
-                                    .showOpenDialog({ properties: ['openDirectory'] })
-                                    .then((value: Electron.OpenDialogReturnValue) => {
-                                        let filePaths = value.filePaths
-                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
-                                            openImageSet(filePaths[0])
-                                        }
-                                    })
-                            },
+                            click: showOpenDirectoryDialog(openImageSet),
                         },
                         {
                             label: 'Project',
-                            click: () => {
-                                dialog
-                                    .showOpenDialog({ properties: ['openDirectory'] })
-                                    .then((value: Electron.OpenDialogReturnValue) => {
-                                        let filePaths = value.filePaths
-                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
-                                            openProject(filePaths[0])
-                                        }
-                                    })
-                            },
+                            click: showOpenDirectoryDialog(openProject),
                         },
                     ],
                 },
@@ -110,16 +132,7 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Segmentation',
                             enabled: imageLoaded,
-                            click: () => {
-                                dialog
-                                    .showOpenDialog({ properties: ['openFile'], defaultPath: activeImageDirectory })
-                                    .then((value: Electron.OpenDialogReturnValue) => {
-                                        let filePaths = value.filePaths
-                                        if (mainWindow != null && filePaths && filePaths.length == 1) {
-                                            mainWindow.webContents.send('open-segmentation-file', filePaths[0])
-                                        }
-                                    })
-                            },
+                            click: showOpenFileIpcDialog('open-segmentation-file', activeImageDirectory),
                         },
                         {
                             label: 'Populations',
@@ -127,38 +140,12 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
-                                    click: () => {
-                                        dialog
-                                            .showOpenDialog({
-                                                properties: ['openFile'],
-                                                defaultPath: activeImageDirectory,
-                                                filters: [{ name: 'csv', extensions: ['csv'] }],
-                                            })
-                                            .then((value: Electron.OpenDialogReturnValue) => {
-                                                let filePaths = value.filePaths
-                                                if (mainWindow != null && filePaths && filePaths.length == 1) {
-                                                    mainWindow.webContents.send('add-populations-csv', filePaths[0])
-                                                }
-                                            })
-                                    },
+                                    click: showOpenFileIpcDialog('add-populations-csv', activeImageDirectory, 'csv'),
                                 },
                                 {
                                     label: 'For active image set from JSON',
                                     enabled: imageLoaded,
-                                    click: () => {
-                                        dialog
-                                            .showOpenDialog({
-                                                properties: ['openFile'],
-                                                defaultPath: activeImageDirectory,
-                                                filters: [{ name: 'json', extensions: ['json'] }],
-                                            })
-                                            .then((value: Electron.OpenDialogReturnValue) => {
-                                                let filePaths = value.filePaths
-                                                if (mainWindow != null && filePaths && filePaths.length == 1) {
-                                                    mainWindow.webContents.send('add-populations-json', filePaths[0])
-                                                }
-                                            })
-                                    },
+                                    click: showOpenFileIpcDialog('add-populations-json', activeImageDirectory, 'json'),
                                 },
                             ],
                         },
@@ -173,74 +160,74 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For active image set to JSON',
                                     enabled: imageLoaded && populationsSelected,
-                                    click: () => {
-                                        dialog
-                                            .showSaveDialog({
-                                                filters: [{ name: 'json', extensions: ['json'] }],
-                                                defaultPath: activeImageDirectory,
-                                            })
-                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                let filename = value.filePath
-                                                if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send('export-populations-json', filename)
-                                            })
-                                    },
+                                    click: showSaveFileIpcDialog(
+                                        'export-populations-json',
+                                        activeImageDirectory,
+                                        'json',
+                                    ),
                                 },
                                 {
                                     label: 'For active image set to CSV',
                                     enabled: imageLoaded && populationsSelected,
-                                    click: () => {
-                                        dialog
-                                            .showSaveDialog({
-                                                filters: [{ name: 'csv', extensions: ['csv'] }],
-                                                defaultPath: activeImageDirectory,
-                                            })
-                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                let filename = value.filePath
-                                                if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send('export-populations-csv', filename)
-                                            })
-                                    },
+                                    click: showSaveFileIpcDialog('export-populations-csv', activeImageDirectory, 'csv'),
                                 },
                             ],
                         },
                         {
-                            label: 'Segment Statistics',
+                            label: 'Segment statistics',
                             submenu: [
                                 {
                                     label: 'To CSV',
                                     submenu: [
                                         {
-                                            label: 'Mean intensities for active image set',
-                                            enabled: imageLoaded && segmentationLoaded,
-                                            click: () => {
-                                                dialog
-                                                    .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
-                                                    .then((value: Electron.SaveDialogReturnValue) => {
-                                                        let filename = value.filePath
-                                                        if (mainWindow != null && filename != null)
-                                                            mainWindow.webContents.send(
-                                                                'export-mean-intensities',
-                                                                filename,
-                                                            )
-                                                    })
-                                            },
+                                            label: 'For active image set',
+                                            submenu: [
+                                                {
+                                                    label: 'Mean intensities',
+                                                    enabled: imageLoaded && segmentationLoaded,
+                                                    click: showSaveFileIpcDialog(
+                                                        'export-mean-intensities',
+                                                        activeImageDirectory,
+                                                        'csv',
+                                                    ),
+                                                },
+                                                {
+                                                    label: 'Median intensities',
+                                                    enabled: imageLoaded && segmentationLoaded,
+                                                    click: showSaveFileIpcDialog(
+                                                        'export-median-intensities',
+                                                        activeImageDirectory,
+                                                        'csv',
+                                                    ),
+                                                },
+                                            ],
                                         },
                                         {
-                                            label: 'Median intensities for active image set',
-                                            enabled: imageLoaded && segmentationLoaded,
-                                            click: () => {
-                                                dialog
-                                                    .showSaveDialog({ filters: [{ name: 'csv', extensions: ['csv'] }] })
-                                                    .then((value: Electron.SaveDialogReturnValue) => {
-                                                        let filename = value.filePath
-                                                        if (mainWindow != null && filename != null)
-                                                            mainWindow.webContents.send(
-                                                                'export-median-intensities',
-                                                                filename,
-                                                            )
-                                                    })
-                                            },
+                                            label: 'For project',
+                                            submenu: [
+                                                {
+                                                    label: 'Mean intensities',
+                                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                    click: showOpenDirectoryDialog(
+                                                        _.partial(
+                                                            mainWindow.webContents.send,
+                                                            'export-project-mean-intensities',
+                                                        ),
+                                                        projectDirectory,
+                                                    ),
+                                                },
+                                                {
+                                                    label: 'Median intensities',
+                                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                    click: showOpenDirectoryDialog(
+                                                        _.partial(
+                                                            mainWindow.webContents.send,
+                                                            'export-project-median-intensities',
+                                                        ),
+                                                        projectDirectory,
+                                                    ),
+                                                },
+                                            ],
                                         },
                                     ],
                                 },
@@ -251,40 +238,54 @@ function generateMenuTemplate(): any {
                                             label: 'All segments',
                                             submenu: [
                                                 {
-                                                    label: 'Mean intensities for active image set',
-                                                    enabled: imageLoaded && segmentationLoaded,
-                                                    click: () => {
-                                                        dialog
-                                                            .showSaveDialog({
-                                                                filters: [{ name: 'fcs', extensions: ['fcs'] }],
-                                                            })
-                                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                                let filename = value.filePath
-                                                                if (mainWindow != null && filename != null)
-                                                                    mainWindow.webContents.send(
-                                                                        'export-mean-segmentation-to-fcs',
-                                                                        filename,
-                                                                    )
-                                                            })
-                                                    },
+                                                    label: 'For active image set',
+                                                    submenu: [
+                                                        {
+                                                            label: 'Mean intensities',
+                                                            enabled: imageLoaded && segmentationLoaded,
+                                                            click: showSaveFileIpcDialog(
+                                                                'export-mean-segmentation-to-fcs',
+                                                                activeImageDirectory,
+                                                                'fcs',
+                                                            ),
+                                                        },
+                                                        {
+                                                            label: 'Median intensities',
+                                                            enabled: imageLoaded && segmentationLoaded,
+                                                            click: showSaveFileIpcDialog(
+                                                                'export-median-segmentation-to-fcs',
+                                                                activeImageDirectory,
+                                                                'fcs',
+                                                            ),
+                                                        },
+                                                    ],
                                                 },
                                                 {
-                                                    label: 'Median intensities for active image set',
-                                                    enabled: imageLoaded && segmentationLoaded,
-                                                    click: () => {
-                                                        dialog
-                                                            .showSaveDialog({
-                                                                filters: [{ name: 'fcs', extensions: ['fcs'] }],
-                                                            })
-                                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                                let filename = value.filePath
-                                                                if (mainWindow != null && filename != null)
-                                                                    mainWindow.webContents.send(
-                                                                        'export-median-segmentation-to-fcs',
-                                                                        filename,
-                                                                    )
-                                                            })
-                                                    },
+                                                    label: 'For project',
+                                                    submenu: [
+                                                        {
+                                                            label: 'Mean intensities',
+                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-project-mean-segmentation-to-fcs',
+                                                                ),
+                                                                projectDirectory,
+                                                            ),
+                                                        },
+                                                        {
+                                                            label: 'Median intensities',
+                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-project-median-segmentation-to-fcs',
+                                                                ),
+                                                                projectDirectory,
+                                                            ),
+                                                        },
+                                                    ],
                                                 },
                                             ],
                                         },
@@ -292,46 +293,64 @@ function generateMenuTemplate(): any {
                                             label: 'All populations',
                                             submenu: [
                                                 {
-                                                    label: 'Mean intensities for active image set',
-                                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
-                                                    click: () => {
-                                                        dialog
-                                                            .showOpenDialog({ properties: ['openDirectory'] })
-                                                            .then((value: Electron.OpenDialogReturnValue) => {
-                                                                let filePaths = value.filePaths
-                                                                if (
-                                                                    mainWindow != null &&
-                                                                    filePaths &&
-                                                                    filePaths.length == 1
-                                                                ) {
-                                                                    mainWindow.webContents.send(
-                                                                        'export-mean-populations-fcs',
-                                                                        filePaths[0],
-                                                                    )
-                                                                }
-                                                            })
-                                                    },
+                                                    label: 'For active image set',
+                                                    submenu: [
+                                                        {
+                                                            label: 'Mean intensities',
+                                                            enabled:
+                                                                imageLoaded &&
+                                                                segmentationLoaded &&
+                                                                populationsSelected,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-mean-populations-fcs',
+                                                                ),
+                                                                activeImageDirectory,
+                                                            ),
+                                                        },
+                                                        {
+                                                            label: 'Median intensities',
+                                                            enabled:
+                                                                imageLoaded &&
+                                                                segmentationLoaded &&
+                                                                populationsSelected,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-median-populations-fcs',
+                                                                ),
+                                                                activeImageDirectory,
+                                                            ),
+                                                        },
+                                                    ],
                                                 },
                                                 {
-                                                    label: 'Median intensities for active image set',
-                                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
-                                                    click: () => {
-                                                        dialog
-                                                            .showOpenDialog({ properties: ['openDirectory'] })
-                                                            .then((value: Electron.OpenDialogReturnValue) => {
-                                                                let filePaths = value.filePaths
-                                                                if (
-                                                                    mainWindow != null &&
-                                                                    filePaths &&
-                                                                    filePaths.length == 1
-                                                                ) {
-                                                                    mainWindow.webContents.send(
-                                                                        'export-median-populations-fcs',
-                                                                        filePaths[0],
-                                                                    )
-                                                                }
-                                                            })
-                                                    },
+                                                    label: 'For project',
+                                                    submenu: [
+                                                        {
+                                                            label: 'Mean intensities',
+                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-project-mean-populations-fcs',
+                                                                ),
+                                                                projectDirectory,
+                                                            ),
+                                                        },
+                                                        {
+                                                            label: 'Median intensities',
+                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                                            click: showOpenDirectoryDialog(
+                                                                _.partial(
+                                                                    mainWindow.webContents.send,
+                                                                    'export-project-median-populations-fcs',
+                                                                ),
+                                                                projectDirectory,
+                                                            ),
+                                                        },
+                                                    ],
                                                 },
                                             ],
                                         },
@@ -345,15 +364,7 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'Current image and layers',
                                     enabled: imageLoaded,
-                                    click: () => {
-                                        dialog
-                                            .showSaveDialog({ filters: [{ name: 'png', extensions: ['png'] }] })
-                                            .then((value: Electron.SaveDialogReturnValue) => {
-                                                let filename = value.filePath
-                                                if (mainWindow != null && filename != null)
-                                                    mainWindow.webContents.send('export-image', filename)
-                                            })
-                                    },
+                                    click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
                                 },
                             ],
                         },
@@ -556,6 +567,11 @@ ipcMain.on('set-populations-selected', (event: Electron.Event, selected: boolean
 
 ipcMain.on('set-active-image-directory', (event: Electron.Event, directory: string) => {
     activeImageDirectory = directory
+    setMenu()
+})
+
+ipcMain.on('set-project-directory', (event: Electron.Event, directory: string) => {
+    projectDirectory = directory
     setMenu()
 })
 
