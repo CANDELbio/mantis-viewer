@@ -155,6 +155,16 @@ function generateMenuTemplate(): any {
                     label: 'Export',
                     submenu: [
                         {
+                            label: 'Image',
+                            submenu: [
+                                {
+                                    label: 'Current image and layers',
+                                    enabled: imageLoaded,
+                                    click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
+                                },
+                            ],
+                        },
+                        {
                             label: 'Populations',
                             submenu: [
                                 {
@@ -174,189 +184,104 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
-                            label: 'Segment statistics',
+                            label: 'Segment statistics to CSV',
                             submenu: [
                                 {
-                                    label: 'To CSV',
-                                    submenu: [
-                                        {
-                                            label: 'For active image set',
-                                            submenu: [
-                                                {
-                                                    label: 'Mean intensities',
-                                                    enabled: imageLoaded && segmentationLoaded,
-                                                    click: showSaveFileIpcDialog(
-                                                        'export-mean-intensities',
-                                                        activeImageDirectory,
-                                                        'csv',
-                                                    ),
-                                                },
-                                                {
-                                                    label: 'Median intensities',
-                                                    enabled: imageLoaded && segmentationLoaded,
-                                                    click: showSaveFileIpcDialog(
-                                                        'export-median-intensities',
-                                                        activeImageDirectory,
-                                                        'csv',
-                                                    ),
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            label: 'For project',
-                                            submenu: [
-                                                {
-                                                    label: 'Mean intensities',
-                                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                    click: showOpenDirectoryDialog((dir: string) => {
-                                                        mainWindow.webContents.send(
-                                                            'export-project-mean-intensities',
-                                                            dir,
-                                                        )
-                                                    }, projectDirectory),
-                                                },
-                                                {
-                                                    label: 'Median intensities',
-                                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                    click: showOpenDirectoryDialog((dir: string) => {
-                                                        mainWindow.webContents.send(
-                                                            'export-project-median-intensities',
-                                                            dir,
-                                                        )
-                                                    }, projectDirectory),
-                                                },
-                                            ],
-                                        },
-                                    ],
+                                    label: 'Mean intensities for active image set',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-mean-intensities',
+                                        activeImageDirectory,
+                                        'csv',
+                                    ),
                                 },
                                 {
-                                    label: 'To FCS',
-                                    submenu: [
-                                        {
-                                            label: 'All segments',
-                                            submenu: [
-                                                {
-                                                    label: 'For active image set',
-                                                    submenu: [
-                                                        {
-                                                            label: 'Mean intensities',
-                                                            enabled: imageLoaded && segmentationLoaded,
-                                                            click: showSaveFileIpcDialog(
-                                                                'export-mean-segmentation-to-fcs',
-                                                                activeImageDirectory,
-                                                                'fcs',
-                                                            ),
-                                                        },
-                                                        {
-                                                            label: 'Median intensities',
-                                                            enabled: imageLoaded && segmentationLoaded,
-                                                            click: showSaveFileIpcDialog(
-                                                                'export-median-segmentation-to-fcs',
-                                                                activeImageDirectory,
-                                                                'fcs',
-                                                            ),
-                                                        },
-                                                    ],
-                                                },
-                                                {
-                                                    label: 'For project',
-                                                    submenu: [
-                                                        {
-                                                            label: 'Mean intensities',
-                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-project-mean-segmentation-to-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, projectDirectory),
-                                                        },
-                                                        {
-                                                            label: 'Median intensities',
-                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-project-median-segmentation-to-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, projectDirectory),
-                                                        },
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                        {
-                                            label: 'All populations',
-                                            submenu: [
-                                                {
-                                                    label: 'For active image set',
-                                                    submenu: [
-                                                        {
-                                                            label: 'Mean intensities',
-                                                            enabled:
-                                                                imageLoaded &&
-                                                                segmentationLoaded &&
-                                                                populationsSelected,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-mean-populations-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, activeImageDirectory),
-                                                        },
-                                                        {
-                                                            label: 'Median intensities',
-                                                            enabled:
-                                                                imageLoaded &&
-                                                                segmentationLoaded &&
-                                                                populationsSelected,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-median-populations-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, activeImageDirectory),
-                                                        },
-                                                    ],
-                                                },
-                                                {
-                                                    label: 'For project',
-                                                    submenu: [
-                                                        {
-                                                            label: 'Mean intensities',
-                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-project-mean-populations-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, projectDirectory),
-                                                        },
-                                                        {
-                                                            label: 'Median intensities',
-                                                            enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog((dir: string) => {
-                                                                mainWindow.webContents.send(
-                                                                    'export-project-median-populations-fcs',
-                                                                    dir,
-                                                                )
-                                                            }, projectDirectory),
-                                                        },
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                    ],
+                                    label: 'Median intensities for active image set',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-median-intensities',
+                                        activeImageDirectory,
+                                        'csv',
+                                    ),
+                                },
+                                {
+                                    label: 'Mean intensities for project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-mean-intensities', dir)
+                                    }, projectDirectory),
+                                },
+                                {
+                                    label: 'Median intensities for project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-median-intensities', dir)
+                                    }, projectDirectory),
                                 },
                             ],
                         },
                         {
-                            label: 'Image',
+                            label: 'Segment statistics to FCS',
                             submenu: [
                                 {
-                                    label: 'Current image and layers',
-                                    enabled: imageLoaded,
-                                    click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
+                                    label: 'Mean intensities for all segments in active image set',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-mean-segmentation-to-fcs',
+                                        activeImageDirectory,
+                                        'fcs',
+                                    ),
+                                },
+                                {
+                                    label: 'Median intensities for all segments in active image set',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-median-segmentation-to-fcs',
+                                        activeImageDirectory,
+                                        'fcs',
+                                    ),
+                                },
+                                {
+                                    label: 'Mean intensities for all populations in active image set',
+                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-mean-populations-fcs', dir)
+                                    }, activeImageDirectory),
+                                },
+                                {
+                                    label: 'Median intensities for all populations in active image set',
+                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-median-populations-fcs', dir)
+                                    }, activeImageDirectory),
+                                },
+                                {
+                                    label: 'Mean intensities for all segments in project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-mean-segmentation-to-fcs', dir)
+                                    }, projectDirectory),
+                                },
+                                {
+                                    label: 'Median intensities for all segments in project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-median-segmentation-to-fcs', dir)
+                                    }, projectDirectory),
+                                },
+                                {
+                                    label: 'Mean intensities for all populations in project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-mean-populations-fcs', dir)
+                                    }, projectDirectory),
+                                },
+                                {
+                                    label: 'Median intensities for all populations in project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string) => {
+                                        mainWindow.webContents.send('export-project-median-populations-fcs', dir)
+                                    }, projectDirectory),
                                 },
                             ],
                         },

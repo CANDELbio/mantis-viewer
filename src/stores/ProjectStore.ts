@@ -454,7 +454,7 @@ export class ProjectStore {
                 () => !imageStore.imageDataLoading,
                 () => {
                     // If we don't have segmentation, then skip this one.
-                    if (imageStore.selectedSegmentationFile != null) {
+                    if (imageStore.selectedSegmentationFile) {
                         when(
                             () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
                             () => {
@@ -552,7 +552,7 @@ export class ProjectStore {
                 () => !imageStore.imageDataLoading,
                 () => {
                     // If we don't have segmentation, then skip this one.
-                    if (imageStore.selectedSegmentationFile != null) {
+                    if (imageStore.selectedSegmentationFile) {
                         when(
                             () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
                             () => {
