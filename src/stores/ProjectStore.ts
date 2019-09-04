@@ -360,12 +360,17 @@ export class ProjectStore {
         this.activePlotStore.clearSelectedPlotMarkers()
     }
 
-    public exportMarkerIntensisties = (filename: string, statistic: PlotStatistic) => {
-        let imageStore = this.activeImageStore
+    public exportMarkerIntensisties = (
+        filename: string,
+        statistic: PlotStatistic,
+        imageStore?: ImageStore,
+        populationStore?: PopulationStore,
+    ) => {
+        if (imageStore == undefined) imageStore = this.activeImageStore
         let imageData = imageStore.imageData
         let segmentationData = imageStore.segmentationData
         let segmentationStatistics = imageStore.segmentationStatistics
-        let populationStore = this.activePopulationStore
+        if (populationStore == undefined) populationStore = this.activePopulationStore
         if (imageData != null && segmentationData != null && segmentationStatistics != null) {
             let markers = imageData.markerNames
             let data = [] as string[][]
@@ -413,20 +418,59 @@ export class ProjectStore {
                 if (err) console.log('Error saving intensities ' + err)
                 fs.writeFile(filename, output, err => {
                     if (err) console.log('Error saving intensities ' + err)
-                    console.log(statistic + ' intensities saved to ' + filename)
                 })
             })
         }
     }
 
-    public exportPopulationsToFCS = (dirName: string, statistic: PlotStatistic) => {
-        let populationStore = this.activePopulationStore
+    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
+        for (let curDir of this.imageSetPaths) {
+            this.loadImageStoreData(curDir)
+            let imageStore = this.imageSets[curDir].imageStore
+            let populationStore = this.imageSets[curDir].populationStore
+            when(
+                () => !imageStore.imageDataLoading,
+                () => {
+                    // If we don't have segmentation, then skip this one.
+                    if (imageStore.selectedSegmentationFile != null) {
+                        when(
+                            () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
+                            () => {
+                                let selectedDirectory = imageStore.selectedDirectory
+                                if (selectedDirectory) {
+                                    let imageSetName = path.basename(selectedDirectory)
+                                    let filename = imageSetName + '_' + statistic + '.csv'
+                                    let filePath = path.join(dirName, filename)
+                                    this.exportMarkerIntensisties(filePath, statistic, imageStore, populationStore)
+                                    // If this image set shouldn't be in memory, clear it out
+                                    if (!this.imageSetHistory.includes(selectedDirectory)) {
+                                        imageStore.clearImageData()
+                                        imageStore.clearSegmentationData()
+                                    }
+                                }
+                            },
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    public exportPopulationsToFCS = (
+        dirName: string,
+        statistic: PlotStatistic,
+        filePrefix?: string,
+        imageStore?: ImageStore,
+        populationStore?: PopulationStore,
+    ) => {
+        if (populationStore == undefined) populationStore = this.activePopulationStore
         for (let population of populationStore.selectedPopulations) {
             // Replace spaces with underscores in the population name and add the statistic being exported
             let filename = population.name.replace(/ /g, '_') + '_' + statistic + '.fcs'
+            if (filePrefix) filename = filePrefix + '_' + filename
             let filePath = path.join(dirName, filename)
             if (population.selectedSegments.length > 0) {
-                this.exportToFCS(filePath, statistic, population.selectedSegments)
+                this.exportToFCS(filePath, statistic, population.selectedSegments, imageStore)
             }
         }
     }
@@ -470,32 +514,37 @@ export class ProjectStore {
         }
     }
 
-    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic) => {
-        console.log('Exporting FACS for project')
-        for (let curDir in this.imageSetPaths) {
-            console.log('Exporting ' + curDir)
+    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
+        for (let curDir of this.imageSetPaths) {
             this.loadImageStoreData(curDir)
             let imageStore = this.imageSets[curDir].imageStore
+            let populationStore = this.imageSets[curDir].populationStore
             when(
                 () => !imageStore.imageDataLoading,
                 () => {
-                    console.log('Image data done loading for ' + curDir)
-                    console.log('Selected segmentation file ' + imageStore.selectedSegmentationFile)
+                    // If we don't have segmentation, then skip this one.
                     if (imageStore.selectedSegmentationFile != null) {
                         when(
-                            () => !imageStore.segmentationDataLoading,
+                            () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
                             () => {
-                                console.log('Segmentation data done loading for ' + curDir)
-                                console.log('Selected directory ' + imageStore.selectedDirectory)
-                                if (imageStore.selectedDirectory) {
-                                    let filename =
-                                        path.basename(imageStore.selectedDirectory) + '_' + statistic + '.fcs'
-                                    let filePath = path.join(dirName, filename)
-                                    console.log('Exporting FACS for ' + imageStore.selectDirectory)
-                                    this.exportToFCS(filePath, statistic)
+                                let selectedDirectory = imageStore.selectedDirectory
+                                if (selectedDirectory) {
+                                    let imageSetName = path.basename(selectedDirectory)
+                                    if (populations) {
+                                        this.exportPopulationsToFCS(
+                                            dirName,
+                                            statistic,
+                                            imageSetName,
+                                            imageStore,
+                                            populationStore,
+                                        )
+                                    } else {
+                                        let filename = imageSetName + '_' + statistic + '.fcs'
+                                        let filePath = path.join(dirName, filename)
+                                        this.exportToFCS(filePath, statistic)
+                                    }
                                     // If this image set shouldn't be in memory, clear it out
-                                    if (!this.imageSetHistory.includes(imageStore.selectedDirectory)) {
-                                        console.log('Clearing image data for ' + curDir)
+                                    if (!this.imageSetHistory.includes(selectedDirectory)) {
                                         imageStore.clearImageData()
                                         imageStore.clearSegmentationData()
                                     }

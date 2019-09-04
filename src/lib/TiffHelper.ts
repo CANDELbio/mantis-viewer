@@ -14,6 +14,7 @@ const scaledWidthHeight = 8000.0
 function scaleWidthAndHeight(width: number, height: number): { width: number; height: number } {
     let maxDimension = width > height ? width : height
     if (maxDimension > maxWidthHeight) {
+        //TODO: Notify user in UI that image has been scaled
         console.log('Image too large. Scaling image')
         let scaleFactor = maxDimension / scaledWidthHeight
         return { width: Math.round(width / scaleFactor), height: Math.round(height / scaleFactor) }

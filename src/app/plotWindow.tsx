@@ -56,7 +56,6 @@ function render(): void {
         selectedType &&
         selectedNormalization
     ) {
-        console.log('Render successs!')
         ReactDOM.render(
             <div>
                 <Plot

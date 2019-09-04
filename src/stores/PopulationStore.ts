@@ -158,8 +158,6 @@ export class PopulationStore {
     }
 
     @action public addPopulationsFromCSV = (filename: string) => {
-        console.log('Add populations from ' + filename)
-
         let input = fs.readFileSync(filename, 'utf8')
 
         let populations: Record<string, number[]> = {}
@@ -193,7 +191,6 @@ export class PopulationStore {
             if (err) console.log('Error exporting populations to CSV ' + err)
             fs.writeFile(filename, output, err => {
                 if (err) console.log('Error exporting populations to CSV ' + err)
-                console.log('Populaitions csv saved to ' + filename)
             })
         })
     }

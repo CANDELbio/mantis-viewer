@@ -9,7 +9,6 @@ import * as Mousetrap from 'mousetrap'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
-import { dirname } from 'path'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -57,11 +56,11 @@ ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: st
 })
 
 ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string) => {
-    console.log('TODO')
+    projectStore.exportProjectMarkerIntensities(dirName, 'mean')
 })
 
 ipcRenderer.on('export-project-median-intensities', (event: Electron.Event, dirName: string) => {
-    console.log('TODO')
+    projectStore.exportProjectMarkerIntensities(dirName, 'median')
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
@@ -120,11 +119,11 @@ ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName:
 })
 
 ipcRenderer.on('export-project-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    console.log('TODO')
+    projectStore.exportProjectToFCS(dirName, 'mean', true)
 })
 
 ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    console.log('TODO')
+    projectStore.exportProjectToFCS(dirName, 'median', true)
 })
 
 ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
@@ -136,13 +135,11 @@ ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, file
 })
 
 ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    console.log('Export project to mean fcs at ' + dirname)
-    projectStore.exportProjectToFCS(dirName, 'mean')
+    projectStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
 ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    console.log('Export project to median fcs at ' + dirname)
-    projectStore.exportProjectToFCS(dirName, 'median')
+    projectStore.exportProjectToFCS(dirName, 'median', false)
 })
 
 // Keyboard shortcuts!

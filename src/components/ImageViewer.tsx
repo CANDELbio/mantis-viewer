@@ -607,7 +607,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         //Dereferencing these here is necessary for Mobx to trigger, because
         //render is the only tracked function (i.e. this will not trigger if
         //the variables are dereferenced inside renderImage)
-        console.log('Rendering image')
         let channelMarker = {
             rChannel: this.props.channelMarker.rChannel,
             gChannel: this.props.channelMarker.gChannel,

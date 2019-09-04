@@ -75,7 +75,7 @@ function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?
     return () => {
         dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue) => {
             let filePaths = value.filePaths
-            if (mainWindow != null && filePaths && filePaths.length == 1) {
+            if (mainWindow != null && filePaths && filePaths[0]) {
                 callback(filePaths[0])
             }
         })
@@ -89,7 +89,7 @@ function showOpenFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
     return () => {
         dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue) => {
             let filePaths = value.filePaths
-            if (mainWindow != null && filePaths && filePaths.length == 1) {
+            if (mainWindow != null && filePaths && filePaths[0]) {
                 mainWindow.webContents.send(ipcMessageName, filePaths[0])
             }
         })
@@ -208,24 +208,22 @@ function generateMenuTemplate(): any {
                                                 {
                                                     label: 'Mean intensities',
                                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                    click: showOpenDirectoryDialog(
-                                                        _.partial(
-                                                            mainWindow.webContents.send,
+                                                    click: showOpenDirectoryDialog((dir: string) => {
+                                                        mainWindow.webContents.send(
                                                             'export-project-mean-intensities',
-                                                        ),
-                                                        projectDirectory,
-                                                    ),
+                                                            dir,
+                                                        )
+                                                    }, projectDirectory),
                                                 },
                                                 {
                                                     label: 'Median intensities',
                                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                    click: showOpenDirectoryDialog(
-                                                        _.partial(
-                                                            mainWindow.webContents.send,
+                                                    click: showOpenDirectoryDialog((dir: string) => {
+                                                        mainWindow.webContents.send(
                                                             'export-project-median-intensities',
-                                                        ),
-                                                        projectDirectory,
-                                                    ),
+                                                            dir,
+                                                        )
+                                                    }, projectDirectory),
                                                 },
                                             ],
                                         },
@@ -266,24 +264,22 @@ function generateMenuTemplate(): any {
                                                         {
                                                             label: 'Mean intensities',
                                                             enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-project-mean-segmentation-to-fcs',
-                                                                ),
-                                                                projectDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, projectDirectory),
                                                         },
                                                         {
                                                             label: 'Median intensities',
                                                             enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-project-median-segmentation-to-fcs',
-                                                                ),
-                                                                projectDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, projectDirectory),
                                                         },
                                                     ],
                                                 },
@@ -301,13 +297,12 @@ function generateMenuTemplate(): any {
                                                                 imageLoaded &&
                                                                 segmentationLoaded &&
                                                                 populationsSelected,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-mean-populations-fcs',
-                                                                ),
-                                                                activeImageDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, activeImageDirectory),
                                                         },
                                                         {
                                                             label: 'Median intensities',
@@ -315,13 +310,12 @@ function generateMenuTemplate(): any {
                                                                 imageLoaded &&
                                                                 segmentationLoaded &&
                                                                 populationsSelected,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-median-populations-fcs',
-                                                                ),
-                                                                activeImageDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, activeImageDirectory),
                                                         },
                                                     ],
                                                 },
@@ -331,24 +325,22 @@ function generateMenuTemplate(): any {
                                                         {
                                                             label: 'Mean intensities',
                                                             enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-project-mean-populations-fcs',
-                                                                ),
-                                                                projectDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, projectDirectory),
                                                         },
                                                         {
                                                             label: 'Median intensities',
                                                             enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                                            click: showOpenDirectoryDialog(
-                                                                _.partial(
-                                                                    mainWindow.webContents.send,
+                                                            click: showOpenDirectoryDialog((dir: string) => {
+                                                                mainWindow.webContents.send(
                                                                     'export-project-median-populations-fcs',
-                                                                ),
-                                                                projectDirectory,
-                                                            ),
+                                                                    dir,
+                                                                )
+                                                            }, projectDirectory),
                                                         },
                                                     ],
                                                 },

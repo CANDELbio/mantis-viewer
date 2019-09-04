@@ -19,6 +19,7 @@ export class ImageStore {
     @observable.ref public segmentationData: SegmentationData | null
     @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationStatistics: SegmentationStatistics | null
+    @observable public segmentationStatisticsLoading: boolean
 
     @observable public selectedDirectory: string | null
     @observable public selectedSegmentationFile: string | null
@@ -39,11 +40,15 @@ export class ImageStore {
         y: [number, number]
     } | null
 
+    // TODO: Maybe should manually call when setting and unsetting segmentation data
+    // Could imagine condition where segmentation data done loading and statistics loading status still false
     private calculateSegmentationStatistics = autorun(() => {
         if (this.imageData && this.segmentationData) {
+            this.setSegmentationStatisticLoadingStatus(true)
             let statistics = new SegmentationStatistics(this.setSegmentationStatistics)
             statistics.generateStatistics(this.imageData, this.segmentationData)
         } else {
+            this.setSegmentationStatisticLoadingStatus(false)
             this.setSegmentationStatistics(null)
         }
     })
@@ -91,6 +96,7 @@ export class ImageStore {
 
         this.imageDataLoading = false
         this.segmentationDataLoading = false
+        this.segmentationStatisticsLoading = false
     }
 
     @action public setImageDataLoading = (status: boolean) => {
@@ -190,6 +196,7 @@ export class ImageStore {
 
     @action public setSegmentationStatistics = (statistics: SegmentationStatistics | null) => {
         this.segmentationStatistics = statistics
+        this.setSegmentationStatisticLoadingStatus(false)
     }
 
     @action public clearSegmentationStatistics = () => {
@@ -213,6 +220,10 @@ export class ImageStore {
         this.segmentationFillAlpha = 0
         this.segmentationOutlineAlpha = 0.7
         this.segmentationCentroidsVisible = false
+    }
+
+    @action private setSegmentationStatisticLoadingStatus = (status: boolean) => {
+        this.segmentationStatisticsLoading = status
     }
 
     @action private setSegmentationDataLoadingStatus = (status: boolean) => {

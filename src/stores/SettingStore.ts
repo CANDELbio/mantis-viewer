@@ -342,7 +342,6 @@ export class SettingStore {
                     console.log('An error occured while writing image settings to file.')
                     return console.log(err)
                 }
-                console.log('Image settings file has been saved.')
             })
         }
     }
@@ -351,7 +350,6 @@ export class SettingStore {
         if (this.basePath != null) {
             let filename = path.join(this.basePath, ImageSettingsFilename)
             if (fs.existsSync(filename)) {
-                console.log('Importing image settings from file ' + filename)
                 let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
                 if (importingContent.channelMarker) this.channelMarker = importingContent.channelMarker
                 if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility

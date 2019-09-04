@@ -83,7 +83,6 @@ export class ImageData {
 
         let tiffs = files.filter(f => f.endsWith('.tiff') || f.endsWith('.tif'))
 
-        console.log(tiffs)
         // Store the number of tiffs being loaded so we know when all the background workers have finished
         this.numMarkers = tiffs.length
 
