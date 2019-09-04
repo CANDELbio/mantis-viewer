@@ -58,12 +58,18 @@ export class ProjectStore {
     // Message to be shown if the user is being prompted to delete the active image set.
     @observable public removeMessage: string | null
 
+    // Used to track progress when exporting FCS/Stats for whole project
+    @observable.ref public numToExport: number
+    @observable.ref public numExported: number
+
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
     private imageSetHistory: string[]
 
     @action public initialize = () => {
         this.plotInMainWindow = true
+        this.numToExport = 0
+        this.numExported = 0
 
         this.configurationHelper = new ConfigurationHelper()
 
@@ -95,6 +101,7 @@ export class ProjectStore {
         this.settingStore.initialize(this.nullImageSet.imageStore, this.nullImageSet.plotStore)
     }
 
+    // Regenerates plot data when image store, population store, or plot store data has changed
     private setPlotData = autorun(() => {
         let imageStore = this.activeImageStore
         let populationStore = this.activePopulationStore
@@ -360,6 +367,19 @@ export class ProjectStore {
         this.activePlotStore.clearSelectedPlotMarkers()
     }
 
+    @action public incrementNumToExport = () => {
+        this.numToExport += 1
+    }
+
+    @action public incrementNumExported = () => {
+        this.numExported += 1
+        // If we've exported all files, mark done.
+        if (this.numExported >= this.numToExport) {
+            this.numToExport = 0
+            this.numExported = 0
+        }
+    }
+
     public exportMarkerIntensisties = (
         filename: string,
         statistic: PlotStatistic,
@@ -425,6 +445,8 @@ export class ProjectStore {
 
     public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
         for (let curDir of this.imageSetPaths) {
+            // Incrementing num to export so we can have a loading bar.
+            this.incrementNumToExport()
             this.loadImageStoreData(curDir)
             let imageStore = this.imageSets[curDir].imageStore
             let populationStore = this.imageSets[curDir].populationStore
@@ -442,6 +464,8 @@ export class ProjectStore {
                                     let filename = imageSetName + '_' + statistic + '.csv'
                                     let filePath = path.join(dirName, filename)
                                     this.exportMarkerIntensisties(filePath, statistic, imageStore, populationStore)
+                                    // Mark as done exporting for loading bar.
+                                    this.incrementNumExported()
                                     // If this image set shouldn't be in memory, clear it out
                                     if (!this.imageSetHistory.includes(selectedDirectory)) {
                                         imageStore.clearImageData()
@@ -450,6 +474,9 @@ export class ProjectStore {
                                 }
                             },
                         )
+                    } else {
+                        // Mark as success if we're not going to export it
+                        this.incrementNumExported()
                     }
                 },
             )
@@ -516,6 +543,8 @@ export class ProjectStore {
 
     public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
         for (let curDir of this.imageSetPaths) {
+            // Incrementing num to export so we can have a loading bar.
+            this.incrementNumToExport()
             this.loadImageStoreData(curDir)
             let imageStore = this.imageSets[curDir].imageStore
             let populationStore = this.imageSets[curDir].populationStore
@@ -543,6 +572,8 @@ export class ProjectStore {
                                         let filePath = path.join(dirName, filename)
                                         this.exportToFCS(filePath, statistic)
                                     }
+                                    // Mark this set of files as loaded for loading bar.
+                                    this.incrementNumExported()
                                     // If this image set shouldn't be in memory, clear it out
                                     if (!this.imageSetHistory.includes(selectedDirectory)) {
                                         imageStore.clearImageData()
@@ -551,6 +582,9 @@ export class ProjectStore {
                                 }
                             },
                         )
+                    } else {
+                        // Mark as success if we're not going to export it
+                        this.incrementNumExported()
                     }
                 },
             )
