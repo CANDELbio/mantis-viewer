@@ -5,20 +5,21 @@ import Select from 'react-select'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Badge } from 'reactstrap'
-import { ChannelName } from '../definitions/UIDefinitions'
+import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { ChannelName, SelectOption } from '../definitions/UIDefinitions'
 
 export interface ChannelControlsProps {
     channel: ChannelName
     channelVisible: boolean
-    onVisibilityChange: (value: boolean) => void
+    setChannelVisibility: (value: boolean) => void
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
-    onDomainChange: (value: [number, number]) => void
-    selectOptions: { value: string; label: string }[]
-    selectValue: string | null
-    allSelectedValues: (string | null)[]
-    onMarkerChange: (x: { value: string; label: string }) => void
+    setChannelDomain: (value: [number, number]) => void
+    markers: string[]
+    selectedMarker: string | null
+    allSelectedMarkers: (string | null)[]
+    setMarker: (x: string | null) => void
     windowWidth: number | null
 }
 
@@ -56,7 +57,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
     private visibleIcon(visible: boolean): JSX.Element {
         let visibleClick = (): void => {
-            this.props.onVisibilityChange(!visible)
+            this.props.setChannelVisibility(!visible)
         }
         let icon = visible ? <IoMdEye size="1.5em" /> : <IoMdEyeOff size="1.5em" />
         return (
@@ -64,6 +65,11 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                 {icon}
             </a>
         )
+    }
+
+    private onMarkerChange = (x: SelectOption) => {
+        let value = x ? x.value : null
+        this.props.setMarker(value)
     }
 
     public render(): React.ReactNode {
@@ -78,14 +84,16 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         let stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
 
         // Remove nulls and the value selected for this channel from the list of all selected values
-        let filteredSelectedValues = this.props.allSelectedValues.filter(value => {
-            return value != null && value != this.props.selectValue
+        let filteredSelectedValues = this.props.allSelectedMarkers.filter(value => {
+            return value != null && value != this.props.selectedMarker
         })
         // Remove all select options in the list of filtered, selected values from above.
         // This is so that a marker cannot be selected to be displayed in two channels.
-        let filteredSelectOptions = this.props.selectOptions.filter(option => {
+        let selectOptions = generateSelectOptions(this.props.markers)
+        let filteredSelectOptions = selectOptions.filter((option: SelectOption) => {
             return !filteredSelectedValues.includes(option.value)
         })
+        let selectedValue = getSelectedOptions(this.props.selectedMarker, selectOptions)
 
         return (
             <Grid fluid={true}>
@@ -95,9 +103,11 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                     </Col>
                     <Col xs={10} sm={10} md={10} lg={10}>
                         <Select
-                            value={this.props.selectValue == null ? undefined : this.props.selectValue}
+                            value={selectedValue}
                             options={filteredSelectOptions}
-                            onChange={this.props.onMarkerChange}
+                            onChange={this.onMarkerChange}
+                            isClearable={true}
+                            styles={SelectStyle}
                         />
                     </Col>
                 </Row>
@@ -110,7 +120,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                             labelStepSize={stepSize}
                             labelPrecision={1}
                             stepSize={this.props.sliderMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                            onChange={this.props.onDomainChange}
+                            onChange={this.props.setChannelDomain}
                         />
                     </Col>
                     <Col xs={2} sm={2} md={2} lg={2}>

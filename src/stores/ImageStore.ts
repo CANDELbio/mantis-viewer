@@ -27,8 +27,6 @@ export class ImageStore {
     @observable public channelDomain: Record<ChannelName, [number, number]>
     @observable public channelVisibility: Record<ChannelName, boolean>
 
-    @observable.ref public markerSelectOptions: { value: string; label: string }[]
-
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
     @observable public segmentationCentroidsVisible: boolean
@@ -53,12 +51,6 @@ export class ImageStore {
         }
     })
 
-    private setMarkerSelectOptions = autorun(() => {
-        if (this.imageData) {
-            this.updateMarkerSelectOption()
-        }
-    })
-
     @action private initialize = () => {
         this.channelDomain = {
             rChannel: [0, 100],
@@ -79,8 +71,6 @@ export class ImageStore {
             yChannel: true,
             kChannel: true,
         }
-
-        this.markerSelectOptions = []
 
         this.initializeSegmentationSettings()
 
@@ -212,7 +202,6 @@ export class ImageStore {
             }
             // Delete it from image data
             this.imageData.removeMarker(markerName)
-            this.updateMarkerSelectOption()
         }
     }
 
@@ -276,18 +265,5 @@ export class ImageStore {
 
     @action public clearImageExportFilename = () => {
         this.imageExportFilename = null
-    }
-
-    // Somewhat hacky feeling workaround
-    // markerSelectOptions used to be computed, but was not refreshing when a marker was being removed (for segmentation data)
-    // Moved it here so that it can be called manually when we remove the segmentation data tiff from image data.
-    @action public updateMarkerSelectOption = () => {
-        if (this.imageData) {
-            this.markerSelectOptions = this.imageData.markerNames.map(s => {
-                return { value: s, label: s }
-            })
-        } else {
-            this.markerSelectOptions = []
-        }
     }
 }

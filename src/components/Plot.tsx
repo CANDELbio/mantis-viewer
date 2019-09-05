@@ -7,19 +7,23 @@ import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
-
 import { PlotData } from '../interfaces/DataInterfaces'
 import { DefaultSelectionName } from '../definitions/PlotDefinitions'
-import { SelectOption, PlotStatistic, PlotTransform, PlotType, PlotTypeOptions } from '../definitions/UIDefinitions'
 import {
+    SelectOption,
+    PlotStatistic,
+    PlotTransform,
+    PlotType,
+    PlotTypeOptions,
     PlotStatisticOptions,
     PlotTransformOptions,
     PlotNormalizationOptions,
     PlotNormalization,
 } from '../definitions/UIDefinitions'
+import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
 interface PlotProps {
-    markerSelectOptions: { value: string; label: string }[]
+    markers: string[]
     selectedPlotMarkers: string[]
     setSelectedPlotMarkers: (x: string[]) => void
     selectedStatistic: string
@@ -59,6 +63,7 @@ export class Plot extends React.Component<PlotProps, {}> {
     private markerSelectOptions: { value: string; label: string }[]
 
     private onPlotMarkerSelect = (x: SelectOption[]) => this.props.setSelectedPlotMarkers(_.pluck(x, 'value'))
+
     private onStatisticSelect = (x: SelectOption) => {
         if (x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
     }
@@ -157,7 +162,7 @@ export class Plot extends React.Component<PlotProps, {}> {
         // Dereferencing here so we re-render on resize
         let windowWidth = this.props.windowWidth
 
-        this.markerSelectOptions = this.props.markerSelectOptions
+        this.markerSelectOptions = generateSelectOptions(this.props.markers)
 
         // Can only select two markers for a scatter plot or one for histogram.
         // If max markers are selected, set the options for selecting equal to the currently selected options
@@ -166,76 +171,79 @@ export class Plot extends React.Component<PlotProps, {}> {
         let maximumHistogramMarkersSelected =
             this.props.selectedPlotMarkers.length == 1 && this.props.selectedType == 'histogram'
         if (maximumScatterMarkersSelected || maximumHistogramMarkersSelected) {
-            this.markerSelectOptions = this.props.selectedPlotMarkers.map(s => {
-                return { value: s, label: s }
-            })
+            this.markerSelectOptions = generateSelectOptions(this.props.selectedPlotMarkers)
         }
 
-        // Clear the plot element if we don't have scatterPlot data.
-        let plot = null
-        let plotSettings = null
-        let plotType = null
-        let markerControls = null
-        let statisticControls = null
-        let transformControls = null
-        let normalizationControls = null
-
-        plotType = (
+        let selectedPlotType = getSelectedOptions(this.props.selectedType, PlotTypeOptions)
+        let plotType = (
             <Select
-                value={this.props.selectedType}
+                value={selectedPlotType}
                 options={PlotTypeOptions}
                 onChange={this.onTypeSelect}
-                clearable={false}
+                isClearable={false}
+                styles={SelectStyle}
             />
         )
 
-        if (this.props.plotData != null) {
-            statisticControls = (
-                <Select
-                    value={this.props.selectedStatistic}
-                    options={PlotStatisticOptions}
-                    onChange={this.onStatisticSelect}
-                    clearable={false}
-                />
-            )
+        let selectedPlotStatistic = getSelectedOptions(this.props.selectedStatistic, PlotStatisticOptions)
+        let statisticControls = (
+            <Select
+                value={selectedPlotStatistic}
+                options={PlotStatisticOptions}
+                onChange={this.onStatisticSelect}
+                isClearable={false}
+                placeholder="Statistic"
+                styles={SelectStyle}
+            />
+        )
 
-            transformControls = (
-                <Select
-                    value={this.props.selectedTransform}
-                    options={PlotTransformOptions}
-                    onChange={this.onTransformSelect}
-                    clearable={false}
-                />
-            )
+        let selectedPlotTransform = getSelectedOptions(this.props.selectedTransform, PlotTransformOptions)
+        let transformControls = (
+            <Select
+                value={selectedPlotTransform}
+                options={PlotTransformOptions}
+                onChange={this.onTransformSelect}
+                isClearable={false}
+                styles={SelectStyle}
+            />
+        )
 
-            if (this.props.selectedType == 'heatmap') {
-                normalizationControls = (
-                    <Select
-                        value={this.props.selectedNormalization}
-                        options={PlotNormalizationOptions}
-                        onChange={this.onNormalizationSelect}
-                        clearable={false}
-                    />
-                )
-            }
+        let normalizationDisabled = this.props.selectedType != 'heatmap'
+        let selectedPlotNormalization = getSelectedOptions(this.props.selectedNormalization, PlotNormalizationOptions)
+        let normalizationControls = (
+            <Select
+                value={normalizationDisabled ? null : selectedPlotNormalization}
+                options={PlotNormalizationOptions}
+                onChange={this.onNormalizationSelect}
+                isClearable={false}
+                isDisabled={normalizationDisabled}
+                placeholder="Normalization"
+                styles={SelectStyle}
+            />
+        )
 
-            plot = <div id="plotly-scatterplot" ref={el => this.mountPlot(el)} />
-        } else {
+        let plot = <div id="plotly-scatterplot" ref={el => this.mountPlot(el)} />
+
+        // If plot data is unset, cleanup Plotly
+        if (!this.props.plotData) {
             this.cleanupPlotly()
         }
 
-        markerControls = (
+        let selectedMarkers = getSelectedOptions(this.props.selectedPlotMarkers, this.markerSelectOptions)
+
+        let markerControls = (
             <Select
-                value={this.props.selectedPlotMarkers}
+                value={selectedMarkers}
                 options={this.markerSelectOptions}
                 onChange={this.onPlotMarkerSelect}
-                multi={true}
-                disabled={this.props.selectedType == 'heatmap'}
+                isMulti={true}
+                isDisabled={this.props.selectedType == 'heatmap'}
                 placeholder="Select plot markers..."
+                styles={SelectStyle}
             />
         )
 
-        plotSettings = (
+        let plotSettings = (
             <div>
                 <Grid fluid={true}>
                     <Row between="xs">

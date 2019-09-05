@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed, when } from 'mobx'
+import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as stringify from 'csv-stringify'
@@ -8,14 +8,7 @@ import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
 import { generatePlotData } from '../lib/plot/Index'
-import {
-    SelectOption,
-    ChannelName,
-    PlotStatistic,
-    PlotTransform,
-    PlotType,
-    PlotNormalization,
-} from '../definitions/UIDefinitions'
+import { ChannelName, PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 import { writeToFCS } from '../lib/FcsWriter'
@@ -129,12 +122,6 @@ export class ProjectStore {
                 plotStore.clearPlotData()
             }
         }
-    })
-
-    public imageSetPathOptions = computed(() => {
-        return this.imageSetPaths.map(s => {
-            return { value: s, label: path.basename(s) }
-        })
     })
 
     @action public openImageSet = (dirName: string) => {
@@ -286,14 +273,6 @@ export class ProjectStore {
         this.settingStore.copyPlotStoreSettings(destinationImageStore, destinationPlotStore)
     }
 
-    @action public setActiveImageSetCallback = () => {
-        return action((x: SelectOption) => {
-            if (x != null) {
-                this.setActiveImageSet(x.value)
-            }
-        })
-    }
-
     // Jumps to the previous image set in the list of image sets
     @action public setPreviousImageSet = () => {
         let activeImageSetPath = this.activeImageSetPath
@@ -333,10 +312,10 @@ export class ProjectStore {
     }
 
     @action public setChannelMarkerCallback = (name: ChannelName) => {
-        return action((x: SelectOption) => {
+        return action((x: string | null) => {
             // If the SelectOption has a value.
-            if (x != null) {
-                this.settingStore.setChannelMarker(this.activeImageStore, this.configurationHelper, name, x.value)
+            if (x) {
+                this.settingStore.setChannelMarker(this.activeImageStore, this.configurationHelper, name, x)
                 // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
             } else {
                 this.settingStore.unsetChannelMarker(this.activeImageStore, name)

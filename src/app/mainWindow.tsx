@@ -155,9 +155,10 @@ Mousetrap.bind(['command+right', 'alt+right'], function() {
 Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore
     let plotStore = projectStore.activePlotStore
+    let markerNames = imageStore.imageData ? imageStore.imageData.markerNames : null
     ipcRenderer.send(
         'mainWindow-set-plot-data',
-        imageStore.markerSelectOptions,
+        markerNames,
         plotStore.selectedPlotMarkers,
         plotStore.plotStatistic,
         plotStore.plotTransform,

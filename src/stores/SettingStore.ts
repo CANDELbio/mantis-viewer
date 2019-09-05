@@ -121,8 +121,12 @@ export class SettingStore {
         this.exportSettings()
     }
 
+    // TODO: Feels hacky unsetting selectedPlot markers here and in plot store.
+    // Should probably use the same plot store across image sets
+    // And extract the settings we want to persist into an ImageSettingStore
     @action public setPlotType = (type: PlotType) => {
         this.plotType = type
+        this.selectedPlotMarkers = []
         this.exportSettings()
     }
 

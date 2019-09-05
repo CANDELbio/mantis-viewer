@@ -6,13 +6,14 @@ import { ipcRenderer } from 'electron'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { Plot } from '../components/Plot'
 
-let markerSelectOptions: { value: string; label: string }[]
+let markerNames: string[]
 let selectedPlotMarkers: string[] | null
 let selectedStatistic: string | null
 let selectedTransform: string | null
 let selectedType: string | null
 let selectedNormalization: string | null
 let plotData: PlotData | null
+let windowWidth: number | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 let setSelectedPlotMarkers = (markers: string[]): void => {
@@ -49,7 +50,7 @@ let setHoveredSegments = (segmentIds: number[]): void => {
 
 function render(): void {
     if (
-        markerSelectOptions &&
+        markerNames &&
         selectedPlotMarkers &&
         selectedStatistic &&
         selectedTransform &&
@@ -57,10 +58,10 @@ function render(): void {
         selectedNormalization
     ) {
         ReactDOM.render(
-            <div>
+            <div style={{ paddingTop: '10px' }}>
                 <Plot
-                    windowWidth={null}
-                    markerSelectOptions={markerSelectOptions}
+                    windowWidth={windowWidth}
+                    markers={markerNames}
                     selectedPlotMarkers={selectedPlotMarkers}
                     setSelectedPlotMarkers={setSelectedPlotMarkers}
                     selectedStatistic={selectedStatistic}
@@ -87,7 +88,7 @@ ipcRenderer.on(
     'set-plot-data',
     (
         event: Electron.Event,
-        selectOptions: { value: string; label: string }[],
+        markers: string[],
         plotMarkers: string[],
         statistic: string,
         transform: string,
@@ -95,7 +96,7 @@ ipcRenderer.on(
         normalization: string,
         data: any,
     ) => {
-        markerSelectOptions = selectOptions
+        markerNames = markers
         selectedPlotMarkers = plotMarkers
         selectedStatistic = statistic
         selectedTransform = transform
@@ -105,3 +106,9 @@ ipcRenderer.on(
         render()
     },
 )
+
+// Only the main thread can get window resize events. Listener for these events to resize various elements.
+ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number) => {
+    windowWidth = width
+    render()
+})

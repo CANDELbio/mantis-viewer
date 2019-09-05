@@ -302,7 +302,9 @@ function generateMenuTemplate(): any {
                     label: 'Open Plot Window',
                     enabled: segmentationLoaded,
                     click: () => {
-                        if (plotWindow != null) plotWindow.show()
+                        if (plotWindow != null) {
+                            plotWindow.show()
+                        }
                         if (mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
                     },
                 },
@@ -334,21 +336,24 @@ function generateMenuTemplate(): any {
     ]
 }
 
-function sendWindowSize(): void {
-    if (mainWindow != null) {
-        let dimensions = mainWindow.getSize()
-        mainWindow.webContents.send('window-size', dimensions[0], dimensions[1])
-    }
-    if (plotWindow != null) {
-        let dimensions = plotWindow.getSize()
-        plotWindow.webContents.send('window-size', dimensions[0], dimensions[1])
-    }
-}
-
 function setMenu(): void {
     let menuTemplate = generateMenuTemplate()
     const menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(menu)
+}
+
+function sendMainWindowSize(): void {
+    if (mainWindow != null) {
+        let dimensions = mainWindow.getSize()
+        mainWindow.webContents.send('window-size', dimensions[0], dimensions[1])
+    }
+}
+
+function sendPlotWindowSize(): void {
+    if (plotWindow != null) {
+        let dimensions = plotWindow.getSize()
+        plotWindow.webContents.send('window-size', dimensions[0], dimensions[1])
+    }
 }
 
 // Need to remove the event listener for close that prevents the default close
@@ -390,9 +395,10 @@ function createMainWindow(): void {
     }
 
     // Use throttle so that when we resize we only send the window size every 333 ms
-    mainWindow.on('resize', _.throttle(sendWindowSize, 333))
-    mainWindow.on('enter-full-screen', sendWindowSize)
-    mainWindow.on('leave-full-screen', sendWindowSize)
+    mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
+    mainWindow.on('enter-full-screen', sendMainWindowSize)
+    mainWindow.on('leave-full-screen', sendMainWindowSize)
+    mainWindow.on('show', sendMainWindowSize)
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {
@@ -405,7 +411,6 @@ function createMainWindow(): void {
 
     mainWindow.on('ready-to-show', () => {
         if (mainWindow != null) mainWindow.show()
-        sendWindowSize()
     })
 }
 
@@ -414,7 +419,7 @@ function createPlotWindow(): void {
         width: 800,
         height: 800,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegrationInWorker: false },
+        webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
     })
 
     plotWindow.loadURL(
@@ -426,6 +431,12 @@ function createPlotWindow(): void {
     )
 
     if (debugging()) plotWindow.webContents.openDevTools()
+
+    // Use throttle so that when we resize we only send the window size every 333 ms
+    plotWindow.on('resize', _.throttle(sendPlotWindowSize, 333))
+    plotWindow.on('enter-full-screen', sendPlotWindowSize)
+    plotWindow.on('leave-full-screen', sendPlotWindowSize)
+    plotWindow.on('show', sendPlotWindowSize)
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
     plotWindow.on('close', function(event: Electron.Event) {

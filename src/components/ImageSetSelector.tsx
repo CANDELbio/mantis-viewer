@@ -3,11 +3,14 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
+import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectOption } from '../definitions/UIDefinitions'
+import { basename } from 'path'
 
 export interface ImageSetSelectorProps {
     selectedImageSet: string | null
-    imageSetOptions: { value: string; label: string }[]
-    setSelectedImageSet: (x: { value: string; label: string }) => void
+    imageSets: string[]
+    setSelectedImageSet: (x: string) => void
     previousImageSet: () => void
     nextImageSet: () => void
 }
@@ -18,26 +21,27 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
         super(props)
     }
 
+    private onImageSetChange = (x: SelectOption) => {
+        this.props.setSelectedImageSet(x.value)
+    }
+
     public render(): React.ReactNode {
-        let previousArrow = null
-        let nextArrow = null
-        if (this.props.imageSetOptions.length > 1) {
-            previousArrow = (
+        let arrowControls = null
+        if (this.props.imageSets.length > 1) {
+            arrowControls = (
                 <div>
                     <a href="#" onClick={this.props.previousImageSet}>
-                        <IoIosArrowBack size="1.5em" />
+                        <IoIosArrowBack size="1.5em" style={{ position: 'absolute', top: 0, left: 0 }} />
                     </a>
-                </div>
-            )
-            nextArrow = (
-                <div style={{ position: 'relative' }}>
                     <a href="#" onClick={this.props.nextImageSet}>
-                        <IoIosArrowForward size="1.5em" />
+                        <IoIosArrowForward size="1.5em" style={{ position: 'absolute' }} />
                     </a>
                 </div>
             )
         }
-        if (this.props.imageSetOptions.length > 0) {
+        if (this.props.imageSets.length > 0) {
+            let imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
+            let selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
             return (
                 <Grid fluid={true}>
                     <Row between="xs">
@@ -48,16 +52,15 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                     <Row between="xs">
                         <Col xs={10} sm={10} md={10} lg={10}>
                             <Select
-                                value={this.props.selectedImageSet == null ? undefined : this.props.selectedImageSet}
-                                options={this.props.imageSetOptions}
-                                onChange={this.props.setSelectedImageSet}
+                                value={selectedValue}
+                                options={imageSetOptions}
+                                onChange={this.onImageSetChange}
                                 clearable={false}
-                                style={{ width: '100%' }}
+                                styles={SelectStyle}
                             />
                         </Col>
                         <Col xs={2} sm={2} md={2} lg={2}>
-                            {previousArrow}
-                            {nextArrow}
+                            {arrowControls}
                         </Col>
                     </Row>
                 </Grid>

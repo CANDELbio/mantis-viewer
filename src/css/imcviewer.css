@@ -1,16 +1,3 @@
 .imcimage {
-  position: relative;
-}
-
-.viewport {
-  position: relative;
-}
-canvas {
-  padding: 0;
-  margin: 0;
-}
-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
+    position: relative;
 }

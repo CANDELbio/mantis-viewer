@@ -212,29 +212,30 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         imageSetSelector = (
             <ImageSetSelector
                 selectedImageSet={projectStore.activeImageSetPath}
-                imageSetOptions={projectStore.imageSetPathOptions.get()}
-                setSelectedImageSet={projectStore.setActiveImageSetCallback()}
+                imageSets={projectStore.imageSetPaths}
+                setSelectedImageSet={projectStore.setActiveImageSet}
                 previousImageSet={projectStore.setPreviousImageSet}
                 nextImageSet={projectStore.setNextImageSet}
             />
         )
 
         if (imageStore.imageData != null) {
-            if (imageStore.imageData.markerNames.length > 0) {
+            let markerNames = imageStore.imageData.markerNames
+            if (markerNames.length > 0) {
                 channelControls = this.imageChannelsForControls.map((s: ChannelName) => (
                     <ChannelControls
                         key={s}
                         channel={s}
                         channelVisible={imageStore.channelVisibility[s]}
-                        onVisibilityChange={projectStore.setChannelVisibilityCallback(s)}
+                        setChannelVisibility={projectStore.setChannelVisibilityCallback(s)}
                         sliderMin={this.getChannelMin(s)}
                         sliderMax={this.getChannelMax(s)}
                         sliderValue={imageStore.channelDomain[s]}
-                        onDomainChange={projectStore.setChannelDomainCallback(s)}
-                        selectOptions={imageStore.markerSelectOptions}
-                        selectValue={imageStore.channelMarker[s]}
-                        allSelectedValues={Object.values(imageStore.channelMarker)}
-                        onMarkerChange={projectStore.setChannelMarkerCallback(s)}
+                        setChannelDomain={projectStore.setChannelDomainCallback(s)}
+                        markers={markerNames}
+                        selectedMarker={imageStore.channelMarker[s]}
+                        allSelectedMarkers={Object.values(imageStore.channelMarker)}
+                        setMarker={projectStore.setChannelMarkerCallback(s)}
                         windowWidth={projectStore.windowWidth}
                     />
                 ))
@@ -257,7 +258,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     scatterPlot = (
                         <Plot
                             windowWidth={projectStore.windowWidth}
-                            markerSelectOptions={imageStore.markerSelectOptions}
+                            markers={markerNames}
                             selectedPlotMarkers={plotStore.selectedPlotMarkers}
                             setSelectedPlotMarkers={projectStore.setSelectedPlotMarkers}
                             selectedStatistic={plotStore.plotStatistic}
