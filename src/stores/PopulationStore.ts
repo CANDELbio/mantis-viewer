@@ -22,16 +22,21 @@ export class PopulationStore {
         this.highlightedPopulations = []
     }
 
-    private newROIName(namePrefix: string | null): string {
+    private newROIName(renderOrder: number, namePrefix: string | null): string {
         let name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
-        if (this.selectedPopulations == null) return name + '1'
-        return name + (this.selectedPopulations.length + 1).toString()
+        return name + renderOrder.toString()
     }
 
     @action public setSelectedPopulations = (populations: SelectedPopulation[]) => {
         if (!_.isEqual(populations, this.selectedPopulations)) {
             this.selectedPopulations = populations
         }
+    }
+
+    private getRenderOrder() {
+        let renderOrders = _.pluck(this.selectedPopulations, 'renderOrder')
+        if (renderOrders.length > 0) return Math.max(...renderOrders) + 1
+        return 1
     }
 
     // Can pass in a namePrefix or null to just use the default ROI name. Prefix gets stuck in front of the ROI name.
@@ -43,11 +48,13 @@ export class PopulationStore {
         name?: string | null,
         color?: number,
     ) => {
+        let order = this.getRenderOrder()
         let newRegion = {
             id: shortId.generate(),
+            renderOrder: order,
             selectedRegion: selectedRegion,
             selectedSegments: selectedSegments,
-            name: name ? name : this.newROIName(namePrefix),
+            name: name ? name : this.newROIName(order, namePrefix),
             color: color ? color : randomHexColor(),
             visible: true,
         }

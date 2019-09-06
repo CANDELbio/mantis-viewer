@@ -151,21 +151,25 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
     private populationRows(populations: SelectedPopulation[] | null, tableScrolling: boolean): JSX.Element[] | null {
         if (populations != null) {
-            return populations.map(population => {
-                return (
-                    <this.TableRowItem
-                        key={population.id}
-                        population={population}
-                        updateName={this.props.updateName}
-                        deletePopulation={this.props.deletePopulation}
-                        updateColor={this.props.updateColor}
-                        updateVisibility={this.props.updateVisibility}
-                        highlightPopulation={this.props.highlightPopulation}
-                        unhighlightPopulation={this.props.unhighlightPopulation}
-                        tableScrolling={tableScrolling}
-                    />
-                )
-            })
+            return populations
+                .sort((a: SelectedPopulation, b: SelectedPopulation) => {
+                    return a.renderOrder > b.renderOrder ? 1 : -1
+                })
+                .map(population => {
+                    return (
+                        <this.TableRowItem
+                            key={population.id}
+                            population={population}
+                            updateName={this.props.updateName}
+                            deletePopulation={this.props.deletePopulation}
+                            updateColor={this.props.updateColor}
+                            updateVisibility={this.props.updateVisibility}
+                            highlightPopulation={this.props.highlightPopulation}
+                            unhighlightPopulation={this.props.unhighlightPopulation}
+                            tableScrolling={tableScrolling}
+                        />
+                    )
+                })
         }
         return null
     }

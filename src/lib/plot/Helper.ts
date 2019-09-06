@@ -3,12 +3,11 @@ import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 
 import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDefinitions'
 
-// Currently sorts them by name. Will want to remove sorting by name once we allow user to choose the render order.
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
     let selectionIds = [DefaultSelectionId]
     if (selectedPopulations != null) {
         let sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b: SelectedPopulation) => {
-            return a.name.localeCompare(b.name)
+            return a.renderOrder > b.renderOrder ? 1 : -1
         })
         sortedRegions.map((value: SelectedPopulation) => {
             selectionIds.push(value.id)

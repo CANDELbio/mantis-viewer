@@ -379,7 +379,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         </SizeMe>
                         <Col xs={4} sm={4} md={4} lg={4}>
                             <Button onClick={this.handleRegionsClick} style={fullWidthBottomSpaced} size="sm">
-                                {this.state.regionsOpen ? 'Hide' : 'Show'} Selected Regions
+                                {this.state.regionsOpen ? 'Hide' : 'Show'} Selected Populations
                             </Button>
                             <Collapse isOpen={this.state.regionsOpen} style={fullWidth}>
                                 {selectedPopulations}
