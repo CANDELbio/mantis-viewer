@@ -3,7 +3,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Mobx from 'mobx'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import * as Mousetrap from 'mousetrap'
 
 import { MainApp } from '../components/MainApp'
@@ -12,7 +12,7 @@ import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
 Mobx.configure({ enforceActions: 'always' })
 
-const projectStore = new ProjectStore()
+const projectStore = new ProjectStore(remote.app.getVersion())
 
 // Listeners for menu items from the main thread.
 ipcRenderer.on('open-image-set', async (event: Electron.Event, dirName: string) => {

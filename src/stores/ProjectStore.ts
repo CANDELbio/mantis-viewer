@@ -20,9 +20,7 @@ interface ImageSet {
 }
 
 export class ProjectStore {
-    public constructor() {
-        this.initialize()
-    }
+    public appVersion: string
 
     @observable public projectPath: string | null
     @observable public imageSetPaths: string[]
@@ -58,6 +56,11 @@ export class ProjectStore {
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
     private imageSetHistory: string[]
+
+    public constructor(appVersion: string) {
+        this.appVersion = appVersion
+        this.initialize()
+    }
 
     @action public initialize = () => {
         this.plotInMainWindow = true
@@ -516,7 +519,7 @@ export class ProjectStore {
                     data.push(segmentData)
                 }
             }
-            writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data)
+            writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data, this.appVersion)
         }
     }
 

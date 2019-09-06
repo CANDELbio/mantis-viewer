@@ -8,7 +8,7 @@ let sanatize: Record<string, string> = { µ: 'u', '²': '2', ' ': '', '?': '', _
 // Use this method to generate a buffer that will allow us to write the floats represented as binary floats instead of strings.
 function floatArrayToBuffer(data: number[]): Buffer {
     let arr = Float32Array.from(data)
-    let buffer = new Buffer(arr.length * arr.BYTES_PER_ELEMENT)
+    let buffer = Buffer.alloc(arr.length * arr.BYTES_PER_ELEMENT)
     for (let i = 0; i < arr.length; i++) {
         // Write the float in Big-Endian and move the offset
         buffer.writeFloatBE(arr[i], i * arr.BYTES_PER_ELEMENT)
@@ -17,7 +17,7 @@ function floatArrayToBuffer(data: number[]): Buffer {
 }
 
 // Data should have one row per event, and each row should have one entry per chName in order of chNames.
-export function writeToFCS(filename: string, chNames: string[], data: number[][]): void {
+export function writeToFCS(filename: string, chNames: string[], data: number[][], version?: string): void {
     // Sanity check. Every row should have an entry for every channel.
     data.map((value: number[]) => {
         if (chNames.length != value.length) throw 'Length of data content does not match length of chNames'
@@ -50,6 +50,8 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
     text += '/$BYTEORD/4,3,2,1/$DATATYPE/F'
     text += `/$MODE/L/$NEXTDATA/0/$TOT/${data.length}`
     text += `/$PAR/${chNames.length}`
+    text += '/$CYT/MantisViewer'
+    if (version) text += version
 
     // Check for content of data columns and set range
     for (let i of range(chNames.length)) {
