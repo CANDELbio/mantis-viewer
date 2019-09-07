@@ -17,3 +17,9 @@ export function hexToRGB(hex: number): { r: number; g: number; b: number } {
     let b = hex & 255
     return { r: r, g: g, b: b }
 }
+
+export function hexToString(hex: number): string {
+    let str = hex.toString(16)
+    str = '000000'.substr(0, 6 - str.length) + str
+    return '#' + str
+}

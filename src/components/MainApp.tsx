@@ -6,10 +6,10 @@ import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner, Progress } fr
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelControls } from './ChannelControls'
 import { observer } from 'mobx-react'
-import { ChannelName, WindowHeightBufferSize, ChannelSegmentationCombinedHeight } from '../definitions/UIDefinitions'
+import { ChannelName, WindowHeightBufferSize, ChannelControlsCombinedHeight } from '../definitions/UIDefinitions'
 import { ImageViewer } from './ImageViewer'
 import { ImageSetSelector } from './ImageSetSelector'
-import { SegmentationControls } from './SegmentationControls'
+import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './SelectedPopulations'
 import { ImageData } from '../lib/ImageData'
@@ -24,7 +24,7 @@ export interface MainAppProps {
 interface MainAppState {
     channelsOpen: boolean
     regionsOpen: boolean
-    segmentationOpen: boolean
+    controlsOpen: boolean
     plotOpen: boolean
 }
 
@@ -37,32 +37,30 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     public state = {
         channelsOpen: true,
         regionsOpen: true,
-        segmentationOpen: false,
+        controlsOpen: false,
         plotOpen: false,
     }
 
     // Reverse ImageChannels so that select order is RGBCMYK
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
-    private notEnoughSpaceForChannelAndSegmentation = () => {
+    private notEnoughSpaceForChannelAndControls = () => {
         let windowHeight = this.props.projectStore.windowHeight
-        if (windowHeight && windowHeight < ChannelSegmentationCombinedHeight) return true
+        if (windowHeight && windowHeight < ChannelControlsCombinedHeight) return true
         return false
     }
 
-    // If opening channels, close segmentation controls
+    // If opening channels, close image controls
     private handleChannelClick = () => {
         let newChannelsOpenValue = !this.state.channelsOpen
         this.setState({ channelsOpen: newChannelsOpenValue })
-        if (newChannelsOpenValue && this.notEnoughSpaceForChannelAndSegmentation())
-            this.setState({ segmentationOpen: false })
+        if (newChannelsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ controlsOpen: false })
     }
-    // If opening segmentation controls, close channels
-    private handleSegmentationClick = () => {
-        let newSegmentationOpenValue = !this.state.segmentationOpen
-        this.setState({ segmentationOpen: newSegmentationOpenValue })
-        if (newSegmentationOpenValue && this.notEnoughSpaceForChannelAndSegmentation())
-            this.setState({ channelsOpen: false })
+    // If opening image controls, close channels
+    private handleControlsClick = () => {
+        let newControlsOpenValue = !this.state.controlsOpen
+        this.setState({ controlsOpen: newControlsOpenValue })
+        if (newControlsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ channelsOpen: false })
     }
     private handleRegionsClick = () => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
@@ -154,6 +152,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         highlightedSegments: number[],
         exportPath: string | null,
         onExportComplete: () => void,
+        legendVisible: boolean,
     ): JSX.Element | null {
         let viewer = null
         if (imageData != null && windowHeight != null && maxWidth != null) {
@@ -176,6 +175,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     highlightedSegmentsFromPlot={highlightedSegments}
                     exportPath={exportPath}
                     onExportComplete={onExportComplete}
+                    legendVisible={legendVisible}
                 />
             )
         }
@@ -185,15 +185,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
         let windowHeight = props.projectStore.windowHeight
-        // If window height is defined, and we are now too short for both segmentation and channels to be open, close segmentation.
-        if (
-            windowHeight &&
-            windowHeight < ChannelSegmentationCombinedHeight &&
-            state.channelsOpen &&
-            state.segmentationOpen
-        )
+        // If window height is defined, and we are now too short for both image controls and channels to be open, close controls.
+        if (windowHeight && windowHeight < ChannelControlsCombinedHeight && state.channelsOpen && state.controlsOpen)
             return {
-                segmentationOpen: false,
+                controlsOpen: false,
             }
         return null
     }
@@ -207,7 +202,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageSetSelector = null
         let channelControls = null
         let scatterPlot = null
-        let segmentationControls = null
+        let imageControls = null
 
         imageSetSelector = (
             <ImageSetSelector
@@ -241,19 +236,21 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 ))
             }
 
+            imageControls = (
+                <ImageControls
+                    fillAlpha={imageStore.segmentationFillAlpha}
+                    outlineAlpha={imageStore.segmentationOutlineAlpha}
+                    onFillAlphaChange={projectStore.setSegmentationFillAlpha}
+                    onOutlineAlphaChange={projectStore.setSegmentationOutlineAlpha}
+                    centroidsVisible={imageStore.segmentationCentroidsVisible}
+                    setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
+                    onClearSegmentation={projectStore.clearActiveSegmentationData}
+                    legendVisible={projectStore.settingStore.legendVisible}
+                    setLegendVisible={projectStore.settingStore.setLegendVisible}
+                    segmentationLoaded={imageStore.segmentationData != null}
+                />
+            )
             if (imageStore.segmentationData != null) {
-                segmentationControls = (
-                    <SegmentationControls
-                        fillAlpha={imageStore.segmentationFillAlpha}
-                        outlineAlpha={imageStore.segmentationOutlineAlpha}
-                        onFillAlphaChange={projectStore.setSegmentationFillAlpha}
-                        onOutlineAlphaChange={projectStore.setSegmentationOutlineAlpha}
-                        centroidsVisible={imageStore.segmentationCentroidsVisible}
-                        setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
-                        onClearSegmentation={projectStore.clearActiveSegmentationData}
-                    />
-                )
-
                 if (projectStore.plotInMainWindow) {
                     scatterPlot = (
                         <Plot
@@ -313,6 +310,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let highlightedSegmentsFromPlot = plotStore.segmentsHoveredOnPlot
         let exportPath = imageStore.imageExportFilename
         let onExportComplete = imageStore.clearImageExportFilename
+        let legendVisible = projectStore.settingStore.legendVisible
 
         let imageDataLoading = imageStore.imageDataLoading
         let segmentationDataLoading = imageStore.segmentationDataLoading
@@ -334,16 +332,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             <Collapse isOpen={this.state.channelsOpen} style={fullWidth}>
                                 <div>{channelControls}</div>
                             </Collapse>
-                            <Button
-                                onClick={this.handleSegmentationClick}
-                                style={fullWidthBottomSpaced}
-                                size="sm"
-                                disabled={imageStore.segmentationData == null}
-                            >
-                                {this.state.segmentationOpen ? 'Hide' : 'Show'} Segmentation Controls
+                            <Button onClick={this.handleControlsClick} style={fullWidthBottomSpaced} size="sm">
+                                {this.state.controlsOpen ? 'Hide' : 'Show'} Image Controls
                             </Button>
-                            <Collapse isOpen={this.state.segmentationOpen} style={fullWidth}>
-                                <div>{segmentationControls}</div>
+                            <Collapse isOpen={this.state.controlsOpen} style={fullWidth}>
+                                <div>{imageControls}</div>
                             </Collapse>
                         </Col>
                         <SizeMe>
@@ -370,6 +363,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                                     highlightedSegmentsFromPlot,
                                                     exportPath,
                                                     onExportComplete,
+                                                    legendVisible,
                                                 )}
                                             </Col>
                                         </Row>

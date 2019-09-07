@@ -42,6 +42,7 @@ export interface ImageProps {
         width: number
         height: number
     }
+    legendVisible: boolean
 }
 
 @observer
@@ -75,6 +76,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private segmentationOutlineGraphics: PIXI.Graphics | null
     private segmentationCentroidGraphics: PIXI.Graphics | null
 
+    private legendGraphics: PIXI.Graphics
+
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
@@ -96,6 +99,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage = new PIXI.Container()
         this.stage.interactive = true
         this.rootContainer.addChild(this.stage)
+
+        this.legendGraphics = new PIXI.Graphics()
 
         let redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
@@ -194,6 +199,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
         this.checkSetStageBounds()
         this.stage.updateTransform()
+        this.resizeLegend()
         this.renderer.render(this.rootContainer)
     }
 
@@ -230,6 +236,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.stage.position.y += dy
                 this.checkSetStageBounds()
                 this.stage.updateTransform()
+                this.resizeLegend()
                 this.renderer.render(this.rootContainer)
             }
         })
@@ -523,6 +530,34 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private resizeLegend(): void {
+        this.stage.removeChild(this.legendGraphics)
+        let xScale = 1 / this.stage.scale.x
+        let yScale = 1 / this.stage.scale.y
+        this.legendGraphics.setTransform(
+            Math.abs(this.stage.position.x) * xScale,
+            Math.abs(this.stage.position.y) * yScale,
+            xScale,
+            yScale,
+        )
+        this.stage.addChild(this.legendGraphics)
+    }
+
+    private loadLegendGraphics(
+        legendVisible: boolean,
+        legendGraphics: PIXI.Graphics,
+        channelMarker: Record<ChannelName, string | null>,
+    ): void {
+        if (legendVisible) {
+            GraphicsHelper.drawLegend(this.legendGraphics, channelMarker)
+            this.resizeLegend()
+        } else {
+            // Clear out the legend graphics so they don't get redrawn when zooming.
+            legendGraphics.clear()
+            legendGraphics.removeChildren()
+        }
+    }
+
     private exportRenderer(exportPath: string): void {
         // Get the source canvas that we are exporting from pixi
         let sourceCanvas = this.renderer.extract.canvas()
@@ -555,6 +590,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         highlightedSegmentsFromGraph: number[],
         exportPath: string | null,
         maxRendererSize: { width: number; height: number },
+        legendVisible: boolean,
     ): void {
         if (el == null) return
         this.el = el
@@ -594,6 +630,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (segmentationData != null) {
             this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
         }
+
+        // Create the legend for which markers are being displayed
+        this.loadLegendGraphics(legendVisible, this.legendGraphics, channelMarker)
 
         this.renderer.render(this.rootContainer)
 
@@ -654,6 +693,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let maxRendererSize = this.props.maxRendererSize
 
+        let legendVisible = this.props.legendVisible
+
         return (
             <div
                 className="imcimage"
@@ -673,6 +714,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                         highlightedSegmentsFromGraph,
                         exportPath,
                         maxRendererSize,
+                        legendVisible,
                     )
                 }}
             />

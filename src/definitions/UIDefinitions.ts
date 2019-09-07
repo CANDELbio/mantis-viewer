@@ -11,6 +11,16 @@ export const ImageChannels: ChannelName[] = [
     'rChannel',
 ]
 
+export const ChannelColorMap: Record<ChannelName, number> = {
+    rChannel: 0xff0000,
+    gChannel: 0x00ff00,
+    bChannel: 0x0000ff,
+    cChannel: 0x00ffff,
+    mChannel: 0xff00ff,
+    yChannel: 0xffff00,
+    kChannel: 0xffffff,
+}
+
 export type D3BrushExtent = [[number, number], [number, number]]
 export type BrushEventHandler = (extent: D3BrushExtent) => void
 
@@ -68,4 +78,4 @@ export const ImageSettingsFilename = '.mantisImageSettings'
 
 // Combined height of the leftmost pannel when channel and segmentation are both open.
 // If this ends up being different on differnt OSes or we are restyling often, might be better to use sizeme instead
-export const ChannelSegmentationCombinedHeight = 910
+export const ChannelControlsCombinedHeight = 970

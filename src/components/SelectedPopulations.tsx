@@ -6,6 +6,7 @@ import { CompactPicker, ColorResult } from 'react-color'
 import { Popover, PopoverBody } from 'reactstrap'
 import { Badge } from 'reactstrap'
 import ReactTableContainer from 'react-table-container'
+import { hexToString } from '../lib/ColorHelper'
 
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
@@ -79,9 +80,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         private handleColorChange = (color: ColorResult) => this.updateColor(parseInt(color.hex.replace(/^#/, ''), 16))
 
         private backgroundColor = () => {
-            let hex = this.props.population.color.toString(16)
-            hex = '000000'.substr(0, 6 - hex.length) + hex
-            return '#' + hex
+            return hexToString(this.props.population.color)
         }
 
         // Use this special function to turn off the picker whenever the user starts scrolling on the parent table.

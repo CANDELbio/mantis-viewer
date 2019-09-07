@@ -29,6 +29,7 @@ interface SettingStoreData {
     segmentationFillAlpha: number | null
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
+    legendVisible: boolean | null
 }
 
 export class SettingStore {
@@ -58,6 +59,8 @@ export class SettingStore {
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
     @observable public segmentationCentroidsVisible: boolean
+
+    @observable public legendVisible: boolean
 
     @action public initialize = (imageStore: ImageStore, plotStore: PlotStore) => {
         this.basePath = null
@@ -104,6 +107,8 @@ export class SettingStore {
         this.segmentationFillAlpha = imageStore.segmentationFillAlpha
         this.segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
         this.segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
+
+        this.legendVisible = false
     }
 
     @action public setBasePath = (path: string) => {
@@ -147,6 +152,11 @@ export class SettingStore {
 
     @action public setSegmentationCentroidsVisible = (visible: boolean) => {
         this.segmentationCentroidsVisible = visible
+        this.exportSettings()
+    }
+
+    @action public setLegendVisible = (visible: boolean) => {
+        this.legendVisible = visible
         this.exportSettings()
     }
 
@@ -337,6 +347,7 @@ export class SettingStore {
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
+                legendVisible: this.legendVisible,
             }
             let exportingString = JSON.stringify(exporting)
             let filename = path.join(this.basePath, ImageSettingsFilename)
@@ -372,6 +383,7 @@ export class SettingStore {
                     this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
                 if (importingContent.segmentationCentroidsVisible)
                     this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
+                if (importingContent.legendVisible) this.legendVisible = importingContent.legendVisible
             }
         }
     }

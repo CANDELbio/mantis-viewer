@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { ChannelName, DefaultSegmentOutlineAlpha } from '../definitions/UIDefinitions'
+import { ChannelName, ChannelColorMap, DefaultSegmentOutlineAlpha } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {
@@ -220,5 +220,67 @@ export function generateBrightnessFilterUniforms(
             type: 'b',
             value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
         },
+    }
+}
+
+export function drawLegend(legendGraphics: PIXI.Graphics, channelMarkers: Record<ChannelName, string | null>): void {
+    legendGraphics.clear()
+    legendGraphics.removeChildren()
+
+    let legendRectRadius = 3
+    let legendPadding = 2 // Padding between text and the edges of the renderer
+    let bgBorderWidth = 2 // Width of the white border of the legend
+    let textPadding = 1 // Padding between the text and the inner edges of the legend
+    let textSpacing = 1 // Spacing between the lines of text for each channel
+    let innerBgXY = legendPadding + bgBorderWidth
+    let initialTextlXY = innerBgXY + textPadding
+
+    let textWidth = 0
+    let textHeight = 0
+    let markerText: PIXI.Text[] = []
+
+    // Create channel names
+    for (let s in channelMarkers) {
+        let curChannel = s as ChannelName
+        let curMarker = channelMarkers[curChannel]
+        if (curMarker) {
+            if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
+            let text = new PIXI.Text(curMarker, {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                fill: ChannelColorMap[curChannel],
+                align: 'center',
+            })
+            let textY = initialTextlXY + textHeight
+            text.setTransform(initialTextlXY, textY)
+            textHeight += text.height
+            textWidth = Math.max(textWidth, text.width)
+            markerText.push(text)
+        }
+    }
+
+    // If we generated marker text, render the legend
+    if (markerText.length > 0) {
+        let outerLegendWidth = textWidth + (bgBorderWidth + textPadding) * 2
+        let outerLegnedHeight = textHeight + (bgBorderWidth + textPadding) * 2
+        legendGraphics.beginFill(0xffffff)
+        legendGraphics.drawRoundedRect(
+            legendPadding,
+            legendPadding,
+            outerLegendWidth,
+            outerLegnedHeight,
+            legendRectRadius,
+        )
+        legendGraphics.endFill()
+
+        let innerLegendWidth = textWidth + textPadding * 2
+        let innerLegendHeight = textHeight + textPadding * 2
+        legendGraphics.beginFill(0x000000)
+        legendGraphics.drawRoundedRect(innerBgXY, innerBgXY, innerLegendWidth, innerLegendHeight, legendRectRadius)
+        legendGraphics.endFill()
+
+        for (let textGraphics of markerText) {
+            legendGraphics.addChild(textGraphics)
+        }
     }
 }

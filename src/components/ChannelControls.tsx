@@ -6,7 +6,8 @@ import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Badge } from 'reactstrap'
 import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
-import { ChannelName, SelectOption } from '../definitions/UIDefinitions'
+import { ChannelName, SelectOption, ChannelColorMap } from '../definitions/UIDefinitions'
+import { hexToString } from '../lib/ColorHelper'
 
 export interface ChannelControlsProps {
     channel: ChannelName
@@ -29,22 +30,12 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         super(props)
     }
 
-    private channelBadgeColorMap: Record<ChannelName, string> = {
-        rChannel: '#FF0000',
-        gChannel: '#00FF00',
-        bChannel: '#0000FF',
-        cChannel: '#00FFFF',
-        mChannel: '#FF00FF',
-        yChannel: '#FFFF00',
-        kChannel: '#FFFFFF',
-    }
-
     private channelBadge(channel: ChannelName): JSX.Element {
         return (
             <h5>
                 <Badge
                     style={{
-                        backgroundColor: this.channelBadgeColorMap[channel],
+                        backgroundColor: hexToString(ChannelColorMap[channel]),
                         boxShadow: '0 0 0 0.1em #000000',
                         color: '#000000',
                     }}
