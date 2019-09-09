@@ -7,6 +7,7 @@ import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
+import { SizeMe } from 'react-sizeme'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { DefaultSelectionName } from '../definitions/PlotDefinitions'
 import {
@@ -39,6 +40,7 @@ interface PlotProps {
     setHoveredSegments: (selectedSegments: number[]) => void
     plotData: PlotData | null
     windowWidth: number | null
+    maxPlotHeight: number | null
 }
 
 interface PlotState {
@@ -141,10 +143,15 @@ export class Plot extends React.Component<PlotProps, {}> {
         }
     }
 
-    private mountPlot = async (el: HTMLElement | null) => {
+    private mountPlot = async (el: HTMLElement | null, width: number | null, height: number | null) => {
         if (el != null && this.props.plotData != null) {
             let firstRender = this.container == null
-            this.container = await Plotly.react(el, this.props.plotData.data, this.props.plotData.layout)
+            let layoutWithSize = this.props.plotData.layout
+            if (width != null && height != null) {
+                layoutWithSize.width = width
+                layoutWithSize.height = height
+            }
+            this.container = await Plotly.react(el, this.props.plotData.data, layoutWithSize)
             // Resize the plot to fit the container
             // Might need to remove. Seems that if this fires too much can cause weirdness with WebGL contexts.
             Plotly.Plots.resize(this.container)
@@ -161,6 +168,7 @@ export class Plot extends React.Component<PlotProps, {}> {
         // TODO: Feels a bit hacky. Find a better solution.
         // Dereferencing here so we re-render on resize
         let windowWidth = this.props.windowWidth
+        let maxPlotHeight = this.props.maxPlotHeight
 
         this.markerSelectOptions = generateSelectOptions(this.props.markers)
 
@@ -222,7 +230,13 @@ export class Plot extends React.Component<PlotProps, {}> {
             />
         )
 
-        let plot = <div id="plotly-scatterplot" ref={el => this.mountPlot(el)} />
+        let plot = (
+            <SizeMe monitorWidth={true}>
+                {({ size }) => (
+                    <div id="plotly-scatterplot" ref={el => this.mountPlot(el, size.width, maxPlotHeight)} />
+                )}
+            </SizeMe>
+        )
 
         // If plot data is unset, cleanup Plotly
         if (!this.props.plotData) {

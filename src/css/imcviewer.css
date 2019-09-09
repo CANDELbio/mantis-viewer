@@ -1,3 +1,11 @@
 .imcimage {
     position: relative;
 }
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}

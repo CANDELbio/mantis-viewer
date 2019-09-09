@@ -57,7 +57,9 @@ export const PlotNormalizationOptions = [
 
 export type PlotNormalization = 'none' | 'population' | 'marker'
 
-export const WindowHeightBufferSize = 40
+export const ImageViewerHeightPadding = 40
+export const MainPlotHeightPadding = 350 // Amount of padding above the plot in the main window.
+export const ExternalPlotHeightPadding = 50 // Amount of padding above the plot in the external window.
 export const SelectedRegionAlpha = 0.4
 export const HighlightedSelectedRegionAlpha = 0.6
 export const SelectedSegmentOutlineAlpha = 0.7

@@ -3,8 +3,6 @@ import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
-import { Grid, Row, Col } from 'react-flexbox-grid'
-
 import { ImageData } from '../lib/ImageData'
 import {
     ImageChannels,
@@ -605,9 +603,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let maxRendererSize = rendererSize
         if (maxHeight != null) maxRendererSize.height = maxHeight
-
-        console.log('Rendering with:')
-        console.log(maxRendererSize)
 
         if (!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, maxRendererSize)

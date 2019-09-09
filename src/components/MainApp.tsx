@@ -5,7 +5,12 @@ import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner, Progress } fr
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelControls } from './ChannelControls'
 import { observer } from 'mobx-react'
-import { ChannelName, WindowHeightBufferSize, ChannelControlsCombinedHeight } from '../definitions/UIDefinitions'
+import {
+    ChannelName,
+    ImageViewerHeightPadding,
+    MainPlotHeightPadding,
+    ChannelControlsCombinedHeight,
+} from '../definitions/UIDefinitions'
 import { ImageViewer } from './ImageViewer'
 import { ImageSetSelector } from './ImageSetSelector'
 import { ImageControls } from './ImageControls'
@@ -201,8 +206,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
             )
 
-            let windowHeight = null
-            if (projectStore.windowHeight != null) windowHeight = projectStore.windowHeight - WindowHeightBufferSize
+            let maxImageHeight = null
+            if (projectStore.windowHeight != null) maxImageHeight = projectStore.windowHeight - ImageViewerHeightPadding
             imageViewer = (
                 <ImageViewer
                     imageData={imageStore.imageData}
@@ -221,11 +226,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     exportPath={imageStore.imageExportFilename}
                     onExportComplete={imageStore.clearImageExportFilename}
                     legendVisible={settingStore.legendVisible}
-                    maxHeight={windowHeight}
+                    maxHeight={maxImageHeight}
                 />
             )
             if (imageStore.segmentationData != null) {
                 if (projectStore.plotInMainWindow) {
+                    let maxPlotHeight = null
+                    if (projectStore.windowHeight != null)
+                        maxPlotHeight = projectStore.windowHeight - MainPlotHeightPadding
                     scatterPlot = (
                         <Plot
                             windowWidth={projectStore.windowWidth}
@@ -244,6 +252,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             setSelectedRange={projectStore.addPopulationFromRange}
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                             plotData={plotStore.plotData}
+                            maxPlotHeight={maxPlotHeight}
                         />
                     )
                 }
@@ -265,7 +274,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         let fullWidth = { width: '100%' }
         let fullWidthBottomSpaced = { marginBottom: '0.5rem', width: '100%' }
-        let paddingStyle = { paddingTop: '10px' }
+        let paddingStyle = { paddingTop: '8px' }
 
         let imageDataLoading = imageStore.imageDataLoading
         let segmentationDataLoading = imageStore.segmentationDataLoading
@@ -278,7 +287,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 {this.loadingModal(imageDataLoading, segmentationDataLoading)}
                 {this.exportModal(numExported, numToExport)}
                 <Grid fluid={true} style={paddingStyle}>
-                    <Row between="xs" center="xs">
+                    <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
                             <div style={fullWidthBottomSpaced}>{imageSetSelector}</div>
                             <Button onClick={this.handleChannelClick} style={fullWidthBottomSpaced} size="sm">

@@ -5,6 +5,7 @@ import * as ReactDOM from 'react-dom'
 import { ipcRenderer } from 'electron'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { Plot } from '../components/Plot'
+import { ExternalPlotHeightPadding } from '../definitions/UIDefinitions'
 
 let markerNames: string[]
 let selectedPlotMarkers: string[] | null
@@ -14,6 +15,7 @@ let selectedType: string | null
 let selectedNormalization: string | null
 let plotData: PlotData | null
 let windowWidth: number | null
+let windowHeight: number | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 let setSelectedPlotMarkers = (markers: string[]): void => {
@@ -57,6 +59,8 @@ function render(): void {
         selectedType &&
         selectedNormalization
     ) {
+        let plotHeight = null
+        if (windowHeight != null) plotHeight = windowHeight - ExternalPlotHeightPadding
         ReactDOM.render(
             <div style={{ paddingTop: '10px' }}>
                 <Plot
@@ -76,6 +80,7 @@ function render(): void {
                     setHoveredSegments={setHoveredSegments}
                     setSelectedRange={addPopulationFromRange}
                     plotData={plotData}
+                    maxPlotHeight={plotHeight}
                 />
             </div>,
             document.getElementById('plot'),
@@ -110,5 +115,6 @@ ipcRenderer.on(
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number) => {
     windowWidth = width
+    windowHeight = height
     render()
 })
