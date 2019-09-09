@@ -712,35 +712,31 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         return (
             <SizeMe>
                 {({ size }) => (
-                    <Grid fluid={true}>
-                        <Row center="xs">
-                            <Col>
-                                <div
-                                    className="imcimage"
-                                    ref={el => {
-                                        this.renderImage(
-                                            el,
-                                            imcData,
-                                            channelMarker,
-                                            channelDomain,
-                                            channelVisibility,
-                                            segmentationData,
-                                            segmentationFillAlpha,
-                                            segmentationOutlineAlpha,
-                                            segmentationCentroidsVisible,
-                                            regions,
-                                            highlightedRegions,
-                                            highlightedSegmentsFromGraph,
-                                            exportPath,
-                                            legendVisible,
-                                            size,
-                                            maxHeight,
-                                        )
-                                    }}
-                                />
-                            </Col>
-                        </Row>
-                    </Grid>
+                    <div>
+                        <div
+                            className="imcimage"
+                            ref={el => {
+                                this.renderImage(
+                                    el,
+                                    imcData,
+                                    channelMarker,
+                                    channelDomain,
+                                    channelVisibility,
+                                    segmentationData,
+                                    segmentationFillAlpha,
+                                    segmentationOutlineAlpha,
+                                    segmentationCentroidsVisible,
+                                    regions,
+                                    highlightedRegions,
+                                    highlightedSegmentsFromGraph,
+                                    exportPath,
+                                    legendVisible,
+                                    size,
+                                    maxHeight,
+                                )
+                            }}
+                        />
+                    </div>
                 )}
             </SizeMe>
         )

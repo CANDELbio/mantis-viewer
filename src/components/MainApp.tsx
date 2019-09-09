@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { SizeMe } from 'react-sizeme'
 import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner, Progress } from 'reactstrap'
 
 import { ProjectStore } from '../stores/ProjectStore'
@@ -12,8 +11,6 @@ import { ImageSetSelector } from './ImageSetSelector'
 import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './SelectedPopulations'
-import { ImageData } from '../lib/ImageData'
-import { SegmentationData } from '../lib/SegmentationData'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { ImageChannels, GraphSelectionPrefix, ImageSelectionPrefix } from '../definitions/UIDefinitions'
 
@@ -281,7 +278,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 {this.loadingModal(imageDataLoading, segmentationDataLoading)}
                 {this.exportModal(numExported, numToExport)}
                 <Grid fluid={true} style={paddingStyle}>
-                    <Row between="xs">
+                    <Row between="xs" center="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
                             <div style={fullWidthBottomSpaced}>{imageSetSelector}</div>
                             <Button onClick={this.handleChannelClick} style={fullWidthBottomSpaced} size="sm">
