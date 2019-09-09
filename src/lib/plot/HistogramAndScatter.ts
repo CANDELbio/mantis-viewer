@@ -212,8 +212,8 @@ export function buildScatterData(
     )
     let layout = {
         title: markers[0] + ' versus ' + markers[1],
-        xaxis: { title: markers[0] },
-        yaxis: { title: markers[1] },
+        xaxis: { title: markers[0], automargin: true },
+        yaxis: { title: markers[1], automargin: true },
     }
     return { markers: markers, data: data, layout: layout }
 }

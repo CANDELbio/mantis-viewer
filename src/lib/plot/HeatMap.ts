@@ -111,6 +111,10 @@ export function buildHeatmapData(
         plotNormalization,
         selectedPopulations,
     )
-    let layout = { title: 'Heatmap of Marker Intensity', xaxis: { tickangle: 45 } }
+    let layout = {
+        title: 'Heatmap of Marker Intensity',
+        xaxis: { tickangle: 45, automargin: true },
+        yaxis: { tickangle: 45, automargin: true },
+    }
     return { markers: markers, data: data, layout: layout }
 }
