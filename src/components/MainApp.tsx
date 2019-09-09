@@ -134,55 +134,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return modal
     }
 
-    private renderImageViewer(
-        imageData: ImageData | null,
-        segmentationData: SegmentationData | null,
-        segmentationFillAlpha: number,
-        segmentationOutlineAlpha: number,
-        segmentationCentroidsVisible: boolean,
-        channelDomain: Record<ChannelName, [number, number]>,
-        channelVisibility: Record<ChannelName, boolean>,
-        channelMarker: Record<ChannelName, string | null>,
-        maxWidth: number | null,
-        windowHeight: number | null,
-        addSelectedPopulation: (selectedRegion: number[], selectedSegments: number[], color: number) => void,
-        updateSelectedPopulations: (selectedRegions: SelectedPopulation[]) => void,
-        selectedRegions: SelectedPopulation[] | null,
-        hightlightedRegions: string[],
-        highlightedSegments: number[],
-        exportPath: string | null,
-        onExportComplete: () => void,
-        legendVisible: boolean,
-    ): JSX.Element | null {
-        let viewer = null
-        if (imageData != null && windowHeight != null && maxWidth != null) {
-            let maxRendererSize = { width: maxWidth, height: windowHeight - WindowHeightBufferSize }
-            viewer = (
-                <ImageViewer
-                    imageData={imageData}
-                    segmentationData={segmentationData}
-                    segmentationFillAlpha={segmentationFillAlpha}
-                    segmentationOutlineAlpha={segmentationOutlineAlpha}
-                    segmentationCentroidsVisible={segmentationCentroidsVisible}
-                    channelDomain={channelDomain}
-                    channelVisibility={channelVisibility}
-                    channelMarker={channelMarker}
-                    maxRendererSize={maxRendererSize}
-                    addSelectedRegion={addSelectedPopulation}
-                    updateSelectedRegions={updateSelectedPopulations}
-                    selectedRegions={selectedRegions}
-                    hightlightedRegions={hightlightedRegions}
-                    highlightedSegmentsFromPlot={highlightedSegments}
-                    exportPath={exportPath}
-                    onExportComplete={onExportComplete}
-                    legendVisible={legendVisible}
-                />
-            )
-        }
-
-        return viewer
-    }
-
     public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
         let windowHeight = props.projectStore.windowHeight
         // If window height is defined, and we are now too short for both image controls and channels to be open, close controls.
@@ -198,7 +149,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageStore = projectStore.activeImageStore
         let populationStore = projectStore.activePopulationStore
         let plotStore = projectStore.activePlotStore
+        let settingStore = projectStore.settingStore
 
+        let imageViewer = null
         let imageSetSelector = null
         let channelControls = null
         let scatterPlot = null
@@ -245,9 +198,33 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     centroidsVisible={imageStore.segmentationCentroidsVisible}
                     setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
                     onClearSegmentation={projectStore.clearActiveSegmentationData}
-                    legendVisible={projectStore.settingStore.legendVisible}
-                    setLegendVisible={projectStore.settingStore.setLegendVisible}
+                    legendVisible={settingStore.legendVisible}
+                    setLegendVisible={settingStore.setLegendVisible}
                     segmentationLoaded={imageStore.segmentationData != null}
+                />
+            )
+
+            let windowHeight = null
+            if (projectStore.windowHeight != null) windowHeight = projectStore.windowHeight - WindowHeightBufferSize
+            imageViewer = (
+                <ImageViewer
+                    imageData={imageStore.imageData}
+                    segmentationData={imageStore.segmentationData}
+                    segmentationFillAlpha={imageStore.segmentationFillAlpha}
+                    segmentationOutlineAlpha={imageStore.segmentationOutlineAlpha}
+                    segmentationCentroidsVisible={imageStore.segmentationCentroidsVisible}
+                    channelDomain={imageStore.channelDomain}
+                    channelVisibility={imageStore.channelVisibility}
+                    channelMarker={imageStore.channelMarker}
+                    addSelectedRegion={this.addSelectionFromImage}
+                    updateSelectedRegions={this.updateSelectionsFromImage}
+                    selectedRegions={populationStore.selectedPopulations}
+                    hightlightedRegions={populationStore.highlightedPopulations}
+                    highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                    exportPath={imageStore.imageExportFilename}
+                    onExportComplete={imageStore.clearImageExportFilename}
+                    legendVisible={settingStore.legendVisible}
+                    maxHeight={windowHeight}
                 />
             )
             if (imageStore.segmentationData != null) {
@@ -293,25 +270,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let fullWidthBottomSpaced = { marginBottom: '0.5rem', width: '100%' }
         let paddingStyle = { paddingTop: '10px' }
 
-        // Dereferencing these here for rendering the image viewer
-        // With the way SizeMe works, any variables dereferenced within it
-        // don't work as dereferences to trigger a React rerender
-        let imageData = imageStore.imageData
-        let segmentationData = imageStore.segmentationData
-        let segmentationFillAlpha = imageStore.segmentationFillAlpha
-        let segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
-        let segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
-        let channelDomain = imageStore.channelDomain
-        let channelVisibility = imageStore.channelVisibility
-        let channelMarker = imageStore.channelMarker
-        let windowHeight = projectStore.windowHeight
-        let selectedRegions = populationStore.selectedPopulations
-        let hightlightedRegions = populationStore.highlightedPopulations
-        let highlightedSegmentsFromPlot = plotStore.segmentsHoveredOnPlot
-        let exportPath = imageStore.imageExportFilename
-        let onExportComplete = imageStore.clearImageExportFilename
-        let legendVisible = projectStore.settingStore.legendVisible
-
         let imageDataLoading = imageStore.imageDataLoading
         let segmentationDataLoading = imageStore.segmentationDataLoading
 
@@ -339,38 +297,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{imageControls}</div>
                             </Collapse>
                         </Col>
-                        <SizeMe>
-                            {({ size }) => (
-                                <Col xs={6} sm={6} md={6} lg={6}>
-                                    <Grid fluid={true}>
-                                        <Row center="xs">
-                                            <Col>
-                                                {this.renderImageViewer(
-                                                    imageData,
-                                                    segmentationData,
-                                                    segmentationFillAlpha,
-                                                    segmentationOutlineAlpha,
-                                                    segmentationCentroidsVisible,
-                                                    channelDomain,
-                                                    channelVisibility,
-                                                    channelMarker,
-                                                    size.width,
-                                                    windowHeight,
-                                                    this.addSelectionFromImage,
-                                                    this.updateSelectionsFromImage,
-                                                    selectedRegions,
-                                                    hightlightedRegions,
-                                                    highlightedSegmentsFromPlot,
-                                                    exportPath,
-                                                    onExportComplete,
-                                                    legendVisible,
-                                                )}
-                                            </Col>
-                                        </Row>
-                                    </Grid>
-                                </Col>
-                            )}
-                        </SizeMe>
+                        <Col xs={6} sm={6} md={6} lg={6}>
+                            {imageViewer}
+                        </Col>
                         <Col xs={4} sm={4} md={4} lg={4}>
                             <Button onClick={this.handleRegionsClick} style={fullWidthBottomSpaced} size="sm">
                                 {this.state.regionsOpen ? 'Hide' : 'Show'} Selected Populations

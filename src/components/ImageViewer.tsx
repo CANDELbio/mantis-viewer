@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import { observer } from 'mobx-react'
+import { SizeMe } from 'react-sizeme'
+import { Grid, Row, Col } from 'react-flexbox-grid'
 
 import { ImageData } from '../lib/ImageData'
 import {
@@ -38,11 +40,8 @@ export interface ImageProps {
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
     onExportComplete: () => void
-    maxRendererSize: {
-        width: number
-        height: number
-    }
     legendVisible: boolean
+    maxHeight: number | null
 }
 
 @observer
@@ -327,29 +326,34 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.checkSetStageBounds()
     }
 
-    private setScaleFactors(imcData: ImageData, maxRendererSize: { width: number; height: number }): void {
-        // Setting up the scale factor trying to maximize the width
-        let scaleFactor = maxRendererSize.width / imcData.width
-        let scaledHeight = imcData.height * scaleFactor
-        let scaledWidth = maxRendererSize.width
+    private setScaleFactors(
+        imcData: ImageData,
+        maxRendererSize: { width: number | null; height: number | null },
+    ): void {
+        if (maxRendererSize.width != null && maxRendererSize.height != null) {
+            // Setting up the scale factor trying to maximize the width
+            let scaleFactor = maxRendererSize.width / imcData.width
+            let scaledHeight = imcData.height * scaleFactor
+            let scaledWidth = maxRendererSize.width
 
-        // If the scaled height is larger than the max allowable, scale to maximize the height.
-        if (scaledHeight > maxRendererSize.height) {
-            scaleFactor = maxRendererSize.height / imcData.height
-            scaledHeight = maxRendererSize.height
-            scaledWidth = imcData.width * scaleFactor
+            // If the scaled height is larger than the max allowable, scale to maximize the height.
+            if (scaledHeight > maxRendererSize.height) {
+                scaleFactor = maxRendererSize.height / imcData.height
+                scaledHeight = maxRendererSize.height
+                scaledWidth = imcData.width * scaleFactor
+            }
+
+            // Save the results
+            this.rendererWidth = scaledWidth
+            this.rendererHeight = scaledHeight
+            this.minScale = scaleFactor
         }
-
-        // Save the results
-        this.rendererWidth = scaledWidth
-        this.rendererHeight = scaledHeight
-        this.minScale = scaleFactor
     }
 
     // Resizes the WebGL Renderer and sets the new scale factors accordingly.
     // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
     // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
-    private resizeGraphics(imcData: ImageData, maxRendererSize: { width: number; height: number }): void {
+    private resizeGraphics(imcData: ImageData, maxRendererSize: { width: number | null; height: number | null }): void {
         this.setScaleFactors(imcData, maxRendererSize)
         this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
@@ -361,7 +365,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.scale.y = this.minScale
     }
 
-    private initializeGraphics(imcData: ImageData, maxRendererSize: { width: number; height: number }): void {
+    private initializeGraphics(
+        imcData: ImageData,
+        maxRendererSize: { width: number | null; height: number | null },
+    ): void {
         if (this.el == null) return
 
         this.setScaleFactors(imcData, maxRendererSize)
@@ -589,11 +596,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         highlightedRegions: string[],
         highlightedSegmentsFromGraph: number[],
         exportPath: string | null,
-        maxRendererSize: { width: number; height: number },
         legendVisible: boolean,
+        rendererSize: { width: number | null; height: number | null },
+        maxHeight: number | null,
     ): void {
         if (el == null) return
         this.el = el
+
+        let maxRendererSize = rendererSize
+        if (maxHeight != null) maxRendererSize.height = maxHeight
+
+        console.log('Rendering with:')
+        console.log(maxRendererSize)
 
         if (!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, maxRendererSize)
@@ -691,33 +705,44 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let exportPath = this.props.exportPath
 
-        let maxRendererSize = this.props.maxRendererSize
-
         let legendVisible = this.props.legendVisible
 
+        let maxHeight = this.props.maxHeight
+
         return (
-            <div
-                className="imcimage"
-                ref={el => {
-                    this.renderImage(
-                        el,
-                        imcData,
-                        channelMarker,
-                        channelDomain,
-                        channelVisibility,
-                        segmentationData,
-                        segmentationFillAlpha,
-                        segmentationOutlineAlpha,
-                        segmentationCentroidsVisible,
-                        regions,
-                        highlightedRegions,
-                        highlightedSegmentsFromGraph,
-                        exportPath,
-                        maxRendererSize,
-                        legendVisible,
-                    )
-                }}
-            />
+            <SizeMe>
+                {({ size }) => (
+                    <Grid fluid={true}>
+                        <Row center="xs">
+                            <Col>
+                                <div
+                                    className="imcimage"
+                                    ref={el => {
+                                        this.renderImage(
+                                            el,
+                                            imcData,
+                                            channelMarker,
+                                            channelDomain,
+                                            channelVisibility,
+                                            segmentationData,
+                                            segmentationFillAlpha,
+                                            segmentationOutlineAlpha,
+                                            segmentationCentroidsVisible,
+                                            regions,
+                                            highlightedRegions,
+                                            highlightedSegmentsFromGraph,
+                                            exportPath,
+                                            legendVisible,
+                                            size,
+                                            maxHeight,
+                                        )
+                                    }}
+                                />
+                            </Col>
+                        </Row>
+                    </Grid>
+                )}
+            </SizeMe>
         )
     }
 }
