@@ -189,7 +189,11 @@ export function buildHistogramData(
         plotTransform,
         selectedPopulations,
     )
-    let layout: Partial<Plotly.Layout> = { title: markers[0], xaxis: { title: markers[0] }, barmode: 'overlay' }
+    let layout: Partial<Plotly.Layout> = {
+        title: markers[0],
+        xaxis: { title: markers[0], automargin: true },
+        barmode: 'overlay',
+    }
     return { markers: markers, data: data, layout: layout }
 }
 
@@ -210,10 +214,11 @@ export function buildScatterData(
         plotTransform,
         selectedPopulations,
     )
-    let layout = {
+    let layout: Partial<Plotly.Layout> = {
         title: markers[0] + ' versus ' + markers[1],
-        xaxis: { title: markers[0], automargin: true },
-        yaxis: { title: markers[1], automargin: true },
+        xaxis: { title: markers[0], automargin: true, constrain: 'domain' },
+        yaxis: { title: markers[1], automargin: true, scaleanchor: 'x' },
     }
+
     return { markers: markers, data: data, layout: layout }
 }
