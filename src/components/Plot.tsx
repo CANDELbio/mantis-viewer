@@ -7,7 +7,9 @@ import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
+import { Slider } from '@blueprintjs/core'
 import { SizeMe } from 'react-sizeme'
+
 import { PlotData } from '../interfaces/DataInterfaces'
 import { DefaultSelectionName } from '../definitions/PlotDefinitions'
 import {
@@ -20,6 +22,8 @@ import {
     PlotTransformOptions,
     PlotNormalizationOptions,
     PlotNormalization,
+    PlotMinDotSize,
+    PlotMaxDotSize,
 } from '../definitions/UIDefinitions'
 import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
@@ -27,13 +31,15 @@ interface PlotProps {
     markers: string[]
     selectedPlotMarkers: string[]
     setSelectedPlotMarkers: (x: string[]) => void
-    selectedStatistic: string
+    selectedStatistic: PlotStatistic
     setSelectedStatistic: (x: PlotStatistic) => void
-    selectedTransform: string
+    selectedTransform: PlotTransform
     setSelectedTransform: (x: PlotTransform) => void
-    selectedType: string
+    selectedType: PlotType
     setSelectedType: (x: PlotType) => void
     selectedNormalization: string
+    setDotSize: (x: number) => void
+    dotSize: number
     setSelectedNormalization: (x: PlotNormalization) => void
     setSelectedSegments: (selectedSegments: number[]) => void
     setSelectedRange: (min: number, max: number) => void
@@ -230,6 +236,17 @@ export class Plot extends React.Component<PlotProps, {}> {
             />
         )
 
+        let dotControlsDisabled = this.props.selectedType != 'scatter'
+        let dotControls = (
+            <Slider
+                min={PlotMinDotSize}
+                max={PlotMaxDotSize}
+                value={this.props.dotSize}
+                onChange={this.props.setDotSize}
+                disabled={dotControlsDisabled}
+            />
+        )
+
         let plot = (
             <SizeMe monitorWidth={true}>
                 {({ size }) => (
@@ -285,6 +302,8 @@ export class Plot extends React.Component<PlotProps, {}> {
                         {statisticControls}
                         {transformControls}
                         {normalizationControls}
+                        Dot Size
+                        {dotControls}
                     </PopoverBody>
                 </Popover>
             </div>

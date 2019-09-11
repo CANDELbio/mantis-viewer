@@ -6,6 +6,7 @@ import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../..
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 import { PlotData } from '../../interfaces/DataInterfaces'
 
+// dotSize is optional and only used for Scatter.
 export function generatePlotData(
     markers: string[],
     segmentationData: SegmentationData,
@@ -15,6 +16,7 @@ export function generatePlotData(
     plotTransform: PlotTransform,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
+    dotSize?: number,
 ): PlotData | null {
     let plotData: PlotData | null = null
     if (plotType == 'histogram' && markers.length == 1) {
@@ -34,6 +36,7 @@ export function generatePlotData(
             plotStatistic,
             plotTransform,
             selectedPopulations,
+            dotSize,
         )
     } else if (plotType == 'heatmap') {
         plotData = buildHeatmapData(

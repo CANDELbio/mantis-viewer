@@ -531,6 +531,7 @@ ipcMain.on(
         transform: string,
         type: string,
         normalization: string,
+        size: number,
         plotData: any,
     ) => {
         if (plotWindow != null)
@@ -542,6 +543,7 @@ ipcMain.on(
                 transform,
                 type,
                 normalization,
+                size,
                 plotData,
             )
     },
@@ -562,6 +564,10 @@ ipcMain.on('plotWindow-set-transform', (event: Electron.Event, transform: any) =
 
 ipcMain.on('plotWindow-set-type', (event: Electron.Event, type: any) => {
     if (mainWindow != null) mainWindow.webContents.send('set-plot-type', type)
+})
+
+ipcMain.on('plotWindow-set-dot-size', (event: Electron.Event, size: number) => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-dot-size', size)
 })
 
 ipcMain.on('plotWindow-set-normalization', (event: Electron.Event, normalization: any) => {

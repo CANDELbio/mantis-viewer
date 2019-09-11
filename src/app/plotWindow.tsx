@@ -5,17 +5,18 @@ import * as ReactDOM from 'react-dom'
 import { ipcRenderer } from 'electron'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { Plot } from '../components/Plot'
-import { ExternalPlotHeightPadding } from '../definitions/UIDefinitions'
+import { ExternalPlotHeightPadding, PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
 
 let markerNames: string[]
 let selectedPlotMarkers: string[] | null
-let selectedStatistic: string | null
-let selectedTransform: string | null
-let selectedType: string | null
+let selectedStatistic: PlotStatistic | null
+let selectedTransform: PlotTransform | null
+let selectedType: PlotType | null
 let selectedNormalization: string | null
 let plotData: PlotData | null
 let windowWidth: number | null
 let windowHeight: number | null
+let dotSize: number
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 let setSelectedPlotMarkers = (markers: string[]): void => {
@@ -32,6 +33,10 @@ let setPlotTranform = (transform: any): void => {
 
 let setPlotType = (type: any): void => {
     ipcRenderer.send('plotWindow-set-type', type)
+}
+
+let setDotSize = (type: any): void => {
+    ipcRenderer.send('plotWindow-set-dot-size', type)
 }
 
 let setPlotNormalization = (type: any): void => {
@@ -81,6 +86,8 @@ function render(): void {
                     setSelectedRange={addPopulationFromRange}
                     plotData={plotData}
                     maxPlotHeight={plotHeight}
+                    dotSize={dotSize}
+                    setDotSize={setDotSize}
                 />
             </div>,
             document.getElementById('plot'),
@@ -95,10 +102,11 @@ ipcRenderer.on(
         event: Electron.Event,
         markers: string[],
         plotMarkers: string[],
-        statistic: string,
-        transform: string,
-        type: string,
+        statistic: PlotStatistic,
+        transform: PlotTransform,
+        type: PlotType,
         normalization: string,
+        size: number,
         data: any,
     ) => {
         markerNames = markers
@@ -107,6 +115,7 @@ ipcRenderer.on(
         selectedTransform = transform
         selectedType = type
         selectedNormalization = normalization
+        dotSize = size
         plotData = data as PlotData
         render()
     },

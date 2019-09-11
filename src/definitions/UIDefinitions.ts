@@ -71,6 +71,9 @@ export const UnselectedCentroidColor = 0xf1c40f // yellow
 export const SelectedCentroidColor = 0xffffff // white
 export const SegmentOutlineColor = 0xffffff // white
 export const HighlightedSegmentOutlineColor = 0xff0000 // red
+export const PlotMinDotSize = 1
+export const DefaultDotSize = 8
+export const PlotMaxDotSize = 10
 
 // Prefixes for new populations selected from graph or image.
 export const GraphSelectionPrefix = 'Graph'

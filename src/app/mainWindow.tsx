@@ -98,6 +98,10 @@ ipcRenderer.on('set-plot-normalization', (event: Electron.Event, normalization: 
     projectStore.activePlotStore.setPlotNormalization(normalization)
 })
 
+ipcRenderer.on('set-plot-dot-size', (event: Electron.Event, size: number) => {
+    projectStore.settingStore.setPlotDotSize(size)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]) => {
     projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
 })
@@ -155,6 +159,7 @@ Mousetrap.bind(['command+right', 'alt+right'], function() {
 Mobx.autorun(() => {
     let imageStore = projectStore.activeImageStore
     let plotStore = projectStore.activePlotStore
+    let settingStore = projectStore.settingStore
     let markerNames = imageStore.imageData ? imageStore.imageData.markerNames : null
     ipcRenderer.send(
         'mainWindow-set-plot-data',
@@ -164,6 +169,7 @@ Mobx.autorun(() => {
         plotStore.plotTransform,
         plotStore.plotType,
         plotStore.plotNormalization,
+        settingStore.plotDotSize,
         plotStore.plotData,
     )
 })

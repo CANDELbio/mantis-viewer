@@ -97,6 +97,7 @@ export class ProjectStore {
         let imageStore = this.activeImageStore
         let populationStore = this.activePopulationStore
         let plotStore = this.activePlotStore
+        let settingStore = this.settingStore
 
         if (imageStore && populationStore && plotStore) {
             let loadHistogram = plotStore.selectedPlotMarkers.length == 1 && plotStore.plotType == 'histogram'
@@ -113,6 +114,7 @@ export class ProjectStore {
                         plotStore.plotTransform,
                         plotStore.plotNormalization,
                         populationStore.selectedPopulations,
+                        settingStore.plotDotSize,
                     )
                     if (plotData != null) plotStore.setPlotData(plotData)
                 }

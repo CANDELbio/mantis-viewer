@@ -254,6 +254,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                             plotData={plotStore.plotData}
                             maxPlotHeight={maxPlotHeight}
+                            dotSize={settingStore.plotDotSize}
+                            setDotSize={settingStore.setPlotDotSize}
                         />
                     )
                 }

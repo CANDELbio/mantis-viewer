@@ -2,7 +2,7 @@ import * as Plotly from 'plotly.js'
 
 import { SegmentationData } from '../SegmentationData'
 import { SegmentationStatistics } from '../SegmentationStatistics'
-import { PlotStatistic, PlotTransform, PlotType } from '../../definitions/UIDefinitions'
+import { PlotStatistic, PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 import { hexToRGB } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
@@ -117,6 +117,7 @@ export function calculatePlotData(
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     selectedRegions: SelectedPopulation[] | null,
+    dotSize?: number,
 ): Partial<Plotly.PlotData>[] {
     let rawPlotData = calculateRawPlotData(
         markers,
@@ -154,7 +155,10 @@ export function calculatePlotData(
             type: plotType == 'scatter' ? 'scattergl' : 'histogram',
             text: plotType == 'scatter' ? selectionData.text : undefined,
             name: getSelectionName(selectionId, selectedRegionMap),
-            marker: { size: 8, color: getSelectionColor(selectionId, selectedRegionMap) },
+            marker: {
+                size: dotSize ? dotSize : DefaultDotSize,
+                color: getSelectionColor(selectionId, selectedRegionMap),
+            },
         }
 
         if (plotType == 'histogram') {
@@ -204,6 +208,7 @@ export function buildScatterData(
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     selectedPopulations: SelectedPopulation[] | null,
+    dotSize?: number,
 ): PlotData {
     let data = calculatePlotData(
         markers,
@@ -213,6 +218,7 @@ export function buildScatterData(
         plotStatistic,
         plotTransform,
         selectedPopulations,
+        dotSize,
     )
     let layout: Partial<Plotly.Layout> = {
         title: markers[0] + ' versus ' + markers[1],

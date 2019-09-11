@@ -14,6 +14,7 @@ import {
     PlotTransform,
     PlotType,
     ImageSettingsFilename,
+    DefaultDotSize,
 } from '../definitions/UIDefinitions'
 
 interface SettingStoreData {
@@ -26,6 +27,7 @@ interface SettingStoreData {
     plotTransform: PlotTransform | null
     plotType: PlotType | null
     plotNormalization: PlotNormalization | null
+    plotDotSize: number
     segmentationFillAlpha: number | null
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
@@ -55,6 +57,7 @@ export class SettingStore {
     @observable public plotTransform: PlotTransform
     @observable public plotType: PlotType
     @observable public plotNormalization: PlotNormalization
+    @observable public plotDotSize: number
 
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
@@ -103,6 +106,7 @@ export class SettingStore {
         this.plotTransform = plotStore.plotTransform
         this.plotType = plotStore.plotType
         this.plotNormalization = plotStore.plotNormalization
+        this.plotDotSize = DefaultDotSize
 
         this.segmentationFillAlpha = imageStore.segmentationFillAlpha
         this.segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
@@ -137,6 +141,11 @@ export class SettingStore {
 
     @action public setPlotNormalization = (normalization: PlotNormalization) => {
         this.plotNormalization = normalization
+        this.exportSettings()
+    }
+
+    @action public setPlotDotSize = (size: number) => {
+        this.plotDotSize = size
         this.exportSettings()
     }
 
@@ -344,6 +353,7 @@ export class SettingStore {
                 plotTransform: this.plotTransform,
                 plotType: this.plotType,
                 plotNormalization: this.plotNormalization,
+                plotDotSize: this.plotDotSize,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -377,6 +387,7 @@ export class SettingStore {
                 if (importingContent.plotTransform) this.plotTransform = importingContent.plotTransform
                 if (importingContent.plotType) this.plotType = importingContent.plotType
                 if (importingContent.plotNormalization) this.plotNormalization = importingContent.plotNormalization
+                if (importingContent.plotDotSize) this.plotDotSize = importingContent.plotDotSize
                 if (importingContent.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingContent.segmentationFillAlpha
                 if (importingContent.segmentationOutlineAlpha)
