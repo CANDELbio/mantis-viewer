@@ -152,6 +152,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let populationStore = projectStore.activePopulationStore
         let plotStore = projectStore.activePlotStore
         let settingStore = projectStore.settingStore
+        let exportStore = projectStore.exportStore
 
         let imageViewer = null
         let imageSetSelector = null
@@ -279,8 +280,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageDataLoading = imageStore.imageDataLoading
         let segmentationDataLoading = imageStore.segmentationDataLoading
 
-        let numExported = projectStore.numExported
-        let numToExport = projectStore.numToExport
+        let numExported = exportStore.numExported
+        let numToExport = exportStore.numToExport
 
         return (
             <div>

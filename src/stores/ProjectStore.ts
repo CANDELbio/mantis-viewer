@@ -1,17 +1,16 @@
 import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as stringify from 'csv-stringify'
 
 import { ImageStore } from '../stores/ImageStore'
 import { PopulationStore } from '../stores/PopulationStore'
 import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
+import { ExportStore } from '../stores/ExportStore'
 import { generatePlotData } from '../lib/plot/Index'
 import { ChannelName, PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
-import { writeToFCS } from '../lib/FcsWriter'
 
 interface ImageSet {
     imageStore: ImageStore
@@ -33,6 +32,7 @@ export class ProjectStore {
     @observable.ref public activePopulationStore: PopulationStore
     @observable.ref public activePlotStore: PlotStore
     @observable.ref public settingStore: SettingStore
+    @observable.ref public exportStore: ExportStore
     @observable.ref public configurationHelper: ConfigurationHelper
 
     // The width and height of the main window.
@@ -49,13 +49,9 @@ export class ProjectStore {
     // Message to be shown if the user is being prompted to delete the active image set.
     @observable public removeMessage: string | null
 
-    // Used to track progress when exporting FCS/Stats for whole project
-    @observable.ref public numToExport: number
-    @observable.ref public numExported: number
-
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
-    private imageSetHistory: string[]
+    @observable public imageSetHistory: string[]
 
     public constructor(appVersion: string) {
         this.appVersion = appVersion
@@ -64,8 +60,6 @@ export class ProjectStore {
 
     @action public initialize = () => {
         this.plotInMainWindow = true
-        this.numToExport = 0
-        this.numExported = 0
 
         this.configurationHelper = new ConfigurationHelper()
 
@@ -82,6 +76,7 @@ export class ProjectStore {
         }
 
         this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
+        this.exportStore = new ExportStore(this)
         this.imageSetHistory = []
         this.initializeImageSets()
     }
@@ -178,7 +173,7 @@ export class ProjectStore {
         }
     }
 
-    @action private loadImageStoreData = (dirName: string) => {
+    @action public loadImageStoreData = (dirName: string) => {
         // If we haven't loaded this directory, initialize the stores and load it.
         if (!(dirName in this.imageSets)) {
             this.initializeStores(dirName)
@@ -347,230 +342,6 @@ export class ProjectStore {
     @action public clearSelectedPlotMarkers = () => {
         this.settingStore.clearSelectedPlotMarkers()
         this.activePlotStore.clearSelectedPlotMarkers()
-    }
-
-    @action public incrementNumToExport = () => {
-        this.numToExport += 1
-    }
-
-    @action public incrementNumExported = () => {
-        this.numExported += 1
-        // If we've exported all files, mark done.
-        if (this.numExported >= this.numToExport) {
-            this.numToExport = 0
-            this.numExported = 0
-        }
-    }
-
-    public exportMarkerIntensisties = (
-        filename: string,
-        statistic: PlotStatistic,
-        imageStore?: ImageStore,
-        populationStore?: PopulationStore,
-    ) => {
-        if (imageStore == undefined) imageStore = this.activeImageStore
-        let imageData = imageStore.imageData
-        let segmentationData = imageStore.segmentationData
-        let segmentationStatistics = imageStore.segmentationStatistics
-        if (populationStore == undefined) populationStore = this.activePopulationStore
-        if (imageData != null && segmentationData != null && segmentationStatistics != null) {
-            let markers = imageData.markerNames
-            let data = [] as string[][]
-
-            // Generate the header
-            let columns = ['Segment ID']
-            for (let marker of markers) {
-                columns.push(marker)
-            }
-            columns.push('Centroid X')
-            columns.push('Centroid Y')
-            columns.push('Populations')
-
-            // Iterate through the segments and calculate the intensity for each marker
-            let indexMap = segmentationData.segmentIndexMap
-            let centroidMap = segmentationData.centroidMap
-            for (let s in indexMap) {
-                let segmentId = parseInt(s)
-                let segmentData = [s] as string[]
-                for (let marker of markers) {
-                    if (statistic == 'mean') {
-                        segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]).toString())
-                    } else {
-                        segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]).toString())
-                    }
-                }
-
-                // Add the Centroid points
-                let segmentCentroid = centroidMap[segmentId]
-                segmentData.push(segmentCentroid.x.toString())
-                segmentData.push(segmentCentroid.y.toString())
-
-                // Figure out which populations this segment belongs to
-                let populations = []
-                for (let population of populationStore.selectedPopulations) {
-                    if (population.selectedSegments.indexOf(segmentId) > -1) populations.push(population.name)
-                }
-                segmentData.push(populations.join(','))
-
-                data.push(segmentData)
-            }
-
-            // Write to a CSV
-            stringify(data, { header: true, columns: columns }, (err, output) => {
-                if (err) console.log('Error saving intensities ' + err)
-                fs.writeFile(filename, output, err => {
-                    if (err) console.log('Error saving intensities ' + err)
-                })
-            })
-        }
-    }
-
-    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
-        for (let curDir of this.imageSetPaths) {
-            // Incrementing num to export so we can have a loading bar.
-            this.incrementNumToExport()
-            this.loadImageStoreData(curDir)
-            let imageStore = this.imageSets[curDir].imageStore
-            let populationStore = this.imageSets[curDir].populationStore
-            when(
-                () => !imageStore.imageDataLoading,
-                () => {
-                    // If we don't have segmentation, then skip this one.
-                    if (imageStore.selectedSegmentationFile) {
-                        when(
-                            () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
-                            () => {
-                                let selectedDirectory = imageStore.selectedDirectory
-                                if (selectedDirectory) {
-                                    let imageSetName = path.basename(selectedDirectory)
-                                    let filename = imageSetName + '_' + statistic + '.csv'
-                                    let filePath = path.join(dirName, filename)
-                                    this.exportMarkerIntensisties(filePath, statistic, imageStore, populationStore)
-                                    // Mark as done exporting for loading bar.
-                                    this.incrementNumExported()
-                                    // If this image set shouldn't be in memory, clear it out
-                                    if (!this.imageSetHistory.includes(selectedDirectory)) {
-                                        imageStore.clearImageData()
-                                        imageStore.clearSegmentationData()
-                                    }
-                                }
-                            },
-                        )
-                    } else {
-                        // Mark as success if we're not going to export it
-                        this.incrementNumExported()
-                    }
-                },
-            )
-        }
-    }
-
-    public exportPopulationsToFCS = (
-        dirName: string,
-        statistic: PlotStatistic,
-        filePrefix?: string,
-        imageStore?: ImageStore,
-        populationStore?: PopulationStore,
-    ) => {
-        if (populationStore == undefined) populationStore = this.activePopulationStore
-        for (let population of populationStore.selectedPopulations) {
-            // Replace spaces with underscores in the population name and add the statistic being exported
-            let filename = population.name.replace(/ /g, '_') + '_' + statistic + '.fcs'
-            if (filePrefix) filename = filePrefix + '_' + filename
-            let filePath = path.join(dirName, filename)
-            if (population.selectedSegments.length > 0) {
-                this.exportToFCS(filePath, statistic, population.selectedSegments, imageStore)
-            }
-        }
-    }
-
-    public exportToFCS = (
-        filePath: string,
-        statistic: PlotStatistic,
-        segmentIds?: number[],
-        imageStore?: ImageStore,
-    ) => {
-        if (imageStore == undefined) imageStore = this.activeImageStore
-        let imageData = imageStore.imageData
-        let segmentationData = imageStore.segmentationData
-        let segmentationStatistics = imageStore.segmentationStatistics
-        if (imageData != null && segmentationData != null && segmentationStatistics != null) {
-            let markers = imageData.markerNames
-            let data = [] as number[][]
-            // Iterate through the segments and calculate the intensity for each marker
-            let indexMap = segmentationData.segmentIndexMap
-            let centroidMap = segmentationData.centroidMap
-            for (let s in indexMap) {
-                let segmentId = parseInt(s)
-                // If segmentIds isn't defined include this segment, otherwise check if this segment is in segmentIds
-                if (segmentIds == undefined || segmentIds.includes(segmentId)) {
-                    let segmentData = [] as number[]
-                    for (let marker of markers) {
-                        if (statistic == 'mean') {
-                            segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]))
-                        } else {
-                            segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]))
-                        }
-                    }
-                    let segmentCentroid = centroidMap[segmentId]
-                    segmentData.push(segmentCentroid.x)
-                    segmentData.push(segmentCentroid.y)
-                    segmentData.push(segmentId)
-                    data.push(segmentData)
-                }
-            }
-            writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data, this.appVersion)
-        }
-    }
-
-    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
-        for (let curDir of this.imageSetPaths) {
-            // Incrementing num to export so we can have a loading bar.
-            this.incrementNumToExport()
-            this.loadImageStoreData(curDir)
-            let imageStore = this.imageSets[curDir].imageStore
-            let populationStore = this.imageSets[curDir].populationStore
-            when(
-                () => !imageStore.imageDataLoading,
-                () => {
-                    // If we don't have segmentation, then skip this one.
-                    if (imageStore.selectedSegmentationFile) {
-                        when(
-                            () => !imageStore.segmentationDataLoading && !imageStore.segmentationStatisticsLoading,
-                            () => {
-                                let selectedDirectory = imageStore.selectedDirectory
-                                if (selectedDirectory) {
-                                    let imageSetName = path.basename(selectedDirectory)
-                                    if (populations) {
-                                        this.exportPopulationsToFCS(
-                                            dirName,
-                                            statistic,
-                                            imageSetName,
-                                            imageStore,
-                                            populationStore,
-                                        )
-                                    } else {
-                                        let filename = imageSetName + '_' + statistic + '.fcs'
-                                        let filePath = path.join(dirName, filename)
-                                        this.exportToFCS(filePath, statistic)
-                                    }
-                                    // Mark this set of files as loaded for loading bar.
-                                    this.incrementNumExported()
-                                    // If this image set shouldn't be in memory, clear it out
-                                    if (!this.imageSetHistory.includes(selectedDirectory)) {
-                                        imageStore.clearImageData()
-                                        imageStore.clearSegmentationData()
-                                    }
-                                }
-                            },
-                        )
-                    } else {
-                        // Mark as success if we're not going to export it
-                        this.incrementNumExported()
-                    }
-                },
-            )
-        }
     }
 
     @action public addPopulationFromRange = (min: number, max: number) => {

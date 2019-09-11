@@ -48,19 +48,19 @@ ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {
 })
 
 ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportMarkerIntensisties(filename, 'mean')
+    projectStore.exportStore.exportMarkerIntensisties(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportMarkerIntensisties(filename, 'median')
+    projectStore.exportStore.exportMarkerIntensisties(filename, 'median')
 })
 
 ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectMarkerIntensities(dirName, 'mean')
+    projectStore.exportStore.exportProjectMarkerIntensities(dirName, 'mean')
 })
 
 ipcRenderer.on('export-project-median-intensities', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectMarkerIntensities(dirName, 'median')
+    projectStore.exportStore.exportProjectMarkerIntensities(dirName, 'median')
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
@@ -111,35 +111,35 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
 })
 
 ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportPopulationsToFCS(dirName, 'mean')
+    projectStore.exportStore.exportPopulationsToFCS(dirName, 'mean')
 })
 
 ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportPopulationsToFCS(dirName, 'median')
+    projectStore.exportStore.exportPopulationsToFCS(dirName, 'median')
 })
 
 ipcRenderer.on('export-project-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectToFCS(dirName, 'mean', true)
+    projectStore.exportStore.exportProjectToFCS(dirName, 'mean', true)
 })
 
 ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectToFCS(dirName, 'median', true)
+    projectStore.exportStore.exportProjectToFCS(dirName, 'median', true)
 })
 
 ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
-    projectStore.exportToFCS(filename, 'mean')
+    projectStore.exportStore.exportToFCS(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
-    projectStore.exportToFCS(filename, 'median')
+    projectStore.exportStore.exportToFCS(filename, 'median')
 })
 
 ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectToFCS(dirName, 'mean', false)
+    projectStore.exportStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
 ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportProjectToFCS(dirName, 'median', false)
+    projectStore.exportStore.exportProjectToFCS(dirName, 'median', false)
 })
 
 // Keyboard shortcuts!
