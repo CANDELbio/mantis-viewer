@@ -256,6 +256,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             maxPlotHeight={maxPlotHeight}
                             dotSize={settingStore.plotDotSize}
                             setDotSize={settingStore.setPlotDotSize}
+                            transformCoefficient={settingStore.transformCoefficient}
+                            setTransformCoefficient={settingStore.setTransformCoefficient}
                         />
                     )
                 }

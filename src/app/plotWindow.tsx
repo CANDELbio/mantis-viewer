@@ -17,6 +17,7 @@ let plotData: PlotData | null
 let windowWidth: number | null
 let windowHeight: number | null
 let dotSize: number
+let transformCoefficient: number | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 let setSelectedPlotMarkers = (markers: string[]): void => {
@@ -41,6 +42,10 @@ let setDotSize = (type: any): void => {
 
 let setPlotNormalization = (type: any): void => {
     ipcRenderer.send('plotWindow-set-normalization', type)
+}
+
+let setTransformCoefficient = (coefficient: number): void => {
+    ipcRenderer.send('plotWindow-set-coefficient', coefficient)
 }
 
 let addSelectedPopulation = (segmentIds: number[]): void => {
@@ -88,6 +93,8 @@ function render(): void {
                     maxPlotHeight={plotHeight}
                     dotSize={dotSize}
                     setDotSize={setDotSize}
+                    transformCoefficient={transformCoefficient}
+                    setTransformCoefficient={setTransformCoefficient}
                 />
             </div>,
             document.getElementById('plot'),
@@ -107,6 +114,7 @@ ipcRenderer.on(
         type: PlotType,
         normalization: string,
         size: number,
+        coefficient: number,
         data: any,
     ) => {
         markerNames = markers
@@ -116,6 +124,7 @@ ipcRenderer.on(
         selectedType = type
         selectedNormalization = normalization
         dotSize = size
+        transformCoefficient = coefficient
         plotData = data as PlotData
         render()
     },

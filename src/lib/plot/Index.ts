@@ -14,6 +14,7 @@ export function generatePlotData(
     plotType: PlotType,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
     dotSize?: number,
@@ -26,6 +27,7 @@ export function generatePlotData(
             segmentationStatistics,
             plotStatistic,
             plotTransform,
+            transformCoefficient,
             selectedPopulations,
         )
     } else if ((plotType == 'scatter' || plotType == 'contour') && markers.length == 2) {
@@ -36,6 +38,7 @@ export function generatePlotData(
             segmentationStatistics,
             plotStatistic,
             plotTransform,
+            transformCoefficient,
             selectedPopulations,
             dotSize,
         )
@@ -46,6 +49,7 @@ export function generatePlotData(
             segmentationStatistics,
             plotStatistic,
             plotTransform,
+            transformCoefficient,
             plotNormalization,
             selectedPopulations,
         )

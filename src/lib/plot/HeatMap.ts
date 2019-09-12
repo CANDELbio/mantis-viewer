@@ -49,6 +49,7 @@ function calculateHeatmapData(
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
@@ -72,6 +73,7 @@ function calculateHeatmapData(
                 marker,
                 selectedSegments,
                 plotTransform,
+                transformCoefficient,
                 segmentationStatistics,
             )
             markerIntensities.push(intensity)
@@ -100,6 +102,7 @@ export function buildHeatmapData(
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
@@ -108,6 +111,7 @@ export function buildHeatmapData(
         segmentationStatistics,
         plotStatistic,
         plotTransform,
+        transformCoefficient,
         plotNormalization,
         selectedPopulations,
     )

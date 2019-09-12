@@ -102,6 +102,10 @@ ipcRenderer.on('set-plot-dot-size', (event: Electron.Event, size: number) => {
     projectStore.settingStore.setPlotDotSize(size)
 })
 
+ipcRenderer.on('set-plot-coefficient', (event: Electron.Event, coefficient: number) => {
+    projectStore.settingStore.setTransformCoefficient(coefficient)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]) => {
     projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
 })
@@ -170,6 +174,7 @@ Mobx.autorun(() => {
         plotStore.plotType,
         plotStore.plotNormalization,
         settingStore.plotDotSize,
+        settingStore.transformCoefficient,
         plotStore.plotData,
     )
 })

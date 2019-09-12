@@ -32,6 +32,7 @@ interface SettingStoreData {
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
     legendVisible: boolean | null
+    transformCoefficient: number | null
 }
 
 export class SettingStore {
@@ -64,6 +65,8 @@ export class SettingStore {
     @observable public segmentationCentroidsVisible: boolean
 
     @observable public legendVisible: boolean
+
+    @observable public transformCoefficient: number | null
 
     @action public initialize = (imageStore: ImageStore, plotStore: PlotStore) => {
         this.basePath = null
@@ -113,6 +116,7 @@ export class SettingStore {
         this.segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
 
         this.legendVisible = false
+        this.transformCoefficient = null
     }
 
     @action public setBasePath = (path: string) => {
@@ -146,6 +150,11 @@ export class SettingStore {
 
     @action public setPlotDotSize = (size: number) => {
         this.plotDotSize = size
+        this.exportSettings()
+    }
+
+    @action public setTransformCoefficient = (coefficient: number) => {
+        this.transformCoefficient = coefficient
         this.exportSettings()
     }
 
@@ -358,6 +367,7 @@ export class SettingStore {
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
                 legendVisible: this.legendVisible,
+                transformCoefficient: this.transformCoefficient,
             }
             let exportingString = JSON.stringify(exporting)
             let filename = path.join(this.basePath, ImageSettingsFilename)
@@ -395,6 +405,8 @@ export class SettingStore {
                 if (importingContent.segmentationCentroidsVisible)
                     this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
                 if (importingContent.legendVisible) this.legendVisible = importingContent.legendVisible
+                if (importingContent.transformCoefficient)
+                    this.transformCoefficient = importingContent.transformCoefficient
             }
         }
     }

@@ -2,6 +2,7 @@ import { SegmentationStatistics } from '../SegmentationStatistics'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 
 import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDefinitions'
+import { PlotTransform, PlotStatistic } from '../../definitions/UIDefinitions'
 
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
     let selectionIds = [DefaultSelectionId]
@@ -30,10 +31,11 @@ export function buildSelectedRegionMap(
 }
 
 export function getSegmentIntensity(
-    plotStatistic: string,
+    plotStatistic: PlotStatistic,
     marker: string,
     segmentIds: number[],
-    plotTransform: string,
+    plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     segmentationStatistics: SegmentationStatistics,
 ): number {
     let result: number
@@ -44,6 +46,8 @@ export function getSegmentIntensity(
     } else {
         result = segmentationStatistics.medianIntensity(marker, segmentIds)
     }
+
+    if (plotTransform != 'none' && transformCoefficient) result = result * transformCoefficient
 
     // If the user has selected a transform, apply it.
     if (plotTransform == 'arcsinh') {

@@ -113,6 +113,7 @@ export class ProjectStore {
                         plotStore.plotType,
                         plotStore.plotStatistic,
                         plotStore.plotTransform,
+                        settingStore.transformCoefficient,
                         plotStore.plotNormalization,
                         populationStore.selectedPopulations,
                         settingStore.plotDotSize,

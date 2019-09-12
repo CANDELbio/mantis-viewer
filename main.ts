@@ -532,6 +532,7 @@ ipcMain.on(
         type: string,
         normalization: string,
         size: number,
+        coefficient: number,
         plotData: any,
     ) => {
         if (plotWindow != null)
@@ -544,6 +545,7 @@ ipcMain.on(
                 type,
                 normalization,
                 size,
+                coefficient,
                 plotData,
             )
     },
@@ -584,4 +586,8 @@ ipcMain.on('plotWindow-set-hovered-segments', (event: Electron.Event, segmentIds
 
 ipcMain.on('plotWindow-add-population-from-range', (event: Electron.Event, min: number, max: number) => {
     if (mainWindow != null) mainWindow.webContents.send('add-plot-population-from-range', min, max)
+})
+
+ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: number) => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-coefficient', coefficient)
 })

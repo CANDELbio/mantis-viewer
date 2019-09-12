@@ -58,6 +58,7 @@ function calculateRawPlotData(
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
 ): {
     [key: string]: {
@@ -88,7 +89,14 @@ function calculateRawPlotData(
         let curValues = []
         for (let marker of markers) {
             curValues.push(
-                getSegmentIntensity(plotStatistic, marker, [parseInt(segment)], plotTransform, segmentationStatistics),
+                getSegmentIntensity(
+                    plotStatistic,
+                    marker,
+                    [parseInt(segment)],
+                    plotTransform,
+                    transformCoefficient,
+                    segmentationStatistics,
+                ),
             )
         }
 
@@ -116,6 +124,7 @@ export function calculatePlotData(
     plotType: PlotType,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     selectedRegions: SelectedPopulation[] | null,
     dotSize?: number,
 ): Partial<Plotly.PlotData>[] {
@@ -125,6 +134,7 @@ export function calculatePlotData(
         segmentationStatistics,
         plotStatistic,
         plotTransform,
+        transformCoefficient,
         selectedRegions,
     )
 
@@ -201,6 +211,7 @@ export function buildHistogramData(
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
     let data = calculatePlotData(
@@ -210,6 +221,7 @@ export function buildHistogramData(
         'histogram',
         plotStatistic,
         plotTransform,
+        transformCoefficient,
         selectedPopulations,
     )
     let layout: Partial<Plotly.Layout> = {
@@ -227,6 +239,7 @@ export function buildScatterData(
     segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
     dotSize?: number,
 ): PlotData {
@@ -237,6 +250,7 @@ export function buildScatterData(
         plotType,
         plotStatistic,
         plotTransform,
+        transformCoefficient,
         selectedPopulations,
         dotSize,
     )

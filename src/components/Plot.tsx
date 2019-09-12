@@ -7,7 +7,8 @@ import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
-import { Slider } from '@blueprintjs/core'
+import { InputGroup, InputGroupAddon, InputGroupText, Input } from 'reactstrap'
+import { Slider, NumericInput } from '@blueprintjs/core'
 import { SizeMe } from 'react-sizeme'
 
 import { PlotData } from '../interfaces/DataInterfaces'
@@ -40,6 +41,8 @@ interface PlotProps {
     selectedNormalization: string
     setDotSize: (x: number) => void
     dotSize: number
+    setTransformCoefficient: (x: number) => void
+    transformCoefficient: number | null
     setSelectedNormalization: (x: PlotNormalization) => void
     setSelectedSegments: (selectedSegments: number[]) => void
     setSelectedRange: (min: number, max: number) => void
@@ -84,6 +87,11 @@ export class Plot extends React.Component<PlotProps, {}> {
     private onNormalizationSelect = (x: SelectOption) => {
         if (x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
+
+    private onCoefficientSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.props.setTransformCoefficient(event.target.valueAsNumber)
+    }
+
     private onPlotSelected = (data: Plotly.PlotSelectionEvent) => {
         if (this.props.selectedType == 'scatter') this.props.setSelectedSegments(this.parseScatterEvent(data))
         if (this.props.selectedType == 'histogram') {
@@ -222,6 +230,18 @@ export class Plot extends React.Component<PlotProps, {}> {
             />
         )
 
+        let coefficientControls = (
+            <div>
+                Transform Coefficient
+                <Input
+                    value={this.props.transformCoefficient ? this.props.transformCoefficient : ''}
+                    disabled={this.props.selectedTransform == 'none'}
+                    onChange={this.onCoefficientSelect}
+                    type="number"
+                />
+            </div>
+        )
+
         let normalizationDisabled = this.props.selectedType != 'heatmap'
         let selectedPlotNormalization = getSelectedOptions(this.props.selectedNormalization, PlotNormalizationOptions)
         let normalizationControls = (
@@ -238,13 +258,16 @@ export class Plot extends React.Component<PlotProps, {}> {
 
         let dotControlsEnabled = this.props.selectedType == 'scatter' || this.props.selectedType == 'contour'
         let dotControls = (
-            <Slider
-                min={PlotMinDotSize}
-                max={PlotMaxDotSize}
-                value={this.props.dotSize}
-                onChange={this.props.setDotSize}
-                disabled={!dotControlsEnabled}
-            />
+            <div>
+                Dot Size
+                <Slider
+                    min={PlotMinDotSize}
+                    max={PlotMaxDotSize}
+                    value={this.props.dotSize}
+                    onChange={this.props.setDotSize}
+                    disabled={!dotControlsEnabled}
+                />
+            </div>
         )
 
         let plot = (
@@ -302,7 +325,7 @@ export class Plot extends React.Component<PlotProps, {}> {
                         {statisticControls}
                         {transformControls}
                         {normalizationControls}
-                        Dot Size
+                        {coefficientControls}
                         {dotControls}
                     </PopoverBody>
                 </Popover>
