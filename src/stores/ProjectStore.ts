@@ -102,8 +102,9 @@ export class ProjectStore {
         if (imageStore && populationStore && plotStore) {
             let loadHistogram = plotStore.selectedPlotMarkers.length == 1 && plotStore.plotType == 'histogram'
             let loadScatter = plotStore.selectedPlotMarkers.length == 2 && plotStore.plotType == 'scatter'
+            let loadContour = plotStore.selectedPlotMarkers.length == 2 && plotStore.plotType == 'contour'
             let loadHeatmap = plotStore.plotType == 'heatmap'
-            if (loadHistogram || loadScatter || loadHeatmap) {
+            if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
                 if (imageStore.segmentationData != null && imageStore.segmentationStatistics != null) {
                     let plotData = generatePlotData(
                         plotStore.selectedPlotMarkers,

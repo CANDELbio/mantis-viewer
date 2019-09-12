@@ -236,14 +236,14 @@ export class Plot extends React.Component<PlotProps, {}> {
             />
         )
 
-        let dotControlsDisabled = this.props.selectedType != 'scatter'
+        let dotControlsEnabled = this.props.selectedType == 'scatter' || this.props.selectedType == 'contour'
         let dotControls = (
             <Slider
                 min={PlotMinDotSize}
                 max={PlotMaxDotSize}
                 value={this.props.dotSize}
                 onChange={this.props.setDotSize}
-                disabled={dotControlsDisabled}
+                disabled={!dotControlsEnabled}
             />
         )
 

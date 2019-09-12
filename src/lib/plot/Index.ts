@@ -28,8 +28,9 @@ export function generatePlotData(
             plotTransform,
             selectedPopulations,
         )
-    } else if (plotType == 'scatter' && markers.length == 2) {
+    } else if ((plotType == 'scatter' || plotType == 'contour') && markers.length == 2) {
         plotData = buildScatterData(
+            plotType,
             markers,
             segmentationData,
             segmentationStatistics,

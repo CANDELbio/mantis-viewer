@@ -35,11 +35,12 @@ export type PlotStatistic = 'mean' | 'median'
 
 export const PlotTypeOptions = [
     { label: 'Scatter Plot', value: 'scatter' },
+    { label: 'Contour Plot', value: 'contour' },
     { label: 'Histogram', value: 'histogram' },
     { label: 'Heatmap', value: 'heatmap' },
 ]
 
-export type PlotType = 'scatter' | 'histogram' | 'heatmap'
+export type PlotType = 'scatter' | 'histogram' | 'heatmap' | 'contour'
 
 export const PlotTransformOptions = [
     { label: 'No Tranformation', value: 'none' },
@@ -72,7 +73,7 @@ export const SelectedCentroidColor = 0xffffff // white
 export const SegmentOutlineColor = 0xffffff // white
 export const HighlightedSegmentOutlineColor = 0xff0000 // red
 export const PlotMinDotSize = 1
-export const DefaultDotSize = 8
+export const DefaultDotSize = 2
 export const PlotMaxDotSize = 10
 
 // Prefixes for new populations selected from graph or image.

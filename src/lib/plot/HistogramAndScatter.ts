@@ -147,13 +147,16 @@ export function calculatePlotData(
         let selectionData = rawPlotData[selectionId]
         let numSelectionValues = selectionData.values.length
 
+        let plotlyType: Plotly.PlotData['type'] = 'histogram'
+        if (plotType == 'scatter') plotlyType = 'scattergl'
+        if (plotType == 'contour') plotlyType = 'scatter'
+
         let trace: Partial<Plotly.Data> = {
             x: selectionData.values[0],
             y: numSelectionValues > 1 ? selectionData.values[1] : undefined,
-            z: numSelectionValues > 2 ? selectionData.values[2] : undefined,
             mode: 'markers',
-            type: plotType == 'scatter' ? 'scattergl' : 'histogram',
-            text: plotType == 'scatter' ? selectionData.text : undefined,
+            type: plotlyType,
+            text: plotType == 'scatter' || plotType == 'contour' ? selectionData.text : undefined,
             name: getSelectionName(selectionId, selectedRegionMap),
             marker: {
                 size: dotSize ? dotSize : DefaultDotSize,
@@ -171,6 +174,22 @@ export function calculatePlotData(
         }
 
         plotData.push(trace)
+    }
+
+    if (plotType == 'contour') {
+        let allData = rawPlotData[DefaultSelectionId]
+        let contourTrace: Partial<Plotly.Data> = {
+            x: allData.values[0],
+            y: allData.values[1],
+            name: 'density',
+            ncontours: 30,
+            colorscale: [[0.0, 'rgb(255, 255, 255)'], [1.0, 'rgb(255, 255, 255)']],
+            reversescale: true,
+            showscale: false,
+            //@ts-ignore
+            type: 'histogram2dcontour',
+        }
+        plotData.push(contourTrace)
     }
 
     return plotData
@@ -202,6 +221,7 @@ export function buildHistogramData(
 }
 
 export function buildScatterData(
+    plotType: PlotType,
     markers: string[],
     segmentationData: SegmentationData,
     segmentationStatistics: SegmentationStatistics,
@@ -214,16 +234,24 @@ export function buildScatterData(
         markers,
         segmentationData,
         segmentationStatistics,
-        'scatter',
+        plotType,
         plotStatistic,
         plotTransform,
         selectedPopulations,
         dotSize,
     )
+    let xAxis: Partial<Plotly.LayoutAxis> = { title: markers[0], automargin: true }
+    let yAxis: Partial<Plotly.LayoutAxis> = { title: markers[1], automargin: true, scaleanchor: 'x' }
+
+    if (plotType == 'contour') {
+        xAxis = { ...xAxis, showgrid: false, zeroline: false }
+        yAxis = { ...yAxis, showgrid: false, zeroline: false }
+    }
+
     let layout: Partial<Plotly.Layout> = {
         title: markers[0] + ' versus ' + markers[1],
-        xaxis: { title: markers[0], automargin: true, constrain: 'domain' },
-        yaxis: { title: markers[1], automargin: true, scaleanchor: 'x' },
+        xaxis: xAxis,
+        yaxis: yAxis,
     }
 
     return { markers: markers, data: data, layout: layout }
