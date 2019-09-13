@@ -33,7 +33,7 @@ export class PopulationStore {
         }
     }
 
-    private getRenderOrder() {
+    private getRenderOrder(): number {
         let renderOrders = _.pluck(this.selectedPopulations, 'renderOrder')
         if (renderOrders.length > 0) return Math.max(...renderOrders) + 1
         return 1
@@ -65,6 +65,14 @@ export class PopulationStore {
     @action public deleteSelectedPopulation = (id: string) => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.filter(region => region.id != id)
+        }
+    }
+
+    @action public deletePopulationsNotSelectedOnImage = () => {
+        if (this.selectedPopulations != null) {
+            this.selectedPopulations = this.selectedPopulations.filter(
+                region => region.selectedRegion && region.selectedRegion.length > 0,
+            )
         }
     }
 

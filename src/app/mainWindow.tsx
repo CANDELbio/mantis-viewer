@@ -24,6 +24,7 @@ ipcRenderer.on('open-project', async (event: Electron.Event, dirName: string) =>
 })
 
 ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: string) => {
+    projectStore.clearSegmentation()
     projectStore.setSegmentationBasename(filename)
 })
 
@@ -70,6 +71,10 @@ ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: num
 
 ipcRenderer.on('delete-active-image-set', () => {
     projectStore.deleteActiveImageSet()
+})
+
+ipcRenderer.on('clear-segmentation', () => {
+    projectStore.clearSegmentation()
 })
 
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
@@ -198,7 +203,7 @@ Mobx.autorun(() => {
 
 Mobx.autorun(() => {
     if (projectStore.removeMessage != null) {
-        ipcRenderer.send('mainWindow-show-remove-dialog', projectStore.removeMessage)
+        ipcRenderer.send('mainWindow-show-remove-image-dialog', projectStore.removeMessage)
         projectStore.clearRemoveMessage()
     }
 })
@@ -218,6 +223,13 @@ Mobx.autorun(() => {
         let msg = 'Error opening segmentation data.'
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         projectStore.activeImageStore.clearSegmentationData()
+    }
+})
+
+Mobx.autorun(() => {
+    if (projectStore.clearSegmentationRequested) {
+        ipcRenderer.send('mainWindow-show-remove-segmentation-dialog')
+        projectStore.setClearSegmentationRequested(false)
     }
 })
 

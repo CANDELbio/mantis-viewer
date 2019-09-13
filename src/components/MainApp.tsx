@@ -200,7 +200,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onOutlineAlphaChange={projectStore.setSegmentationOutlineAlpha}
                     centroidsVisible={imageStore.segmentationCentroidsVisible}
                     setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
-                    onClearSegmentation={projectStore.clearActiveSegmentationData}
+                    onClearSegmentation={() => {
+                        projectStore.setClearSegmentationRequested(true)
+                    }}
                     legendVisible={settingStore.legendVisible}
                     setLegendVisible={settingStore.setLegendVisible}
                     segmentationLoaded={imageStore.segmentationData != null}

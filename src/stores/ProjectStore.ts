@@ -49,6 +49,9 @@ export class ProjectStore {
     // Message to be shown if the user is being prompted to delete the active image set.
     @observable public removeMessage: string | null
 
+    // Gets set to true when the user requests to clear segmentation so that we can ask to confirm.
+    @observable public clearSegmentationRequested: boolean
+
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
     @observable public imageSetHistory: string[]
@@ -75,6 +78,7 @@ export class ProjectStore {
             populationStore: this.activePopulationStore,
         }
 
+        this.clearSegmentationRequested = false
         this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
         this.exportStore = new ExportStore(this)
         this.imageSetHistory = []
@@ -188,9 +192,6 @@ export class ProjectStore {
             // Select the directory for image data
             imageStore.selectDirectory(dirName)
 
-            // Start loading segmentation data if we know about it for this imageStore
-            this.settingStore.setImageStoreSegmentationFile(imageStore)
-
             // Set defaults once image data has loaded
             when(
                 () => !imageStore.imageDataLoading,
@@ -234,6 +235,10 @@ export class ProjectStore {
 
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
+
+        // Start loading segmentation data if we know about it for this imageStore
+        let imageStore = this.imageSets[dirName].imageStore
+        this.settingStore.setImageStoreSegmentationFile(imageStore)
 
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
@@ -297,12 +302,20 @@ export class ProjectStore {
         }
     }
 
-    @action public clearActiveSegmentationData = () => {
-        let imageStore = this.activeImageStore
-        let plotStore = this.activePlotStore
-        if (imageStore && plotStore) {
-            imageStore.clearSegmentationData()
-            this.clearSelectedPlotMarkers()
+    @action public setClearSegmentationRequested = (value: boolean) => {
+        this.clearSegmentationRequested = value
+    }
+
+    // Gets called when the user clicks the 'Clear Segmentation' button and approves.
+    @action public clearSegmentation = () => {
+        this.settingStore.setSegmentationBasename(null)
+        this.clearSelectedPlotMarkers()
+        for (let imageSet of this.imageSetPaths) {
+            let curSet = this.imageSets[imageSet]
+            if (curSet) {
+                curSet.imageStore.clearSegmentationData()
+                curSet.populationStore.deletePopulationsNotSelectedOnImage()
+            }
         }
     }
 

@@ -69,6 +69,24 @@ function openProject(path: string): void {
     }
 }
 
+function openSegmentation(path: string): void {
+    if (mainWindow != null) {
+        if (segmentationLoaded) {
+            let message =
+                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue) => {
+                    if (value.response == 1) {
+                        if (mainWindow != null) mainWindow.webContents.send('open-segmentation-file', path)
+                    }
+                })
+        } else {
+            mainWindow.webContents.send('open-segmentation-file', path)
+        }
+    }
+}
+
 function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?: string): () => void {
     let dialogOptions: Electron.OpenDialogOptions = { properties: ['openDirectory'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
@@ -82,7 +100,11 @@ function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?
     }
 }
 
-function showOpenFileIpcDialog(ipcMessageName: string, defaultPath?: string, fileType?: string): () => void {
+function showOpenFileDialog(
+    action: string | ((value: string) => void),
+    defaultPath?: string,
+    fileType?: string,
+): () => void {
     let dialogOptions: Electron.OpenDialogOptions = { properties: ['openFile'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
     if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
@@ -90,7 +112,11 @@ function showOpenFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
         dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue) => {
             let filePaths = value.filePaths
             if (mainWindow != null && filePaths && filePaths[0]) {
-                mainWindow.webContents.send(ipcMessageName, filePaths[0])
+                if (typeof action == 'string') {
+                    mainWindow.webContents.send(action, filePaths[0])
+                } else {
+                    action(filePaths[0])
+                }
             }
         })
     }
@@ -132,7 +158,7 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Segmentation',
                             enabled: imageLoaded,
-                            click: showOpenFileIpcDialog('open-segmentation-file', activeImageDirectory),
+                            click: showOpenFileDialog(openSegmentation, activeImageDirectory),
                         },
                         {
                             label: 'Populations',
@@ -140,12 +166,12 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
-                                    click: showOpenFileIpcDialog('add-populations-csv', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialog('add-populations-csv', activeImageDirectory, 'csv'),
                                 },
                                 {
                                     label: 'For active image set from JSON',
                                     enabled: imageLoaded,
-                                    click: showOpenFileIpcDialog('add-populations-json', activeImageDirectory, 'json'),
+                                    click: showOpenFileDialog('add-populations-json', activeImageDirectory, 'json'),
                                 },
                             ],
                         },
@@ -509,7 +535,7 @@ ipcMain.on('mainWindow-show-error-dialog', (event: Electron.Event, message: stri
 })
 
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
-ipcMain.on('mainWindow-show-remove-dialog', (event: Electron.Event, message: string) => {
+ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, message: string) => {
     if (mainWindow != null)
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
@@ -518,6 +544,21 @@ ipcMain.on('mainWindow-show-remove-dialog', (event: Electron.Event, message: str
                     if (mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
                 }
             })
+})
+
+// Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
+ipcMain.on('mainWindow-show-remove-segmentation-dialog', () => {
+    if (mainWindow != null) {
+        let message =
+            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue) => {
+                if (value.response == 1) {
+                    if (mainWindow != null) mainWindow.webContents.send('clear-segmentation')
+                }
+            })
+    }
 })
 
 // Functions to relay data from the mainWindow to the plotWindow

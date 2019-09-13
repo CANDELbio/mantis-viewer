@@ -188,7 +188,7 @@ export class SettingStore {
         this.exportSettings()
     }
 
-    @action public setSegmentationBasename = (basename: string) => {
+    @action public setSegmentationBasename = (basename: string | null) => {
         this.segmentationBasename = basename
         this.exportSettings()
     }
@@ -372,12 +372,7 @@ export class SettingStore {
             let exportingString = JSON.stringify(exporting)
             let filename = path.join(this.basePath, ImageSettingsFilename)
             // Write data to file
-            fs.writeFile(filename, exportingString, 'utf8', function(err) {
-                if (err) {
-                    console.log('An error occured while writing image settings to file.')
-                    return console.log(err)
-                }
-            })
+            fs.writeFileSync(filename, exportingString, 'utf8')
         }
     }
 
