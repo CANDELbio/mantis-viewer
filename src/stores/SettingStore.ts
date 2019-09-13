@@ -380,28 +380,33 @@ export class SettingStore {
         if (this.basePath != null) {
             let filename = path.join(this.basePath, ImageSettingsFilename)
             if (fs.existsSync(filename)) {
-                let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
-                if (importingContent.channelMarker) this.channelMarker = importingContent.channelMarker
-                if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility
-                if (importingContent.channelDomainPercentage)
-                    this.channelDomainPercentage = importingContent.channelDomainPercentage
-                this.segmentationBasename = importingContent.segmentationBasename
-                if (importingContent.selectedPlotMarkers)
-                    this.selectedPlotMarkers = importingContent.selectedPlotMarkers
-                if (importingContent.plotStatistic) this.plotStatistic = importingContent.plotStatistic
-                if (importingContent.plotTransform) this.plotTransform = importingContent.plotTransform
-                if (importingContent.plotType) this.plotType = importingContent.plotType
-                if (importingContent.plotNormalization) this.plotNormalization = importingContent.plotNormalization
-                if (importingContent.plotDotSize) this.plotDotSize = importingContent.plotDotSize
-                if (importingContent.segmentationFillAlpha)
-                    this.segmentationFillAlpha = importingContent.segmentationFillAlpha
-                if (importingContent.segmentationOutlineAlpha)
-                    this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
-                if (importingContent.segmentationCentroidsVisible)
-                    this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
-                if (importingContent.legendVisible) this.legendVisible = importingContent.legendVisible
-                if (importingContent.transformCoefficient)
-                    this.transformCoefficient = importingContent.transformCoefficient
+                try {
+                    let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
+                    if (importingContent.channelMarker) this.channelMarker = importingContent.channelMarker
+                    if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility
+                    if (importingContent.channelDomainPercentage)
+                        this.channelDomainPercentage = importingContent.channelDomainPercentage
+                    this.segmentationBasename = importingContent.segmentationBasename
+                    if (importingContent.selectedPlotMarkers)
+                        this.selectedPlotMarkers = importingContent.selectedPlotMarkers
+                    if (importingContent.plotStatistic) this.plotStatistic = importingContent.plotStatistic
+                    if (importingContent.plotTransform) this.plotTransform = importingContent.plotTransform
+                    if (importingContent.plotType) this.plotType = importingContent.plotType
+                    if (importingContent.plotNormalization) this.plotNormalization = importingContent.plotNormalization
+                    if (importingContent.plotDotSize) this.plotDotSize = importingContent.plotDotSize
+                    if (importingContent.segmentationFillAlpha)
+                        this.segmentationFillAlpha = importingContent.segmentationFillAlpha
+                    if (importingContent.segmentationOutlineAlpha)
+                        this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
+                    if (importingContent.segmentationCentroidsVisible)
+                        this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
+                    if (importingContent.legendVisible) this.legendVisible = importingContent.legendVisible
+                    if (importingContent.transformCoefficient)
+                        this.transformCoefficient = importingContent.transformCoefficient
+                } catch (e) {
+                    console.log('Error importing settings file:')
+                    console.log(e)
+                }
             }
         }
     }
