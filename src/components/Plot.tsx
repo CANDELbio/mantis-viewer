@@ -93,7 +93,8 @@ export class Plot extends React.Component<PlotProps, {}> {
     }
 
     private onPlotSelected = (data: Plotly.PlotSelectionEvent) => {
-        if (this.props.selectedType == 'scatter') this.props.setSelectedSegments(this.parseScatterEvent(data))
+        if (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour')
+            this.props.setSelectedSegments(this.parseScatterEvent(data))
         if (this.props.selectedType == 'histogram') {
             let { min, max } = this.parseHistogramEvent(data)
             if (min != null && max != null) this.props.setSelectedRange(min, max)
