@@ -8,7 +8,7 @@ import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
 import { ExportStore } from '../stores/ExportStore'
 import { generatePlotData } from '../lib/plot/Index'
-import { ChannelName, PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../definitions/UIDefinitions'
+import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
@@ -233,10 +233,6 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
-        // Start loading segmentation data if we know about it for this imageStore
-        let imageStore = this.imageSets[dirName].imageStore
-        this.settingStore.setImageStoreSegmentationFile(imageStore)
-
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet())
@@ -313,9 +309,15 @@ export class ProjectStore {
     }
 
     @action public setSegmentationBasename = (fName: string) => {
+        let dirname = path.dirname(fName)
         let basename = path.basename(fName)
-        this.settingStore.setSegmentationBasename(basename)
-        this.activeImageStore.setSegmentationFile(fName)
+        if (dirname == this.activeImageSetPath) {
+            this.settingStore.setSegmentationBasename(basename)
+        } else {
+            // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
+            // Could result in weird behavior when switching between image sets.
+            this.activeImageStore.setSegmentationFile(fName)
+        }
     }
 
     @action public setSelectedPlotMarkers = (x: string[]) => {

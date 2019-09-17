@@ -24,7 +24,6 @@ ipcRenderer.on('open-project', async (event: Electron.Event, dirName: string) =>
 })
 
 ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: string) => {
-    projectStore.clearSegmentation()
     projectStore.setSegmentationBasename(filename)
 })
 

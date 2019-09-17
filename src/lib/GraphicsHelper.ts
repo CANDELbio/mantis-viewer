@@ -191,37 +191,39 @@ export function generateBrightnessFilterUniforms(
     // Get the max value for the given channel.
     let marker = channelMarker[channelName]
     if (marker) {
-        let channelMax = imcData.minmax[marker].max
+        let channelMinMax = imcData.minmax[marker]
+        if (channelMinMax) {
+            let channelMax = channelMinMax.max
 
-        // Using slider values to generate m and b for a linear transformation (y = mx + b).
-        let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
-        let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
+            // Using slider values to generate m and b for a linear transformation (y = mx + b).
+            let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
+            let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
 
-        return {
-            m: {
-                type: 'f',
-                value: m,
-            },
-            b: {
-                type: 'f',
-                value: b,
-            },
-            red: {
-                type: 'b',
-                value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
-            },
-            green: {
-                type: 'b',
-                value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
-            },
-            blue: {
-                type: 'b',
-                value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
-            },
+            return {
+                m: {
+                    type: 'f',
+                    value: m,
+                },
+                b: {
+                    type: 'f',
+                    value: b,
+                },
+                red: {
+                    type: 'b',
+                    value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
+                },
+                green: {
+                    type: 'b',
+                    value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
+                },
+                blue: {
+                    type: 'b',
+                    value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
+                },
+            }
         }
-    } else {
-        return null
     }
+    return null
 }
 
 export function drawLegend(

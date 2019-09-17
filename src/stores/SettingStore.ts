@@ -291,20 +291,6 @@ export class SettingStore {
         this.exportSettings()
     }
 
-    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    @action public setImageStoreSegmentationFile = (imageStore: ImageStore) => {
-        if (this.segmentationBasename != null) {
-            let destinationPath = imageStore.selectedDirectory
-            if (destinationPath != null) {
-                let segmentationFile = path.join(destinationPath, this.segmentationBasename)
-                // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
-                if (fs.existsSync(segmentationFile) && imageStore.selectedSegmentationFile == null) {
-                    imageStore.setSegmentationFile(segmentationFile)
-                }
-            }
-        }
-    }
-
     @action public copyPlotStoreSettings = (imageStore: ImageStore, plotStore: PlotStore) => {
         plotStore.setPlotType(this.plotType)
         plotStore.setPlotStatistic(this.plotStatistic)

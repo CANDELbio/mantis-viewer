@@ -1,5 +1,6 @@
 import { observable, action, autorun, computed } from 'mobx'
 import * as path from 'path'
+import * as fs from 'fs'
 
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
@@ -33,6 +34,23 @@ export class ImageStore {
         y: [number, number]
     } | null
 
+    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
+    private autoSetSegmentationFile = autorun(() => {
+        let settingStore = this.projectStore.settingStore
+        let segmentationBasename = settingStore.segmentationBasename
+        if (segmentationBasename) {
+            let destinationPath = this.selectedDirectory
+            if (destinationPath) {
+                let segmentationFile = path.join(destinationPath, segmentationBasename)
+                // If the segmentation file exists and it's not equal to the current file, clear segmentation data and set to the new.
+                if (fs.existsSync(segmentationFile) && this.selectedSegmentationFile != segmentationFile) {
+                    this.clearSegmentationData()
+                    this.setSegmentationFile(segmentationFile)
+                }
+            }
+        }
+    })
+
     // TODO: Maybe should manually call when setting and unsetting segmentation data
     // Could imagine condition where segmentation data done loading and statistics loading status still false
     private calculateSegmentationStatistics = autorun(() => {
@@ -45,6 +63,32 @@ export class ImageStore {
             this.setSegmentationStatistics(null)
         }
     })
+
+    @computed public get channelDomain(): Record<ChannelName, [number, number]> {
+        let results: Record<ChannelName, [number, number]> = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100],
+            cChannel: [0, 100],
+            mChannel: [0, 100],
+            yChannel: [0, 100],
+            kChannel: [0, 100],
+        }
+        let settingStore = this.projectStore.settingStore
+        for (let channel of ImageChannels) {
+            let channelMarker = settingStore.channelMarker[channel]
+            if (this.imageData && channelMarker) {
+                let channelMinMax = this.imageData.minmax[channelMarker]
+                if (channelMinMax) {
+                    let channelMax = channelMinMax.max
+                    let channelDomainPercentage = settingStore.channelDomainPercentage[channel]
+                    results[channel][0] = channelMax * channelDomainPercentage[0]
+                    results[channel][1] = channelMax * channelDomainPercentage[1]
+                }
+            }
+        }
+        return results
+    }
 
     @action private initialize = () => {
         this.imageDataLoading = false
@@ -67,29 +111,6 @@ export class ImageStore {
 
     @action public clearImageData = () => {
         this.imageData = null
-    }
-
-    @computed public get channelDomain(): Record<ChannelName, [number, number]> {
-        let results: Record<ChannelName, [number, number]> = {
-            rChannel: [0, 100],
-            gChannel: [0, 100],
-            bChannel: [0, 100],
-            cChannel: [0, 100],
-            mChannel: [0, 100],
-            yChannel: [0, 100],
-            kChannel: [0, 100],
-        }
-        let settingStore = this.projectStore.settingStore
-        for (let channel of ImageChannels) {
-            let channelMarker = settingStore.channelMarker[channel]
-            if (this.imageData != null && channelMarker != null) {
-                let channelMax = this.imageData.minmax[channelMarker].max
-                let channelDomainPercentage = settingStore.channelDomainPercentage[channel]
-                results[channel][0] = channelMax * channelDomainPercentage[0]
-                results[channel][1] = channelMax * channelDomainPercentage[1]
-            }
-        }
-        return results
     }
 
     @action public selectDirectory = (dirName: string) => {
