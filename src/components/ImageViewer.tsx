@@ -398,10 +398,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 channelMarker,
                 channelDomain,
             )
-            let brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
-            // Delete sprite filters so they get cleared from memory before adding new ones
-            sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-            this.stage.addChild(sprite)
+            if (sprite && uniforms) {
+                let brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
+                // Delete sprite filters so they get cleared from memory before adding new ones
+                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                this.stage.addChild(sprite)
+            }
         }
     }
 
@@ -551,10 +553,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private loadLegendGraphics(
         legendVisible: boolean,
         legendGraphics: PIXI.Graphics,
+        imcData: ImageData,
         channelMarker: Record<ChannelName, string | null>,
     ): void {
         if (legendVisible) {
-            GraphicsHelper.drawLegend(this.legendGraphics, channelMarker)
+            GraphicsHelper.drawLegend(this.legendGraphics, imcData, channelMarker)
             this.resizeLegend()
         } else {
             // Clear out the legend graphics so they don't get redrawn when zooming.
@@ -641,7 +644,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
 
         // Create the legend for which markers are being displayed
-        this.loadLegendGraphics(legendVisible, this.legendGraphics, channelMarker)
+        this.loadLegendGraphics(legendVisible, this.legendGraphics, imcData, channelMarker)
 
         this.renderer.render(this.rootContainer)
 

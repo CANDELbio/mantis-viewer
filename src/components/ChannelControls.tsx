@@ -16,7 +16,7 @@ export interface ChannelControlsProps {
     sliderMin: number
     sliderMax: number
     sliderValue: [number, number]
-    setChannelDomain: (value: [number, number]) => void
+    setChannelDomainPercentage: (value: [number, number]) => void
     markers: string[]
     selectedMarker: string | null
     allSelectedMarkers: (string | null)[]
@@ -61,6 +61,11 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
     private onMarkerChange = (x: SelectOption) => {
         let value = x ? x.value : null
         this.props.setMarker(value)
+    }
+
+    // Convert channel domain to percentage before saving
+    private setChannelDomain = (value: [number, number]) => {
+        this.props.setChannelDomainPercentage([value[0] / this.props.sliderMax, value[1] / this.props.sliderMax])
     }
 
     public render(): React.ReactNode {
@@ -111,7 +116,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                             labelStepSize={stepSize}
                             labelPrecision={1}
                             stepSize={this.props.sliderMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                            onChange={this.props.setChannelDomain}
+                            onChange={this.setChannelDomain}
                         />
                     </Col>
                     <Col xs={2} sm={2} md={2} lg={2}>

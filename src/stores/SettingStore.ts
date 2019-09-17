@@ -15,7 +15,15 @@ import {
     PlotType,
     ImageSettingsFilename,
     DefaultDotSize,
+    DefaultSegmentOutlineAlpha,
+    DefaultSegmentFillAlpha,
+    DefaultCentroidsVisible,
+    PlotStatisticOptions,
+    PlotTransformOptions,
+    PlotTypeOptions,
+    PlotNormalizationOptions,
 } from '../definitions/UIDefinitions'
+import { ProjectStore } from './ProjectStore'
 
 interface SettingStoreData {
     channelMarker: Record<ChannelName, string | null> | null
@@ -36,10 +44,12 @@ interface SettingStoreData {
 }
 
 export class SettingStore {
-    public constructor(imageStore: ImageStore, plotStore: PlotStore) {
-        this.initialize(imageStore, plotStore)
+    public constructor(projectStore: ProjectStore) {
+        this.projectStore = projectStore
+        this.initialize()
     }
 
+    private projectStore: ProjectStore
     // Storing the base path of the image set or project path for saving/loading settings from a file.
     @observable public basePath: string | null
 
@@ -68,7 +78,7 @@ export class SettingStore {
 
     @observable public transformCoefficient: number | null
 
-    @action public initialize = (imageStore: ImageStore, plotStore: PlotStore) => {
+    @action public initialize = () => {
         this.basePath = null
 
         this.channelMarker = {
@@ -105,15 +115,15 @@ export class SettingStore {
 
         this.selectedPlotMarkers = []
 
-        this.plotStatistic = plotStore.plotStatistic
-        this.plotTransform = plotStore.plotTransform
-        this.plotType = plotStore.plotType
-        this.plotNormalization = plotStore.plotNormalization
+        this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
+        this.plotTransform = PlotTransformOptions[0].value as PlotTransform
+        this.plotType = PlotTypeOptions[0].value as PlotType
+        this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.plotDotSize = DefaultDotSize
 
-        this.segmentationFillAlpha = imageStore.segmentationFillAlpha
-        this.segmentationOutlineAlpha = imageStore.segmentationOutlineAlpha
-        this.segmentationCentroidsVisible = imageStore.segmentationCentroidsVisible
+        this.segmentationFillAlpha = DefaultSegmentFillAlpha
+        this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
+        this.segmentationCentroidsVisible = DefaultCentroidsVisible
 
         this.legendVisible = false
         this.transformCoefficient = null
@@ -178,9 +188,33 @@ export class SettingStore {
         this.exportSettings()
     }
 
+    @action public setChannelDomainPercentageCallback = (name: ChannelName) => {
+        return action((value: [number, number]) => {
+            this.setChannelDomainPercentage(name, value)
+        })
+    }
+
     @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
         this.channelDomainPercentage[name] = value
         this.exportSettings()
+    }
+
+    @action public setChannelVisibilityCallback = (name: ChannelName) => {
+        return action((value: boolean) => {
+            this.setChannelVisibility(name, value)
+        })
+    }
+
+    @action public setChannelMarkerCallback = (name: ChannelName) => {
+        return action((x: string | null) => {
+            // If the SelectOption has a value.
+            if (x) {
+                this.setChannelMarker(name, x)
+                // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
+            } else {
+                this.unsetChannelMarker(name)
+            }
+        })
     }
 
     @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
@@ -203,7 +237,7 @@ export class SettingStore {
         this.exportSettings()
     }
 
-    @action public setDefaultImageSetSettings = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
+    @action public setDefaultImageSetSettings = (imageStore: ImageStore) => {
         let markers = this.channelMarker
         // Set defaults if the project markers are uninitialized
         let allMarkersUninitalized = ImageChannels.map((value: ChannelName) => {
@@ -212,53 +246,48 @@ export class SettingStore {
             return previous && current
         })
         if (allMarkersUninitalized) {
-            this.setChannelMarkerDefaults(imageStore, configurationHelper)
-            this.setChannelDomainDefaults(imageStore, configurationHelper)
+            this.setChannelMarkerDefaults(imageStore)
+            this.setChannelDomainDefaults()
         }
     }
 
     // If the image store has image data, sets the defaults based on the configuration helper.
-    @action public setChannelMarkerDefaults = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
+    @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
         if (imageStore.imageData != null) {
+            let configurationHelper = this.projectStore.configurationHelper
             let defaultValues = configurationHelper.getDefaultChannelMarkers(imageStore.imageData.markerNames)
             for (let s in defaultValues) {
                 let channelName = s as ChannelName
                 let markerName = defaultValues[channelName]
-                if (markerName != null) this.setChannelMarker(imageStore, configurationHelper, channelName, markerName)
+                if (markerName != null) this.setChannelMarker(channelName, markerName)
             }
         }
     }
 
-    @action public setChannelDomainDefaults = (imageStore: ImageStore, configurationHelper: ConfigurationHelper) => {
+    @action public setChannelDomainDefaults = () => {
+        let configurationHelper = this.projectStore.configurationHelper
         let defaultValues = configurationHelper.getDefaultChannelDomains()
         for (let s in defaultValues) {
             let channelName = s as ChannelName
             let defaultDomain = defaultValues[channelName]
             this.channelDomainPercentage[channelName] = defaultDomain
-            imageStore.setChannelDomainFromPercentage(channelName, defaultDomain)
+            this.setChannelDomainPercentage(channelName, defaultDomain)
         }
     }
 
-    @action public setChannelMarker = (
-        imageStore: ImageStore,
-        configurationHelper: ConfigurationHelper,
-        channelName: ChannelName,
-        markerName: string,
-    ) => {
+    @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
+        let configurationHelper = this.projectStore.configurationHelper
         this.channelMarker[channelName] = markerName
-        imageStore.setChannelMarker(channelName, markerName)
+        this.channelDomainPercentage[channelName] = [0, 1]
         // Set the channel domain to the default for that channel when we change it.
         let domainPercentage = configurationHelper.getDefaultChannelDomains()[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
-        imageStore.setChannelDomainFromPercentage(channelName, domainPercentage)
         this.exportSettings()
     }
 
-    @action public unsetChannelMarker = (imageStore: ImageStore, channelName: ChannelName) => {
+    @action public unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
-        imageStore.unsetChannelMarker(channelName)
-        // When we modify channel markers the channel domain changes. We want to update our domain here to reflect that.
-        this.channelDomainPercentage[channelName] = imageStore.getChannelDomainPercentage(channelName)
+        this.channelDomainPercentage[channelName] = [0, 1]
         this.exportSettings()
     }
 
@@ -271,50 +300,6 @@ export class SettingStore {
                 // Only copy the segmentation basename if basename exists in the dest image set and it's not already set to that.
                 if (fs.existsSync(segmentationFile) && imageStore.selectedSegmentationFile == null) {
                     imageStore.setSegmentationFile(segmentationFile)
-                }
-            }
-        }
-    }
-
-    // Copies channel markers from the project store to the image store being passed in
-    // If a channel marker isn't present in the image store that channel is unset.
-    @action public copyImageStoreChannelMarkers = (imageStore: ImageStore) => {
-        if (imageStore.imageData != null) {
-            for (let s in this.channelMarker) {
-                let channelName = s as ChannelName
-                let channelValue = this.channelMarker[channelName]
-                if (channelValue != null) {
-                    if (imageStore.imageData.markerNames.indexOf(channelValue) != -1) {
-                        // If the file selected is not null and the destination has a file with the same name set that
-                        imageStore.setChannelMarker(channelName, channelValue)
-                    } else {
-                        // Otherwise unset that channel for the destination
-                        imageStore.unsetChannelMarker(channelName)
-                    }
-                } else {
-                    // Unset the channel for the destination if it's unset in the source
-                    imageStore.unsetChannelMarker(channelName)
-                }
-            }
-        }
-    }
-
-    @action public copyImageStoreChannelVisibility = (imageStore: ImageStore) => {
-        for (let s in this.channelMarker) {
-            let channel = s as ChannelName
-            imageStore.setChannelVisibility(channel, this.channelVisibility[channel])
-        }
-    }
-
-    @action public setImageStoreChannelDomains = (imageStore: ImageStore) => {
-        if (imageStore.imageData != null) {
-            for (let s in this.channelDomainPercentage) {
-                let channelName = s as ChannelName
-                let channelPercentages = this.channelDomainPercentage[channelName]
-                let channelMarker = imageStore.channelMarker[channelName]
-                // Copy the domain if it's not null and if the channelMarker in the destination is the same.
-                if (channelMarker != null && channelMarker == this.channelMarker[channelName]) {
-                    imageStore.setChannelDomainFromPercentage(channelName, channelPercentages)
                 }
             }
         }
@@ -340,12 +325,6 @@ export class SettingStore {
             }
             plotStore.setSelectedPlotMarkers(selectedPlotMarkers)
         }
-    }
-
-    @action public copySegmentationSettings = (imageStore: ImageStore) => {
-        imageStore.setSegmentationFillAlpha(this.segmentationFillAlpha)
-        imageStore.setSegmentationOutlineAlpha(this.segmentationOutlineAlpha)
-        imageStore.setCentroidVisibility(this.segmentationCentroidsVisible)
     }
 
     // Was an autorun function, but then was getting triggered on first create/initialize and then clobbering any saved settings.

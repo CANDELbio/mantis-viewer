@@ -83,8 +83,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
 
     private getChannelMin(s: ChannelName): number {
+        let settingStore = this.props.projectStore.settingStore
         let imageStore = this.props.projectStore.activeImageStore
-        let channelMarker = imageStore.channelMarker[s]
+        let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             return imageStore.imageData.minmax[channelMarker].min
         }
@@ -92,8 +93,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
 
     private getChannelMax(s: ChannelName): number {
+        let settingStore = this.props.projectStore.settingStore
         let imageStore = this.props.projectStore.activeImageStore
-        let channelMarker = imageStore.channelMarker[s]
+        let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             return imageStore.imageData.minmax[channelMarker].max
         }
@@ -173,33 +175,37 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if (imageStore.imageData != null) {
             let markerNames = imageStore.imageData.markerNames
             if (markerNames.length > 0) {
-                channelControls = this.imageChannelsForControls.map((s: ChannelName) => (
-                    <ChannelControls
-                        key={s}
-                        channel={s}
-                        channelVisible={imageStore.channelVisibility[s]}
-                        setChannelVisibility={projectStore.setChannelVisibilityCallback(s)}
-                        sliderMin={this.getChannelMin(s)}
-                        sliderMax={this.getChannelMax(s)}
-                        sliderValue={imageStore.channelDomain[s]}
-                        setChannelDomain={projectStore.setChannelDomainCallback(s)}
-                        markers={markerNames}
-                        selectedMarker={imageStore.channelMarker[s]}
-                        allSelectedMarkers={Object.values(imageStore.channelMarker)}
-                        setMarker={projectStore.setChannelMarkerCallback(s)}
-                        windowWidth={projectStore.windowWidth}
-                    />
-                ))
+                channelControls = this.imageChannelsForControls.map((s: ChannelName) => {
+                    let channelMarker = settingStore.channelMarker[s]
+                    let selectedMarker = channelMarker && markerNames.includes(channelMarker) ? channelMarker : null
+                    return (
+                        <ChannelControls
+                            key={s}
+                            channel={s}
+                            channelVisible={settingStore.channelVisibility[s]}
+                            setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
+                            sliderMin={this.getChannelMin(s)}
+                            sliderMax={this.getChannelMax(s)}
+                            sliderValue={imageStore.channelDomain[s]}
+                            setChannelDomainPercentage={settingStore.setChannelDomainPercentageCallback(s)}
+                            markers={markerNames}
+                            selectedMarker={selectedMarker}
+                            allSelectedMarkers={Object.values(settingStore.channelMarker)}
+                            setMarker={settingStore.setChannelMarkerCallback(s)}
+                            windowWidth={projectStore.windowWidth}
+                        />
+                    )
+                })
             }
 
             imageControls = (
                 <ImageControls
-                    fillAlpha={imageStore.segmentationFillAlpha}
-                    outlineAlpha={imageStore.segmentationOutlineAlpha}
-                    onFillAlphaChange={projectStore.setSegmentationFillAlpha}
-                    onOutlineAlphaChange={projectStore.setSegmentationOutlineAlpha}
-                    centroidsVisible={imageStore.segmentationCentroidsVisible}
-                    setCentroidsVisible={projectStore.setSegmentationCentroidsVisible}
+                    fillAlpha={settingStore.segmentationFillAlpha}
+                    outlineAlpha={settingStore.segmentationOutlineAlpha}
+                    onFillAlphaChange={settingStore.setSegmentationFillAlpha}
+                    onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
+                    centroidsVisible={settingStore.segmentationCentroidsVisible}
+                    setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
                     onClearSegmentation={() => {
                         projectStore.setClearSegmentationRequested(true)
                     }}
@@ -215,12 +221,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <ImageViewer
                     imageData={imageStore.imageData}
                     segmentationData={imageStore.segmentationData}
-                    segmentationFillAlpha={imageStore.segmentationFillAlpha}
-                    segmentationOutlineAlpha={imageStore.segmentationOutlineAlpha}
-                    segmentationCentroidsVisible={imageStore.segmentationCentroidsVisible}
+                    segmentationFillAlpha={settingStore.segmentationFillAlpha}
+                    segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
+                    segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
                     channelDomain={imageStore.channelDomain}
-                    channelVisibility={imageStore.channelVisibility}
-                    channelMarker={imageStore.channelMarker}
+                    channelVisibility={settingStore.channelVisibility}
+                    channelMarker={settingStore.channelMarker}
                     addSelectedRegion={this.addSelectionFromImage}
                     updateSelectedRegions={this.updateSelectionsFromImage}
                     selectedRegions={populationStore.selectedPopulations}

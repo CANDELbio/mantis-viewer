@@ -1,15 +1,19 @@
-import { observable, action, autorun } from 'mobx'
+import { observable, action, autorun, computed } from 'mobx'
 import * as path from 'path'
 
 import { ImageData } from '../lib/ImageData'
 import { SegmentationData } from '../lib/SegmentationData'
 import { SegmentationStatistics } from '../lib/SegmentationStatistics'
 import { ImageChannels, ChannelName } from '../definitions/UIDefinitions'
+import { ProjectStore } from './ProjectStore'
 
 export class ImageStore {
-    public constructor() {
+    public constructor(projectStore: ProjectStore) {
+        this.projectStore = projectStore
         this.initialize()
     }
+
+    private projectStore: ProjectStore
 
     @observable.ref public imageData: ImageData | null
     @observable public imageDataLoading: boolean
@@ -23,15 +27,6 @@ export class ImageStore {
 
     @observable public selectedDirectory: string | null
     @observable public selectedSegmentationFile: string | null
-
-    @observable public channelDomain: Record<ChannelName, [number, number]>
-    @observable public channelVisibility: Record<ChannelName, boolean>
-
-    @observable public segmentationFillAlpha: number
-    @observable public segmentationOutlineAlpha: number
-    @observable public segmentationCentroidsVisible: boolean
-
-    @observable public channelMarker: Record<ChannelName, string | null>
 
     @observable public currentSelection: {
         x: [number, number]
@@ -52,38 +47,6 @@ export class ImageStore {
     })
 
     @action private initialize = () => {
-        this.channelDomain = {
-            rChannel: [0, 100],
-            gChannel: [0, 100],
-            bChannel: [0, 100],
-            cChannel: [0, 100],
-            mChannel: [0, 100],
-            yChannel: [0, 100],
-            kChannel: [0, 100],
-        }
-
-        this.channelVisibility = {
-            rChannel: true,
-            gChannel: true,
-            bChannel: true,
-            cChannel: true,
-            mChannel: true,
-            yChannel: true,
-            kChannel: true,
-        }
-
-        this.initializeSegmentationSettings()
-
-        this.channelMarker = {
-            rChannel: null,
-            gChannel: null,
-            bChannel: null,
-            cChannel: null,
-            mChannel: null,
-            yChannel: null,
-            kChannel: null,
-        }
-
         this.imageDataLoading = false
         this.segmentationDataLoading = false
         this.segmentationStatisticsLoading = false
@@ -106,66 +69,27 @@ export class ImageStore {
         this.imageData = null
     }
 
-    @action public setSegmentationFillAlpha = (value: number) => {
-        this.segmentationFillAlpha = value
-    }
-
-    @action public setSegmentationOutlineAlpha = (value: number) => {
-        this.segmentationOutlineAlpha = value
-    }
-
-    @action public setCentroidVisibility = (visible: boolean) => {
-        this.segmentationCentroidsVisible = visible
-    }
-
-    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
-        this.channelVisibility[name] = visible
-    }
-
-    public getChannelDomainPercentage = (name: ChannelName) => {
-        let percentages: [number, number] = [0, 1]
-
-        if (this.imageData != null) {
-            let channelMarker = this.channelMarker[name]
-            if (channelMarker != null) {
+    @computed public get channelDomain(): Record<ChannelName, [number, number]> {
+        let results: Record<ChannelName, [number, number]> = {
+            rChannel: [0, 100],
+            gChannel: [0, 100],
+            bChannel: [0, 100],
+            cChannel: [0, 100],
+            mChannel: [0, 100],
+            yChannel: [0, 100],
+            kChannel: [0, 100],
+        }
+        let settingStore = this.projectStore.settingStore
+        for (let channel of ImageChannels) {
+            let channelMarker = settingStore.channelMarker[channel]
+            if (this.imageData != null && channelMarker != null) {
                 let channelMax = this.imageData.minmax[channelMarker].max
-                let minPercentage = this.channelDomain[name][0] / channelMax
-                let maxPercentage = this.channelDomain[name][1] / channelMax
-                percentages = [minPercentage, maxPercentage]
+                let channelDomainPercentage = settingStore.channelDomainPercentage[channel]
+                results[channel][0] = channelMax * channelDomainPercentage[0]
+                results[channel][1] = channelMax * channelDomainPercentage[1]
             }
         }
-
-        return percentages
-    }
-
-    @action public setChannelDomain = (name: ChannelName, domain: [number, number]) => {
-        // Only set the domain if min is less than the max oherwise WebGL will crash
-        if (domain[0] < domain[1]) this.channelDomain[name] = domain
-    }
-
-    @action public setChannelDomainFromPercentage = (name: ChannelName, domain: [number, number]) => {
-        let channelMarker = this.channelMarker[name]
-        if (this.imageData != null && channelMarker != null) {
-            let channelMax = this.imageData.minmax[channelMarker].max
-            let minValue = domain[0] * channelMax
-            let maxValue = domain[1] * channelMax
-            this.channelDomain[name] = [minValue, maxValue]
-        }
-    }
-
-    @action public unsetChannelMarker = (channelName: ChannelName) => {
-        this.channelMarker[channelName] = null
-        this.channelDomain[channelName] = [0, 100]
-    }
-
-    @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
-        this.channelMarker[channelName] = markerName
-        // Setting the default slider/domain values to the min/max values from the image
-        if (this.imageData != null) {
-            let min = this.imageData.minmax[markerName].min
-            let max = this.imageData.minmax[markerName].max
-            this.channelDomain[channelName] = [min, max]
-        }
+        return results
     }
 
     @action public selectDirectory = (dirName: string) => {
@@ -195,20 +119,15 @@ export class ImageStore {
 
     @action public removeMarker = (markerName: string) => {
         if (this.imageData != null && markerName in this.imageData.data) {
+            let settingStore = this.projectStore.settingStore
             // Unset the marker if it is being used
             for (let s of ImageChannels) {
                 let curChannel = s as ChannelName
-                if (this.channelMarker[curChannel] == markerName) this.unsetChannelMarker(curChannel)
+                if (settingStore.channelMarker[curChannel] == markerName) settingStore.unsetChannelMarker(curChannel)
             }
             // Delete it from image data
             this.imageData.removeMarker(markerName)
         }
-    }
-
-    @action private initializeSegmentationSettings = () => {
-        this.segmentationFillAlpha = 0
-        this.segmentationOutlineAlpha = 0.7
-        this.segmentationCentroidsVisible = false
     }
 
     @action private setSegmentationStatisticLoadingStatus = (status: boolean) => {
@@ -227,7 +146,6 @@ export class ImageStore {
     // Deletes the segmentation data and resets the selected segmentation file and alpha
     @action public clearSegmentationData = () => {
         this.selectedSegmentationFile = null
-        this.initializeSegmentationSettings()
         this.deleteSegmentationData()
     }
 

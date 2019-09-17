@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { ChannelName, ChannelColorMap, DefaultSegmentOutlineAlpha } from '../definitions/UIDefinitions'
+import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {
@@ -127,7 +127,7 @@ export function drawOutlines(
     let outlineGraphics = new PIXI.Graphics()
     // Always set the alpha to 1.0 and adjust it elsewhere
     // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
-    outlineGraphics.lineStyle(width, color, DefaultSegmentOutlineAlpha, alignment)
+    outlineGraphics.lineStyle(width, color, 1, alignment)
     for (let outline of outlines) {
         // Copy the outline array so we're not modifying the one being passed in
         outline = outline.slice()
@@ -185,45 +185,50 @@ export function generateBrightnessFilterUniforms(
     imcData: ImageData,
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
-): PIXI.UniformDataMap<Record<string, any>> {
+): PIXI.UniformDataMap<Record<string, any>> | null {
     let curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
     let marker = channelMarker[channelName]
-    let channelMax = 100.0
-    if (marker != null) {
-        channelMax = imcData.minmax[marker].max
-    }
+    if (marker) {
+        let channelMax = imcData.minmax[marker].max
 
-    // Using slider values to generate m and b for a linear transformation (y = mx + b).
-    let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
-    let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
+        // Using slider values to generate m and b for a linear transformation (y = mx + b).
+        let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
+        let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
 
-    return {
-        m: {
-            type: 'f',
-            value: m,
-        },
-        b: {
-            type: 'f',
-            value: b,
-        },
-        red: {
-            type: 'b',
-            value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
-        },
-        green: {
-            type: 'b',
-            value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
-        },
-        blue: {
-            type: 'b',
-            value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
-        },
+        return {
+            m: {
+                type: 'f',
+                value: m,
+            },
+            b: {
+                type: 'f',
+                value: b,
+            },
+            red: {
+                type: 'b',
+                value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
+            },
+            green: {
+                type: 'b',
+                value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
+            },
+            blue: {
+                type: 'b',
+                value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
+            },
+        }
+    } else {
+        return null
     }
 }
 
-export function drawLegend(legendGraphics: PIXI.Graphics, channelMarkers: Record<ChannelName, string | null>): void {
+export function drawLegend(
+    legendGraphics: PIXI.Graphics,
+    imcData: ImageData,
+    channelMarkers: Record<ChannelName, string | null>,
+): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
 
@@ -243,7 +248,8 @@ export function drawLegend(legendGraphics: PIXI.Graphics, channelMarkers: Record
     for (let s in channelMarkers) {
         let curChannel = s as ChannelName
         let curMarker = channelMarkers[curChannel]
-        if (curMarker) {
+        // If a marker is selected for the channel and the image data has a sprite for that marker
+        if (curMarker && imcData.sprites[curMarker]) {
             if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
             let text = new PIXI.Text(curMarker, {
                 fontFamily: 'Arial',

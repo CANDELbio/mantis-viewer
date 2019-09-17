@@ -69,7 +69,7 @@ export class ProjectStore {
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
-        this.activeImageStore = new ImageStore()
+        this.activeImageStore = new ImageStore(this)
         this.activePopulationStore = new PopulationStore()
         this.activePlotStore = new PlotStore()
         this.nullImageSet = {
@@ -79,7 +79,7 @@ export class ProjectStore {
         }
 
         this.clearSegmentationRequested = false
-        this.settingStore = new SettingStore(this.activeImageStore, this.activePlotStore)
+        this.settingStore = new SettingStore(this)
         this.exportStore = new ExportStore(this)
         this.imageSetHistory = []
         this.initializeImageSets()
@@ -93,7 +93,7 @@ export class ProjectStore {
         this.activeImageSetPath = null
         this.lastActiveImageSetPath = null
 
-        this.settingStore.initialize(this.nullImageSet.imageStore, this.nullImageSet.plotStore)
+        this.settingStore.initialize()
     }
 
     // Regenerates plot data when image store, population store, or plot store data has changed
@@ -175,7 +175,7 @@ export class ProjectStore {
     @action private initializeStores = (dirName: string) => {
         // Save in imageSets
         this.imageSets[dirName] = {
-            imageStore: new ImageStore(),
+            imageStore: new ImageStore(this),
             populationStore: new PopulationStore(),
             plotStore: new PlotStore(),
         }
@@ -193,10 +193,7 @@ export class ProjectStore {
             imageStore.selectDirectory(dirName)
 
             // Set defaults once image data has loaded
-            when(
-                () => !imageStore.imageDataLoading,
-                () => this.settingStore.setDefaultImageSetSettings(imageStore, this.configurationHelper),
-            )
+            when(() => !imageStore.imageDataLoading, () => this.settingStore.setDefaultImageSetSettings(imageStore))
         }
     }
 
@@ -273,10 +270,6 @@ export class ProjectStore {
         let destinationImageStore = this.activeImageStore
         let destinationPlotStore = this.activePlotStore
 
-        this.settingStore.copyImageStoreChannelMarkers(destinationImageStore)
-        this.settingStore.setImageStoreChannelDomains(destinationImageStore)
-        this.settingStore.copyImageStoreChannelVisibility(destinationImageStore)
-        this.settingStore.copySegmentationSettings(destinationImageStore)
         this.settingStore.copyPlotStoreSettings(destinationImageStore, destinationPlotStore)
     }
 
@@ -317,32 +310,6 @@ export class ProjectStore {
                 curSet.populationStore.deletePopulationsNotSelectedOnImage()
             }
         }
-    }
-
-    @action public setChannelVisibilityCallback = (name: ChannelName) => {
-        return action((value: boolean) => {
-            this.activeImageStore.setChannelVisibility(name, value)
-            this.settingStore.setChannelVisibility(name, value)
-        })
-    }
-
-    @action public setChannelMarkerCallback = (name: ChannelName) => {
-        return action((x: string | null) => {
-            // If the SelectOption has a value.
-            if (x) {
-                this.settingStore.setChannelMarker(this.activeImageStore, this.configurationHelper, name, x)
-                // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
-            } else {
-                this.settingStore.unsetChannelMarker(this.activeImageStore, name)
-            }
-        })
-    }
-
-    @action public setChannelDomainCallback = (name: ChannelName) => {
-        return action((value: [number, number]) => {
-            this.activeImageStore.setChannelDomain(name, value)
-            this.settingStore.setChannelDomainPercentage(name, this.activeImageStore.getChannelDomainPercentage(name))
-        })
     }
 
     @action public setSegmentationBasename = (fName: string) => {
@@ -417,20 +384,5 @@ export class ProjectStore {
     @action public setPlotNormalization = (normalization: PlotNormalization) => {
         this.settingStore.setPlotNormalization(normalization)
         this.activePlotStore.setPlotNormalization(normalization)
-    }
-
-    @action public setSegmentationFillAlpha = (alpha: number) => {
-        this.settingStore.setSegmentationFillAlpha(alpha)
-        this.activeImageStore.setSegmentationFillAlpha(alpha)
-    }
-
-    @action public setSegmentationOutlineAlpha = (alpha: number) => {
-        this.settingStore.setSegmentationOutlineAlpha(alpha)
-        this.activeImageStore.setSegmentationOutlineAlpha(alpha)
-    }
-
-    @action public setSegmentationCentroidsVisible = (visible: boolean) => {
-        this.settingStore.setSegmentationCentroidsVisible(visible)
-        this.activeImageStore.setCentroidVisibility(visible)
     }
 }
