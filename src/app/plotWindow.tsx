@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { ipcRenderer } from 'electron'
 import { PlotData } from '../interfaces/DataInterfaces'
+import { PlotControls } from '../components/PlotControls'
 import { Plot } from '../components/Plot'
 import { ExternalPlotHeightPadding, PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
 
@@ -73,7 +74,7 @@ function render(): void {
         if (windowHeight != null) plotHeight = windowHeight - ExternalPlotHeightPadding
         ReactDOM.render(
             <div style={{ paddingTop: '10px' }}>
-                <Plot
+                <PlotControls
                     windowWidth={windowWidth}
                     markers={markerNames}
                     selectedPlotMarkers={selectedPlotMarkers}
@@ -86,15 +87,19 @@ function render(): void {
                     setSelectedType={setPlotType}
                     selectedNormalization={selectedNormalization}
                     setSelectedNormalization={setPlotNormalization}
+                    dotSize={dotSize}
+                    setDotSize={setDotSize}
+                    transformCoefficient={transformCoefficient}
+                    setTransformCoefficient={setTransformCoefficient}
+                />
+                <Plot
+                    windowWidth={windowWidth}
+                    selectedType={selectedType}
                     setSelectedSegments={addSelectedPopulation}
                     setHoveredSegments={setHoveredSegments}
                     setSelectedRange={addPopulationFromRange}
                     plotData={plotData}
                     maxPlotHeight={plotHeight}
-                    dotSize={dotSize}
-                    setDotSize={setDotSize}
-                    transformCoefficient={transformCoefficient}
-                    setTransformCoefficient={setTransformCoefficient}
                 />
             </div>,
             document.getElementById('plot'),

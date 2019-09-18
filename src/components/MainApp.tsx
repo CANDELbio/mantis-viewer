@@ -22,6 +22,7 @@ import { SelectedPopulations } from './SelectedPopulations'
 import { ExportModal } from './modals/ExportModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import { PlotControls } from './PlotControls'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -128,6 +129,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageViewer = null
         let imageSetSelector = null
         let channelControls = null
+        let plotControls = null
         let scatterPlot = null
         let imageControls = null
 
@@ -212,8 +214,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     let maxPlotHeight = null
                     if (projectStore.windowHeight != null)
                         maxPlotHeight = projectStore.windowHeight - MainPlotHeightPadding
-                    scatterPlot = (
-                        <Plot
+                    plotControls = (
+                        <PlotControls
                             windowWidth={projectStore.windowWidth}
                             markers={markerNames}
                             selectedPlotMarkers={settingStore.selectedPlotMarkers}
@@ -226,15 +228,21 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             setSelectedType={settingStore.setPlotType}
                             selectedNormalization={settingStore.plotNormalization}
                             setSelectedNormalization={settingStore.setPlotNormalization}
+                            dotSize={settingStore.plotDotSize}
+                            setDotSize={settingStore.setPlotDotSize}
+                            transformCoefficient={settingStore.transformCoefficient}
+                            setTransformCoefficient={settingStore.setTransformCoefficient}
+                        />
+                    )
+                    scatterPlot = (
+                        <Plot
+                            windowWidth={projectStore.windowWidth}
+                            selectedType={settingStore.plotType}
                             setSelectedSegments={this.addSelectionFromGraph}
                             setSelectedRange={projectStore.addPopulationFromRange}
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                             plotData={plotStore.plotData}
                             maxPlotHeight={maxPlotHeight}
-                            dotSize={settingStore.plotDotSize}
-                            setDotSize={settingStore.setPlotDotSize}
-                            transformCoefficient={settingStore.transformCoefficient}
-                            setTransformCoefficient={settingStore.setTransformCoefficient}
                         />
                     )
                 }
@@ -304,6 +312,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 {this.state.plotOpen ? 'Hide' : 'Show'} Plot Pane
                             </Button>
                             <Collapse isOpen={this.state.plotOpen} style={fullWidth}>
+                                <div>{plotControls}</div>
                                 <div>{scatterPlot}</div>
                             </Collapse>
                         </Col>
