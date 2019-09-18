@@ -1,23 +1,27 @@
 import * as React from 'react'
+import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Button, Collapse, Modal, ModalHeader, ModalBody, Spinner, Progress } from 'reactstrap'
+import { Button, Collapse } from 'reactstrap'
 
 import { ProjectStore } from '../stores/ProjectStore'
-import { ChannelControls } from './ChannelControls'
-import { observer } from 'mobx-react'
 import {
     ChannelName,
     ImageViewerHeightPadding,
     MainPlotHeightPadding,
     ChannelControlsCombinedHeight,
+    ImageChannels,
+    GraphSelectionPrefix,
+    ImageSelectionPrefix,
 } from '../definitions/UIDefinitions'
+import { ChannelControls } from './ChannelControls'
 import { ImageViewer } from './ImageViewer'
 import { ImageSetSelector } from './ImageSetSelector'
 import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './SelectedPopulations'
+import { ExportModal } from './modals/ExportModal'
+import { LoadingModal } from './modals/LoadingModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
-import { ImageChannels, GraphSelectionPrefix, ImageSelectionPrefix } from '../definitions/UIDefinitions'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -100,42 +104,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
-    }
-
-    private exportModal(numExported: number, numToExport: number): JSX.Element | null {
-        let modal = null
-        if (numToExport > 0) {
-            let exportProgress = (numExported / numToExport) * 100
-            modal = (
-                <Modal isOpen={true}>
-                    <ModalHeader>Files exporting...</ModalHeader>
-                    <ModalBody>
-                        <div style={{ textAlign: 'center' }}>
-                            <Progress value={exportProgress} />
-                        </div>
-                    </ModalBody>
-                </Modal>
-            )
-        }
-        return modal
-    }
-
-    private loadingModal(imageDataLoading: boolean, segmentationDataLoading: boolean): JSX.Element | null {
-        let modal = null
-        if (imageDataLoading || segmentationDataLoading) {
-            let modalType = imageDataLoading ? 'Image Data' : 'Segmentation Data'
-            modal = (
-                <Modal isOpen={true}>
-                    <ModalHeader>{modalType} is loading...</ModalHeader>
-                    <ModalBody>
-                        <div style={{ textAlign: 'center' }}>
-                            <Spinner style={{ width: '5rem', height: '5rem' }} />
-                        </div>
-                    </ModalBody>
-                </Modal>
-            )
-        }
-        return modal
     }
 
     public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
@@ -298,8 +266,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         return (
             <div>
-                {this.loadingModal(imageDataLoading, segmentationDataLoading)}
-                {this.exportModal(numExported, numToExport)}
+                <LoadingModal imageDataLoading={imageDataLoading} segmentationDataLoading={segmentationDataLoading} />
+                <ExportModal numExported={numExported} numToExport={numToExport} />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
