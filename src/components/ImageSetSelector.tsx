@@ -39,34 +39,32 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                 </div>
             )
         }
-        if (this.props.imageSets.length > 0) {
-            let imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
-            let selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
-            return (
-                <Grid fluid={true}>
-                    <Row between="xs">
-                        <Col xs={12} sm={12} md={12} lg={12}>
-                            <div>Selected Image Set:</div>
-                        </Col>
-                    </Row>
-                    <Row between="xs">
-                        <Col xs={10} sm={10} md={10} lg={10}>
-                            <Select
-                                value={selectedValue}
-                                options={imageSetOptions}
-                                onChange={this.onImageSetChange}
-                                clearable={false}
-                                styles={SelectStyle}
-                            />
-                        </Col>
-                        <Col xs={2} sm={2} md={2} lg={2}>
-                            {arrowControls}
-                        </Col>
-                    </Row>
-                </Grid>
-            )
-        } else {
-            return <p>Use the menu to select a file or folder.</p>
-        }
+
+        let imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
+        let selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
+        return (
+            <Grid fluid={true}>
+                <Row between="xs">
+                    <Col xs={12} sm={12} md={12} lg={12}>
+                        <div>Selected Image Set:</div>
+                    </Col>
+                </Row>
+                <Row between="xs">
+                    <Col xs={10} sm={10} md={10} lg={10}>
+                        <Select
+                            value={selectedValue}
+                            options={imageSetOptions}
+                            onChange={this.onImageSetChange}
+                            clearable={false}
+                            styles={SelectStyle}
+                            isDisabled={this.props.imageSets.length == 0}
+                        />
+                    </Col>
+                    <Col xs={2} sm={2} md={2} lg={2}>
+                        {arrowControls}
+                    </Col>
+                </Row>
+            </Grid>
+        )
     }
 }

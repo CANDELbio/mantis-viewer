@@ -19,6 +19,7 @@ import { ImageSetSelector } from './ImageSetSelector'
 import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './SelectedPopulations'
+import { WelcomeModal } from './modals/WelcomeModal'
 import { ExportModal } from './modals/ExportModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
@@ -266,6 +267,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let fullWidthBottomSpaced = { marginBottom: '0.5rem', width: '100%' }
         let paddingStyle = { paddingTop: '8px' }
 
+        let displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
+
         let imageDataLoading = imageStore.imageDataLoading
         let segmentationDataLoading = segmentationStore.segmentationDataLoading
 
@@ -274,6 +277,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         return (
             <div>
+                <WelcomeModal displayModal={displayWelcomeModal} />
                 <LoadingModal imageDataLoading={imageDataLoading} segmentationDataLoading={segmentationDataLoading} />
                 <ExportModal numExported={numExported} numToExport={numToExport} />
                 <Grid fluid={true} style={paddingStyle}>
