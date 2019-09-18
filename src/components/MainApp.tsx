@@ -68,23 +68,23 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
 
     private addSelectionFromGraph = (segmentIds: number[]) => {
-        let populationStore = this.props.projectStore.activePopulationStore
+        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
         if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
     }
 
     private addSelectionFromImage = (selectedRegion: number[], segmentIds: number[], color: number) => {
-        let populationStore = this.props.projectStore.activePopulationStore
+        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
         populationStore.addSelectedPopulation(selectedRegion, segmentIds, ImageSelectionPrefix, null, color)
     }
 
     private updateSelectionsFromImage = (selected: SelectedPopulation[]) => {
-        let populationStore = this.props.projectStore.activePopulationStore
+        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
         populationStore.setSelectedPopulations(selected)
     }
 
     private getChannelMin(s: ChannelName): number {
         let settingStore = this.props.projectStore.settingStore
-        let imageStore = this.props.projectStore.activeImageStore
+        let imageStore = this.props.projectStore.activeImageSetStore.imageStore
         let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             return imageStore.imageData.minmax[channelMarker].min
@@ -94,7 +94,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     private getChannelMax(s: ChannelName): number {
         let settingStore = this.props.projectStore.settingStore
-        let imageStore = this.props.projectStore.activeImageStore
+        let imageStore = this.props.projectStore.activeImageSetStore.imageStore
         let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             return imageStore.imageData.minmax[channelMarker].max
@@ -150,11 +150,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
     public render(): React.ReactNode {
         let projectStore = this.props.projectStore
-        let imageStore = projectStore.activeImageStore
-        let populationStore = projectStore.activePopulationStore
-        let plotStore = projectStore.activePlotStore
+        let imageSetStore = this.props.projectStore.activeImageSetStore
+        let imageStore = imageSetStore.imageStore
+        let segmentationStore = imageSetStore.segmentationStore
+        let populationStore = imageSetStore.populationStore
+        let plotStore = imageSetStore.plotStore
         let settingStore = projectStore.settingStore
-        let exportStore = projectStore.exportStore
 
         let imageViewer = null
         let imageSetSelector = null
@@ -211,7 +212,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     }}
                     legendVisible={settingStore.legendVisible}
                     setLegendVisible={settingStore.setLegendVisible}
-                    segmentationLoaded={imageStore.segmentationData != null}
+                    segmentationLoaded={segmentationStore.segmentationData != null}
                 />
             )
 
@@ -220,7 +221,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageViewer = (
                 <ImageViewer
                     imageData={imageStore.imageData}
-                    segmentationData={imageStore.segmentationData}
+                    segmentationData={segmentationStore.segmentationData}
                     segmentationFillAlpha={settingStore.segmentationFillAlpha}
                     segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
                     segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
@@ -238,7 +239,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     maxHeight={maxImageHeight}
                 />
             )
-            if (imageStore.segmentationData != null) {
+            if (segmentationStore.segmentationData != null) {
                 if (projectStore.plotInMainWindow) {
                     let maxPlotHeight = null
                     if (projectStore.windowHeight != null)
@@ -247,16 +248,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <Plot
                             windowWidth={projectStore.windowWidth}
                             markers={markerNames}
-                            selectedPlotMarkers={plotStore.selectedPlotMarkers}
-                            setSelectedPlotMarkers={projectStore.setSelectedPlotMarkers}
-                            selectedStatistic={plotStore.plotStatistic}
-                            setSelectedStatistic={projectStore.setPlotStatistic}
-                            selectedTransform={plotStore.plotTransform}
-                            setSelectedTransform={projectStore.setPlotTransform}
-                            selectedType={plotStore.plotType}
-                            setSelectedType={projectStore.setPlotType}
-                            selectedNormalization={plotStore.plotNormalization}
-                            setSelectedNormalization={projectStore.setPlotNormalization}
+                            selectedPlotMarkers={settingStore.selectedPlotMarkers}
+                            setSelectedPlotMarkers={settingStore.setSelectedPlotMarkers}
+                            selectedStatistic={settingStore.plotStatistic}
+                            setSelectedStatistic={settingStore.setPlotStatistic}
+                            selectedTransform={settingStore.plotTransform}
+                            setSelectedTransform={settingStore.setPlotTransform}
+                            selectedType={settingStore.plotType}
+                            setSelectedType={settingStore.setPlotType}
+                            selectedNormalization={settingStore.plotNormalization}
+                            setSelectedNormalization={settingStore.setPlotNormalization}
                             setSelectedSegments={this.addSelectionFromGraph}
                             setSelectedRange={projectStore.addPopulationFromRange}
                             setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
@@ -290,10 +291,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let paddingStyle = { paddingTop: '8px' }
 
         let imageDataLoading = imageStore.imageDataLoading
-        let segmentationDataLoading = imageStore.segmentationDataLoading
+        let segmentationDataLoading = segmentationStore.segmentationDataLoading
 
-        let numExported = exportStore.numExported
-        let numToExport = exportStore.numToExport
+        let numExported = projectStore.numExported
+        let numToExport = projectStore.numToExport
 
         return (
             <div>
@@ -330,7 +331,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 onClick={this.handlePlotClick}
                                 style={fullWidthBottomSpaced}
                                 size="sm"
-                                disabled={imageStore.segmentationData == null}
+                                disabled={segmentationStore.segmentationData == null}
                             >
                                 {this.state.plotOpen ? 'Hide' : 'Show'} Plot Pane
                             </Button>

@@ -1,38 +1,27 @@
-import { observable, action, autorun, when } from 'mobx'
+import { observable, action, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { ImageStore } from '../stores/ImageStore'
-import { PopulationStore } from '../stores/PopulationStore'
-import { PlotStore } from '../stores/PlotStore'
 import { SettingStore } from '../stores/SettingStore'
-import { ExportStore } from '../stores/ExportStore'
-import { generatePlotData } from '../lib/plot/Index'
-import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../definitions/UIDefinitions'
 import { ConfigurationHelper } from '../lib/ConfigurationHelper'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
-
-interface ImageSet {
-    imageStore: ImageStore
-    populationStore: PopulationStore
-    plotStore: PlotStore
-}
+import { ImageSetStore } from './ImageSetStore'
+import { exportMarkerIntensisties, exportToFCS, exportPopulationsToFCS } from '../lib/IOHelper'
+import { PlotStatistic } from '../definitions/UIDefinitions'
 
 export class ProjectStore {
     public appVersion: string
 
     @observable public projectPath: string | null
     @observable public imageSetPaths: string[]
-    @observable public imageSets: Record<string, ImageSet>
-    @observable public nullImageSet: ImageSet
+    @observable public imageSets: Record<string, ImageSetStore>
+    @observable public nullImageSet: ImageSetStore
     @observable public lastActiveImageSetPath: string | null
     @observable public activeImageSetPath: string | null
 
-    @observable.ref public activeImageStore: ImageStore
-    @observable.ref public activePopulationStore: PopulationStore
-    @observable.ref public activePlotStore: PlotStore
+    @observable.ref public activeImageSetStore: ImageSetStore
+
     @observable.ref public settingStore: SettingStore
-    @observable.ref public exportStore: ExportStore
     @observable.ref public configurationHelper: ConfigurationHelper
 
     // The width and height of the main window.
@@ -56,6 +45,10 @@ export class ProjectStore {
     // Used to clear old image sets to clean up memory.
     @observable public imageSetHistory: string[]
 
+    // Used to track progress when exporting FCS/Stats for whole project
+    @observable.ref public numToExport: number
+    @observable.ref public numExported: number
+
     public constructor(appVersion: string) {
         this.appVersion = appVersion
         this.initialize()
@@ -69,19 +62,14 @@ export class ProjectStore {
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
-        this.activeImageStore = new ImageStore(this)
-        this.activePopulationStore = new PopulationStore()
-        this.activePlotStore = new PlotStore()
-        this.nullImageSet = {
-            imageStore: this.activeImageStore,
-            plotStore: this.activePlotStore,
-            populationStore: this.activePopulationStore,
-        }
+        this.nullImageSet = new ImageSetStore(this)
+        this.activeImageSetStore = this.nullImageSet
 
         this.clearSegmentationRequested = false
         this.settingStore = new SettingStore(this)
-        this.exportStore = new ExportStore(this)
         this.imageSetHistory = []
+        this.numToExport = 0
+        this.numExported = 0
         this.initializeImageSets()
     }
 
@@ -95,40 +83,6 @@ export class ProjectStore {
 
         this.settingStore.initialize()
     }
-
-    // Regenerates plot data when image store, population store, or plot store data has changed
-    private setPlotData = autorun(() => {
-        let imageStore = this.activeImageStore
-        let populationStore = this.activePopulationStore
-        let plotStore = this.activePlotStore
-        let settingStore = this.settingStore
-
-        if (imageStore && populationStore && plotStore) {
-            let loadHistogram = plotStore.selectedPlotMarkers.length == 1 && plotStore.plotType == 'histogram'
-            let loadScatter = plotStore.selectedPlotMarkers.length == 2 && plotStore.plotType == 'scatter'
-            let loadContour = plotStore.selectedPlotMarkers.length == 2 && plotStore.plotType == 'contour'
-            let loadHeatmap = plotStore.plotType == 'heatmap'
-            if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
-                if (imageStore.segmentationData != null && imageStore.segmentationStatistics != null) {
-                    let plotData = generatePlotData(
-                        plotStore.selectedPlotMarkers,
-                        imageStore.segmentationData,
-                        imageStore.segmentationStatistics,
-                        plotStore.plotType,
-                        plotStore.plotStatistic,
-                        plotStore.plotTransform,
-                        settingStore.transformCoefficient,
-                        plotStore.plotNormalization,
-                        populationStore.selectedPopulations,
-                        settingStore.plotDotSize,
-                    )
-                    if (plotData != null) plotStore.setPlotData(plotData)
-                }
-            } else {
-                plotStore.clearPlotData()
-            }
-        }
-    })
 
     @action public openImageSet = (dirName: string) => {
         // Clear out old image sets
@@ -172,19 +126,10 @@ export class ProjectStore {
         }
     }
 
-    @action private initializeStores = (dirName: string) => {
-        // Save in imageSets
-        this.imageSets[dirName] = {
-            imageStore: new ImageStore(this),
-            populationStore: new PopulationStore(),
-            plotStore: new PlotStore(),
-        }
-    }
-
     @action public loadImageStoreData = (dirName: string) => {
         // If we haven't loaded this directory, initialize the stores and load it.
         if (!(dirName in this.imageSets)) {
-            this.initializeStores(dirName)
+            this.imageSets[dirName] = new ImageSetStore(this)
         }
 
         let imageStore = this.imageSets[dirName].imageStore
@@ -200,9 +145,21 @@ export class ProjectStore {
     @action private setActiveStores = (dirName: string) => {
         this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
-        this.activeImageStore = this.imageSets[dirName].imageStore
-        this.activePopulationStore = this.imageSets[dirName].populationStore
-        this.activePlotStore = this.imageSets[dirName].plotStore
+        this.activeImageSetStore = this.imageSets[dirName]
+    }
+
+    // Clears out the image set data if it shouldn't be in memory (i.e. it is not in the image set history)
+    private clearImageSetData = (imageSetDir: string) => {
+        let imageSetStore = this.imageSets[imageSetDir]
+        if (imageSetStore) {
+            let imageStore = imageSetStore.imageStore
+            let segmentationStore = imageSetStore.segmentationStore
+            let selectedDirectory = imageStore.selectedDirectory
+            if (selectedDirectory && !this.imageSetHistory.includes(selectedDirectory)) {
+                imageStore.clearImageData()
+                segmentationStore.clearSegmentationData()
+            }
+        }
     }
 
     // Adds dirName to the image set history.
@@ -214,12 +171,7 @@ export class ProjectStore {
         this.imageSetHistory.push(dirName)
         if (this.imageSetHistory.length > this.configurationHelper.maxImageSetsInMemory) {
             let setToClean = this.imageSetHistory.shift()
-            let imageSet = null
-            if (setToClean) imageSet = this.imageSets[setToClean]
-            if (imageSet) {
-                imageSet.imageStore.clearImageData()
-                imageSet.imageStore.clearSegmentationData()
-            }
+            if (setToClean) this.clearImageSetData(setToClean)
         }
     }
 
@@ -235,20 +187,14 @@ export class ProjectStore {
 
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
-        when(() => !this.activeImageStore.imageDataLoading, () => this.finalizeActiveImageSet())
-    }
-
-    // Make any changes or checks that require image data to be loaded.
-    @action public finalizeActiveImageSet = () => {
-        this.copyImageSetSettings()
-        this.setImageSetWarnings()
+        when(() => !this.activeImageSetStore.imageStore.imageDataLoading, () => this.setImageSetWarnings())
     }
 
     // Sets warnings on the active image set
     // Currently just raises an error if no images are found.
     @action public setImageSetWarnings = () => {
         if (this.activeImageSetPath != null) {
-            let imageStore = this.activeImageStore
+            let imageStore = this.activeImageSetStore.imageStore
             if (imageStore.imageData != null) {
                 if (imageStore.imageData.markerNames.length == 0) {
                     let msg = 'Warning: No tiffs found in ' + path.basename(this.activeImageSetPath) + '.'
@@ -257,16 +203,6 @@ export class ProjectStore {
                 }
             }
         }
-    }
-
-    // TODO: Would it be better to just not store these settings on the ImageStore and PlotStore at all?
-    // Copy settings from old imageSet to new one once image data has loaded.
-    // Copy when image data has loaded so that channel marker values and domain settings don't get overwritten.
-    @action public copyImageSetSettings = () => {
-        let destinationImageStore = this.activeImageStore
-        let destinationPlotStore = this.activePlotStore
-
-        this.settingStore.copyPlotStoreSettings(destinationImageStore, destinationPlotStore)
     }
 
     // Jumps to the previous image set in the list of image sets
@@ -298,11 +234,11 @@ export class ProjectStore {
     // Gets called when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = () => {
         this.settingStore.setSegmentationBasename(null)
-        this.clearSelectedPlotMarkers()
+        this.settingStore.clearSelectedPlotMarkers()
         for (let imageSet of this.imageSetPaths) {
             let curSet = this.imageSets[imageSet]
             if (curSet) {
-                curSet.imageStore.clearSegmentationData()
+                curSet.segmentationStore.clearSegmentationData()
                 curSet.populationStore.deletePopulationsNotSelectedOnImage()
             }
         }
@@ -316,27 +252,17 @@ export class ProjectStore {
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
             // Could result in weird behavior when switching between image sets.
-            this.activeImageStore.setSegmentationFile(fName)
+            this.activeImageSetStore.segmentationStore.setSegmentationFile(fName)
         }
     }
 
-    @action public setSelectedPlotMarkers = (x: string[]) => {
-        this.settingStore.setSelectedPlotMarkers(x)
-        this.activePlotStore.setSelectedPlotMarkers(x)
-    }
-
-    @action public clearSelectedPlotMarkers = () => {
-        this.settingStore.clearSelectedPlotMarkers()
-        this.activePlotStore.clearSelectedPlotMarkers()
-    }
-
     @action public addPopulationFromRange = (min: number, max: number) => {
-        let plotStore = this.activePlotStore
-        let populationStore = this.activePopulationStore
-        let segmentationStatistics = this.activeImageStore.segmentationStatistics
+        let settingStore = this.settingStore
+        let populationStore = this.activeImageSetStore.populationStore
+        let segmentationStatistics = this.activeImageSetStore.segmentationStore.segmentationStatistics
         if (segmentationStatistics != null) {
-            let marker = plotStore.selectedPlotMarkers[0]
-            let selectedStatistic = plotStore.plotStatistic
+            let marker = settingStore.selectedPlotMarkers[0]
+            let selectedStatistic = settingStore.plotStatistic
             let segmentIds = segmentationStatistics.segmentsInIntensityRange(
                 marker,
                 min,
@@ -364,27 +290,112 @@ export class ProjectStore {
         this.plotInMainWindow = inWindow
     }
 
-    // Could possible achieve the following effects by using mobx observe functions
-    // and destroying/recreating them when the active image set changes.
-    // Might be cleaner, but This seemed easier for now though.
-
-    @action public setPlotStatistic = (statistic: PlotStatistic) => {
-        this.settingStore.setPlotStatistic(statistic)
-        this.activePlotStore.setPlotStatistic(statistic)
+    @action public incrementNumToExport = () => {
+        this.numToExport += 1
     }
 
-    @action public setPlotTransform = (transform: PlotTransform) => {
-        this.settingStore.setPlotTransform(transform)
-        this.activePlotStore.setPlotTransform(transform)
+    @action public incrementNumExported = () => {
+        this.numExported += 1
+        // If we've exported all files, mark done.
+        if (this.numExported >= this.numToExport) {
+            this.numToExport = 0
+            this.numExported = 0
+        }
     }
 
-    @action public setPlotType = (type: PlotType) => {
-        this.settingStore.setPlotType(type)
-        this.activePlotStore.setPlotType(type)
+    public exportActiveImageSetMarkerIntensities = (filePath: string, statistic: PlotStatistic) => {
+        exportMarkerIntensisties(filePath, statistic, this.activeImageSetStore)
     }
 
-    @action public setPlotNormalization = (normalization: PlotNormalization) => {
-        this.settingStore.setPlotNormalization(normalization)
-        this.activePlotStore.setPlotNormalization(normalization)
+    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
+        for (let curDir of this.imageSetPaths) {
+            // Incrementing num to export so we can have a loading bar.
+            this.incrementNumToExport()
+            this.loadImageStoreData(curDir)
+            let imageSetStore = this.imageSets[curDir]
+            let imageStore = imageSetStore.imageStore
+            let segmentationStore = imageSetStore.segmentationStore
+            when(
+                () => !imageStore.imageDataLoading,
+                () => {
+                    // If we don't have segmentation, then skip this one.
+                    if (segmentationStore.selectedSegmentationFile) {
+                        when(
+                            () =>
+                                !segmentationStore.segmentationDataLoading &&
+                                !segmentationStore.segmentationStatisticsLoading,
+                            () => {
+                                let selectedDirectory = imageStore.selectedDirectory
+                                if (selectedDirectory) {
+                                    let imageSetName = path.basename(selectedDirectory)
+                                    let filename = imageSetName + '_' + statistic + '.csv'
+                                    let filePath = path.join(dirName, filename)
+                                    exportMarkerIntensisties(filePath, statistic, imageSetStore)
+                                    // Mark as done exporting for loading bar.
+                                    this.incrementNumExported()
+                                    this.clearImageSetData(curDir)
+                                }
+                            },
+                        )
+                    } else {
+                        // Mark as success if we're not going to export it
+                        this.incrementNumExported()
+                        this.clearImageSetData(curDir)
+                    }
+                },
+            )
+        }
+    }
+
+    public exportActiveImageSetToFcs = (filePath: string, statistic: PlotStatistic) => {
+        exportToFCS(filePath, statistic, this.activeImageSetStore)
+    }
+
+    public exportActiveImageSetPopulationsToFcs = (filePath: string, statistic: PlotStatistic) => {
+        exportPopulationsToFCS(filePath, statistic, this.activeImageSetStore)
+    }
+
+    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
+        for (let curDir of this.imageSetPaths) {
+            // Incrementing num to export so we can have a loading bar.
+            this.incrementNumToExport()
+            this.loadImageStoreData(curDir)
+            let imageSetStore = this.imageSets[curDir]
+            let imageStore = imageSetStore.imageStore
+            let segmentationStore = imageSetStore.segmentationStore
+            when(
+                () => !imageStore.imageDataLoading,
+                () => {
+                    // If we don't have segmentation, then skip this one.
+                    if (segmentationStore.selectedSegmentationFile) {
+                        when(
+                            () =>
+                                !segmentationStore.segmentationDataLoading &&
+                                !segmentationStore.segmentationStatisticsLoading,
+                            () => {
+                                let selectedDirectory = imageStore.selectedDirectory
+                                if (selectedDirectory) {
+                                    let imageSetName = path.basename(selectedDirectory)
+                                    if (populations) {
+                                        exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
+                                    } else {
+                                        let filename = imageSetName + '_' + statistic + '.fcs'
+                                        let filePath = path.join(dirName, filename)
+                                        exportToFCS(filePath, statistic, imageSetStore)
+                                    }
+                                    // Mark this set of files as loaded for loading bar.
+                                    this.incrementNumExported()
+                                    this.clearImageSetData(curDir)
+                                }
+                            },
+                        )
+                    } else {
+                        // Mark as success if we're not going to export it
+                        this.incrementNumExported()
+                        this.clearImageSetData(curDir)
+                    }
+                },
+            )
+        }
     }
 }

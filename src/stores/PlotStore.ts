@@ -1,39 +1,67 @@
-import { observable, action } from 'mobx'
+import { observable, action, autorun } from 'mobx'
 import { PlotData } from '../interfaces/DataInterfaces'
-
-import {
-    PlotStatistic,
-    PlotStatisticOptions,
-    PlotTransform,
-    PlotTransformOptions,
-    PlotType,
-    PlotTypeOptions,
-    PlotNormalization,
-    PlotNormalizationOptions,
-} from '../definitions/UIDefinitions'
+import { generatePlotData } from '../lib/plot/Index'
+import { ImageSetStore } from './ImageSetStore'
 
 export class PlotStore {
-    public constructor() {
+    public constructor(imageSetStore: ImageSetStore) {
+        this.imageSetStore = imageSetStore
         this.initialize()
     }
 
+    private imageSetStore: ImageSetStore
     @observable.ref public plotData: PlotData | null
     // Array of segment IDs that have been hovered on the graph.
     @observable public segmentsHoveredOnPlot: number[]
 
-    @observable public plotStatistic: PlotStatistic
-    @observable public plotTransform: PlotTransform
-    @observable public plotType: PlotType
-    @observable public plotNormalization: PlotNormalization
+    // Regenerates plot data when image store, population store, or plot store data has changed
+    private autoGeneratePlotData = autorun(() => {
+        if (this.imageSetStore == this.imageSetStore.projectStore.activeImageSetStore) {
+            let imageStore = this.imageSetStore.imageStore
+            let segmentationStore = this.imageSetStore.segmentationStore
+            let populationStore = this.imageSetStore.populationStore
+            let settingStore = this.imageSetStore.projectStore.settingStore
 
-    @observable.ref public selectedPlotMarkers: string[]
+            if (imageStore.imageData) {
+                let imageData = imageStore.imageData
+                // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
+                let selectedPlotMarkersInImageSet = settingStore.selectedPlotMarkers.every((m: string) => {
+                    return imageData.markerNames.includes(m)
+                })
+                if (imageStore && populationStore && selectedPlotMarkersInImageSet) {
+                    let loadHistogram =
+                        settingStore.selectedPlotMarkers.length == 1 && settingStore.plotType == 'histogram'
+                    let loadScatter = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'scatter'
+                    let loadContour = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'contour'
+                    let loadHeatmap = settingStore.plotType == 'heatmap'
+                    if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
+                        if (
+                            segmentationStore.segmentationData != null &&
+                            segmentationStore.segmentationStatistics != null
+                        ) {
+                            let plotData = generatePlotData(
+                                settingStore.selectedPlotMarkers,
+                                segmentationStore.segmentationData,
+                                segmentationStore.segmentationStatistics,
+                                settingStore.plotType,
+                                settingStore.plotStatistic,
+                                settingStore.plotTransform,
+                                settingStore.transformCoefficient,
+                                settingStore.plotNormalization,
+                                populationStore.selectedPopulations,
+                                settingStore.plotDotSize,
+                            )
+                            if (plotData != null) this.setPlotData(plotData)
+                        }
+                    } else {
+                        this.clearPlotData()
+                    }
+                }
+            }
+        }
+    })
 
     @action public initialize = () => {
-        this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
-        this.plotTransform = PlotTransformOptions[0].value as PlotTransform
-        this.plotType = PlotTypeOptions[0].value as PlotType
-        this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
-        this.selectedPlotMarkers = []
         this.segmentsHoveredOnPlot = []
     }
 
@@ -47,30 +75,5 @@ export class PlotStore {
 
     @action public setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {
         this.segmentsHoveredOnPlot = hoveredSegments
-    }
-
-    @action public setSelectedPlotMarkers = (x: string[]) => {
-        this.selectedPlotMarkers = x
-    }
-
-    @action public clearSelectedPlotMarkers = () => {
-        this.selectedPlotMarkers = []
-    }
-
-    @action public setPlotStatistic = (x: PlotStatistic) => {
-        this.plotStatistic = x
-    }
-
-    @action public setPlotTransform = (x: PlotTransform) => {
-        this.plotTransform = x
-    }
-
-    @action public setPlotNormalization = (x: PlotNormalization) => {
-        this.plotNormalization = x
-    }
-
-    @action public setPlotType = (x: PlotType) => {
-        this.plotType = x
-        this.clearSelectedPlotMarkers()
     }
 }

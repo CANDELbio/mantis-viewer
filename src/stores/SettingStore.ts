@@ -3,8 +3,6 @@ import * as path from 'path'
 import * as fs from 'fs'
 
 import { ImageStore } from '../stores/ImageStore'
-import { ConfigurationHelper } from '../lib/ConfigurationHelper'
-import { PlotStore } from '../stores/PlotStore'
 
 import {
     ImageChannels,
@@ -50,9 +48,11 @@ export class SettingStore {
     }
 
     private projectStore: ProjectStore
+
     // Storing the base path of the image set or project path for saving/loading settings from a file.
     @observable public basePath: string | null
 
+    // Image settings below
     // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
     // channelDomain stored here as percentages.
@@ -63,20 +63,21 @@ export class SettingStore {
     @observable public segmentationBasename: string | null
     // selected plot channels to be copied
     @observable.ref public selectedPlotMarkers: string[]
+    //Whether or not the legend is visible on the image
+    @observable public legendVisible: boolean
 
-    @observable public plotStatistic: PlotStatistic
-    @observable public plotTransform: PlotTransform
-    @observable public plotType: PlotType
-    @observable public plotNormalization: PlotNormalization
-    @observable public plotDotSize: number
-
+    // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
     @observable public segmentationCentroidsVisible: boolean
 
-    @observable public legendVisible: boolean
-
+    //Plot settings below
+    @observable public plotStatistic: PlotStatistic
+    @observable public plotTransform: PlotTransform
     @observable public transformCoefficient: number | null
+    @observable public plotType: PlotType
+    @observable public plotNormalization: PlotNormalization
+    @observable public plotDotSize: number
 
     @action public initialize = () => {
         this.basePath = null
@@ -205,6 +206,11 @@ export class SettingStore {
         })
     }
 
+    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
+        this.channelVisibility[name] = visible
+        this.exportSettings()
+    }
+
     @action public setChannelMarkerCallback = (name: ChannelName) => {
         return action((x: string | null) => {
             // If the SelectOption has a value.
@@ -215,11 +221,6 @@ export class SettingStore {
                 this.unsetChannelMarker(name)
             }
         })
-    }
-
-    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
-        this.channelVisibility[name] = visible
-        this.exportSettings()
     }
 
     @action public setSegmentationBasename = (basename: string | null) => {
@@ -289,28 +290,6 @@ export class SettingStore {
         this.channelMarker[channelName] = null
         this.channelDomainPercentage[channelName] = [0, 1]
         this.exportSettings()
-    }
-
-    @action public copyPlotStoreSettings = (imageStore: ImageStore, plotStore: PlotStore) => {
-        plotStore.setPlotType(this.plotType)
-        plotStore.setPlotStatistic(this.plotStatistic)
-        plotStore.setPlotTransform(this.plotTransform)
-        plotStore.setPlotNormalization(this.plotNormalization)
-        // Check if the source selected plot markers are in the destination image set. If they are, use them.
-        this.setPlotStoreMarkers(imageStore, plotStore)
-    }
-
-    @action public setPlotStoreMarkers = (imageStore: ImageStore, plotStore: PlotStore) => {
-        let imageData = imageStore.imageData
-        if (imageData != null) {
-            let selectedPlotMarkers = []
-            for (let marker of this.selectedPlotMarkers) {
-                if (imageData.markerNames.indexOf(marker) != -1) {
-                    selectedPlotMarkers.push(marker)
-                }
-            }
-            plotStore.setSelectedPlotMarkers(selectedPlotMarkers)
-        }
     }
 
     // Was an autorun function, but then was getting triggered on first create/initialize and then clobbering any saved settings.

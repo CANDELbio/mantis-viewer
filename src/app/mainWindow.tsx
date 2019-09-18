@@ -28,39 +28,39 @@ ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: strin
 })
 
 ipcRenderer.on('add-populations-json', (event: Electron.Event, filename: string) => {
-    projectStore.activePopulationStore.addPopulationsFromJSON(filename)
+    projectStore.activeImageSetStore.populationStore.addPopulationsFromJSON(filename)
 })
 
 ipcRenderer.on('export-populations-json', (event: Electron.Event, filename: string) => {
-    projectStore.activePopulationStore.exportPopulationsToJSON(filename)
+    projectStore.activeImageSetStore.populationStore.exportPopulationsToJSON(filename)
 })
 
 ipcRenderer.on('add-populations-csv', (event: Electron.Event, filename: string) => {
-    projectStore.activePopulationStore.addPopulationsFromCSV(filename)
+    projectStore.activeImageSetStore.populationStore.addPopulationsFromCSV(filename)
 })
 
 ipcRenderer.on('export-populations-csv', (event: Electron.Event, filename: string) => {
-    projectStore.activePopulationStore.exportPopulationsToCSV(filename)
+    projectStore.activeImageSetStore.populationStore.exportPopulationsToCSV(filename)
 })
 
 ipcRenderer.on('export-image', (event: Electron.Event, filename: string) => {
-    projectStore.activeImageStore.setImageExportFilename(filename)
+    projectStore.activeImageSetStore.imageStore.setImageExportFilename(filename)
 })
 
 ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportStore.exportMarkerIntensisties(filename, 'mean')
+    projectStore.exportActiveImageSetMarkerIntensities(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: string) => {
-    projectStore.exportStore.exportMarkerIntensisties(filename, 'median')
+    projectStore.exportActiveImageSetMarkerIntensities(filename, 'median')
 })
 
 ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectMarkerIntensities(dirName, 'mean')
+    projectStore.exportProjectMarkerIntensities(dirName, 'mean')
 })
 
 ipcRenderer.on('export-project-median-intensities', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectMarkerIntensities(dirName, 'median')
+    projectStore.exportProjectMarkerIntensities(dirName, 'median')
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
@@ -83,23 +83,23 @@ ipcRenderer.on('plot-in-main-window', (event: Electron.Event, inMain: boolean) =
 
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-markers', (event: Electron.Event, markers: string[]) => {
-    projectStore.activePlotStore.setSelectedPlotMarkers(markers)
+    projectStore.settingStore.setSelectedPlotMarkers(markers)
 })
 
 ipcRenderer.on('set-plot-statistic', (event: Electron.Event, statistic: any) => {
-    projectStore.activePlotStore.setPlotStatistic(statistic)
+    projectStore.settingStore.setPlotStatistic(statistic)
 })
 
 ipcRenderer.on('set-plot-transform', (event: Electron.Event, transform: any) => {
-    projectStore.activePlotStore.setPlotTransform(transform)
+    projectStore.settingStore.setPlotTransform(transform)
 })
 
 ipcRenderer.on('set-plot-type', (event: Electron.Event, type: any) => {
-    projectStore.activePlotStore.setPlotType(type)
+    projectStore.settingStore.setPlotType(type)
 })
 
 ipcRenderer.on('set-plot-normalization', (event: Electron.Event, normalization: any) => {
-    projectStore.activePlotStore.setPlotNormalization(normalization)
+    projectStore.settingStore.setPlotNormalization(normalization)
 })
 
 ipcRenderer.on('set-plot-dot-size', (event: Electron.Event, size: number) => {
@@ -111,11 +111,11 @@ ipcRenderer.on('set-plot-coefficient', (event: Electron.Event, coefficient: numb
 })
 
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]) => {
-    projectStore.activePopulationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+    projectStore.activeImageSetStore.populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
 })
 
 ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: number[]) => {
-    projectStore.activePlotStore.setSegmentsHoveredOnPlot(segmentIds)
+    projectStore.activeImageSetStore.plotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
 ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: number, max: number) => {
@@ -123,35 +123,35 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
 })
 
 ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportPopulationsToFCS(dirName, 'mean')
+    projectStore.exportActiveImageSetPopulationsToFcs(dirName, 'mean')
 })
 
 ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportPopulationsToFCS(dirName, 'median')
+    projectStore.exportActiveImageSetPopulationsToFcs(dirName, 'median')
 })
 
 ipcRenderer.on('export-project-mean-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectToFCS(dirName, 'mean', true)
+    projectStore.exportProjectToFCS(dirName, 'mean', true)
 })
 
 ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectToFCS(dirName, 'median', true)
+    projectStore.exportProjectToFCS(dirName, 'median', true)
 })
 
 ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
-    projectStore.exportStore.exportToFCS(filename, 'mean')
+    projectStore.exportActiveImageSetToFcs(filename, 'mean')
 })
 
 ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filename: string) => {
-    projectStore.exportStore.exportToFCS(filename, 'median')
+    projectStore.exportActiveImageSetToFcs(filename, 'median')
 })
 
 ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectToFCS(dirName, 'mean', false)
+    projectStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
 ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Event, dirName: string) => {
-    projectStore.exportStore.exportProjectToFCS(dirName, 'median', false)
+    projectStore.exportProjectToFCS(dirName, 'median', false)
 })
 
 // Keyboard shortcuts!
@@ -165,18 +165,19 @@ Mousetrap.bind(['command+right', 'alt+right'], function() {
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun(() => {
-    let imageStore = projectStore.activeImageStore
-    let plotStore = projectStore.activePlotStore
+    let imageSet = projectStore.activeImageSetStore
+    let imageStore = imageSet.imageStore
+    let plotStore = imageSet.plotStore
     let settingStore = projectStore.settingStore
     let markerNames = imageStore.imageData ? imageStore.imageData.markerNames : null
     ipcRenderer.send(
         'mainWindow-set-plot-data',
         markerNames,
-        plotStore.selectedPlotMarkers,
-        plotStore.plotStatistic,
-        plotStore.plotTransform,
-        plotStore.plotType,
-        plotStore.plotNormalization,
+        settingStore.selectedPlotMarkers,
+        settingStore.plotStatistic,
+        settingStore.plotTransform,
+        settingStore.plotType,
+        settingStore.plotNormalization,
         settingStore.plotDotSize,
         settingStore.transformCoefficient,
         plotStore.plotData,
@@ -208,20 +209,20 @@ Mobx.autorun(() => {
 })
 
 Mobx.autorun(() => {
-    if (projectStore.activeImageStore.imageData && projectStore.activeImageStore.imageData.errors.length > 0) {
-        let msg =
-            'Error(s) opening tiffs for the following markers: ' +
-            projectStore.activeImageStore.imageData.errors.join(', ')
+    let activeImageStore = projectStore.activeImageSetStore.imageStore
+    if (activeImageStore.imageData && activeImageStore.imageData.errors.length > 0) {
+        let msg = 'Error(s) opening tiffs for the following markers: ' + activeImageStore.imageData.errors.join(', ')
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
-        projectStore.activeImageStore.imageData.clearErrors()
+        activeImageStore.imageData.clearErrors()
     }
 })
 
 Mobx.autorun(() => {
-    if (projectStore.activeImageStore.segmentationData && projectStore.activeImageStore.segmentationData.errorLoading) {
+    let activeSegmentationStore = projectStore.activeImageSetStore.segmentationStore
+    if (activeSegmentationStore.segmentationData && activeSegmentationStore.segmentationData.errorLoading) {
         let msg = 'Error opening segmentation data.'
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
-        projectStore.activeImageStore.clearSegmentationData()
+        activeSegmentationStore.clearSegmentationData()
     }
 })
 
@@ -242,11 +243,17 @@ Mobx.autorun(() => {
 })
 
 Mobx.autorun(() => {
-    ipcRenderer.send('set-segmentation-loaded', projectStore.activeImageStore.segmentationData != null)
+    ipcRenderer.send(
+        'set-segmentation-loaded',
+        projectStore.activeImageSetStore.segmentationStore.segmentationData != null,
+    )
 })
 
 Mobx.autorun(() => {
-    ipcRenderer.send('set-populations-selected', projectStore.activePopulationStore.selectedPopulations.length > 0)
+    ipcRenderer.send(
+        'set-populations-selected',
+        projectStore.activeImageSetStore.populationStore.selectedPopulations.length > 0,
+    )
 })
 
 ReactDOM.render(

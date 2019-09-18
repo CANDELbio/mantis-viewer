@@ -1,68 +1,29 @@
-import { observable, action, autorun, computed } from 'mobx'
+import { observable, action, computed } from 'mobx'
 import * as path from 'path'
-import * as fs from 'fs'
 
 import { ImageData } from '../lib/ImageData'
-import { SegmentationData } from '../lib/SegmentationData'
-import { SegmentationStatistics } from '../lib/SegmentationStatistics'
 import { ImageChannels, ChannelName } from '../definitions/UIDefinitions'
-import { ProjectStore } from './ProjectStore'
+import { ImageSetStore } from './ImageSetStore'
 
 export class ImageStore {
-    public constructor(projectStore: ProjectStore) {
-        this.projectStore = projectStore
+    public constructor(imageSetStore: ImageSetStore) {
+        this.imageSetStore = imageSetStore
         this.initialize()
     }
 
-    private projectStore: ProjectStore
+    private imageSetStore: ImageSetStore
 
     @observable.ref public imageData: ImageData | null
     @observable public imageDataLoading: boolean
 
     @observable public imageExportFilename: string | null
 
-    @observable.ref public segmentationData: SegmentationData | null
-    @observable public segmentationDataLoading: boolean
-    @observable.ref public segmentationStatistics: SegmentationStatistics | null
-    @observable public segmentationStatisticsLoading: boolean
-
     @observable public selectedDirectory: string | null
-    @observable public selectedSegmentationFile: string | null
 
     @observable public currentSelection: {
         x: [number, number]
         y: [number, number]
     } | null
-
-    // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    private autoSetSegmentationFile = autorun(() => {
-        let settingStore = this.projectStore.settingStore
-        let segmentationBasename = settingStore.segmentationBasename
-        if (segmentationBasename) {
-            let destinationPath = this.selectedDirectory
-            if (destinationPath) {
-                let segmentationFile = path.join(destinationPath, segmentationBasename)
-                // If the segmentation file exists and it's not equal to the current file, clear segmentation data and set to the new.
-                if (fs.existsSync(segmentationFile) && this.selectedSegmentationFile != segmentationFile) {
-                    this.clearSegmentationData()
-                    this.setSegmentationFile(segmentationFile)
-                }
-            }
-        }
-    })
-
-    // TODO: Maybe should manually call when setting and unsetting segmentation data
-    // Could imagine condition where segmentation data done loading and statistics loading status still false
-    private calculateSegmentationStatistics = autorun(() => {
-        if (this.imageData && this.segmentationData) {
-            this.setSegmentationStatisticLoadingStatus(true)
-            let statistics = new SegmentationStatistics(this.setSegmentationStatistics)
-            statistics.generateStatistics(this.imageData, this.segmentationData)
-        } else {
-            this.setSegmentationStatisticLoadingStatus(false)
-            this.setSegmentationStatistics(null)
-        }
-    })
 
     @computed public get channelDomain(): Record<ChannelName, [number, number]> {
         let results: Record<ChannelName, [number, number]> = {
@@ -74,7 +35,7 @@ export class ImageStore {
             yChannel: [0, 100],
             kChannel: [0, 100],
         }
-        let settingStore = this.projectStore.settingStore
+        let settingStore = this.imageSetStore.projectStore.settingStore
         for (let channel of ImageChannels) {
             let channelMarker = settingStore.channelMarker[channel]
             if (this.imageData && channelMarker) {
@@ -92,8 +53,6 @@ export class ImageStore {
 
     @action private initialize = () => {
         this.imageDataLoading = false
-        this.segmentationDataLoading = false
-        this.segmentationStatisticsLoading = false
     }
 
     @action public setImageDataLoading = (status: boolean) => {
@@ -129,18 +88,9 @@ export class ImageStore {
         }
     }
 
-    @action public setSegmentationStatistics = (statistics: SegmentationStatistics | null) => {
-        this.segmentationStatistics = statistics
-        this.setSegmentationStatisticLoadingStatus(false)
-    }
-
-    @action public clearSegmentationStatistics = () => {
-        this.segmentationStatistics = null
-    }
-
     @action public removeMarker = (markerName: string) => {
         if (this.imageData != null && markerName in this.imageData.data) {
-            let settingStore = this.projectStore.settingStore
+            let settingStore = this.imageSetStore.projectStore.settingStore
             // Unset the marker if it is being used
             for (let s of ImageChannels) {
                 let curChannel = s as ChannelName
@@ -151,49 +101,10 @@ export class ImageStore {
         }
     }
 
-    @action private setSegmentationStatisticLoadingStatus = (status: boolean) => {
-        this.segmentationStatisticsLoading = status
-    }
-
-    @action private setSegmentationDataLoadingStatus = (status: boolean) => {
-        this.segmentationDataLoading = status
-    }
-
-    @action private setSegmentationData = (data: SegmentationData) => {
-        this.segmentationData = data
-        this.setSegmentationDataLoadingStatus(false)
-    }
-
-    // Deletes the segmentation data and resets the selected segmentation file and alpha
-    @action public clearSegmentationData = () => {
-        this.selectedSegmentationFile = null
-        this.deleteSegmentationData()
-    }
-
-    // Just deletes the associated segmentation data.
-    // Used in clearSegmentationData
-    // And when cleaning up memory in the projectStore.
-    @action public deleteSegmentationData = () => {
-        this.segmentationData = null
-    }
-
-    @action public refreshSegmentationData = () => {
-        if (this.selectedSegmentationFile != null && this.segmentationData == null) {
-            this.setSegmentationDataLoadingStatus(true)
-            let segmentationData = new SegmentationData()
-            segmentationData.loadFile(this.selectedSegmentationFile, this.setSegmentationData)
-        }
-    }
-
-    @action public setSegmentationFile = (fName: string) => {
-        this.selectedSegmentationFile = fName
-        this.refreshSegmentationData()
-        this.removeSegmentationFileFromImageData()
-    }
-
     @action public removeSegmentationFileFromImageData = () => {
-        if (this.selectedSegmentationFile != null) {
-            let basename = path.parse(this.selectedSegmentationFile).name
+        let selectedSegmentationFile = this.imageSetStore.segmentationStore.selectedSegmentationFile
+        if (selectedSegmentationFile) {
+            let basename = path.parse(selectedSegmentationFile).name
             this.removeMarker(basename)
         }
     }
