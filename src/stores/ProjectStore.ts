@@ -303,11 +303,15 @@ export class ProjectStore {
         }
     }
 
-    public exportActiveImageSetMarkerIntensities = (filePath: string, statistic: PlotStatistic) => {
-        exportMarkerIntensisties(filePath, statistic, this.activeImageSetStore)
-    }
-
-    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
+    // Export project level summary stats to fcs if fcs is true or csv if fcs is false.
+    // CSVs always contain population information. FCSs do not have anywhere to store this.
+    // If populations is true, exports one FCS file per population. Has no effect if fcs is false.
+    private exportProjectSummaryStats = (
+        dirName: string,
+        statistic: PlotStatistic,
+        fcs: boolean,
+        populations: boolean,
+    ) => {
         for (let curDir of this.imageSetPaths) {
             // Incrementing num to export so we can have a loading bar.
             this.incrementNumToExport()
@@ -328,60 +332,17 @@ export class ProjectStore {
                                 let selectedDirectory = imageStore.selectedDirectory
                                 if (selectedDirectory) {
                                     let imageSetName = path.basename(selectedDirectory)
-                                    let filename = imageSetName + '_' + statistic + '.csv'
-                                    let filePath = path.join(dirName, filename)
-                                    exportMarkerIntensisties(filePath, statistic, imageSetStore)
-                                    // Mark as done exporting for loading bar.
-                                    this.incrementNumExported()
-                                    this.clearImageSetData(curDir)
-                                }
-                            },
-                        )
-                    } else {
-                        // Mark as success if we're not going to export it
-                        this.incrementNumExported()
-                        this.clearImageSetData(curDir)
-                    }
-                },
-            )
-        }
-    }
-
-    public exportActiveImageSetToFcs = (filePath: string, statistic: PlotStatistic) => {
-        exportToFCS(filePath, statistic, this.activeImageSetStore)
-    }
-
-    public exportActiveImageSetPopulationsToFcs = (filePath: string, statistic: PlotStatistic) => {
-        exportPopulationsToFCS(filePath, statistic, this.activeImageSetStore)
-    }
-
-    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
-        for (let curDir of this.imageSetPaths) {
-            // Incrementing num to export so we can have a loading bar.
-            this.incrementNumToExport()
-            this.loadImageStoreData(curDir)
-            let imageSetStore = this.imageSets[curDir]
-            let imageStore = imageSetStore.imageStore
-            let segmentationStore = imageSetStore.segmentationStore
-            when(
-                () => !imageStore.imageDataLoading,
-                () => {
-                    // If we don't have segmentation, then skip this one.
-                    if (segmentationStore.selectedSegmentationFile) {
-                        when(
-                            () =>
-                                !segmentationStore.segmentationDataLoading &&
-                                !segmentationStore.segmentationStatisticsLoading,
-                            () => {
-                                let selectedDirectory = imageStore.selectedDirectory
-                                if (selectedDirectory) {
-                                    let imageSetName = path.basename(selectedDirectory)
-                                    if (populations) {
+                                    if (populations && fcs) {
                                         exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
                                     } else {
-                                        let filename = imageSetName + '_' + statistic + '.fcs'
+                                        let extension = fcs ? '.fcs' : '.csv'
+                                        let filename = imageSetName + '_' + statistic + extension
                                         let filePath = path.join(dirName, filename)
-                                        exportToFCS(filePath, statistic, imageSetStore)
+                                        if (fcs) {
+                                            exportToFCS(filePath, statistic, imageSetStore)
+                                        } else {
+                                            exportMarkerIntensisties(filePath, statistic, imageSetStore)
+                                        }
                                     }
                                     // Mark this set of files as loaded for loading bar.
                                     this.incrementNumExported()
@@ -397,5 +358,25 @@ export class ProjectStore {
                 },
             )
         }
+    }
+
+    public exportActiveImageSetMarkerIntensities = (filePath: string, statistic: PlotStatistic) => {
+        exportMarkerIntensisties(filePath, statistic, this.activeImageSetStore)
+    }
+
+    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic) => {
+        this.exportProjectSummaryStats(dirName, statistic, false, false)
+    }
+
+    public exportActiveImageSetToFcs = (filePath: string, statistic: PlotStatistic) => {
+        exportToFCS(filePath, statistic, this.activeImageSetStore)
+    }
+
+    public exportActiveImageSetPopulationsToFcs = (filePath: string, statistic: PlotStatistic) => {
+        exportPopulationsToFCS(filePath, statistic, this.activeImageSetStore)
+    }
+
+    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean) => {
+        this.exportProjectSummaryStats(dirName, statistic, true, populations)
     }
 }
