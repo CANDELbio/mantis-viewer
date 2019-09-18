@@ -12,7 +12,7 @@ import { Slider } from '@blueprintjs/core'
 import { SizeMe } from 'react-sizeme'
 
 import { PlotData } from '../interfaces/DataInterfaces'
-import { DefaultSelectionName } from '../definitions/PlotDefinitions'
+import { DefaultSelectionName } from '../definitions/PlotDataDefinitions'
 import {
     SelectOption,
     PlotStatistic,

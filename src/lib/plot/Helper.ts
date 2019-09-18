@@ -1,7 +1,7 @@
 import { SegmentationStatistics } from '../SegmentationStatistics'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 
-import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDefinitions'
+import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
 import { PlotTransform, PlotStatistic } from '../../definitions/UIDefinitions'
 
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {

@@ -6,7 +6,7 @@ import { calculateMean } from '../../lib/StatsHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildSelectionIdArray, buildSelectedRegionMap, getSegmentIntensity, getSelectionName } from './Helper'
 
-import { DefaultSelectionId } from '../../definitions/PlotDefinitions'
+import { DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
 
 function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
     let markerSums: number[] = new Array(intensities[0].length).fill(0)

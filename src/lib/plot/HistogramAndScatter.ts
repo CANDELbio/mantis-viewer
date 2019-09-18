@@ -8,7 +8,7 @@ import { hexToRGB } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildSelectionIdArray, buildSelectedRegionMap, getSegmentIntensity, getSelectionName } from './Helper'
 
-import { DefaultSelectionId, DefaultSelectionColor, NumHistogramBins } from '../../definitions/PlotDefinitions'
+import { DefaultSelectionId, DefaultSelectionColor, NumHistogramBins } from '../../definitions/PlotDataDefinitions'
 
 // Builds a map of segment id/number to an array the regions of interest id it belongs to.
 function buildSegmentToSelectedRegionMap(selectedRegion: SelectedPopulation[] | null): { [key: number]: string[] } {
