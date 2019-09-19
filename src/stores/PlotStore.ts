@@ -30,7 +30,7 @@ export class PlotStore {
                 })
                 if (imageStore && populationStore && selectedPlotMarkersInImageSet) {
                     let loadHistogram =
-                        settingStore.selectedPlotMarkers.length == 1 && settingStore.plotType == 'histogram'
+                        settingStore.selectedPlotMarkers.length > 0 && settingStore.plotType == 'histogram'
                     let loadScatter = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'scatter'
                     let loadContour = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'contour'
                     let loadHeatmap = settingStore.plotType == 'heatmap'

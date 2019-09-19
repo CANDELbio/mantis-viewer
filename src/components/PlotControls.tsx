@@ -169,7 +169,14 @@ export class PlotControls extends React.Component<PlotControlsProps, {}> {
             </div>
         )
 
-        let selectedMarkers = getSelectedOptions(this.props.selectedPlotMarkers, this.markerSelectOptions)
+        // A little bit of logic to display only the first marker for histograms if multiple markers are selected
+        // Or to display no markers if heatmap is selected
+        // (This can/will happen when the user is switching between plot types so we can preserve them)
+        let selectedPlotMarkers = this.props.selectedPlotMarkers
+        if (this.props.selectedType == 'histogram' && this.props.selectedPlotMarkers.length > 1)
+            selectedPlotMarkers = [this.props.selectedPlotMarkers[0]]
+        if (this.props.selectedType == 'heatmap') selectedPlotMarkers = []
+        let selectedMarkers = getSelectedOptions(selectedPlotMarkers, this.markerSelectOptions)
 
         let markerControls = (
             <Select

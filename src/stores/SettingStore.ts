@@ -150,7 +150,6 @@ export class SettingStore {
     // And extract the settings we want to persist into an ImageSettingStore
     @action public setPlotType = (type: PlotType) => {
         this.plotType = type
-        this.selectedPlotMarkers = []
         this.exportSettings()
     }
 

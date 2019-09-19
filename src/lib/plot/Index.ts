@@ -20,9 +20,9 @@ export function generatePlotData(
     dotSize?: number,
 ): PlotData | null {
     let plotData: PlotData | null = null
-    if (plotType == 'histogram' && markers.length == 1) {
+    if (plotType == 'histogram' && markers.length > 0) {
         plotData = buildHistogramData(
-            markers,
+            [markers[0]],
             segmentationData,
             segmentationStatistics,
             plotStatistic,
