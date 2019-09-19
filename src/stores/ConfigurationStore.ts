@@ -1,6 +1,6 @@
 import { ChannelName } from '../definitions/UIDefinitions'
 
-export class ConfigurationHelper {
+export class ConfigurationStore {
     public maxImageSetsInMemory = 3
 
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.

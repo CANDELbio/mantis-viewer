@@ -254,7 +254,7 @@ export class SettingStore {
     // If the image store has image data, sets the defaults based on the configuration helper.
     @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
         if (imageStore.imageData != null) {
-            let configurationHelper = this.projectStore.configurationHelper
+            let configurationHelper = this.projectStore.configurationStore
             let defaultValues = configurationHelper.getDefaultChannelMarkers(imageStore.imageData.markerNames)
             for (let s in defaultValues) {
                 let channelName = s as ChannelName
@@ -265,7 +265,7 @@ export class SettingStore {
     }
 
     @action public setChannelDomainDefaults = () => {
-        let configurationHelper = this.projectStore.configurationHelper
+        let configurationHelper = this.projectStore.configurationStore
         let defaultValues = configurationHelper.getDefaultChannelDomains()
         for (let s in defaultValues) {
             let channelName = s as ChannelName
@@ -276,7 +276,7 @@ export class SettingStore {
     }
 
     @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
-        let configurationHelper = this.projectStore.configurationHelper
+        let configurationHelper = this.projectStore.configurationStore
         this.channelMarker[channelName] = markerName
         this.channelDomainPercentage[channelName] = [0, 1]
         // Set the channel domain to the default for that channel when we change it.

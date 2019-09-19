@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { SettingStore } from '../stores/SettingStore'
-import { ConfigurationHelper } from '../lib/ConfigurationHelper'
+import { ConfigurationStore } from './ConfigurationStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 import { ImageSetStore } from './ImageSetStore'
 import { exportMarkerIntensisties, exportToFCS, exportPopulationsToFCS } from '../lib/IOHelper'
@@ -22,7 +22,7 @@ export class ProjectStore {
     @observable.ref public activeImageSetStore: ImageSetStore
 
     @observable.ref public settingStore: SettingStore
-    @observable.ref public configurationHelper: ConfigurationHelper
+    @observable.ref public configurationStore: ConfigurationStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -56,9 +56,6 @@ export class ProjectStore {
 
     @action public initialize = () => {
         this.plotInMainWindow = true
-
-        this.configurationHelper = new ConfigurationHelper()
-
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
@@ -67,6 +64,7 @@ export class ProjectStore {
 
         this.clearSegmentationRequested = false
         this.settingStore = new SettingStore(this)
+        this.configurationStore = new ConfigurationStore()
         this.imageSetHistory = []
         this.numToExport = 0
         this.numExported = 0
@@ -169,7 +167,7 @@ export class ProjectStore {
         let historyIndex = this.imageSetHistory.indexOf(dirName)
         if (historyIndex > -1) this.imageSetHistory.splice(historyIndex, 1)
         this.imageSetHistory.push(dirName)
-        if (this.imageSetHistory.length > this.configurationHelper.maxImageSetsInMemory) {
+        if (this.imageSetHistory.length > this.configurationStore.maxImageSetsInMemory) {
             let setToClean = this.imageSetHistory.shift()
             if (setToClean) this.clearImageSetData(setToClean)
         }

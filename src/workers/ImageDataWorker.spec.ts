@@ -2,7 +2,9 @@ jest.mock(
     'worker-loader?name=dist/[name].js!../workers/ImageDataWorker.worker',
     () => {
         return jest.fn().mockImplementation(() => {
-            return {}
+            return {
+                addEventListener: (m: 'string', error: (e: any) => void, options?: boolean) => {},
+            }
         })
     },
     { virtual: true },
