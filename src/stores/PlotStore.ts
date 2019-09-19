@@ -56,6 +56,8 @@ export class PlotStore {
                     } else {
                         this.clearPlotData()
                     }
+                } else {
+                    this.clearPlotData()
                 }
             }
         }
