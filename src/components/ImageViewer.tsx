@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
+import * as _ from 'underscore'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -31,6 +32,9 @@ export interface ImageProps {
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
     channelMarker: Record<ChannelName, string | null>
+    position: { x: number; y: number } | null
+    scale: { x: number; y: number } | null
+    setPositionAndScale: (position: { x: number; y: number }, scale: { x: number; y: number }) => void
     selectedRegions: SelectedPopulation[] | null
     addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void
     updateSelectedRegions: (selectedRegions: SelectedPopulation[]) => void
@@ -151,6 +155,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.props.updateSelectedRegions(selectedRegions)
     }
 
+    private syncPositionAndScale = () => {
+        this.props.setPositionAndScale(
+            { x: this.stage.position.x, y: this.stage.position.y },
+            { x: this.stage.scale.x, y: this.stage.scale.y },
+        )
+    }
+
     // Checks to make sure that we haven't panned past the bounds of the stage.
     private checkSetStageBounds(): void {
         // Not able to scroll past top left corner
@@ -205,6 +216,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             e.stopPropagation()
             e.preventDefault()
             this.zoom(e.deltaY < 0)
+            // When the user is done scrolling, update the scale and position with the store.
+            _.debounce((): void => {
+                this.syncPositionAndScale()
+            }, 200)()
         })
     }
 
@@ -242,6 +257,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         el.addEventListener('mouseup', () => {
             if (this.dragging) {
                 this.dragging = false
+                // When the user is done scrolling, update the position and scale
+                this.syncPositionAndScale()
             }
         })
 
@@ -566,6 +583,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private setStagePositionAndScale(position: { x: number; y: number }, scale: { x: number; y: number }): void {
+        this.stage.position.x = position.x
+        this.stage.position.y = position.y
+        this.stage.scale.x = scale.x
+        this.stage.scale.y = scale.y
+        this.stage.updateTransform()
+    }
+
     private exportRenderer(exportPath: string): void {
         // Get the source canvas that we are exporting from pixi
         let sourceCanvas = this.renderer.extract.canvas()
@@ -586,6 +611,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private renderImage(
         el: HTMLDivElement | null,
         imcData: ImageData,
+        position: { x: number; y: number } | null,
+        scale: { x: number; y: number } | null,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>,
         channelVisibility: Record<ChannelName, boolean>,
@@ -643,6 +670,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
         }
 
+        if (position && scale) this.setStagePositionAndScale(position, scale)
+
         // Create the legend for which markers are being displayed
         this.loadLegendGraphics(legendVisible, this.legendGraphics, imcData, channelMarker)
 
@@ -690,6 +719,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let imcData = this.props.imageData
 
+        let position: { x: number; y: number } | null = null
+        if (this.props.position) position = { x: this.props.position.x, y: this.props.position.y }
+        let scale: { x: number; y: number } | null = null
+        if (this.props.scale) scale = { x: this.props.scale.x, y: this.props.scale.y }
+
         let segmentationData = this.props.segmentationData
         let segmentationFillAlpha = this.props.segmentationFillAlpha
         let segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
@@ -717,6 +751,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                 this.renderImage(
                                     el,
                                     imcData,
+                                    position,
+                                    scale,
                                     channelMarker,
                                     channelDomain,
                                     channelVisibility,

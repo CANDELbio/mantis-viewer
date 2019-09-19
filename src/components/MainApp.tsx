@@ -199,6 +199,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     channelDomain={imageStore.channelDomain}
                     channelVisibility={settingStore.channelVisibility}
                     channelMarker={settingStore.channelMarker}
+                    position={imageStore.position}
+                    scale={imageStore.scale}
+                    setPositionAndScale={imageStore.setPositionAndScale}
                     addSelectedRegion={this.addSelectionFromImage}
                     updateSelectedRegions={this.updateSelectionsFromImage}
                     selectedRegions={populationStore.selectedPopulations}

@@ -16,6 +16,9 @@ export class ImageStore {
     @observable.ref public imageData: ImageData | null
     @observable public imageDataLoading: boolean
 
+    @observable public position: { x: number; y: number } | null
+    @observable public scale: { x: number; y: number } | null
+
     @observable public imageExportFilename: string | null
 
     @observable public selectedDirectory: string | null
@@ -107,6 +110,11 @@ export class ImageStore {
             let basename = path.parse(selectedSegmentationFile).name
             this.removeMarker(basename)
         }
+    }
+
+    @action public setPositionAndScale = (position: { x: number; y: number }, scale: { x: number; y: number }) => {
+        this.position = position
+        this.scale = scale
     }
 
     @action public setImageExportFilename = (fName: string) => {
