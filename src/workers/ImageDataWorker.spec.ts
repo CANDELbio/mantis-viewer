@@ -3,7 +3,7 @@ jest.mock(
     () => {
         return jest.fn().mockImplementation(() => {
             return {
-                addEventListener: (m: 'string', error: (e: any) => void, options?: boolean) => {},
+                addEventListener: () => {},
             }
         })
     },
