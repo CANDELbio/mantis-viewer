@@ -93,7 +93,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageStore = this.props.projectStore.activeImageSetStore.imageStore
         let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
-            return imageStore.imageData.minmax[channelMarker].min
+            let minmax = imageStore.imageData.minmax[channelMarker]
+            if (minmax) return imageStore.imageData.minmax[channelMarker].min
         }
         return 0
     }
@@ -103,7 +104,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageStore = this.props.projectStore.activeImageSetStore.imageStore
         let channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
-            return imageStore.imageData.minmax[channelMarker].max
+            let minmax = imageStore.imageData.minmax[channelMarker]
+            if (minmax) return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
     }
