@@ -21,6 +21,6 @@ describe('Application launch', function() {
     it('shows an initial window', async function() {
         jest.setTimeout(10000)
         let windowCount = await app.client.getWindowCount()
-        expect(windowCount).toEqual(2)
+        expect(windowCount).toEqual(3)
     })
 })
