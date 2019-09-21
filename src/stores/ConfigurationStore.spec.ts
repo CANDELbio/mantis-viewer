@@ -3,7 +3,7 @@ import { ConfigurationStore } from './ConfigurationStore'
 describe('getDefaultChannelDomains', () => {
     it('should the default channel domains', () => {
         let helper = new ConfigurationStore()
-        let result = helper.getDefaultChannelDomains()
+        let result = helper.defaultChannelDomains
         expect(result['rChannel']).toEqual([0, 0.7])
         expect(result['gChannel']).toEqual([0, 0.7])
         expect(result['bChannel']).toEqual([0, 0.7])

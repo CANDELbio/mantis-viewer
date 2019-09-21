@@ -43,8 +43,12 @@ interface PlotControlsProps {
     windowWidth: number | null
 }
 
+interface PlotControlsState {
+    popoverOpen: boolean
+}
+
 @observer
-export class PlotControls extends React.Component<PlotControlsProps, {}> {
+export class PlotControls extends React.Component<PlotControlsProps, PlotControlsState> {
     public container: Plotly.PlotlyHTMLElement | null = null
 
     public constructor(props: PlotControlsProps) {

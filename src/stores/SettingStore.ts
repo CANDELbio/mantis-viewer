@@ -266,7 +266,7 @@ export class SettingStore {
 
     @action public setChannelDomainDefaults = () => {
         let configurationHelper = this.projectStore.configurationStore
-        let defaultValues = configurationHelper.getDefaultChannelDomains()
+        let defaultValues = configurationHelper.defaultChannelDomains
         for (let s in defaultValues) {
             let channelName = s as ChannelName
             let defaultDomain = defaultValues[channelName]
@@ -280,7 +280,7 @@ export class SettingStore {
         this.channelMarker[channelName] = markerName
         this.channelDomainPercentage[channelName] = [0, 1]
         // Set the channel domain to the default for that channel when we change it.
-        let domainPercentage = configurationHelper.getDefaultChannelDomains()[channelName]
+        let domainPercentage = configurationHelper.defaultChannelDomains[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
         this.exportSettings()
     }

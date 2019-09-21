@@ -8,7 +8,7 @@ import * as Mousetrap from 'mousetrap'
 
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
-import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
+import { GraphSelectionPrefix, ChannelName } from '../definitions/UIDefinitions'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -79,6 +79,22 @@ ipcRenderer.on('clear-segmentation', () => {
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (event: Electron.Event, inMain: boolean) => {
     projectStore.setPlotInMainWindow(inMain)
+})
+
+//Methods to get data from the configurationWindow to the main thread
+ipcRenderer.on('set-max-image-sets', (event: Electron.Event, max: number) => {
+    projectStore.configurationStore.setMaxImageSetsInMemory(max)
+})
+
+ipcRenderer.on(
+    'set-default-channel-domain',
+    (event: Electron.Event, channel: ChannelName, domain: [number, number]) => {
+        projectStore.configurationStore.setDefaultChannelDomain(channel, domain)
+    },
+)
+
+ipcRenderer.on('set-default-channel-markers', (event: Electron.Event, channel: ChannelName, markers: string[]) => {
+    projectStore.configurationStore.setDefaultChannelMarkers(channel, markers)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
@@ -181,6 +197,17 @@ Mobx.autorun(() => {
         settingStore.plotDotSize,
         settingStore.transformCoefficient,
         plotStore.plotData,
+    )
+})
+
+// Autorun that sends plot related data to the main thread to be relayed to the plotWindow
+Mobx.autorun(() => {
+    let configurationStore = projectStore.configurationStore
+    ipcRenderer.send(
+        'mainWindow-set-config-values',
+        configurationStore.maxImageSetsInMemory,
+        Mobx.toJS(configurationStore.defaultChannelMarkers),
+        Mobx.toJS(configurationStore.defaultChannelDomains),
     )
 })
 

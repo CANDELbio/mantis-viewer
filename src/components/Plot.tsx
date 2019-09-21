@@ -19,10 +19,6 @@ interface PlotProps {
     maxPlotHeight: number | null
 }
 
-interface PlotState {
-    popoverOpen: boolean
-}
-
 @observer
 export class Plot extends React.Component<PlotProps, {}> {
     public container: Plotly.PlotlyHTMLElement | null = null

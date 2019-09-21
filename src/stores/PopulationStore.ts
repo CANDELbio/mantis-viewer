@@ -86,6 +86,8 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationName = (id: string, newName: string) => {
         if (this.selectedPopulations != null) {
+            // Work around to trigger selectedPopulations change
+            // TODO: Try replacing selectedPopulations with non ref and use Mobx toJS to send values to plot window.
             this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
                 if (region.id == id) {
                     region.name = newName
