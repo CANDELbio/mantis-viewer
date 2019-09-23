@@ -1,7 +1,16 @@
 import { observable, action } from 'mobx'
 import { ChannelName } from '../definitions/UIDefinitions'
 
+import * as Store from 'electron-store'
+
 export class ConfigurationStore {
+    public constructor() {
+        this.store = new Store()
+        this.loadFromStore()
+    }
+
+    private store: Store
+
     @observable public maxImageSetsInMemory = 3
 
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
@@ -31,14 +40,17 @@ export class ConfigurationStore {
 
     @action public setMaxImageSetsInMemory(max: number): void {
         this.maxImageSetsInMemory = max
+        this.saveToStore()
     }
 
     @action public setDefaultChannelMarkers(channel: ChannelName, markers: string[]): void {
         this.defaultChannelMarkers[channel] = markers
+        this.saveToStore()
     }
 
     @action public setDefaultChannelDomain(channel: ChannelName, domain: [number, number]): void {
         this.defaultChannelDomains[channel] = domain
+        this.saveToStore()
     }
 
     // Not the fastest way to do this, but realistically the list of default values and incoming markerNames should be small.
@@ -94,5 +106,22 @@ export class ConfigurationStore {
         defaultMarkers.kChannel = null
 
         return defaultMarkers
+    }
+
+    public saveToStore(): void {
+        let store = this.store
+        store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
+        store.set('defaultChannelMarkers', this.defaultChannelMarkers)
+        store.set('defaultChannelDomains', this.defaultChannelDomains)
+    }
+
+    public loadFromStore(): void {
+        let store = this.store
+        let maxImageSetsInMemory = store.get('maxImageSetsInMemory')
+        if (maxImageSetsInMemory) this.maxImageSetsInMemory = maxImageSetsInMemory
+        let defaultChannelMarkers = store.get('defaultChannelMarkers')
+        if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers
+        let defaultChannelDomains = store.get('defaultChannelDomains')
+        if (defaultChannelDomains) this.defaultChannelDomains = defaultChannelDomains
     }
 }

@@ -104,6 +104,7 @@
         "csv-stringify": "^5.0.0",
         "d3-scale": "^2.1.2",
         "electron-context-menu": "^0.14.0",
+        "electron-store": "^5.0.0",
         "jquery": "^3.4.1",
         "mobx": "^5.9.0",
         "mobx-react": "^5.4.3",
