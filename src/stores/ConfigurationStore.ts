@@ -6,37 +6,44 @@ import * as Store from 'electron-store'
 export class ConfigurationStore {
     public constructor() {
         this.store = new Store()
+        this.initialize()
         this.loadFromStore()
     }
 
     private store: Store
 
-    @observable public maxImageSetsInMemory = 3
+    @observable public maxImageSetsInMemory: number
 
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
-    @observable public defaultChannelMarkers: Record<ChannelName, string[]> = {
-        rChannel: ['catenin', 'CD8', 'CD4', 'CD20', 'CD68'],
-        gChannel: ['CD8', 'CD4', 'CD20', 'CD68', 'catenin'],
-        bChannel: ['DAPI', '191 Ir', '191Ir', '193 Ir', '193Ir', 'DNA', 'nucleus'],
-        cChannel: [],
-        mChannel: [],
-        yChannel: [],
-        kChannel: [],
-    }
+    @observable public defaultChannelMarkers: Record<ChannelName, string[]>
 
-    @observable public defaultChannelDomains: Record<ChannelName, [number, number]> = {
-        rChannel: [0, 0.7] as [number, number],
-        gChannel: [0, 0.7] as [number, number],
-        bChannel: [0, 0.7] as [number, number],
-        cChannel: [0, 0.7] as [number, number],
-        mChannel: [0, 0.7] as [number, number],
-        yChannel: [0, 0.7] as [number, number],
-        kChannel: [0, 0.7] as [number, number],
-    }
+    @observable public defaultChannelDomains: Record<ChannelName, [number, number]>
 
     private channelSelectionOrder: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
 
     private useAnyMarkerIfNoMatch = true
+
+    private initialize(): void {
+        this.maxImageSetsInMemory = 3
+        this.defaultChannelMarkers = {
+            rChannel: ['catenin', 'CD8', 'CD4', 'CD20', 'CD68'],
+            gChannel: ['CD8', 'CD4', 'CD20', 'CD68', 'catenin'],
+            bChannel: ['DAPI', '191 Ir', '191Ir', '193 Ir', '193Ir', 'DNA', 'nucleus'],
+            cChannel: [],
+            mChannel: [],
+            yChannel: [],
+            kChannel: [],
+        }
+        this.defaultChannelDomains = {
+            rChannel: [0, 0.7] as [number, number],
+            gChannel: [0, 0.7] as [number, number],
+            bChannel: [0, 0.7] as [number, number],
+            cChannel: [0, 0.7] as [number, number],
+            mChannel: [0, 0.7] as [number, number],
+            yChannel: [0, 0.7] as [number, number],
+            kChannel: [0, 0.7] as [number, number],
+        }
+    }
 
     @action public setMaxImageSetsInMemory(max: number): void {
         this.maxImageSetsInMemory = max
