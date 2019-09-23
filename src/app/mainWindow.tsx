@@ -86,6 +86,10 @@ ipcRenderer.on('set-max-image-sets', (event: Electron.Event, max: number) => {
     projectStore.configurationStore.setMaxImageSetsInMemory(max)
 })
 
+ipcRenderer.on('set-default-segmentation', (event: Electron.Event, segmentation: string) => {
+    projectStore.configurationStore.setDefaultSegmentationBasename(segmentation)
+})
+
 ipcRenderer.on(
     'set-default-channel-domain',
     (event: Electron.Event, channel: ChannelName, domain: [number, number]) => {
@@ -206,6 +210,7 @@ Mobx.autorun(() => {
     ipcRenderer.send(
         'mainWindow-set-config-values',
         configurationStore.maxImageSetsInMemory,
+        configurationStore.defaultSegmentationBasename,
         Mobx.toJS(configurationStore.defaultChannelMarkers),
         Mobx.toJS(configurationStore.defaultChannelDomains),
     )

@@ -493,7 +493,7 @@ function createPlotWindow(): void {
 function createConfigurationWindow(): void {
     configurationWindow = new BrowserWindow({
         width: 475,
-        height: 350,
+        height: 400,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -683,15 +683,25 @@ ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: nu
 // Functions to relay data from the mainWindow to the configurationWindow
 ipcMain.on(
     'mainWindow-set-config-values',
-    (event: Electron.Event, maxImageSets: number, markers: any, domains: any) => {
+    (event: Electron.Event, maxImageSets: number, defaultSegmentation: string | null, markers: any, domains: any) => {
         if (configurationWindow != null)
-            configurationWindow.webContents.send('set-config-values', maxImageSets, markers, domains)
+            configurationWindow.webContents.send(
+                'set-config-values',
+                maxImageSets,
+                defaultSegmentation,
+                markers,
+                domains,
+            )
     },
 )
 
 // Functions to relay data from the configurationWindow to the mainWindow
 ipcMain.on('configWindow-set-max-image-sets', (event: Electron.Event, max: number) => {
     if (mainWindow != null) mainWindow.webContents.send('set-max-image-sets', max)
+})
+
+ipcMain.on('configWindow-set-segmentation', (event: Electron.Event, basename: string) => {
+    if (mainWindow != null) mainWindow.webContents.send('set-default-segmentation', basename)
 })
 
 ipcMain.on('configWindow-set-channel-markers', (event: Electron.Event, channel: string, markers: string[]) => {

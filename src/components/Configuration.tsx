@@ -5,10 +5,13 @@ import Select from 'react-select'
 import { ChannelName, ImageChannels } from '../definitions/UIDefinitions'
 import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { SelectOption } from '../definitions/UIDefinitions'
+import { Input, Label } from 'reactstrap'
 
 export interface ConfigurationProps {
     maxImageSetsInMemory: number
     setMaxImageSetsInMemory: (max: number) => void
+    defaultSegmentationBasename: string | null
+    setDefaultSegmentation: (basename: string) => void
     defaultChannelMarkers: Record<ChannelName, string[]>
     setDefaultChannelMarkers: (channel: ChannelName, markers: string[]) => void
     defaultChannelDomains: Record<ChannelName, [number, number]>
@@ -31,6 +34,10 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
         selectedChannel: 'rChannel' as ChannelName,
     }
 
+    private onSegmentationSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.props.setDefaultSegmentation(event.target.value)
+    }
+
     private onSelectedChannelChange = (v: SelectOption) => this.setState({ selectedChannel: v.value as ChannelName })
 
     private onDefaultChannelMarkersChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -50,8 +57,7 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
         let defaultChannelDomain = this.props.defaultChannelDomains[selectedChannel]
         return (
             <div>
-                Maximum image sets in memory
-                <br />
+                <Label>Maximum image sets in memory</Label>
                 <Slider
                     min={1}
                     max={10}
@@ -59,9 +65,12 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
                     value={this.props.maxImageSetsInMemory}
                     onChange={this.props.setMaxImageSetsInMemory}
                 />
-                <br />
-                Channel
-                <br />
+                <Label>Default Segmentation Filename</Label>
+                <Input
+                    value={this.props.defaultSegmentationBasename ? this.props.defaultSegmentationBasename : ''}
+                    onChange={this.onSegmentationSelect}
+                />
+                <Label>Channel</Label>
                 <Select
                     value={selectedValue}
                     options={channelOptions}
@@ -70,8 +79,7 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
                     styles={SelectStyle}
                 />
                 <br />
-                Default Brightness for Channel
-                <br />
+                <Label>Default Brightness for Channel</Label>
                 <RangeSlider
                     min={0}
                     max={100}
@@ -81,15 +89,12 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
                     stepSize={1}
                     onChange={this.onChannelDomainChange}
                 />
-                <br />
-                Default Markers for Channel (Comma separated, in order of priority)
-                <br />
+                <Label>Default Markers for Channel (Comma separated, in order of priority)</Label>
                 <TextArea
                     value={defaultChannelMarkersValue}
                     onChange={this.onDefaultChannelMarkersChange}
                     fill={true}
                 />
-                <br />
             </div>
         )
     }

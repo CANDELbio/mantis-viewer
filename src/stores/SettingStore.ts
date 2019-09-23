@@ -92,16 +92,6 @@ export class SettingStore {
             kChannel: null,
         }
 
-        this.channelDomainPercentage = {
-            rChannel: [0, 1],
-            gChannel: [0, 1],
-            bChannel: [0, 1],
-            cChannel: [0, 1],
-            mChannel: [0, 1],
-            yChannel: [0, 1],
-            kChannel: [0, 1],
-        }
-
         this.channelVisibility = {
             rChannel: true,
             gChannel: true,
@@ -128,6 +118,11 @@ export class SettingStore {
 
         this.legendVisible = false
         this.transformCoefficient = null
+
+        this.segmentationBasename = this.projectStore.configurationStore.defaultSegmentationBasename
+        this.channelDomainPercentage = this.projectStore.configurationStore.getChannelDomainPercentage()
+        console.log('Channel domain percentage')
+        console.log(toJS(this.channelDomainPercentage))
     }
 
     @action public setBasePath = (path: string) => {
@@ -229,7 +224,6 @@ export class SettingStore {
         })
         if (allMarkersUninitalized) {
             this.setChannelMarkerDefaults(imageStore)
-            this.setChannelDomainDefaults()
         }
     }
 
@@ -245,30 +239,21 @@ export class SettingStore {
             }
         }
     }
-
-    @action public setChannelDomainDefaults = () => {
-        let configurationHelper = this.projectStore.configurationStore
-        let defaultValues = configurationHelper.defaultChannelDomains
-        for (let s in defaultValues) {
-            let channelName = s as ChannelName
-            let defaultDomain = defaultValues[channelName]
-            this.channelDomainPercentage[channelName] = defaultDomain
-            this.setChannelDomainPercentage(channelName, defaultDomain)
-        }
-    }
-
     @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
-        let configurationHelper = this.projectStore.configurationStore
         this.channelMarker[channelName] = markerName
-        this.channelDomainPercentage[channelName] = [0, 1]
-        // Set the channel domain to the default for that channel when we change it.
-        let domainPercentage = configurationHelper.defaultChannelDomains[channelName]
-        this.channelDomainPercentage[channelName] = domainPercentage
+        this.setDefaultChannelDomainPercentage(channelName)
     }
 
     @action public unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
-        this.channelDomainPercentage[channelName] = [0, 1]
+        this.setDefaultChannelDomainPercentage(channelName)
+    }
+
+    @action private setDefaultChannelDomainPercentage = (channelName: ChannelName) => {
+        let configurationHelper = this.projectStore.configurationStore
+        let domains = configurationHelper.getChannelDomainPercentage()
+        let domainPercentage = domains[channelName]
+        this.channelDomainPercentage[channelName] = domainPercentage
     }
 
     private exportSettings = autorun(() => {

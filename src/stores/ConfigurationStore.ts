@@ -14,14 +14,24 @@ export class ConfigurationStore {
 
     @observable public maxImageSetsInMemory: number
 
+    @observable public defaultSegmentationBasename: string | null
+
     // Will eventually get the below variable names from a configuration file. Setting up in here for now.
     @observable public defaultChannelMarkers: Record<ChannelName, string[]>
 
     @observable public defaultChannelDomains: Record<ChannelName, [number, number]>
 
-    private channelSelectionOrder: ChannelName[] = ['bChannel', 'gChannel', 'rChannel']
+    private channelSelectionOrder: ChannelName[] = [
+        'bChannel',
+        'gChannel',
+        'rChannel',
+        'cChannel',
+        'mChannel',
+        'yChannel',
+        'kChannel',
+    ]
 
-    private useAnyMarkerIfNoMatch = true
+    private useAnyMarkerIfNoMatch = false
 
     private initialize(): void {
         this.maxImageSetsInMemory = 3
@@ -55,6 +65,25 @@ export class ConfigurationStore {
 
     @action public setDefaultChannelDomain(channel: ChannelName, domain: [number, number]): void {
         this.defaultChannelDomains[channel] = domain
+    }
+
+    // Use this to make a copy of domain percentages when getting defaults for setting store
+    // Setting from the actual object was causing them to be linked, and when the user changed the setting it would also change the default.
+    public getChannelDomainPercentage(): Record<ChannelName, [number, number]> {
+        let domains = this.defaultChannelDomains
+        return {
+            rChannel: domains['rChannel'],
+            gChannel: domains['gChannel'],
+            bChannel: domains['bChannel'],
+            cChannel: domains['cChannel'],
+            mChannel: domains['mChannel'],
+            yChannel: domains['yChannel'],
+            kChannel: domains['kChannel'],
+        }
+    }
+
+    @action public setDefaultSegmentationBasename(name: string): void {
+        this.defaultSegmentationBasename = name
     }
 
     // Not the fastest way to do this, but realistically the list of default values and incoming markerNames should be small.
@@ -103,12 +132,6 @@ export class ConfigurationStore {
             }
         }
 
-        // Don't want defaults for CMY right now.
-        defaultMarkers.cChannel = null
-        defaultMarkers.mChannel = null
-        defaultMarkers.yChannel = null
-        defaultMarkers.kChannel = null
-
         return defaultMarkers
     }
 
@@ -117,6 +140,11 @@ export class ConfigurationStore {
         store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
         store.set('defaultChannelMarkers', this.defaultChannelMarkers)
         store.set('defaultChannelDomains', this.defaultChannelDomains)
+        if (this.defaultSegmentationBasename) {
+            store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
+        } else {
+            store.delete('defaultSegmentationBasename')
+        }
     })
 
     private loadFromStore(): void {
@@ -127,5 +155,7 @@ export class ConfigurationStore {
         if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers
         let defaultChannelDomains = store.get('defaultChannelDomains')
         if (defaultChannelDomains) this.defaultChannelDomains = defaultChannelDomains
+        let defaultSegmentationBasename = store.get('defaultSegmentationBasename')
+        if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename
     }
 }

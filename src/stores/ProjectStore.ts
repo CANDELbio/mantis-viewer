@@ -63,8 +63,8 @@ export class ProjectStore {
         this.activeImageSetStore = this.nullImageSet
 
         this.clearSegmentationRequested = false
-        this.settingStore = new SettingStore(this)
         this.configurationStore = new ConfigurationStore()
+        this.settingStore = new SettingStore(this)
         this.imageSetHistory = []
         this.numToExport = 0
         this.numExported = 0
