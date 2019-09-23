@@ -1,4 +1,4 @@
-import { observable, action } from 'mobx'
+import { observable, action, autorun, toJS } from 'mobx'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -62,7 +62,7 @@ export class SettingStore {
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
     // selected plot channels to be copied
-    @observable.ref public selectedPlotMarkers: string[]
+    @observable public selectedPlotMarkers: string[]
     //Whether or not the legend is visible on the image
     @observable public legendVisible: boolean
 
@@ -137,55 +137,42 @@ export class SettingStore {
 
     @action public setPlotStatistic = (statistic: PlotStatistic) => {
         this.plotStatistic = statistic
-        this.exportSettings()
     }
 
     @action public setPlotTransform = (transform: PlotTransform) => {
         this.plotTransform = transform
-        this.exportSettings()
     }
 
-    // TODO: Feels hacky unsetting selectedPlot markers here and in plot store.
-    // Should probably use the same plot store across image sets
-    // And extract the settings we want to persist into an ImageSettingStore
     @action public setPlotType = (type: PlotType) => {
         this.plotType = type
-        this.exportSettings()
     }
 
     @action public setPlotNormalization = (normalization: PlotNormalization) => {
         this.plotNormalization = normalization
-        this.exportSettings()
     }
 
     @action public setPlotDotSize = (size: number) => {
         this.plotDotSize = size
-        this.exportSettings()
     }
 
     @action public setTransformCoefficient = (coefficient: number) => {
         this.transformCoefficient = coefficient
-        this.exportSettings()
     }
 
     @action public setSegmentationFillAlpha = (alpha: number) => {
         this.segmentationFillAlpha = alpha
-        this.exportSettings()
     }
 
     @action public setSegmentationOutlineAlpha = (alpha: number) => {
         this.segmentationOutlineAlpha = alpha
-        this.exportSettings()
     }
 
     @action public setSegmentationCentroidsVisible = (visible: boolean) => {
         this.segmentationCentroidsVisible = visible
-        this.exportSettings()
     }
 
     @action public setLegendVisible = (visible: boolean) => {
         this.legendVisible = visible
-        this.exportSettings()
     }
 
     @action public setChannelDomainPercentageCallback = (name: ChannelName) => {
@@ -196,7 +183,6 @@ export class SettingStore {
 
     @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
         this.channelDomainPercentage[name] = value
-        this.exportSettings()
     }
 
     @action public setChannelVisibilityCallback = (name: ChannelName) => {
@@ -207,7 +193,6 @@ export class SettingStore {
 
     @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
         this.channelVisibility[name] = visible
-        this.exportSettings()
     }
 
     @action public setChannelMarkerCallback = (name: ChannelName) => {
@@ -224,17 +209,14 @@ export class SettingStore {
 
     @action public setSegmentationBasename = (basename: string | null) => {
         this.segmentationBasename = basename
-        this.exportSettings()
     }
 
     @action public setSelectedPlotMarkers = (markers: string[]) => {
         this.selectedPlotMarkers = markers
-        this.exportSettings()
     }
 
     @action public clearSelectedPlotMarkers = () => {
         this.selectedPlotMarkers = []
-        this.exportSettings()
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore) => {
@@ -282,25 +264,21 @@ export class SettingStore {
         // Set the channel domain to the default for that channel when we change it.
         let domainPercentage = configurationHelper.defaultChannelDomains[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
-        this.exportSettings()
     }
 
     @action public unsetChannelMarker = (channelName: ChannelName) => {
         this.channelMarker[channelName] = null
         this.channelDomainPercentage[channelName] = [0, 1]
-        this.exportSettings()
     }
 
-    // Was an autorun function, but then was getting triggered on first create/initialize and then clobbering any saved settings.
-    // As a result, we need to manually call this from any function that we want to trigger an update of settings.
-    private exportSettings = () => {
+    private exportSettings = autorun(() => {
         if (this.basePath != null) {
             let exporting: SettingStoreData = {
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
                 segmentationBasename: this.segmentationBasename,
-                selectedPlotMarkers: this.selectedPlotMarkers,
+                selectedPlotMarkers: toJS(this.selectedPlotMarkers),
                 plotStatistic: this.plotStatistic,
                 plotTransform: this.plotTransform,
                 plotType: this.plotType,
@@ -317,9 +295,9 @@ export class SettingStore {
             // Write data to file
             fs.writeFileSync(filename, exportingString, 'utf8')
         }
-    }
+    })
 
-    @action private importSettingsFromFile = () => {
+    private importSettingsFromFile = () => {
         if (this.basePath != null) {
             let filename = path.join(this.basePath, ImageSettingsFilename)
             if (fs.existsSync(filename)) {

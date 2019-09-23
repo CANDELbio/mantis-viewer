@@ -189,7 +189,7 @@ Mobx.autorun(() => {
     ipcRenderer.send(
         'mainWindow-set-plot-data',
         markerNames,
-        settingStore.selectedPlotMarkers,
+        Mobx.toJS(settingStore.selectedPlotMarkers),
         settingStore.plotStatistic,
         settingStore.plotTransform,
         settingStore.plotType,
