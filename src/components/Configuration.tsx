@@ -16,6 +16,8 @@ export interface ConfigurationProps {
     setDefaultChannelMarkers: (channel: ChannelName, markers: string[]) => void
     defaultChannelDomains: Record<ChannelName, [number, number]>
     setDefaultChannelDomain: (channel: ChannelName, domain: [number, number]) => void
+    useAnyMarker: Record<ChannelName, boolean>
+    setUseAnyMarker: (channel: ChannelName, useAnyMarker: boolean) => void
 }
 
 interface PlotControlsState {
@@ -47,6 +49,9 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
 
     private onChannelDomainChange = (v: [number, number]) =>
         this.props.setDefaultChannelDomain(this.state.selectedChannel, [v[0] / 100, v[1] / 100])
+
+    private onUseAnyMarkerChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+        this.props.setUseAnyMarker(this.state.selectedChannel, event.target.checked)
 
     public render(): React.ReactElement {
         let selectedChannel = this.state.selectedChannel
@@ -95,6 +100,14 @@ export class Configuration extends React.Component<ConfigurationProps, PlotContr
                     onChange={this.onDefaultChannelMarkersChange}
                     fill={true}
                 />
+                <Label check style={{ paddingTop: '10px', paddingLeft: '20px' }}>
+                    <Input
+                        type="checkbox"
+                        onChange={this.onUseAnyMarkerChange}
+                        checked={this.props.useAnyMarker[this.state.selectedChannel]}
+                    />
+                    Use Any Marker if Defaults Not Present
+                </Label>
             </div>
         )
     }

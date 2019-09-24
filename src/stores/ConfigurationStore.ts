@@ -21,6 +21,8 @@ export class ConfigurationStore {
 
     @observable public defaultChannelDomains: Record<ChannelName, [number, number]>
 
+    @observable public useAnyMarkerIfNoMatch: Record<ChannelName, boolean>
+
     private channelSelectionOrder: ChannelName[] = [
         'bChannel',
         'gChannel',
@@ -30,8 +32,6 @@ export class ConfigurationStore {
         'yChannel',
         'kChannel',
     ]
-
-    private useAnyMarkerIfNoMatch = false
 
     private initialize(): void {
         this.maxImageSetsInMemory = 3
@@ -53,6 +53,15 @@ export class ConfigurationStore {
             yChannel: [0, 0.7] as [number, number],
             kChannel: [0, 0.7] as [number, number],
         }
+        this.useAnyMarkerIfNoMatch = {
+            rChannel: true,
+            gChannel: true,
+            bChannel: true,
+            cChannel: false,
+            mChannel: false,
+            yChannel: false,
+            kChannel: false,
+        }
     }
 
     @action public setMaxImageSetsInMemory(max: number): void {
@@ -65,6 +74,10 @@ export class ConfigurationStore {
 
     @action public setDefaultChannelDomain(channel: ChannelName, domain: [number, number]): void {
         this.defaultChannelDomains[channel] = domain
+    }
+
+    @action public setUseAnyMarker(channel: ChannelName, useAnyMarker: boolean): void {
+        this.useAnyMarkerIfNoMatch[channel] = useAnyMarker
     }
 
     // Use this to make a copy of domain percentages when getting defaults for setting store
@@ -118,16 +131,14 @@ export class ConfigurationStore {
             }
         }
 
-        // If useAnyMarkerIfNoMatch, goes and fills the defaults with the first unused value in markerNames.
-        if (this.useAnyMarkerIfNoMatch) {
-            for (let s in defaultMarkers) {
-                let curChannel = s as ChannelName
-                if (defaultMarkers[curChannel] == null) {
-                    if (markerNames.length > 0) {
-                        let curName = markerNames[0]
-                        defaultMarkers[curChannel] = curName
-                        markerNames = markerNames.filter(e => e != curName)
-                    }
+        for (let s in defaultMarkers) {
+            let curChannel = s as ChannelName
+            // If useAnyMarkerIfNoMatch, goes and fills the defaults with the first unused value in markerNames.
+            if (defaultMarkers[curChannel] == null && this.useAnyMarkerIfNoMatch[curChannel]) {
+                if (markerNames.length > 0) {
+                    let curName = markerNames[0]
+                    defaultMarkers[curChannel] = curName
+                    markerNames = markerNames.filter(e => e != curName)
                 }
             }
         }
@@ -140,6 +151,7 @@ export class ConfigurationStore {
         store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
         store.set('defaultChannelMarkers', this.defaultChannelMarkers)
         store.set('defaultChannelDomains', this.defaultChannelDomains)
+        store.set('useAnyMarkerIfNoMatch', this.useAnyMarkerIfNoMatch)
         if (this.defaultSegmentationBasename) {
             store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
         } else {
@@ -155,6 +167,8 @@ export class ConfigurationStore {
         if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers
         let defaultChannelDomains = store.get('defaultChannelDomains')
         if (defaultChannelDomains) this.defaultChannelDomains = defaultChannelDomains
+        let useAnyMarkerIfNoMatch = store.get('useAnyMarkerIfNoMatch')
+        if (useAnyMarkerIfNoMatch) this.useAnyMarkerIfNoMatch = useAnyMarkerIfNoMatch
         let defaultSegmentationBasename = store.get('defaultSegmentationBasename')
         if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename
     }

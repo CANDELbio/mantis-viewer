@@ -101,6 +101,10 @@ ipcRenderer.on('set-default-channel-markers', (event: Electron.Event, channel: C
     projectStore.configurationStore.setDefaultChannelMarkers(channel, markers)
 })
 
+ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelName, useAny: boolean) => {
+    projectStore.configurationStore.setUseAnyMarker(channel, useAny)
+})
+
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-markers', (event: Electron.Event, markers: string[]) => {
     projectStore.settingStore.setSelectedPlotMarkers(markers)
@@ -213,6 +217,7 @@ Mobx.autorun(() => {
         configurationStore.defaultSegmentationBasename,
         Mobx.toJS(configurationStore.defaultChannelMarkers),
         Mobx.toJS(configurationStore.defaultChannelDomains),
+        Mobx.toJS(configurationStore.useAnyMarkerIfNoMatch),
     )
 })
 

@@ -8,6 +8,7 @@ let maxImageSetsInMemory: number
 let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
+let useAnyMarker: Record<ChannelName, boolean>
 
 let setMaxImageSetsInMemory = (max: number): void => {
     ipcRenderer.send('configWindow-set-max-image-sets', max)
@@ -25,6 +26,10 @@ let setDefaultSegmentation = (basename: string): void => {
     ipcRenderer.send('configWindow-set-segmentation', basename)
 }
 
+let setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => {
+    ipcRenderer.send('configWindow-set-use-any-marker', channel, useAnyChannel)
+}
+
 function render(): void {
     ReactDOM.render(
         <div style={{ paddingTop: '10px', paddingLeft: '15px', paddingRight: '15px' }}>
@@ -37,6 +42,8 @@ function render(): void {
                 setDefaultChannelMarkers={setDefaultChannelMarkers}
                 defaultChannelDomains={defaultChannelDomains}
                 setDefaultChannelDomain={setDefaultChannelDomain}
+                useAnyMarker={useAnyMarker}
+                setUseAnyMarker={setUseAnyMarker}
             />
         </div>,
         document.getElementById('config'),
@@ -51,11 +58,13 @@ ipcRenderer.on(
         segmentation: string | null,
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
+        anyMarker: Record<ChannelName, boolean>,
     ) => {
         maxImageSetsInMemory = maxImageSets
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
+        useAnyMarker = anyMarker
         render()
     },
 )
