@@ -1,6 +1,7 @@
 .imcimage {
     position: relative;
 }
+
 body {
     overflow-x: hidden;
     overflow-y: hidden;
@@ -8,4 +9,8 @@ body {
 
 ::-webkit-scrollbar {
     display: none;
+}
+
+span.bp3-slider-label {
+    visibility: hidden;
 }

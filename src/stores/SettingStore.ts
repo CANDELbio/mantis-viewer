@@ -121,8 +121,6 @@ export class SettingStore {
 
         this.segmentationBasename = this.projectStore.configurationStore.defaultSegmentationBasename
         this.channelDomainPercentage = this.projectStore.configurationStore.getChannelDomainPercentage()
-        console.log('Channel domain percentage')
-        console.log(toJS(this.channelDomainPercentage))
     }
 
     @action public setBasePath = (path: string) => {
