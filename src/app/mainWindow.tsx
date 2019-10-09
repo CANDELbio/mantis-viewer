@@ -179,12 +179,27 @@ ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Eve
 })
 
 // Keyboard shortcuts!
+// Only let them work if we aren't actively loading data or exporting data.
 Mousetrap.bind(['command+left', 'alt+left'], function() {
-    projectStore.setPreviousImageSet()
+    let imageSetStore = projectStore.activeImageSetStore
+    if (
+        !imageSetStore.imageStore.imageDataLoading &&
+        !imageSetStore.segmentationStore.segmentationDataLoading &&
+        projectStore.numToExport == 0
+    ) {
+        projectStore.setPreviousImageSet()
+    }
 })
 
 Mousetrap.bind(['command+right', 'alt+right'], function() {
-    projectStore.setNextImageSet()
+    let imageSetStore = projectStore.activeImageSetStore
+    if (
+        !imageSetStore.imageStore.imageDataLoading &&
+        !imageSetStore.segmentationStore.segmentationDataLoading &&
+        projectStore.numToExport == 0
+    ) {
+        projectStore.setNextImageSet()
+    }
 })
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
