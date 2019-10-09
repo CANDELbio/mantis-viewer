@@ -3,7 +3,7 @@ module.exports = {
     entry: {
         mainWindow: './src/app/mainWindow.tsx',
         plotWindow: './src/app/plotWindow.tsx',
-        configurationWindow: './src/app/configurationWindow.tsx',
+        configurationWindow: './src/app/preferencesWindow.tsx',
     },
     output: {
         path: __dirname + '/app',

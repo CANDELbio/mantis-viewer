@@ -7,7 +7,7 @@ import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/S
 import { SelectOption } from '../definitions/UIDefinitions'
 import { Input, Label } from 'reactstrap'
 
-export interface ConfigurationProps {
+export interface PreferencesProps {
     maxImageSetsInMemory: number
     setMaxImageSetsInMemory: (max: number) => void
     defaultSegmentationBasename: string | null
@@ -25,8 +25,8 @@ interface PlotControlsState {
 }
 
 @observer
-export class Configuration extends React.Component<ConfigurationProps, PlotControlsState> {
-    public constructor(props: ConfigurationProps) {
+export class Preferences extends React.Component<PreferencesProps, PlotControlsState> {
+    public constructor(props: PreferencesProps) {
         super(props)
     }
 

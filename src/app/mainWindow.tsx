@@ -81,28 +81,28 @@ ipcRenderer.on('plot-in-main-window', (event: Electron.Event, inMain: boolean) =
     projectStore.setPlotInMainWindow(inMain)
 })
 
-//Methods to get data from the configurationWindow to the main thread
+//Methods to get data from the preferencesWindow to the main thread
 ipcRenderer.on('set-max-image-sets', (event: Electron.Event, max: number) => {
-    projectStore.configurationStore.setMaxImageSetsInMemory(max)
+    projectStore.preferencesStore.setMaxImageSetsInMemory(max)
 })
 
 ipcRenderer.on('set-default-segmentation', (event: Electron.Event, segmentation: string) => {
-    projectStore.configurationStore.setDefaultSegmentationBasename(segmentation)
+    projectStore.preferencesStore.setDefaultSegmentationBasename(segmentation)
 })
 
 ipcRenderer.on(
     'set-default-channel-domain',
     (event: Electron.Event, channel: ChannelName, domain: [number, number]) => {
-        projectStore.configurationStore.setDefaultChannelDomain(channel, domain)
+        projectStore.preferencesStore.setDefaultChannelDomain(channel, domain)
     },
 )
 
 ipcRenderer.on('set-default-channel-markers', (event: Electron.Event, channel: ChannelName, markers: string[]) => {
-    projectStore.configurationStore.setDefaultChannelMarkers(channel, markers)
+    projectStore.preferencesStore.setDefaultChannelMarkers(channel, markers)
 })
 
 ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelName, useAny: boolean) => {
-    projectStore.configurationStore.setUseAnyMarker(channel, useAny)
+    projectStore.preferencesStore.setUseAnyMarker(channel, useAny)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
@@ -225,14 +225,14 @@ Mobx.autorun(() => {
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun(() => {
-    let configurationStore = projectStore.configurationStore
+    let preferencesStore = projectStore.preferencesStore
     ipcRenderer.send(
-        'mainWindow-set-config-values',
-        configurationStore.maxImageSetsInMemory,
-        configurationStore.defaultSegmentationBasename,
-        Mobx.toJS(configurationStore.defaultChannelMarkers),
-        Mobx.toJS(configurationStore.defaultChannelDomains),
-        Mobx.toJS(configurationStore.useAnyMarkerIfNoMatch),
+        'mainWindow-set-preferences',
+        preferencesStore.maxImageSetsInMemory,
+        preferencesStore.defaultSegmentationBasename,
+        Mobx.toJS(preferencesStore.defaultChannelMarkers),
+        Mobx.toJS(preferencesStore.defaultChannelDomains),
+        Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
     )
 })
 

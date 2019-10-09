@@ -3,7 +3,7 @@ import { ChannelName } from '../definitions/UIDefinitions'
 
 import * as Store from 'electron-store'
 
-export class ConfigurationStore {
+export class PreferencesStore {
     public constructor() {
         this.store = new Store()
         this.initialize()
@@ -16,7 +16,6 @@ export class ConfigurationStore {
 
     @observable public defaultSegmentationBasename: string | null
 
-    // Will eventually get the below variable names from a configuration file. Setting up in here for now.
     @observable public defaultChannelMarkers: Record<ChannelName, string[]>
 
     @observable public defaultChannelDomains: Record<ChannelName, [number, number]>

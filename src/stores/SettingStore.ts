@@ -119,8 +119,8 @@ export class SettingStore {
         this.legendVisible = false
         this.transformCoefficient = null
 
-        this.segmentationBasename = this.projectStore.configurationStore.defaultSegmentationBasename
-        this.channelDomainPercentage = this.projectStore.configurationStore.getChannelDomainPercentage()
+        this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
+        this.channelDomainPercentage = this.projectStore.preferencesStore.getChannelDomainPercentage()
     }
 
     @action public setBasePath = (path: string) => {
@@ -225,11 +225,11 @@ export class SettingStore {
         }
     }
 
-    // If the image store has image data, sets the defaults based on the configuration helper.
+    // If the image store has image data, sets the defaults based on the users's preferences.
     @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
         if (imageStore.imageData != null) {
-            let configurationHelper = this.projectStore.configurationStore
-            let defaultValues = configurationHelper.getDefaultChannelMarkers(imageStore.imageData.markerNames)
+            let preferencesStore = this.projectStore.preferencesStore
+            let defaultValues = preferencesStore.getDefaultChannelMarkers(imageStore.imageData.markerNames)
             for (let s in defaultValues) {
                 let channelName = s as ChannelName
                 let markerName = defaultValues[channelName]
@@ -248,8 +248,8 @@ export class SettingStore {
     }
 
     @action private setDefaultChannelDomainPercentage = (channelName: ChannelName) => {
-        let configurationHelper = this.projectStore.configurationStore
-        let domains = configurationHelper.getChannelDomainPercentage()
+        let preferencesStore = this.projectStore.preferencesStore
+        let domains = preferencesStore.getChannelDomainPercentage()
         let domainPercentage = domains[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
     }

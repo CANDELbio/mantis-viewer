@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { ipcRenderer } from 'electron'
 import { ChannelName } from '../definitions/UIDefinitions'
-import { Configuration } from '../components/Configuration'
+import { Preferences } from '../components/Preferences'
 
 let maxImageSetsInMemory: number
 let defaultChannelMarkers: Record<ChannelName, string[]>
@@ -11,29 +11,29 @@ let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
 
 let setMaxImageSetsInMemory = (max: number): void => {
-    ipcRenderer.send('configWindow-set-max-image-sets', max)
+    ipcRenderer.send('preferencesWindow-set-max-image-sets', max)
 }
 
 let setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
-    ipcRenderer.send('configWindow-set-channel-markers', channel, markers)
+    ipcRenderer.send('preferencesWindow-set-channel-markers', channel, markers)
 }
 
 let setDefaultChannelDomain = (channel: ChannelName, domain: [number, number]): void => {
-    ipcRenderer.send('configWindow-set-channel-domain', channel, domain)
+    ipcRenderer.send('preferencesWindow-set-channel-domain', channel, domain)
 }
 
 let setDefaultSegmentation = (basename: string): void => {
-    ipcRenderer.send('configWindow-set-segmentation', basename)
+    ipcRenderer.send('preferencesWindow-set-segmentation', basename)
 }
 
 let setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => {
-    ipcRenderer.send('configWindow-set-use-any-marker', channel, useAnyChannel)
+    ipcRenderer.send('preferencesWindow-set-use-any-marker', channel, useAnyChannel)
 }
 
 function render(): void {
     ReactDOM.render(
         <div style={{ paddingTop: '10px', paddingLeft: '15px', paddingRight: '15px' }}>
-            <Configuration
+            <Preferences
                 maxImageSetsInMemory={maxImageSetsInMemory}
                 setMaxImageSetsInMemory={setMaxImageSetsInMemory}
                 defaultSegmentationBasename={defaultSegmentation}
@@ -46,12 +46,12 @@ function render(): void {
                 setUseAnyMarker={setUseAnyMarker}
             />
         </div>,
-        document.getElementById('config'),
+        document.getElementById('preferences'),
     )
 }
 
 ipcRenderer.on(
-    'set-config-values',
+    'set-preferences',
     (
         event: Electron.Event,
         maxImageSets: number,

@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { SettingStore } from '../stores/SettingStore'
-import { ConfigurationStore } from './ConfigurationStore'
+import { PreferencesStore } from './PreferencesStore'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 import { ImageSetStore } from './ImageSetStore'
 import { exportMarkerIntensisties, exportToFCS, exportPopulationsToFCS } from '../lib/IOHelper'
@@ -22,7 +22,7 @@ export class ProjectStore {
     @observable.ref public activeImageSetStore: ImageSetStore
 
     @observable.ref public settingStore: SettingStore
-    @observable.ref public configurationStore: ConfigurationStore
+    @observable.ref public preferencesStore: PreferencesStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -63,7 +63,7 @@ export class ProjectStore {
         this.activeImageSetStore = this.nullImageSet
 
         this.clearSegmentationRequested = false
-        this.configurationStore = new ConfigurationStore()
+        this.preferencesStore = new PreferencesStore()
         this.settingStore = new SettingStore(this)
         this.imageSetHistory = []
         this.numToExport = 0
@@ -167,7 +167,7 @@ export class ProjectStore {
         let historyIndex = this.imageSetHistory.indexOf(dirName)
         if (historyIndex > -1) this.imageSetHistory.splice(historyIndex, 1)
         this.imageSetHistory.push(dirName)
-        if (this.imageSetHistory.length > this.configurationStore.maxImageSetsInMemory) {
+        if (this.imageSetHistory.length > this.preferencesStore.maxImageSetsInMemory) {
             let setToClean = this.imageSetHistory.shift()
             if (setToClean) this.clearImageSetData(setToClean)
         }

@@ -14,7 +14,7 @@ const contextMenu = require('electron-context-menu').default
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null
 let plotWindow: Electron.BrowserWindow | null
-let configurationWindow: Electron.BrowserWindow | null
+let preferencesWindow: Electron.BrowserWindow | null
 
 // The current active image directory. Used to set default directories for menu items.
 let activeImageDirectory: string | undefined
@@ -315,6 +315,14 @@ function generateMenuTemplate(): any {
                     ],
                 },
                 {
+                    label: 'Preferences',
+                    click: () => {
+                        if (preferencesWindow != null) {
+                            preferencesWindow.show()
+                        }
+                    },
+                },
+                {
                     label: 'Quit',
                     click: () => {
                         app.quit()
@@ -323,24 +331,16 @@ function generateMenuTemplate(): any {
             ],
         },
         {
-            label: 'Window',
+            label: 'View',
             submenu: [
                 {
-                    label: 'Open Plot Window',
+                    label: 'Pop-out Plot Window',
                     enabled: segmentationLoaded,
                     click: () => {
                         if (plotWindow != null) {
                             plotWindow.show()
                         }
                         if (mainWindow != null) mainWindow.webContents.send('plot-in-main-window', false)
-                    },
-                },
-                {
-                    label: 'Open Configuration Window',
-                    click: () => {
-                        if (configurationWindow != null) {
-                            configurationWindow.show()
-                        }
                     },
                 },
             ],
@@ -401,11 +401,11 @@ function closePlotWindow(): void {
     }
 }
 
-function closeConfigurationWindow(): void {
-    if (configurationWindow != null) {
-        configurationWindow.removeAllListeners('close')
-        configurationWindow.close()
-        configurationWindow = null
+function closePreferencesWindow(): void {
+    if (preferencesWindow != null) {
+        preferencesWindow.removeAllListeners('close')
+        preferencesWindow.close()
+        preferencesWindow = null
     }
 }
 
@@ -450,7 +450,7 @@ function createMainWindow(): void {
         // when you should delete the corresponding element.
         mainWindow = null
         closePlotWindow()
-        closeConfigurationWindow()
+        closePreferencesWindow()
     })
 
     mainWindow.on('ready-to-show', () => {
@@ -490,8 +490,8 @@ function createPlotWindow(): void {
     })
 }
 
-function createConfigurationWindow(): void {
-    configurationWindow = new BrowserWindow({
+function createPreferencesWindow(): void {
+    preferencesWindow = new BrowserWindow({
         width: 475,
         height: 430,
         resizable: false,
@@ -499,20 +499,20 @@ function createConfigurationWindow(): void {
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
     })
 
-    configurationWindow.loadURL(
+    preferencesWindow.loadURL(
         url.format({
-            pathname: path.join(__dirname, 'app', 'configurationWindow.html'),
+            pathname: path.join(__dirname, 'app', 'preferencesWindow.html'),
             protocol: 'file:',
             slashes: true,
         }),
     )
 
-    if (debugging()) configurationWindow.webContents.openDevTools()
+    if (debugging()) preferencesWindow.webContents.openDevTools()
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
-    configurationWindow.on('close', function(event: Electron.Event) {
+    preferencesWindow.on('close', function(event: Electron.Event) {
         event.preventDefault()
-        if (configurationWindow != null) configurationWindow.hide()
+        if (preferencesWindow != null) preferencesWindow.hide()
     })
 }
 
@@ -521,7 +521,7 @@ function createConfigurationWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createMainWindow)
 app.on('ready', createPlotWindow)
-app.on('ready', createConfigurationWindow)
+app.on('ready', createPreferencesWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -537,12 +537,12 @@ app.on('activate', function() {
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) createMainWindow()
     if (plotWindow === null) createPlotWindow()
-    if (configurationWindow === null) createConfigurationWindow()
+    if (preferencesWindow === null) createPreferencesWindow()
 })
 
 app.on('before-quit', () => {
     closePlotWindow()
-    closeConfigurationWindow()
+    closePreferencesWindow()
 })
 
 //Functions for setting menu flags and regenerating the menu
@@ -680,9 +680,9 @@ ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: nu
     if (mainWindow != null) mainWindow.webContents.send('set-plot-coefficient', coefficient)
 })
 
-// Functions to relay data from the mainWindow to the configurationWindow
+// Functions to relay data from the mainWindow to the preferencesWindow
 ipcMain.on(
-    'mainWindow-set-config-values',
+    'mainWindow-set-preferences',
     (
         event: Electron.Event,
         maxImageSets: number,
@@ -691,9 +691,9 @@ ipcMain.on(
         domains: any,
         anyChannel: any,
     ) => {
-        if (configurationWindow != null)
-            configurationWindow.webContents.send(
-                'set-config-values',
+        if (preferencesWindow != null)
+            preferencesWindow.webContents.send(
+                'set-preferences',
                 maxImageSets,
                 defaultSegmentation,
                 markers,
@@ -703,23 +703,26 @@ ipcMain.on(
     },
 )
 
-// Functions to relay data from the configurationWindow to the mainWindow
-ipcMain.on('configWindow-set-max-image-sets', (event: Electron.Event, max: number) => {
+// Functions to relay data from the preferencesWindow to the mainWindow
+ipcMain.on('preferencesWindow-set-max-image-sets', (event: Electron.Event, max: number) => {
     if (mainWindow != null) mainWindow.webContents.send('set-max-image-sets', max)
 })
 
-ipcMain.on('configWindow-set-segmentation', (event: Electron.Event, basename: string) => {
+ipcMain.on('preferencesWindow-set-segmentation', (event: Electron.Event, basename: string) => {
     if (mainWindow != null) mainWindow.webContents.send('set-default-segmentation', basename)
 })
 
-ipcMain.on('configWindow-set-channel-markers', (event: Electron.Event, channel: string, markers: string[]) => {
+ipcMain.on('preferencesWindow-set-channel-markers', (event: Electron.Event, channel: string, markers: string[]) => {
     if (mainWindow != null) mainWindow.webContents.send('set-default-channel-markers', channel, markers)
 })
 
-ipcMain.on('configWindow-set-channel-domain', (event: Electron.Event, channel: string, domain: [number, number]) => {
-    if (mainWindow != null) mainWindow.webContents.send('set-default-channel-domain', channel, domain)
-})
+ipcMain.on(
+    'preferencesWindow-set-channel-domain',
+    (event: Electron.Event, channel: string, domain: [number, number]) => {
+        if (mainWindow != null) mainWindow.webContents.send('set-default-channel-domain', channel, domain)
+    },
+)
 
-ipcMain.on('configWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean) => {
+ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean) => {
     if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
 })
