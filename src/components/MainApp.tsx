@@ -130,6 +130,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let settingStore = projectStore.settingStore
 
         let imageViewer = null
+        let imageMessage = null
         let imageSetSelector = null
         let channelControls = null
         let plotControls = null
@@ -192,6 +193,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
             let maxImageHeight = null
             if (projectStore.windowHeight != null) maxImageHeight = projectStore.windowHeight - ImageViewerHeightPadding
+            if (imageStore.imageData.scaled) {
+                imageMessage = (
+                    <div style={{ position: 'relative', textAlign: 'center' }}>
+                        This image has been downsampled to fit in memory.
+                    </div>
+                )
+                if (maxImageHeight) maxImageHeight -= 20
+            }
             imageViewer = (
                 <ImageViewer
                     imageData={imageStore.imageData}
@@ -305,6 +314,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         </Col>
                         <Col xs={6} sm={6} md={6} lg={6}>
                             {imageViewer}
+                            {imageMessage}
                         </Col>
                         <Col xs={4} sm={4} md={4} lg={4}>
                             <Button onClick={this.handleRegionsClick} style={fullWidthBottomSpaced} size="sm">

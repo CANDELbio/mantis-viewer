@@ -68,7 +68,7 @@ export async function readFile(
     let markerName = useExtForMarkerName ? parsed.base : parsed.name
     try {
         let tiffData = await readTiffData(filepath)
-        let { data, width, height } = tiffData
+        let { data, width, height, scaled } = tiffData
 
         // Calculate the minimum and maximum marker intensity
         let minmax = calculateMinMaxIntensity(data)
@@ -84,6 +84,7 @@ export async function readFile(
             data: data,
             bitmap: bitmap,
             minmax: minmax,
+            scaled: scaled,
         }
     } catch (err) {
         return { filepath: filepath, error: err.message, markerName: markerName }

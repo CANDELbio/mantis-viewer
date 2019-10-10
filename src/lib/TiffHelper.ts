@@ -11,26 +11,32 @@ import GeoTIFF = require('../modules/geotiff.bundle.min.js')
 const maxWidthHeight = 10000.0
 const scaledWidthHeight = 8000.0
 
-function scaleWidthAndHeight(width: number, height: number): { width: number; height: number } {
+function scaleWidthAndHeight(
+    width: number,
+    height: number,
+): { scaled: boolean; rasterOptions: { width: number; height: number } } {
     let maxDimension = width > height ? width : height
     if (maxDimension > maxWidthHeight) {
-        //TODO: Notify user in UI that image has been scaled
-        console.log('Image too large. Scaling image')
         let scaleFactor = maxDimension / scaledWidthHeight
-        return { width: Math.round(width / scaleFactor), height: Math.round(height / scaleFactor) }
+        return {
+            scaled: true,
+            rasterOptions: { width: Math.round(width / scaleFactor), height: Math.round(height / scaleFactor) },
+        }
     }
-    return { width: width, height: height }
+    return { scaled: false, rasterOptions: { width: width, height: height } }
 }
 
-export async function readTiffData(filepath: string): Promise<{ data: any; width: number; height: number }> {
+export async function readTiffData(
+    filepath: string,
+): Promise<{ data: any; width: number; height: number; scaled: boolean }> {
     let rawData = fs.readFileSync(filepath)
     let tiff = await GeoTIFF.fromArrayBuffer(rawData.buffer)
 
     let image = await tiff.getImage()
 
-    let rasterOptions = scaleWidthAndHeight(image.getWidth(), image.getHeight())
+    let scaleResults = scaleWidthAndHeight(image.getWidth(), image.getHeight())
 
-    let data = await image.readRasters(rasterOptions)
+    let data = await image.readRasters(scaleResults.rasterOptions)
 
-    return { data: data[0], width: data.width, height: data.height }
+    return { data: data[0], width: data.width, height: data.height, scaled: scaleResults.scaled }
 }

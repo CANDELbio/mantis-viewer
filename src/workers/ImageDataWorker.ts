@@ -16,6 +16,7 @@ export interface ImageDataWorkerResult {
     data: Float32Array | Uint16Array | Uint8Array
     bitmap: ImageBitmap
     minmax: MinMax
+    scaled: boolean
 }
 
 export interface ImageDataWorkerError {

@@ -16,6 +16,8 @@ export class ImageData {
     public width: number
     public height: number
 
+    public scaled: boolean
+
     public errors: string[]
 
     // Keep track of the number of markers. Used to know when all workers have completed.
@@ -26,6 +28,7 @@ export class ImageData {
         this.minmax = {}
         this.sprites = {}
         this.errors = []
+        this.scaled = false
     }
 
     // Callback function to call with the built ImageData once it has been loaded.
@@ -49,9 +52,12 @@ export class ImageData {
     }
 
     private async loadFileData(fData: ImageDataWorkerResult): Promise<void> {
+        console.log('Loading data')
+        console.log('Scaled: ' + fData.scaled)
         let markerName = fData.markerName
         this.width = fData.width
         this.height = fData.height
+        if (fData.scaled) this.scaled = fData.scaled
         this.data[markerName] = fData.data
         this.sprites[markerName] = imageBitmapToSprite(fData.bitmap)
         this.minmax[markerName] = fData.minmax
