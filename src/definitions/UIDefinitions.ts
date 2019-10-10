@@ -11,6 +11,15 @@ export const ImageChannels: ChannelName[] = [
     'rChannel',
 ]
 
+export const ChannelColorNameMap: Record<ChannelName, string> = {
+    rChannel: 'Red',
+    gChannel: 'Green',
+    bChannel: 'Blue',
+    cChannel: 'Cyan',
+    mChannel: 'Magenta',
+    yChannel: 'Yellow',
+    kChannel: 'Black',
+}
 export const ChannelColorMap: Record<ChannelName, number> = {
     rChannel: 0xff0000,
     gChannel: 0x00ff00,

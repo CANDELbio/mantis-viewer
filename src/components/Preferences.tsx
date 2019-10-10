@@ -2,7 +2,7 @@ import * as React from 'react'
 import { observer } from 'mobx-react'
 import { TextArea, RangeSlider, Slider } from '@blueprintjs/core'
 import Select from 'react-select'
-import { ChannelName, ImageChannels } from '../definitions/UIDefinitions'
+import { ChannelName, ImageChannels, ChannelColorNameMap } from '../definitions/UIDefinitions'
 import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { SelectOption } from '../definitions/UIDefinitions'
 import { Input, Label } from 'reactstrap'
@@ -36,6 +36,10 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         selectedChannel: 'rChannel' as ChannelName,
     }
 
+    private channelTransform = (channel: ChannelName) => {
+        return ChannelColorNameMap[channel]
+    }
+
     private onSegmentationSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.props.setDefaultSegmentation(event.target.value)
     }
@@ -55,7 +59,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
 
     public render(): React.ReactElement {
         let selectedChannel = this.state.selectedChannel
-        let channelOptions = generateSelectOptions(this.imageChannelsForControls)
+        let channelOptions = generateSelectOptions(this.imageChannelsForControls, this.channelTransform)
         let selectedValue = getSelectedOptions(selectedChannel, channelOptions)
 
         let defaultChannelMarkersValue = this.props.defaultChannelMarkers[selectedChannel].join(',')
