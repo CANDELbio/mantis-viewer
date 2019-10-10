@@ -290,7 +290,8 @@ export class SettingStore {
                     if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility
                     if (importingContent.channelDomainPercentage)
                         this.channelDomainPercentage = importingContent.channelDomainPercentage
-                    this.segmentationBasename = importingContent.segmentationBasename
+                    if (importingContent.segmentationBasename)
+                        this.segmentationBasename = importingContent.segmentationBasename
                     if (importingContent.selectedPlotMarkers)
                         this.selectedPlotMarkers = importingContent.selectedPlotMarkers
                     if (importingContent.plotStatistic) this.plotStatistic = importingContent.plotStatistic
