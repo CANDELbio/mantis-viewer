@@ -185,6 +185,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     }}
                     legendVisible={settingStore.legendVisible}
                     setLegendVisible={settingStore.setLegendVisible}
+                    selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
                     segmentationLoaded={segmentationStore.segmentationData != null}
                 />
             )

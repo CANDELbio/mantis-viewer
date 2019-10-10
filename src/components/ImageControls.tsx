@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { Button } from 'reactstrap'
+import * as path from 'path'
 
 export interface ImageControlsProps {
     fillAlpha: number
@@ -16,6 +17,7 @@ export interface ImageControlsProps {
     centroidsVisible: boolean
     setCentroidsVisible: (visible: boolean) => void
 
+    selectedSegmentationFile: string | null
     segmentationLoaded: boolean
     onClearSegmentation: () => void
 }
@@ -35,6 +37,18 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
     private onLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
         this.props.setLegendVisible(event.currentTarget.checked)
 
+    private selectedSegmentationFileLabel(): JSX.Element {
+        let segmentationFileName = this.props.selectedSegmentationFile
+            ? path.basename(this.props.selectedSegmentationFile)
+            : 'No segmentation file loaded'
+        return (
+            <div style={{ paddingBottom: '10px' }}>
+                <div>Selected Segmentation File</div>
+                <div>{segmentationFileName}</div>
+            </div>
+        )
+    }
+
     public render(): React.ReactElement {
         return (
             <div>
@@ -49,6 +63,7 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                     onChange={this.onCentroidVisibilityChange}
                     disabled={!this.props.segmentationLoaded}
                 />
+                {this.selectedSegmentationFileLabel()}
                 Segmentation Outline Alpha
                 <Slider
                     value={this.props.outlineAlpha * this.sliderMax}
