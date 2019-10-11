@@ -78,6 +78,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private segmentationCentroidGraphics: PIXI.Graphics | null
 
     private legendGraphics: PIXI.Graphics
+    private legendVisible: boolean
 
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
@@ -102,6 +103,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.rootContainer.addChild(this.stage)
 
         this.legendGraphics = new PIXI.Graphics()
+        this.legendVisible = false
 
         let redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
@@ -573,6 +575,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         imcData: ImageData,
         channelMarker: Record<ChannelName, string | null>,
     ): void {
+        this.legendVisible = legendVisible
         if (legendVisible) {
             GraphicsHelper.drawLegend(this.legendGraphics, imcData, channelMarker)
             this.resizeLegend()
@@ -592,6 +595,20 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private exportRenderer(exportPath: string): void {
+        let initialXScale = this.stage.scale.x
+        let initialYScale = this.stage.scale.y
+
+        let exportXScale = (this.imageData.width / this.rendererWidth) * initialXScale
+        let exportYScale = (this.imageData.height / this.rendererHeight) * initialYScale
+
+        // Resizes the renderer to be the width and height of the original image for export
+        this.renderer.resize(this.imageData.width, this.imageData.height)
+        this.stage.scale.x = exportXScale
+        this.stage.scale.y = exportYScale
+        this.stage.updateTransform()
+        if (this.legendVisible) this.resizeLegend()
+        this.renderer.render(this.rootContainer)
+
         // Get the source canvas that we are exporting from pixi
         let sourceCanvas = this.renderer.extract.canvas()
         let sourceContext = sourceCanvas.getContext('2d')
@@ -602,10 +619,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Replace the header so that we just have the base64 encoded string
             let exportingData = exportingImage.replace(/^data:image\/png;base64,/, '')
             // Save the base64 encoded string to file.
-            fs.writeFile(exportPath, exportingData, 'base64', function(err) {
-                console.log(err)
-            })
+            fs.writeFileSync(exportPath, exportingData, 'base64')
         }
+
+        // Return the size of the renderer to its original size
+        this.renderer.resize(this.rendererWidth, this.rendererHeight)
+        this.stage.scale.x = initialXScale
+        this.stage.scale.y = initialYScale
+        this.stage.updateTransform()
+        if (this.legendVisible) this.resizeLegend()
+        this.renderer.render(this.rootContainer)
     }
 
     private renderImage(

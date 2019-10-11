@@ -52,8 +52,6 @@ export class ImageData {
     }
 
     private async loadFileData(fData: ImageDataWorkerResult): Promise<void> {
-        console.log('Loading data')
-        console.log('Scaled: ' + fData.scaled)
         let markerName = fData.markerName
         this.width = fData.width
         this.height = fData.height
