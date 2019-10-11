@@ -594,6 +594,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.updateTransform()
     }
 
+    // Resizes the renderer without resetting zoom/scale, x/y position, and resetting stage bounds.
+    private resizeRendererForExport(width: number, height: number, xScale: number, yScale: number): void {
+        // Adjust the position so that the same point is still centered if we're zoomed in.
+        this.stage.position.x = this.stage.position.x * (width / this.rendererWidth)
+        this.stage.position.y = this.stage.position.y * (height / this.rendererHeight)
+        this.stage.scale.x = xScale
+        this.stage.scale.y = yScale
+        this.stage.updateTransform()
+        this.renderer.resize(width, height)
+        if (this.legendVisible) this.resizeLegend()
+        this.renderer.render(this.rootContainer)
+    }
+
     private exportRenderer(exportPath: string): void {
         let initialXScale = this.stage.scale.x
         let initialYScale = this.stage.scale.y
@@ -602,17 +615,17 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         let exportYScale = (this.imageData.height / this.rendererHeight) * initialYScale
 
         // Resizes the renderer to be the width and height of the original image for export
-        this.renderer.resize(this.imageData.width, this.imageData.height)
-        this.stage.scale.x = exportXScale
-        this.stage.scale.y = exportYScale
-        this.stage.updateTransform()
-        if (this.legendVisible) this.resizeLegend()
-        this.renderer.render(this.rootContainer)
+        // TODO: Should this be smaller if the user is zoomed in?
+        this.resizeRendererForExport(this.imageData.width, this.imageData.height, exportXScale, exportYScale)
 
         // Get the source canvas that we are exporting from pixi
         let sourceCanvas = this.renderer.extract.canvas()
-        let sourceContext = sourceCanvas.getContext('2d')
 
+        // Return the size of the renderer to its original size
+        this.resizeRendererForExport(this.rendererWidth, this.rendererHeight, initialXScale, initialYScale)
+
+        // Save the export to a file
+        let sourceContext = sourceCanvas.getContext('2d')
         if (sourceContext) {
             // Convert to a base64 encoded png
             let exportingImage = sourceCanvas.toDataURL('image/png')
@@ -621,14 +634,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Save the base64 encoded string to file.
             fs.writeFileSync(exportPath, exportingData, 'base64')
         }
-
-        // Return the size of the renderer to its original size
-        this.renderer.resize(this.rendererWidth, this.rendererHeight)
-        this.stage.scale.x = initialXScale
-        this.stage.scale.y = initialYScale
-        this.stage.updateTransform()
-        if (this.legendVisible) this.resizeLegend()
-        this.renderer.render(this.rootContainer)
     }
 
     private renderImage(
