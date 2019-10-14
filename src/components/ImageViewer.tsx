@@ -556,15 +556,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
-    private resizeLegend(): void {
+    private resizeLegend(xScaleCoefficient = 1, yScaleCoefficient = 1): void {
         this.stage.removeChild(this.legendGraphics)
         let xScale = 1 / this.stage.scale.x
         let yScale = 1 / this.stage.scale.y
         this.legendGraphics.setTransform(
             Math.abs(this.stage.position.x) * xScale,
             Math.abs(this.stage.position.y) * yScale,
-            xScale,
-            yScale,
+            xScale * xScaleCoefficient,
+            yScale * yScaleCoefficient,
         )
         this.stage.addChild(this.legendGraphics)
     }
@@ -599,11 +599,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Adjust the position so that the same point is still centered if we're zoomed in.
         this.stage.position.x = this.stage.position.x * (width / this.rendererWidth)
         this.stage.position.y = this.stage.position.y * (height / this.rendererHeight)
+        let legendXScaleCoefficient = xScale / this.stage.scale.x
+        let legendYScaleCoefficient = yScale / this.stage.scale.y
         this.stage.scale.x = xScale
         this.stage.scale.y = yScale
         this.stage.updateTransform()
         this.renderer.resize(width, height)
-        if (this.legendVisible) this.resizeLegend()
+        if (this.legendVisible) this.resizeLegend(legendXScaleCoefficient, legendYScaleCoefficient)
         this.renderer.render(this.rootContainer)
     }
 
