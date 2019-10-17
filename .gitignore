@@ -9,3 +9,6 @@ app/*.js
 app/*.map
 *.pyc
 *.DS_store
+_site
+.sass-cache
+.jekyll-metadata
