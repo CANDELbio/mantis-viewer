@@ -4,7 +4,7 @@ Mantis Viewer is an application for viewing and analyzing multi-channel [immunoh
 
 ## Using Mantis Viewer
 
-If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](docs/index.md)!
+If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](https://parkerici.github.io/mantis-viewer/)!
 
 ## Downloading
 
