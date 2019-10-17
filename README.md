@@ -1,15 +1,16 @@
-# Mantis Viewer #
+# Mantis Viewer
 
 Mantis Viewer is an application for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support large images (>100 MB per channel).
 
-## Using Mantis Viewer ##
+## Using Mantis Viewer
 
-If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](docs/tutorial.md)!
+If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](docs/index.md)!
 
-## Downloading ##
+## Downloading
+
 If you just want to use the application head to the [releases](https://github.com/ParkerICI/imc-viewer-js/releases) page! Otherwise continue reading if you want to build the project yourself or to contribute to this project.
 
-## Develop and Run Locally ##
+## Develop and Run Locally
 
 To get up and running for the first time first clone the repository and install the dependencies.
 
@@ -26,13 +27,14 @@ npm start
 
 If you are actively developing you will need to run `npm run build` before running `npm start` to see your changes.
 
-## Generating executables ##
+## Generating executables
 
 To generate executables you will first need to make sure all dependencies are installed
 
 ```shell
 npm install
 ```
+
 If you are generating executables in a non-Windows environment you will need to install Wine. On Mac you can accomplish this with [Homebrew](https://brew.sh/).
 
 ```shell
@@ -48,10 +50,10 @@ npm run dist
 
 When this completes, you should have executables built for Mac, Windows, and Linux in the `dist` directory.
 
-## Technologies ##
+## Technologies
 
 Mantis Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
 
-## License ##
-Mantis Viewer is distributed under a GPLv3 license.
+## License
 
+Mantis Viewer is distributed under a GPLv3 license.
