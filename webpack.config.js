@@ -50,6 +50,10 @@ module.exports = {
                 include: /flexboxgrid/,
             },
             {
+                test: /\.(png|svg|jpg|gif)$/,
+                use: ['file-loader'],
+            },
+            {
                 enforce: 'pre',
                 test: /\.js?$/,
                 loader: 'source-map-loader',

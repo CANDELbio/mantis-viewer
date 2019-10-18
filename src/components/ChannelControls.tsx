@@ -5,7 +5,7 @@ import Select from 'react-select'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Badge } from 'reactstrap'
-import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { ChannelName, SelectOption, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
 
@@ -104,6 +104,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                             onChange={this.onMarkerChange}
                             isClearable={true}
                             styles={SelectStyle}
+                            theme={SelectTheme}
                         />
                     </Col>
                 </Row>

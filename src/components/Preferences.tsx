@@ -3,7 +3,7 @@ import { observer } from 'mobx-react'
 import { TextArea, RangeSlider, Slider } from '@blueprintjs/core'
 import Select from 'react-select'
 import { ChannelName, ImageChannels, ChannelColorNameMap } from '../definitions/UIDefinitions'
-import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { SelectOption } from '../definitions/UIDefinitions'
 import { Input, Label } from 'reactstrap'
 
@@ -86,6 +86,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     onChange={this.onSelectedChannelChange}
                     clearable={false}
                     styles={SelectStyle}
+                    theme={SelectTheme}
                 />
                 <br />
                 <Label>Default Brightness for Channel</Label>

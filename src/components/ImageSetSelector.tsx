@@ -3,7 +3,7 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
-import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { SelectOption } from '../definitions/UIDefinitions'
 import { basename } from 'path'
 
@@ -57,6 +57,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                             onChange={this.onImageSetChange}
                             clearable={false}
                             styles={SelectStyle}
+                            theme={SelectTheme}
                             isDisabled={this.props.imageSets.length == 0}
                         />
                     </Col>

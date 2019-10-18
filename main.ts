@@ -413,7 +413,7 @@ function createMainWindow(): void {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 1540,
-        height: 740,
+        height: 790,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true },
     })

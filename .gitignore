@@ -7,6 +7,7 @@ renderer.js.map
 *.log
 app/*.js
 app/*.map
+app/*.png
 *.pyc
 *.DS_store
 _site

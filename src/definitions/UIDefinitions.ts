@@ -67,8 +67,8 @@ export const PlotNormalizationOptions = [
 
 export type PlotNormalization = 'none' | 'population' | 'marker'
 
-export const ImageViewerHeightPadding = 40
-export const MainPlotHeightPadding = 350 // Amount of padding above the plot in the main window.
+export const ImageViewerHeightPadding = 90
+export const MainPlotHeightPadding = 400 // Amount of padding above and below the plot in the main window.
 export const ExternalPlotHeightPadding = 50 // Amount of padding above the plot in the external window.
 export const SelectedRegionAlpha = 0.4
 export const HighlightedSelectedRegionAlpha = 0.6
@@ -95,4 +95,4 @@ export const ImageSettingsFilename = '.mantisImageSettings'
 
 // Combined height of the leftmost pannel when channel and segmentation are both open.
 // If this ends up being different on differnt OSes or we are restyling often, might be better to use sizeme instead
-export const ChannelControlsCombinedHeight = 1000
+export const ChannelControlsCombinedHeight = 1050

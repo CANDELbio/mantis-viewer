@@ -22,7 +22,7 @@ import {
     PlotMinDotSize,
     PlotMaxDotSize,
 } from '../definitions/UIDefinitions'
-import { SelectStyle, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
 interface PlotControlsProps {
     markers: string[]
@@ -127,6 +127,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTypeSelect}
                 isClearable={false}
                 styles={SelectStyle}
+                theme={SelectTheme}
             />
         )
 
@@ -139,6 +140,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isClearable={false}
                 placeholder="Statistic"
                 styles={SelectStyle}
+                theme={SelectTheme}
             />
         )
 
@@ -150,6 +152,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTransformSelect}
                 isClearable={false}
                 styles={SelectStyle}
+                theme={SelectTheme}
             />
         )
 
@@ -176,6 +179,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isDisabled={normalizationDisabled}
                 placeholder="Normalization"
                 styles={SelectStyle}
+                theme={SelectTheme}
             />
         )
 
@@ -202,6 +206,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isDisabled={this.props.selectedType == 'heatmap'}
                 placeholder="Select plot markers..."
                 styles={SelectStyle}
+                theme={SelectTheme}
             />
         )
 

@@ -3,6 +3,9 @@ import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Collapse } from 'reactstrap'
 
+import * as bottomBar from '../assets/bottom_bar.png'
+import * as piciLogo from '../assets/pici_logo.png'
+
 import { ProjectStore } from '../stores/ProjectStore'
 import {
     ChannelName,
@@ -338,6 +341,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         </Col>
                     </Row>
                 </Grid>
+                <div className="bottom-bar">
+                    <img className="bar" src={bottomBar} />
+                    <img className="logo" src={piciLogo} />
+                </div>
             </div>
         )
     }

@@ -22,7 +22,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
                     <ModalHeader>{modalType} is loading...</ModalHeader>
                     <ModalBody>
                         <div style={{ textAlign: 'center' }}>
-                            <Spinner style={{ width: '5rem', height: '5rem' }} />
+                            <Spinner style={{ width: '5rem', height: '5rem' }} color="secondary" />
                         </div>
                     </ModalBody>
                 </Modal>
