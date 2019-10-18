@@ -9,6 +9,7 @@ import ReactTableContainer from 'react-table-container'
 import { hexToString } from '../lib/ColorHelper'
 
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import { SelectedPopulationsTableHeight } from '../definitions/UIDefinitions'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -109,30 +110,34 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                     <td
                         id={'color-' + this.props.population.id}
                         onClick={this.onTogglePicker}
-                        style={{ backgroundColor: this.backgroundColor(), cursor: 'pointer', width: '50px' }}
+                        style={{
+                            backgroundColor: this.backgroundColor(),
+                            cursor: 'pointer',
+                            width: '50px',
+                        }}
+                    />
+                    {/* Popover outside of the td so that the user can interact with it */}
+                    <Popover
+                        placement="left"
+                        isOpen={this.state.pickerVisible && !this.props.tableScrolling}
+                        trigger="legacy"
+                        target={'color-' + this.props.population.id}
+                        toggle={this.onTogglePicker}
+                        style={{ backgroundColor: 'transparent' }}
                     >
-                        <Popover
-                            placement="left"
-                            isOpen={this.state.pickerVisible && !this.props.tableScrolling}
-                            trigger="legacy"
-                            target={'color-' + this.props.population.id}
-                            toggle={this.onTogglePicker}
-                            style={{ backgroundColor: 'transparent' }}
-                        >
-                            {/* Compact picker is meant to be used as its own popover element, but doesn't work with ReactTableContainer */}
-                            {/* Instead we style the compact-picker element to have a box-shadow to mask its default box-shadow */}
-                            {/* And we set padding of PopoverBody to 6.8px to reduce the padding around compact picker and make it look natural */}
-                            <PopoverBody style={{ padding: '6.8px' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
-                                    <CompactPicker
-                                        color={'#' + this.props.population.color.toString(16)}
-                                        onChangeComplete={this.handleColorChange}
-                                    />
-                                </div>
-                            </PopoverBody>
-                        </Popover>
-                    </td>
+                        {/* Compact picker is meant to be used as its own popover element, but doesn't work with ReactTableContainer */}
+                        {/* Instead we style the compact-picker element to have a box-shadow to mask its default box-shadow */}
+                        {/* And we set padding of PopoverBody to 6.8px to reduce the padding around compact picker and make it look natural */}
+                        <PopoverBody style={{ padding: '6.8px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
+                                <CompactPicker
+                                    color={'#' + this.props.population.color.toString(16)}
+                                    onChangeComplete={this.handleColorChange}
+                                />
+                            </div>
+                        </PopoverBody>
+                    </Popover>
                     <td>
                         <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
                     </td>
@@ -209,16 +214,18 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
     public render(): React.ReactElement {
         let populations = this.props.populations
+        let tableHeight = SelectedPopulationsTableHeight + 'px'
+        let theadClassName = populations && populations.length ? undefined : 'empty-table'
         return (
             <div>
                 <style>{'table.population-table th{padding:0.45rem;}'}</style>
                 <style>{'table.population-table td{padding:0.35em;}'}</style>
-                <ReactTableContainer width="100%" height="200px">
+                <ReactTableContainer width="100%" height={tableHeight} style={{ borderRadius: '5px' }}>
                     <table
                         className="table table-hover population-table"
                         onWheel={_.throttle(this.setDebounceTableScrolling, 100)}
                     >
-                        <thead style={{ backgroundColor: 'white' }}>
+                        <thead style={{ backgroundColor: 'white' }} className={theadClassName}>
                             <tr>
                                 <th>Name</th>
                                 <th>Color</th>

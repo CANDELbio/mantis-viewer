@@ -22,7 +22,7 @@ export class ExportModal extends React.Component<ExportModalProps, {}> {
                     <ModalHeader>Files exporting...</ModalHeader>
                     <ModalBody>
                         <div style={{ textAlign: 'center' }}>
-                            <Progress animated value={exportProgress} />
+                            <Progress value={exportProgress} />
                         </div>
                     </ModalBody>
                 </Modal>

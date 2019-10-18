@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
-import { TextArea, RangeSlider, Slider } from '@blueprintjs/core'
+import { TextArea, RangeSlider, Slider, Checkbox } from '@blueprintjs/core'
 import Select from 'react-select'
 import { ChannelName, ImageChannels, ChannelColorNameMap } from '../definitions/UIDefinitions'
 import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
@@ -105,13 +105,12 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     onChange={this.onDefaultChannelMarkersChange}
                     fill={true}
                 />
-                <Label check style={{ paddingTop: '10px', paddingLeft: '20px' }}>
-                    <Input
-                        type="checkbox"
-                        onChange={this.onUseAnyMarkerChange}
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
                         checked={this.props.useAnyMarker[this.state.selectedChannel]}
+                        onChange={this.onUseAnyMarkerChange}
+                        label="Use Any Marker if Defaults Not Present"
                     />
-                    Use Any Marker if Defaults Not Present
                 </Label>
             </div>
         )

@@ -78,14 +78,16 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                     max={this.sliderMax}
                     disabled={!this.props.segmentationLoaded}
                 />
-                <Button
-                    onClick={this.props.onClearSegmentation}
-                    color="danger"
-                    size="sm"
-                    disabled={!this.props.segmentationLoaded}
-                >
-                    Clear Segmentation
-                </Button>
+                <div style={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={this.props.onClearSegmentation}
+                        color="danger"
+                        size="sm"
+                        disabled={!this.props.segmentationLoaded}
+                    >
+                        Clear Segmentation
+                    </Button>
+                </div>
             </div>
         )
     }

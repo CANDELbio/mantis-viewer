@@ -15,6 +15,7 @@ import {
     ImageChannels,
     GraphSelectionPrefix,
     ImageSelectionPrefix,
+    SelectedPopulationsTableHeight,
 } from '../definitions/UIDefinitions'
 import { ChannelControls } from './ChannelControls'
 import { ImageViewer } from './ImageViewer'
@@ -141,13 +142,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageControls = null
 
         imageSetSelector = (
-            <ImageSetSelector
-                selectedImageSet={projectStore.activeImageSetPath}
-                imageSets={projectStore.imageSetPaths}
-                setSelectedImageSet={projectStore.setActiveImageSet}
-                previousImageSet={projectStore.setPreviousImageSet}
-                nextImageSet={projectStore.setNextImageSet}
-            />
+            <div className="grey-card">
+                <ImageSetSelector
+                    selectedImageSet={projectStore.activeImageSetPath}
+                    imageSets={projectStore.imageSetPaths}
+                    setSelectedImageSet={projectStore.setActiveImageSet}
+                    previousImageSet={projectStore.setPreviousImageSet}
+                    nextImageSet={projectStore.setNextImageSet}
+                />
+            </div>
         )
 
         if (imageStore.imageData != null) {
@@ -157,41 +160,44 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     let channelMarker = settingStore.channelMarker[s]
                     let selectedMarker = channelMarker && markerNames.includes(channelMarker) ? channelMarker : null
                     return (
-                        <ChannelControls
-                            key={s}
-                            channel={s}
-                            channelVisible={settingStore.channelVisibility[s]}
-                            setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
-                            sliderMin={this.getChannelMin(s)}
-                            sliderMax={this.getChannelMax(s)}
-                            sliderValue={imageStore.channelDomain[s]}
-                            setChannelDomainPercentage={settingStore.setChannelDomainPercentageCallback(s)}
-                            markers={markerNames}
-                            selectedMarker={selectedMarker}
-                            allSelectedMarkers={Object.values(settingStore.channelMarker)}
-                            setMarker={settingStore.setChannelMarkerCallback(s)}
-                            windowWidth={projectStore.windowWidth}
-                        />
+                        <div className="grey-card channel-controls" key={s}>
+                            <ChannelControls
+                                channel={s}
+                                channelVisible={settingStore.channelVisibility[s]}
+                                setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
+                                sliderMin={this.getChannelMin(s)}
+                                sliderMax={this.getChannelMax(s)}
+                                sliderValue={imageStore.channelDomain[s]}
+                                setChannelDomainPercentage={settingStore.setChannelDomainPercentageCallback(s)}
+                                markers={markerNames}
+                                selectedMarker={selectedMarker}
+                                allSelectedMarkers={Object.values(settingStore.channelMarker)}
+                                setMarker={settingStore.setChannelMarkerCallback(s)}
+                                windowWidth={projectStore.windowWidth}
+                            />
+                        </div>
                     )
                 })
             }
 
             imageControls = (
-                <ImageControls
-                    fillAlpha={settingStore.segmentationFillAlpha}
-                    outlineAlpha={settingStore.segmentationOutlineAlpha}
-                    onFillAlphaChange={settingStore.setSegmentationFillAlpha}
-                    onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
-                    centroidsVisible={settingStore.segmentationCentroidsVisible}
-                    setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
-                    onClearSegmentation={() => {
-                        projectStore.setClearSegmentationRequested(true)
-                    }}
-                    legendVisible={settingStore.legendVisible}
-                    setLegendVisible={settingStore.setLegendVisible}
-                    selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
-                    segmentationLoaded={segmentationStore.segmentationData != null}
-                />
+                <div className="grey-card image-controls">
+                    <ImageControls
+                        fillAlpha={settingStore.segmentationFillAlpha}
+                        outlineAlpha={settingStore.segmentationOutlineAlpha}
+                        onFillAlphaChange={settingStore.setSegmentationFillAlpha}
+                        onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
+                        centroidsVisible={settingStore.segmentationCentroidsVisible}
+                        setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
+                        onClearSegmentation={() => {
+                            projectStore.setClearSegmentationRequested(true)
+                        }}
+                        legendVisible={settingStore.legendVisible}
+                        setLegendVisible={settingStore.setLegendVisible}
+                        selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
+                        segmentationLoaded={segmentationStore.segmentationData != null}
+                    />
+                </div>
             )
 
             let maxImageHeight = null
@@ -233,36 +239,41 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     let maxPlotHeight = null
                     if (projectStore.windowHeight != null)
                         maxPlotHeight = projectStore.windowHeight - MainPlotHeightPadding
+                    if (maxPlotHeight && !this.state.regionsOpen) maxPlotHeight += SelectedPopulationsTableHeight
                     plotControls = (
-                        <PlotControls
-                            windowWidth={projectStore.windowWidth}
-                            markers={markerNames}
-                            selectedPlotMarkers={settingStore.selectedPlotMarkers}
-                            setSelectedPlotMarkers={settingStore.setSelectedPlotMarkers}
-                            selectedStatistic={settingStore.plotStatistic}
-                            setSelectedStatistic={settingStore.setPlotStatistic}
-                            selectedTransform={settingStore.plotTransform}
-                            setSelectedTransform={settingStore.setPlotTransform}
-                            selectedType={settingStore.plotType}
-                            setSelectedType={settingStore.setPlotType}
-                            selectedNormalization={settingStore.plotNormalization}
-                            setSelectedNormalization={settingStore.setPlotNormalization}
-                            dotSize={settingStore.plotDotSize}
-                            setDotSize={settingStore.setPlotDotSize}
-                            transformCoefficient={settingStore.transformCoefficient}
-                            setTransformCoefficient={settingStore.setTransformCoefficient}
-                        />
+                        <div className="grey-card plot-controls">
+                            <PlotControls
+                                windowWidth={projectStore.windowWidth}
+                                markers={markerNames}
+                                selectedPlotMarkers={settingStore.selectedPlotMarkers}
+                                setSelectedPlotMarkers={settingStore.setSelectedPlotMarkers}
+                                selectedStatistic={settingStore.plotStatistic}
+                                setSelectedStatistic={settingStore.setPlotStatistic}
+                                selectedTransform={settingStore.plotTransform}
+                                setSelectedTransform={settingStore.setPlotTransform}
+                                selectedType={settingStore.plotType}
+                                setSelectedType={settingStore.setPlotType}
+                                selectedNormalization={settingStore.plotNormalization}
+                                setSelectedNormalization={settingStore.setPlotNormalization}
+                                dotSize={settingStore.plotDotSize}
+                                setDotSize={settingStore.setPlotDotSize}
+                                transformCoefficient={settingStore.transformCoefficient}
+                                setTransformCoefficient={settingStore.setTransformCoefficient}
+                            />
+                        </div>
                     )
                     scatterPlot = (
-                        <Plot
-                            windowWidth={projectStore.windowWidth}
-                            selectedType={settingStore.plotType}
-                            setSelectedSegments={this.addSelectionFromGraph}
-                            setSelectedRange={projectStore.addPopulationFromRange}
-                            setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
-                            plotData={plotStore.plotData}
-                            maxPlotHeight={maxPlotHeight}
-                        />
+                        <div>
+                            <Plot
+                                windowWidth={projectStore.windowWidth}
+                                selectedType={settingStore.plotType}
+                                setSelectedSegments={this.addSelectionFromGraph}
+                                setSelectedRange={projectStore.addPopulationFromRange}
+                                setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
+                                plotData={plotStore.plotData}
+                                maxPlotHeight={maxPlotHeight}
+                            />
+                        </div>
                     )
                 }
             }
@@ -282,7 +293,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         )
 
         let fullWidth = { width: '100%' }
-        let fullWidthBottomSpaced = { marginBottom: '0.5rem', width: '100%' }
+        let fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
         let paddingStyle = { paddingTop: '8px' }
 
         let displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
@@ -335,8 +346,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 {this.state.plotOpen ? 'Hide' : 'Show'} Plot Pane
                             </Button>
                             <Collapse isOpen={this.state.plotOpen} style={fullWidth}>
-                                <div>{plotControls}</div>
-                                <div>{scatterPlot}</div>
+                                {plotControls}
+                                {scatterPlot}
                             </Collapse>
                         </Col>
                     </Row>

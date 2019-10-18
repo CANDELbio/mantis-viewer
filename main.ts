@@ -182,14 +182,9 @@ function generateMenuTemplate(): any {
                     label: 'Export',
                     submenu: [
                         {
-                            label: 'Image',
-                            submenu: [
-                                {
-                                    label: 'Current image and layers',
-                                    enabled: imageLoaded,
-                                    click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
-                                },
-                            ],
+                            label: 'Image and layers to PNG',
+                            enabled: imageLoaded,
+                            click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
                         },
                         {
                             label: 'Populations',
@@ -413,14 +408,13 @@ function createMainWindow(): void {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 1540,
-        height: 790,
+        height: 860,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true },
     })
     setMenu()
 
-    // TODO: Set to 1280 x 720 when not using DevTools.
-    mainWindow.setMinimumSize(1540, 740)
+    mainWindow.setMinimumSize(1540, 860)
 
     // and load the index.html of the app.
     mainWindow.loadURL(

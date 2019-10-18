@@ -73,25 +73,27 @@ function render(): void {
         let plotHeight = null
         if (windowHeight != null) plotHeight = windowHeight - ExternalPlotHeightPadding
         ReactDOM.render(
-            <div style={{ paddingTop: '10px' }}>
-                <PlotControls
-                    windowWidth={windowWidth}
-                    markers={markerNames}
-                    selectedPlotMarkers={selectedPlotMarkers}
-                    setSelectedPlotMarkers={setSelectedPlotMarkers}
-                    selectedStatistic={selectedStatistic}
-                    setSelectedStatistic={setSelectedStatistic}
-                    selectedTransform={selectedTransform}
-                    setSelectedTransform={setPlotTranform}
-                    selectedType={selectedType}
-                    setSelectedType={setPlotType}
-                    selectedNormalization={selectedNormalization}
-                    setSelectedNormalization={setPlotNormalization}
-                    dotSize={dotSize}
-                    setDotSize={setDotSize}
-                    transformCoefficient={transformCoefficient}
-                    setTransformCoefficient={setTransformCoefficient}
-                />
+            <div style={{ paddingTop: '10px', paddingLeft: '5px', paddingRight: '5px' }}>
+                <div className="grey-card plot-controls">
+                    <PlotControls
+                        windowWidth={windowWidth}
+                        markers={markerNames}
+                        selectedPlotMarkers={selectedPlotMarkers}
+                        setSelectedPlotMarkers={setSelectedPlotMarkers}
+                        selectedStatistic={selectedStatistic}
+                        setSelectedStatistic={setSelectedStatistic}
+                        selectedTransform={selectedTransform}
+                        setSelectedTransform={setPlotTranform}
+                        selectedType={selectedType}
+                        setSelectedType={setPlotType}
+                        selectedNormalization={selectedNormalization}
+                        setSelectedNormalization={setPlotNormalization}
+                        dotSize={dotSize}
+                        setDotSize={setDotSize}
+                        transformCoefficient={transformCoefficient}
+                        setTransformCoefficient={setTransformCoefficient}
+                    />
+                </div>
                 <Plot
                     windowWidth={windowWidth}
                     selectedType={selectedType}

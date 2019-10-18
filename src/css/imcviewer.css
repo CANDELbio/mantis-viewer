@@ -12,10 +12,7 @@ body {
     display: none;
 }
 
-span.bp3-slider-label {
-    visibility: hidden;
-}
-
+/* Styling for the bottom bar */
 .bottom-bar {
     width: 100%;
     position: absolute;
@@ -40,6 +37,7 @@ span.bp3-slider-label {
     right: 0;
 }
 
+/* Apply theme colors to reactstrap elements */
 .btn-secondary {
     background-color: #685bc7;
     border-color: #685bc7;
@@ -50,10 +48,42 @@ span.bp3-slider-label {
     border-color: #4a4c9b;
 }
 
+.btn-secondary:active {
+    background-color: #313377;
+    border-color: #313377;
+}
+
+.btn-secondary:focus {
+    background-color: #313377;
+    border-color: #313377;
+}
+
+.btn-secondary:not(:disabled):not(.disabled):active {
+    background-color: #313377;
+    border-color: #313377;
+}
+
 .btn-secondary.disabled,
 .btn-secondary:disabled {
     background-color: #a197e6;
     border-color: #a197e6;
+}
+
+/* Apply theme colors and style to blueprint elements */
+span.bp3-slider-label {
+    visibility: hidden;
+}
+
+.bp3-control input ~ .bp3-control-indicator {
+    background-color: #a197e6;
+}
+
+.bp3-control:hover input ~ .bp3-control-indicator {
+    background-color: #776cbe;
+}
+
+.bp3-control:active input:active ~ .bp3-control-indicator {
+    background-color: #313377;
 }
 
 .bp3-control input:checked ~ .bp3-control-indicator {
@@ -68,10 +98,19 @@ span.bp3-slider-label {
     background-color: #313377;
 }
 
+.bp3-control input:disabled ~ .bp3-control-indicator {
+    background-color: #b6b1d6;
+}
+
 .bp3-control-indicator:hover {
     background-color: #4a4c9b;
 }
 
+.bp3-slider-progress.bp3-intent-primary {
+    background-color: #685bc7;
+}
+
+/* Apply style colors to a links */
 a {
     color: #685bc7;
 }
@@ -84,14 +123,76 @@ a:active {
     color: #313377;
 }
 
-.bp3-slider-progress.bp3-intent-primary {
-    background-color: #685bc7;
-}
-
+/* Styles for elements in the loading modals */
 .spinner-border.text-secondary {
     color: #685bc7 !important;
 }
 
 .progress-bar {
     background-color: #685bc7;
+}
+
+/* Styles for the grey-card and derivative divs */
+div .grey-card {
+    border-radius: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    background-color: #a7a8aa73;
+}
+
+div .channel-controls {
+    padding-bottom: 0px !important;
+    padding-right: 5px;
+}
+
+div .image-controls {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+div .plot-controls {
+    padding-right: 20px;
+}
+
+/* Styles for the selected population table  */
+.table th {
+    border-top: 0px;
+    background-color: #a7a8aa73;
+}
+
+.empty-table th {
+    border-bottom: 0px !important;
+}
+
+.empty-table th:first-child {
+    border-bottom-left-radius: 5px;
+}
+
+.empty-table th:last-child {
+    border-bottom-right-radius: 5px;
+}
+
+.table td {
+    background-color: #a7a8aa73;
+}
+
+.table tr:last-child td:first-child {
+    border-bottom-left-radius: 5px;
+}
+.table tr:last-child td:last-child {
+    border-bottom-right-radius: 5px;
+}
+
+/* Misc styles */
+
+.space-bottom {
+    margin-bottom: 5px;
+}
+
+.vertical-center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
 }

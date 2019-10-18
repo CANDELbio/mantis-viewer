@@ -1,0 +1,7 @@
+@import 'imcviewer.css';
+
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+    background-color: #a7a8aa73;
+}

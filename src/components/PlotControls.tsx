@@ -127,6 +127,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTypeSelect}
                 isClearable={false}
                 styles={SelectStyle}
+                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -140,6 +141,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isClearable={false}
                 placeholder="Statistic"
                 styles={SelectStyle}
+                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -152,6 +154,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTransformSelect}
                 isClearable={false}
                 styles={SelectStyle}
+                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -164,6 +167,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     disabled={this.props.selectedTransform == 'none'}
                     onChange={this.onCoefficientSelect}
                     type="number"
+                    className="space-bottom"
                 />
             </div>
         )
@@ -179,6 +183,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isDisabled={normalizationDisabled}
                 placeholder="Normalization"
                 styles={SelectStyle}
+                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -218,7 +223,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                             {markerControls}
                         </Col>
                         <Col xs={2} sm={2} md={2} lg={2}>
-                            <Button id="controls" type="button" size="sm">
+                            <Button id="controls" type="button" size="sm" className="vertical-center">
                                 Controls
                             </Button>
                         </Col>
