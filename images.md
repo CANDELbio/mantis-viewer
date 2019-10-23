@@ -27,7 +27,7 @@ When switching between image sets the application will automatically copy the se
 
 ## Channel Controls
 
-Once an image set or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in [preferences]({% link preferences.md %}). Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loa
+Once an image set or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in [preferences]({% link preferences.md %}). Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads.
 
 ![Channel Controls](images/channel_controls.png)
 
@@ -49,3 +49,7 @@ Other image controls that do not affect the channels can be accessed by clicking
 ![Image Controls](images/image_controls.png)
 
 From the Image Controls you can toggle the presence of a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
+
+## Regions of Interest and Populations
+
+You can select regions of interest on the image or [populations of segments]({% link populations.md %}) (once [segmentation data]({% link segmentation.md %}) has been loaded) by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image.

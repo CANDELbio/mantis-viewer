@@ -5,8 +5,6 @@ title: Segmentation Data
 permalink: /segmentation/
 ---
 
-## Segmentation Data
-
 Mantis Viewer expects segmentation data to be stored as a TIFF where pixels not belonging to a segment have a 0 value, and where pixels belonging to a segment have a numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1). You can load segmentation data by hovering over `Import` and then clicking on the `Segmentation` entry in the main menu.
 
 ![Segmentation Menu](images/segmentation_menu.png)
