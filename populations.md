@@ -1,13 +1,13 @@
 ---
 layout: default
 nav_order: 5
-title: Populations and Regions of Interest
+title: Populations and Selected Regions
 permalink: /populations/
 ---
 
-# Overview
+## Overview
 
-There are two ways to select populations in Mantis.
+Mantis Viewer allows users to select and store populations for further analysis. There are two ways to select populations in Mantis.
 
 On the image:
 
@@ -23,11 +23,11 @@ Or from the graph:
   <source src="{{site.baseurl}}/videos/population_on_graph_640.mp4" type="video/webm">
 </video>
 
-# Selecting Regions or Populations
+## Selecting Regions or Populations
 
 You can select population on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can also select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools.
 
-![Plot Populations](images/plot_view_populations.png)
+![Plot Populations](images/plot_select_populations.png)
 
 Once you've selected a population on the image or in a plot it will be shown in the list of selected regions to the right of the image. From the list of selected regions you can change the name (by clicking on the name), change the display color (by clicking on the colored square), toggle display on the image, or delete a selected region.
 

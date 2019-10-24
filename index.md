@@ -7,7 +7,7 @@ nav_order: 1
 title: Overview
 ---
 
-# Overview
+## Overview
 
 Mantis Viewer is an application developed by the [Parker Institute for Cancer Immunotherapy](https://www.parkerici.org/) for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support workflows with segmentation data and large images (>100 MB per channel).
 

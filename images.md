@@ -5,16 +5,16 @@ title: Opening and Interacting with Images
 permalink: /images/
 ---
 
-# Overview
+## Overview
 
-This page discusses how to open and interact with images in Mantis. You can watch the below animation for an overview or just skip to the content below to read about opening and interacting with images in Mantis. 
+Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from an immunohistochemistry slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls.
 
 <video width="640" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/mp4">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/webm">
 </video>
 
-# Opening Images
+## Opening Images
 
 When you first load the application you should see a blank screen with a few unpopulated controls. Click the menu item named `mantis-viewer`, and then select `Open`.
 
@@ -22,7 +22,7 @@ When you first load the application you should see a blank screen with a few unp
 
 In the `Open` submenu you should see option for `Image Set` and `Project`. For an `Image Set`, Mantis Viewer expects one folder with multiple images (one per marker) all stored as TIFFs. For a `Project` Mantis Viewer expects a folder containing multiple image sets.
 
-# Switching Between Image Sets
+## Switching Between Image Sets
 
 If you have loaded a project you can switch between the image sets in the project by using the dropdown under the title `Selected Image Set`, by using the arrows to the right of the dropdown, or by using the keyboard shortcut `Alt + Left or Right` or `Command/Windows + Left or Right`.
 
@@ -30,7 +30,7 @@ If you have loaded a project you can switch between the image sets in the projec
 
 When switching between image sets the application will automatically copy the selected markers, brightness and visibility settings, and plot settings from image set to image set.
 
-# Channel Controls
+## Channel Controls
 
 Once an image set or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in [preferences]({% link preferences.md %}). Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads.
 
@@ -42,7 +42,7 @@ You can adjust the brightness of a channel by changing the min and max values on
 
 You can quickly toggle the visibility of a channel by clicking on the eye icon next to the brightness slider.
 
-# Image Controls
+## Image Controls
 
 Other image controls that do not affect the channels can be accessed by clicking on the button `Show Image Controls`.
 
@@ -50,6 +50,6 @@ Other image controls that do not affect the channels can be accessed by clicking
 
 From the Image Controls you can toggle the presence of a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
 
-# Regions of Interest and Populations
+## Selected Regions and Populations
 
-You can select regions of interest on the image or [populations of segments]({% link populations.md %}) (once [segmentation data]({% link segmentation.md %}) has been loaded) by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can read more about populations in the [Populations page]({% link populations.md %})
+You can select regions on the image or [populations]({% link populations.md %}) (once [segmentation data]({% link segmentation.md %}) has been loaded) by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can read more about populations in the [Populations page]({% link populations.md %})
