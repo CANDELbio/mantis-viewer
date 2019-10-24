@@ -5,16 +5,34 @@ title: Populations and Regions of Interest
 permalink: /populations/
 ---
 
-## Selecting Regions or Populations
+# Overview
 
-In addition to selecting populations on the scatter plot you can select regions or populations of interest on the image. You can accomplish this by holding down `Alt` or `Option` and clicking and drawing a region on the image.
+There are two ways to select populations in Mantis.
 
-![Image Selection](images/tutorial/image_selection.gif)
+On the image:
 
-Once you've selected a region or population on the image or in a scatter plot it will be shown in the list of selected regions to the right of the image. From the list of selected regions you can change the name, change the display color (by clicking on the colored square), take notes, toggle display on the image, or delete a selected region.
+<video autoplay="autoplay" loop="loop">
+  <source src="{{site.baseurl}}/videos/population_on_image_640.mp4" type="video/mp4">
+  <source src="{{site.baseurl}}/videos/population_on_image_640.mp4" type="video/webm">
+</video>
 
-![Selected Region](images/tutorial/selected_region.png)
+Or from the graph:
+
+<video autoplay="autoplay" loop="loop">
+  <source src="{{site.baseurl}}/videos/population_on_graph_640.mp4" type="video/mp4">
+  <source src="{{site.baseurl}}/videos/population_on_graph_640.mp4" type="video/webm">
+</video>
+
+# Selecting Regions or Populations
+
+You can select population on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can also select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools.
+
+![Plot Populations](images/plot_view_populations.png)
+
+Once you've selected a population on the image or in a plot it will be shown in the list of selected regions to the right of the image. From the list of selected regions you can change the name (by clicking on the name), change the display color (by clicking on the colored square), toggle display on the image, or delete a selected region.
+
+![Selected Populations](images/selected_populations.png)
 
 If segmentation data has been loaded selected regions will also be displayed on the scatter plot. You can toggle visibility of regions on the scatter plot by clicking on the colored dot next to the name in the legend.
 
-![Graph Region](images/tutorial/graph_region.png)
+![Viewing Population in the Plot](images/plot_view_populations.png)
