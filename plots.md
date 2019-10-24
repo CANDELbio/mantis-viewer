@@ -42,6 +42,6 @@ Mantis can use the mean or median intensity of pixels from a segment to generate
 
 You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools.
 
-![Plot Populations](images/plot_view_populations.png)
+![Plot Populations](images/plot_select_populations.png)
 
 You can read more about populations on the [Populations page]({% link populations.md %})
