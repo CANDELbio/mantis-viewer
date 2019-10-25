@@ -21,7 +21,7 @@ export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
                     <ModalBody>
                         <ul>
                             <li>
-                                To start using the application click on the <b>mantis-viewer</b> menu in the top right{' '}
+                                To start using the application click on the <b>mantis-viewer</b> menu in the top left{' '}
                                 and then click <b>Open</b>. From this menu you can select <b>Image Set</b> to load a{' '}
                                 single set of images or <b>Project</b> to load a folder containing multiple image sets.
                             </li>

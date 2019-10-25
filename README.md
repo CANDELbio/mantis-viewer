@@ -1,10 +1,10 @@
 # Mantis Viewer
 
-Mantis Viewer is an application for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support large images (>100 MB per channel).
+Mantis Viewer is an application developed by the [Parker Institute for Cancer Immunotherapy](https://www.parkerici.org/) for viewing and analyzing multi-channel pathology imaging, such as IHC, Vectra, MIBI, IMC, CODEX, or other technologies. It has been designed to be highly performant and responsive when analyzing both large and small images and to support workflows with segmentation data.
 
 ## Using Mantis Viewer
 
-If you want a walkthrough for using Mantis Viewer, you can [check out the tutorial](https://mantis.parkerici.org)!
+If you want a walkthrough for using Mantis Viewer, you can [check out the documentation](https://mantis.parkerici.org)!
 
 ## Downloading
 
