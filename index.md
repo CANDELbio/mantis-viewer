@@ -9,11 +9,11 @@ title: Introduction
 
 ## Overview
 
-Mantis Viewer is an application developed by the [Parker Institute for Cancer Immunotherapy](https://www.parkerici.org/) for viewing and analyzing multi-channel [immunohistochemistry](https://en.wikipedia.org/wiki/Immunohistochemistry) images. It has been designed to support workflows with segmentation data and large images (>100 MB per channel).
+Mantis Viewer is an application developed by the [Parker Institute for Cancer Immunotherapy](https://www.parkerici.org/) for viewing and analyzing multi-channel pathology imaging, such as IHC, Vectra, MIBI, IMC, CODEX, or other technologies. It has been designed to be highly performant and responsive when analyzing both large and small images and to support workflows with segmentation data.
 
-## Downloading
+## Downloading and Installing
 
-You can download the newest version of Mantis Viewer from the [releases](https://github.com/ParkerICI/imc-viewer-js/releases) page on our GitHub. Once you've downloaded and installed the application, head on over to [opening and interacting with images]({% link images.md %}) to learn how to use it!
+You can download the newest version of Mantis Viewer from the [latest release](https://github.com/ParkerICI/mantis-viewer/releases/latest) page on our GitHub. We provide a dmg for installing on Macs, an exe installer for installing on Windows, an AppImage for installing on Linux, and the source code in case you'd like to build the application. Once you've downloaded the appropriate file for your operating system, open the file and install the application. Once you have installed the application, head on over to [opening and interacting with images]({% link images.md %}) to learn how to use it!
 
 ## License, Bugs, and Contributing
 

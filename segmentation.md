@@ -11,7 +11,7 @@ Many of the features in Mantis rely on segmentation data. Segmentation is a proc
 
 ## Segmentation Format
 
-Mantis Viewer expects segmentation data to be stored as a TIFF where pixels belonging to a segment have a numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1) and where pixels not belonging to a segment have a 0 value.
+Mantis Viewer expects segmentation data to be stored as a TIFF where pixels belonging to a segment have a unique numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1, second segment has value of 2, etc.), and where pixels not belonging to a segment have a 0 value.
 
 ## Loading Segmentation Data
 

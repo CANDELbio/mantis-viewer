@@ -23,6 +23,8 @@ Or from the graph:
   <source src="{{site.baseurl}}/videos/population_on_graph_640.mp4" type="video/webm">
 </video>
 
+See below for detailed instructions on how to select populations in Mantis.
+
 ## Selecting Regions or Populations
 
 You can select population on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can also select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools.

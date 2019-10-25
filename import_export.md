@@ -11,13 +11,17 @@ Mantis Viewer supports importing from and exporting to a variety of data formats
 
 ![Import and Export Submenus](images/import_export_menu.png)
 
-## Importing and Exporting Populations to JSON
+## Exporting the Current Image with Layers
 
-You can save your selected regions and populations for subsequent use and analysis by selecting the main menu item `Export` then `Populations` and finally `For active image set to JSON`. The menu item will not be active until you have selected regions or populations on the image or from the plot.
+You can export the current image with layers from the main menu by selecting `Export` then `Image` then `Current Image and Layers`.
 
-You can reload exported populations at a later time by selecting the main menu item `Import` then `Populations` and finally `For active image set from JSON`.
+## Exporting Segment Statistics to FCS
 
-Segmentation data can change between exporting and reimporting for populations selected on the image. Mantis will reselect the segments within the selected region when segmentation data changes. However, segmentation data cannot change between exporting and reimporting for populations selected on the plot. If your segmentation changes between exporting and reimporting then the selected segments will be incorrect.
+Statistics about segments can also be exported to FCS by selecting the main menu item `Export` then `Segment Statistics to FCS` and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one FCS for the active image set or to multiple FCS files for all open image sets. The FCS file format does not have the concept of populations or subpopulations, but Mantis supports exporting the selected populations to FCS files by exporting each population to its own FCS file.
+
+## Exporting Segment Statistics to CSV
+
+Statistics about segments can be exported to CSV by selecting the main menu item `Export` then `Segment Statistics to CSV` and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one CSV for the active image set or to multiple CSVs for all open image sets. When exporting to CSV you will get the mean or median segment intensity, the X and Y coordinates of the segment centroid, and any populations the segment belongs to.
 
 ## Importing and Exporting Populations to CSV
 
@@ -37,14 +41,10 @@ The CSV file selected should have no header, and each row should be of the forma
 
 You must use the same segmentation data when exporting and importing populations from CSV. If your segmentation changes between exporting and reimporting then the selected segments will be incorrect.
 
-## Exporting Segment Statistics to CSV
+## Importing and Exporting Populations to JSON
 
-Statistics about segments can be exported to CSV by selecting the main menu item `Export` then `Segment Statistics to CSV` and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one CSV for the active image set or to multiple CSVs for all open image sets. When exporting to CSV you will get the mean or median segment intensity, the X and Y coordinates of the segment centroid, and any populations the segment belongs to.
+You can save your selected regions and populations for subsequent use and analysis by selecting the main menu item `Export` then `Populations` and finally `For active image set to JSON`. The menu item will not be active until you have selected regions or populations on the image or from the plot.
 
-## Exporting Segment Statistics to FCS
+You can reload exported populations at a later time by selecting the main menu item `Import` then `Populations` and finally `For active image set from JSON`.
 
-Statistics about segments can also be exported to FCS by selecting the main menu item `Export` then `Segment Statistics to FCS` and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one FCS for the active image set or to multiple FCS files for all open image sets. The FCS file format does not have the concept of populations or subpopulations, but Mantis supports exporting the selected populations to FCS files by exporting each population to its own FCS file.
-
-## Exporting the Current Image with Layers
-
-You can export the current image with layers from the main menu by selecting `Export` then `Image` then `Current Image and Layers`.
+Segmentation data can change between exporting and reimporting for populations selected on the image. Mantis will reselect the segments within the selected region when segmentation data changes. However, segmentation data cannot change between exporting and reimporting for populations selected on the plot. If your segmentation changes between exporting and reimporting then the selected segments will be incorrect.

@@ -7,7 +7,7 @@ permalink: /images/
 
 ## Overview
 
-Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from an immunohistochemistry slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls.
+Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from a tissue slide. Currently, Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
 
 <video width="640" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/mp4">
@@ -20,7 +20,7 @@ When you first load the application you should see a blank screen with a few unp
 
 ![Application Load](images/application_load.png)
 
-In the `Open` submenu you should see option for `Image Set` and `Project`. For an `Image Set`, Mantis Viewer expects one folder with multiple images (one per marker) all stored as TIFFs. For a `Project` Mantis Viewer expects a folder containing multiple image sets.
+In the `Open` submenu you should see option for `Image Set` and `Project`, which represent the two ways of working with Mantis. If you just want to look at images from a single slide or ROI, you can choose to import an image set. For an image set Mantis expects pne folder with multiple images (one per marker) all stored as TIFFs If you have images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets.
 
 ## Switching Between Image Sets
 

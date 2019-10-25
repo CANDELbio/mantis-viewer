@@ -7,7 +7,7 @@ permalink: /plots/
 
 ## Overview
 
-Mantis Viewer can generate plots of segment (i.e. cell) intensity per marker. [Segmentation data]({% link segmentation.md %}) must be loaded for Mantis to generate plots. The below animation gives a brief overview of generating and interacting with plots in Mantis.
+Mantis Viewer can generate plots of segment (i.e. cell) intensity per marker. [Segmentation data]({% link segmentation.md %}) must be loaded for Mantis to generate plots. The following animation gives a brief overview of generating and interacting with plots in Mantis. See below for more detailed instructions.
 
 <video width="320" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/plot.mp4" type="video/mp4">
