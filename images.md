@@ -7,12 +7,20 @@ permalink: /images/
 
 ## Overview
 
-Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from a tissue slide. Currently, Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
+Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
 
 <video width="640" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/mp4">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/webm">
 </video>
+
+## Supported Image Formats
+
+Mantis only supports single-channel TIFFs that contain one image per file. Mantis does not support multi-channel or high dimensional TIFF files, but there are plans to add support in the future. In the interim you can use [image-utils](https://github.com/ParkerICI/image-utils) to split up multi-channel or high dimensional TIFFs into single channel TIFFs that can be analyzed by Mantis.
+
+Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases.
+
+If you encounter an image that you expect to work with Mantis but doesn't or if you need help getting your images into a format that Mantis supports feel free to [create an issue on the GitHub page](https://github.com/ParkerICI/mantis-viewer/issues) or send us an email at <engineering@parkerici.org>.
 
 ## Opening Images
 
