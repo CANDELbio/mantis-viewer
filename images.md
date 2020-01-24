@@ -28,7 +28,12 @@ When you first load the application you should see a blank screen with a few unp
 
 ![Application Load](images/application_load.png)
 
-In the `Open` submenu you should see option for `Image Set` and `Project`, which represent the two ways of working with Mantis. If you just want to look at images from a single slide or ROI, you can choose to import an image set. For an image set Mantis expects one folder with multiple images (one per marker) all stored as TIFFs If you have images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets.
+In the `Open` submenu you should see option for `Image Set` and `Project`, which represent the two ways of working with Mantis. If you just want to look at images from a single slide or ROI, you can choose to import an image set.
+
+For an image set Mantis expects one folder with multiple images (one per marker) all stored as TIFFs. If you have images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets. See the below screenshot for an example file structure of a project with detailed view of one of the contained image sets.
+
+![Application Load](images/project_structure.png)
+
 
 ## Switching Between Image Sets
 
