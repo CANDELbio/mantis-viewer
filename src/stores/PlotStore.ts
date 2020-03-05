@@ -37,6 +37,7 @@ export class PlotStore {
                     if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
                         if (
                             segmentationStore.segmentationData != null &&
+                            !segmentationStore.segmentationData.errorMessage &&
                             segmentationStore.segmentationStatistics != null
                         ) {
                             let plotData = generatePlotData(

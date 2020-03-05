@@ -12,10 +12,9 @@ import { submitSegmentationDataJob } from '../workers/SegmentationDataWorkerPool
 export class SegmentationData {
     public width: number
     public height: number
-    public data: Float32Array | Uint16Array | Uint8Array
     public segmentIds: number[]
-    // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
-    public pixelMap: Record<string, number>
+    // Mapping of a stringified pixel location (i.e. x_y) to an array of segmentIds
+    public pixelMap: Record<string, number[]>
     // Mapping of a segmentId to pixel indices.
     public segmentIndexMap: Record<number, number[]>
     // Mapping of a segmentId to pixel locations (x, y)
@@ -27,7 +26,7 @@ export class SegmentationData {
     // PIXI Sprite of random colored fills for the segments
     public segmentFillSprite: PIXI.Sprite
 
-    public errorLoading: boolean
+    public errorMessage: string | null
 
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
@@ -50,14 +49,13 @@ export class SegmentationData {
     private async loadFileError(fError: { error: string }): Promise<void> {
         let err = 'Error loading segmentation data: ' + fError.error
         console.log(err)
-        this.errorLoading = true
+        this.errorMessage = err
         this.onReady(this)
     }
 
     private async loadFileData(fData: SegmentationDataWorkerResult): Promise<void> {
         this.width = fData.width
         this.height = fData.height
-        this.data = fData.data
         this.pixelMap = fData.pixelMap
         this.segmentIndexMap = fData.segmentIndexMap
         this.segmentLocationMap = fData.segmentLocationMap
@@ -74,7 +72,7 @@ export class SegmentationData {
         message: SegmentationDataWorkerInput,
         onReady: (SegmentationData: SegmentationData) => void,
     ): void {
-        this.errorLoading = false
+        this.errorMessage = null
         this.onReady = onReady
 
         let onComplete = (data: SegmentationDataWorkerResult | SegmentationDataWorkerError): void => {
@@ -86,7 +84,12 @@ export class SegmentationData {
         submitSegmentationDataJob(message, onComplete)
     }
 
-    public loadFile(fName: string, onReady: (SegmentationData: SegmentationData) => void): void {
-        this.loadInWorker({ filepath: fName }, onReady)
+    public loadFile(
+        fName: string,
+        width: number,
+        height: number,
+        onReady: (SegmentationData: SegmentationData) => void,
+    ): void {
+        this.loadInWorker({ filepath: fName, width: width, height: height }, onReady)
     }
 }

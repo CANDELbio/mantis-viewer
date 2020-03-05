@@ -15,6 +15,9 @@ import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
 import { randomRGBColor } from '../lib/ColorHelper'
 
+import * as path from 'path'
+import * as fs from 'fs'
+
 function getPixelColor(segmentId: number, colors: RGBColorCollection): { r: number; g: number; b: number } {
     if (!(segmentId in colors)) {
         let color = randomRGBColor()
@@ -46,10 +49,17 @@ function drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uin
     }
 }
 
+function generatePixelMapKey(x: number, y: number): string {
+    return x.toString() + '_' + y.toString()
+}
+
 // Generates a texture (to be used to create a PIXI sprite) from segmentation data.
 // Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
 // or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
-async function segmentationFillBitmap(
+// Generates a texture (to be used to create a PIXI sprite) from segmentation data.
+// Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
+// or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
+async function generateFillBitmap(
     v: Float32Array | Uint16Array | Uint8Array,
     width: number,
     height: number,
@@ -95,20 +105,19 @@ function generateOutlineMap(segmentLocationMap: Record<number, PixelLocation[]>)
     return outlineMap
 }
 
-function segmentMapKey(x: number, y: number): string {
-    return x.toString() + '_' + y.toString()
-}
-
-// Generates the pixelMap (key of x_y to segmentId) and segmentMap (key of segmentId to an array of pixels contained in that segment)
-function generateMaps(
+// Generates the following summary maps:
+// pixelMap - Mapping of a stringified pixel location (i.e. x_y) to a segmentId
+// segmentLocationMap - Mapping of a segmentId to pixel locations (x, y)
+// segmentIndexMap - Mapping of a segmentId to pixel indices.
+function generateMapsFromTiff(
     v: Float32Array | Uint16Array | Uint8Array,
     width: number,
 ): {
-    pixelMap: Record<string, number>
+    pixelMap: Record<string, number[]>
     segmentLocationMap: Record<number, PixelLocation[]>
     segmentIndexMap: Record<number, number[]>
 } {
-    let pixelMap: { [key: string]: number } = {}
+    let pixelMap: { [key: string]: number[] } = {}
     let segmentLocationMap: { [key: number]: PixelLocation[] } = {}
     let segmentIndexMap: { [key: number]: number[] } = {}
 
@@ -122,7 +131,7 @@ function generateMaps(
             let x = i % width
             let y = Math.floor(i / width)
 
-            pixelMap[segmentMapKey(x, y)] = segmentId
+            pixelMap[generatePixelMapKey(x, y)] = [segmentId]
 
             let pixelLocation = { x: x, y: y }
 
@@ -171,7 +180,7 @@ async function loadTiffData(
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
         // Generating the pixelMap and segmentMaps that represent the segementation data
-        let maps = generateMaps(data, width)
+        let maps = generateMapsFromTiff(data, width)
         let pixelMap = maps.pixelMap
         let segmentLocationMap = maps.segmentLocationMap
         let segmentIndexMap = maps.segmentIndexMap
@@ -180,13 +189,12 @@ async function loadTiffData(
         let centroidMap = calculateCentroids(maps.segmentLocationMap)
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
-        let bitmap = await segmentationFillBitmap(data, width, height)
+        let bitmap = await generateFillBitmap(data, width, height)
 
         return {
             filepath: filepath,
             width: width,
             height: height,
-            data: data,
             pixelMap: pixelMap,
             segmentIndexMap: segmentIndexMap,
             segmentLocationMap: segmentLocationMap,
@@ -199,11 +207,140 @@ async function loadTiffData(
     }
 }
 
-async function loadFile(filepath: string): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
+function chunkArray(arr: string[], chunkSize: number): string[][] {
+    let chunks = []
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        chunks.push(arr.slice(i, i + chunkSize))
+    }
+    return chunks
+}
+
+// Generates the following summary maps:
+// pixelMap - Mapping of a stringified pixel location (i.e. x_y) to a segmentId
+// segmentLocationMap - Mapping of a segmentId to pixel locations (x, y)
+// segmentIndexMap - Mapping of a segmentId to pixel indices.
+function generateMapsFromText(
+    filepath: string,
+    width: number,
+    height: number,
+): {
+    pixelMap: Record<string, number[]>
+    segmentLocationMap: Record<number, PixelLocation[]>
+    segmentIndexMap: Record<number, number[]>
+    pixelData: Uint16Array
+} {
+    let pixelMap: { [key: string]: number[] } = {}
+    let segmentLocationMap: { [key: number]: PixelLocation[] } = {}
+    let segmentIndexMap: { [key: number]: number[] } = {}
+
+    // Converts the segmentation data into an array format like we would get from reading a tiff segmentation file.
+    // We do this to make generating the fillBitmap much faster than getting the pixel segment membership from the pixelMap.
+    let pixelData = new Uint16Array(width * height).fill(0)
+
+    // The incoming data is an file with one row per segment.
+    // We use row index as segmentId.
+    // Each row contains a list of comma separated values that make up the
+    // x and y coordinates for the pixel.
+    // e.g. x1, y1, x2, y2, ...
+    let segmentationData = fs.readFileSync(filepath).toString()
+    let lines = segmentationData.split(/\r\n|\n/)
+
+    for (let segmentId = 0; segmentId < lines.length; ++segmentId) {
+        // Split the line for the current segment into an array of the format
+        // [[x1, y1], [x2, y2], ...]
+        let segmentCoordinates = chunkArray(lines[segmentId].split(','), 2)
+        segmentCoordinates.forEach(function(coordinate: string[]) {
+            let x = parseInt(coordinate[0])
+            let y = parseInt(coordinate[1])
+
+            if (x > width || y > height) {
+                throw new Error('Segment coordinates out of image bounds.')
+            }
+
+            // Get the pixel index for this x,y coordinate
+            let i = y * width + x
+
+            pixelData[i] = segmentId
+            pixelMap[generatePixelMapKey(x, y)] = [segmentId]
+            let pixelLocation = { x: x, y: y }
+
+            // Adding pixel xy to segmentLocationMap
+            if (!(segmentId in segmentLocationMap)) segmentLocationMap[segmentId] = []
+            segmentLocationMap[segmentId].push(pixelLocation)
+
+            // Adding pixel index to the segmentIndexMap
+            if (!(segmentId in segmentIndexMap)) segmentIndexMap[segmentId] = []
+            segmentIndexMap[segmentId].push(i)
+        })
+    }
+
+    return {
+        pixelMap: pixelMap,
+        segmentLocationMap: segmentLocationMap,
+        segmentIndexMap: segmentIndexMap,
+        pixelData: pixelData,
+    }
+}
+
+async function loadTextData(
+    filepath: string,
+    width: number,
+    height: number,
+): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
+    try {
+        // Generating the pixelMap and segmentMaps that represent the segementation data
+        let maps = generateMapsFromText(filepath, width, height)
+        let pixelMap = maps.pixelMap
+        let segmentLocationMap = maps.segmentLocationMap
+        let segmentIndexMap = maps.segmentIndexMap
+
+        let segmentOutlineMap = generateOutlineMap(maps.segmentLocationMap)
+        let centroidMap = calculateCentroids(maps.segmentLocationMap)
+
+        // Generate an ImageBitmap from the tiffData
+        // ImageBitmaps are rendered canvases can be passed between processes
+        let bitmap = await generateFillBitmap(maps.pixelData, width, height)
+        return {
+            filepath: filepath,
+            width: width,
+            height: height,
+            pixelMap: pixelMap,
+            segmentIndexMap: segmentIndexMap,
+            segmentLocationMap: segmentLocationMap,
+            segmentOutlineMap: segmentOutlineMap,
+            centroidMap: centroidMap,
+            fillBitmap: bitmap,
+        }
+    } catch (err) {
+        return { filepath: filepath, error: err.message }
+    }
+}
+
+async function loadFile(
+    filepath: string,
+    imageWidth: number,
+    imageHeight: number,
+): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
         //Decode tiff data
-        let tiffData = await readTiffData(filepath)
-        return await loadTiffData(filepath, tiffData.data, tiffData.width, tiffData.height)
+        let extension = path.extname(filepath).toLowerCase()
+        if (['.csv', '.txt'].includes(extension)) {
+            return await loadTextData(filepath, imageWidth, imageHeight)
+        } else if (['.tif', '.tiff'].includes(extension)) {
+            let tiffData = await readTiffData(filepath)
+            if (tiffData.width != imageWidth || tiffData.height != imageHeight) {
+                return {
+                    filepath: filepath,
+                    error: 'Segmentation file dimensions do not match image dimensions.',
+                }
+            }
+            return await loadTiffData(filepath, tiffData.data, tiffData.width, tiffData.height)
+        } else {
+            return {
+                filepath: filepath,
+                error: 'Segmentation filetype not supported. Must be a tif, tiff, csv, or txt.',
+            }
+        }
     } catch (err) {
         return { filepath: filepath, error: err.message }
     }
@@ -214,12 +351,8 @@ ctx.addEventListener(
     message => {
         let data: SegmentationDataWorkerInput = message.data
         // Callback if an error is raised when loading data.
-        loadFile(data.filepath).then(message => {
-            if ('error' in message) {
-                ctx.postMessage(message)
-            } else {
-                ctx.postMessage(message, [message.data.buffer])
-            }
+        loadFile(data.filepath, data.width, data.height).then(message => {
+            ctx.postMessage(message)
         })
     },
     false,

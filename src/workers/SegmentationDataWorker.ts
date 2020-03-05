@@ -3,15 +3,16 @@ import { PixelLocation } from '../interfaces/ImageInterfaces'
 
 export interface SegmentationDataWorkerInput {
     filepath: string
+    width: number
+    height: number
 }
 
 export interface SegmentationDataWorkerResult {
     filepath: string
     width: number
     height: number
-    data: Float32Array | Uint16Array | Uint8Array
     // Mapping of a stringified pixel location (i.e. x_y) to a segmentId
-    pixelMap: Record<string, number>
+    pixelMap: Record<string, number[]>
     // Mapping of a segmentId to pixel indices.
     segmentIndexMap: Record<number, number[]>
     // Mapping of a segmentId to pixel locations (x, y)

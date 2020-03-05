@@ -25,9 +25,11 @@ export class SegmentationStore {
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
     private autoSetSegmentationFile = autorun(() => {
         let imageStore = this.imageSetStore.imageStore
+        let imageData = imageStore.imageData
         let settingStore = this.imageSetStore.projectStore.settingStore
         let segmentationBasename = settingStore.segmentationBasename
-        if (segmentationBasename) {
+        // Check if there is a file to load and if image data has loaded (so we know width and height for text segmentation)
+        if (segmentationBasename && imageData) {
             let destinationPath = imageStore.selectedDirectory
             if (destinationPath) {
                 let segmentationFile = path.join(destinationPath, segmentationBasename)
@@ -95,10 +97,16 @@ export class SegmentationStore {
     }
 
     @action public refreshSegmentationData = () => {
-        if (this.selectedSegmentationFile != null && this.segmentationData == null) {
+        let imageData = this.imageSetStore.imageStore.imageData
+        if (this.selectedSegmentationFile != null && this.segmentationData == null && imageData != null) {
             this.setSegmentationDataLoadingStatus(true)
             let segmentationData = new SegmentationData()
-            segmentationData.loadFile(this.selectedSegmentationFile, this.setSegmentationData)
+            segmentationData.loadFile(
+                this.selectedSegmentationFile,
+                imageData.width,
+                imageData.height,
+                this.setSegmentationData,
+            )
         }
     }
 

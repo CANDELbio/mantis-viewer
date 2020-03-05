@@ -271,10 +271,11 @@ Mobx.autorun(() => {
 
 Mobx.autorun(() => {
     let activeSegmentationStore = projectStore.activeImageSetStore.segmentationStore
-    if (activeSegmentationStore.segmentationData && activeSegmentationStore.segmentationData.errorLoading) {
-        let msg = 'Error opening segmentation data.'
-        ipcRenderer.send('mainWindow-show-error-dialog', msg)
-        activeSegmentationStore.clearSegmentationData()
+    if (activeSegmentationStore.segmentationData) {
+        let errorMessage = activeSegmentationStore.segmentationData.errorMessage
+        if (errorMessage) {
+            ipcRenderer.send('mainWindow-show-error-dialog', errorMessage)
+        }
     }
 })
 
