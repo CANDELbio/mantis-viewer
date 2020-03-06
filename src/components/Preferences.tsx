@@ -20,20 +20,31 @@ export interface PreferencesProps {
     setUseAnyMarker: (channel: ChannelName, useAnyMarker: boolean) => void
 }
 
+// Storing defaultChannelDomains and maxImageSetsInMemory in state so that the
+// elements/components can read and write values to state with onChange and then
+// call the props setMaxImageSetsInMemory and setDefaultChannelDomain functions
+// onRelease which flush the values to file. If we don't, then the sliders
+// are laggy as every change gets flushed to file.
 interface PlotControlsState {
     selectedChannel: ChannelName
+    defaultChannelDomains: Record<ChannelName, [number, number]> | undefined
+    maxImageSetsInMemory: number | undefined
 }
 
 @observer
 export class Preferences extends React.Component<PreferencesProps, PlotControlsState> {
     public constructor(props: PreferencesProps) {
         super(props)
+        this.state.defaultChannelDomains = props.defaultChannelDomains
+        this.state.maxImageSetsInMemory = props.maxImageSetsInMemory
     }
 
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
-    public state = {
+    public state: PlotControlsState = {
         selectedChannel: 'rChannel' as ChannelName,
+        defaultChannelDomains: undefined,
+        maxImageSetsInMemory: undefined,
     }
 
     private channelTransform = (channel: ChannelName) => {
@@ -51,11 +62,23 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         this.props.setDefaultChannelMarkers(this.state.selectedChannel, markers)
     }
 
-    private onChannelDomainChange = (v: [number, number]) =>
+    private onChannelDomainRelease = (v: [number, number]) =>
         this.props.setDefaultChannelDomain(this.state.selectedChannel, [v[0] / 100, v[1] / 100])
 
     private onUseAnyMarkerChange = (event: React.ChangeEvent<HTMLInputElement>) =>
         this.props.setUseAnyMarker(this.state.selectedChannel, event.target.checked)
+
+    private onMaxImageSetsInMemoryChange = (max: number) => {
+        this.setState({ maxImageSetsInMemory: max })
+    }
+
+    private onChannelDomainChange = (v: [number, number]) => {
+        let channelDomains = this.state.defaultChannelDomains
+        if (channelDomains) {
+            channelDomains[this.state.selectedChannel] = [v[0] / 100, v[1] / 100]
+            this.setState({ defaultChannelDomains: channelDomains })
+        }
+    }
 
     public render(): React.ReactElement {
         let selectedChannel = this.state.selectedChannel
@@ -63,7 +86,27 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         let selectedValue = getSelectedOptions(selectedChannel, channelOptions)
 
         let defaultChannelMarkersValue = this.props.defaultChannelMarkers[selectedChannel].join(',')
-        let defaultChannelDomain = this.props.defaultChannelDomains[selectedChannel]
+
+        let chanelDomains = this.state.defaultChannelDomains
+        let brightnessComponent = undefined
+        if (chanelDomains) {
+            let defaultChannelDomain = chanelDomains[selectedChannel]
+            brightnessComponent = (
+                <div>
+                    <Label>Default Brightness for Channel</Label>
+                    <RangeSlider
+                        min={0}
+                        max={100}
+                        value={[defaultChannelDomain[0] * 100, defaultChannelDomain[1] * 100]}
+                        labelStepSize={10}
+                        labelPrecision={0}
+                        stepSize={1}
+                        onChange={this.onChannelDomainChange}
+                        onRelease={this.onChannelDomainRelease}
+                    />
+                </div>
+            )
+        }
         return (
             <div>
                 <Label>Maximum image sets in memory</Label>
@@ -71,8 +114,9 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     min={1}
                     max={10}
                     stepSize={1}
-                    value={this.props.maxImageSetsInMemory}
-                    onChange={this.props.setMaxImageSetsInMemory}
+                    value={this.state.maxImageSetsInMemory}
+                    onChange={this.onMaxImageSetsInMemoryChange}
+                    onRelease={this.props.setMaxImageSetsInMemory}
                 />
                 <Label>Default Segmentation Filename</Label>
                 <Input
@@ -89,16 +133,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     theme={SelectTheme}
                 />
                 <br />
-                <Label>Default Brightness for Channel</Label>
-                <RangeSlider
-                    min={0}
-                    max={100}
-                    value={[defaultChannelDomain[0] * 100, defaultChannelDomain[1] * 100]}
-                    labelStepSize={10}
-                    labelPrecision={0}
-                    stepSize={1}
-                    onChange={this.onChannelDomainChange}
-                />
+                {brightnessComponent}
                 <Label>Default Markers for Channel (Comma separated, in order of priority)</Label>
                 <TextArea
                     value={defaultChannelMarkersValue}
