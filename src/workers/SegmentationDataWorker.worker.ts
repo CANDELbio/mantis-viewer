@@ -254,7 +254,7 @@ function generateMapsFromText(
             let y = parseInt(coordinate[1])
 
             if (x > width || y > height) {
-                throw new Error('Segment coordinates out of image bounds.')
+                throw new Error('Segment coordinates out of image bounds. Are your X and Y coordinates switched?')
             }
 
             // Get the pixel index for this x,y coordinate
