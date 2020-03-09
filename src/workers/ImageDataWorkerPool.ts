@@ -13,9 +13,8 @@ let imageDataWorkerCallbacks: Record<string, OnImageDataWorkerComplete> = {}
 const maxImageDataWorkers = navigator.hardwareConcurrency
 
 function onImageDataComplete(data: ImageDataWorkerError | ImageDataWorkerResult): void {
-    let jobInput = data.filepath
+    let jobInput = data.input.filepath
     imageDataWorkerCallbacks[jobInput](data)
-    delete imageDataWorkerCallbacks[jobInput]
 }
 
 function getExistingImageDataWorker(): ImageDataWorker {
@@ -24,7 +23,7 @@ function getExistingImageDataWorker(): ImageDataWorker {
         return worker
     } else {
         // We should never get here.
-        // This function willl only be called if there are maxImageDataWorkers in imageDataWorkerPool
+        // This function will only be called if there are maxImageDataWorkers in imageDataWorkerPool
         // Couldn't think of an elegant way to check for shift() returning undefined.
         throw 'No ImageDataWorkers in pool.'
     }

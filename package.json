@@ -98,6 +98,7 @@
     "dependencies": {
         "@blueprintjs/core": "^3.18.0",
         "@types/reactstrap": "^8.0.1",
+        "@types/xml2js": "^0.4.5",
         "about-window": "^1.13.1",
         "bootstrap": "^4.3.1",
         "concaveman": "^1.1.1",
@@ -129,6 +130,7 @@
         "react-transition-group": "^2.5.0",
         "reactstrap": "^8.0.1",
         "shortid": "^2.2.13",
-        "underscore": "^1.9.1"
+        "underscore": "^1.9.1",
+        "xml2js": "^0.4.23"
     }
 }

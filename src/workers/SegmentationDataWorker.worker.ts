@@ -327,7 +327,7 @@ async function loadFile(
         if (['.csv', '.txt'].includes(extension)) {
             return await loadTextData(filepath, imageWidth, imageHeight)
         } else if (['.tif', '.tiff'].includes(extension)) {
-            let tiffData = await readTiffData(filepath)
+            let tiffData = await readTiffData(filepath, 0)
             if (tiffData.width != imageWidth || tiffData.height != imageHeight) {
                 return {
                     filepath: filepath,

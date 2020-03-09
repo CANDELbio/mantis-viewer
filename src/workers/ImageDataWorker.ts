@@ -4,12 +4,13 @@ import Worker = require('worker-loader?name=dist/[name].js!../workers/ImageDataW
 import { MinMax } from '../interfaces/ImageInterfaces'
 
 export interface ImageDataWorkerInput {
-    useExtForMarkerName: boolean
+    useExtInMarkerName: boolean
     filepath: string
+    imageNumber?: number
 }
 
 export interface ImageDataWorkerResult {
-    filepath: string
+    input: ImageDataWorkerInput
     markerName: string
     width: number
     height: number
@@ -17,10 +18,11 @@ export interface ImageDataWorkerResult {
     bitmap: ImageBitmap
     minmax: MinMax
     scaled: boolean
+    numImages: number
 }
 
 export interface ImageDataWorkerError {
-    filepath: string
+    input: ImageDataWorkerInput
     error: string
     markerName: string
 }

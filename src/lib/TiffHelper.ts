@@ -11,6 +11,15 @@ import GeoTIFF = require('../modules/geotiff.bundle.min.js')
 const maxWidthHeight = 10000.0
 const scaledWidthHeight = 8000.0
 
+export interface TiffData {
+    data: any
+    imageDescription: string
+    width: number
+    height: number
+    scaled: boolean
+    numImages: number
+}
+
 function scaleWidthAndHeight(
     width: number,
     height: number,
@@ -26,17 +35,24 @@ function scaleWidthAndHeight(
     return { scaled: false, rasterOptions: { width: width, height: height } }
 }
 
-export async function readTiffData(
-    filepath: string,
-): Promise<{ data: any; width: number; height: number; scaled: boolean }> {
+export async function readTiffData(filepath: string, imageNumber: number): Promise<TiffData> {
     let rawData = fs.readFileSync(filepath)
     let tiff = await GeoTIFF.fromArrayBuffer(rawData.buffer)
 
-    let image = await tiff.getImage()
+    let numImages = await tiff.getImageCount()
+    let image = await tiff.getImage(imageNumber)
+    let imageDescription = image.fileDirectory.ImageDescription as string
 
     let scaleResults = scaleWidthAndHeight(image.getWidth(), image.getHeight())
 
     let data = await image.readRasters(scaleResults.rasterOptions)
 
-    return { data: data[0], width: data.width, height: data.height, scaled: scaleResults.scaled }
+    return {
+        data: data[0],
+        width: data.width,
+        height: data.height,
+        scaled: scaleResults.scaled,
+        numImages: numImages,
+        imageDescription: imageDescription,
+    }
 }

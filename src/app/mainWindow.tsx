@@ -263,7 +263,7 @@ Mobx.autorun(() => {
 Mobx.autorun(() => {
     let activeImageStore = projectStore.activeImageSetStore.imageStore
     if (activeImageStore.imageData && activeImageStore.imageData.errors.length > 0) {
-        let msg = 'Error(s) opening tiffs for the following markers: ' + activeImageStore.imageData.errors.join(', ')
+        let msg = 'Error(s) opening tiffs for the following markers:\n' + activeImageStore.imageData.errors.join('\n')
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         activeImageStore.imageData.clearErrors()
     }
