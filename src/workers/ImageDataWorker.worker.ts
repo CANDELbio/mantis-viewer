@@ -98,7 +98,7 @@ async function generateMarkerName(
         let markerName = markerNameFromFilename
         if (markerNameFromImageDescription) {
             markerName = markerNameFromImageDescription
-        } else if (numImages > 0) {
+        } else if (numImages > 1) {
             // If we're using the filename and there is more than one image, append the image number to the marker name.
             markerName += '_' + imageNumber.toString()
         }

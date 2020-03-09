@@ -207,6 +207,8 @@ async function loadTiffData(
     }
 }
 
+// Splits the passed in array into multiple sub-arrays of chunkSize.
+// e.g. chunkSize 2 for [1, 2, 3, 4] would yield [[1, 2], [3, 4]]
 function chunkArray(arr: string[], chunkSize: number): string[][] {
     let chunks = []
     for (let i = 0; i < arr.length; i += chunkSize) {
