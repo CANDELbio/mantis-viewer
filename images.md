@@ -63,7 +63,7 @@ Other image controls that do not affect the channels can be accessed by clicking
 
 ![Image Controls](images/image_controls.png)
 
-From the Image Controls you can toggle the presence of a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
+From the Image Controls you can toggle the presence of a zoom inset indicator and a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
 
 ## Selected Regions and Populations
 
