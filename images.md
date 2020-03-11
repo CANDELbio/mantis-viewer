@@ -7,7 +7,7 @@ permalink: /images/
 
 ## Overview
 
-Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
+Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should contain one or multiple greyscale images of markers from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
 
 <video width="640" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/mp4">
@@ -16,7 +16,9 @@ Mantis Viewer allows users to load and analyze sets of images, or 'image sets' t
 
 ## Supported Image Formats
 
-Mantis only supports single-channel TIFFs that contain one image per file. Mantis does not support multi-channel or high dimensional TIFF files, but there are plans to add support in the future. In the interim you can use [image-utils](https://github.com/ParkerICI/image-utils) to split up multi-channel or high dimensional TIFFs into single channel TIFFs that can be analyzed by Mantis.
+Mantis currently supports loading one or multiple greyscale single-channel images from TIFFs. In the case of multi-image TIFFs, each image must be stored within its own image file directory (IFD) within the TIFF. Mantis does not support other types of multi-image TIFF files (such as hyperstacks), but there are plans to add support in the future. In the interim you can use [image-utils](https://github.com/ParkerICI/image-utils) to split up unsupported multi-image TIFFs into single channel TIFFs that can be analyzed by Mantis.
+
+Mantis will attempt to parse the ImageDescription tag for each image file directory as an XML string. If parsing is successful Mantis will search for an element called `name` within the parsed XML tree. If Mantis finds an element called `name` it will take the text value of the `name` element and use that value as the marker name. If Mantis is unable to parse the ImageDescription tag as an XML string or does not find an element called `name`, it will use the filename as the marker name. In the case of multi-image TIFFs, Mantis will append the image file directory index to the filename and use that as the marker name if it is unable to find a name in the ImageDescription tag.
 
 Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases.
 
