@@ -595,7 +595,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private loadZoomInsetGraphics(): void {
-        if (this.zoomInsetVisible) {
+        if (this.zoomInsetVisible && (this.stage.scale.x > this.minScale || this.stage.scale.y > this.minScale)) {
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
                 this.imageData.width,

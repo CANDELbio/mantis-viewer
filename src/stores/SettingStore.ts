@@ -119,8 +119,8 @@ export class SettingStore {
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
         this.segmentationCentroidsVisible = DefaultCentroidsVisible
 
-        this.legendVisible = false
-        this.zoomInsetVisible = false
+        this.legendVisible = true
+        this.zoomInsetVisible = true
         this.transformCoefficient = null
 
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
