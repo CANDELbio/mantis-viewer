@@ -11,7 +11,11 @@ Many of the features in Mantis rely on segmentation data. Segmentation is a proc
 
 ## Segmentation Format
 
-Mantis Viewer expects segmentation data to be stored as a TIFF where pixels belonging to a segment have a unique numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1, second segment has value of 2, etc.), and where pixels not belonging to a segment have a 0 value.
+Mantis Viewer currently supports two different segmentation formats: a TIFF-based format and a TXT/CSV-based format.
+
+For the TIFF format, Mantis expects segmentation data to be stored as a TIFF where pixels belonging to a segment have a unique numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1, second segment has value of 2, etc.), and where pixels not belonging to a segment have a 0 value.
+
+For the TXT/CSV format, Mantis expects segmentation data to be stored in a TXT or CSV file where each row contains a comma separated list of all of the X and Y values belonging to a segment (e.g. row 1 in the file contains all of the X and Y coordinates for the first segment in the format X,Y,X,Y,...).
 
 ## Loading Segmentation Data
 

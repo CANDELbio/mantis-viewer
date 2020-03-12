@@ -7,7 +7,7 @@ permalink: /images/
 
 ## Overview
 
-Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should be an image of one marker from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
+Mantis Viewer allows users to load and analyze sets of images, or 'image sets' that contain multiple TIFF files. Each TIFF should contain one or multiple greyscale images of markers from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions.
 
 <video width="640" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/videos/open_image_640.mp4" type="video/mp4">
@@ -16,10 +16,15 @@ Mantis Viewer allows users to load and analyze sets of images, or 'image sets' t
 
 ## Supported Image Formats
 
-Mantis only supports single-channel TIFFs that contain one image per file. Mantis does not support multi-channel or high dimensional TIFF files, but there are plans to add support in the future. In the interim you can use [image-utils](https://github.com/ParkerICI/image-utils) to split up multi-channel or high dimensional TIFFs into single channel TIFFs that can be analyzed by Mantis.
+Mantis currently supports loading images from two types of TIFFs: a folder containing multiple greyscale single-image TIFFs or a folder containing one greyscale multi-image TIFF. In the case of multi-image TIFFs, each image within the TIFF must be stored within its own image file directory (IFD). Mantis does not support other types of multi-image TIFF files (such as hyperstacks), but there are plans to add support in the future. In the interim you can use [image-utils](https://github.com/ParkerICI/image-utils) to split up unsupported multi-image TIFFs into single channel TIFFs that can be analyzed by Mantis.
 
+### Inferring Marker Names
+Mantis will attempt to parse the ImageDescription tag for each image file directory as an XML string. If parsing is successful Mantis will search for an element called `name` within the parsed XML tree. If Mantis finds an element called `name` it will take the text value of the `name` element and use that value as the marker name. If Mantis is unable to parse the ImageDescription tag as an XML string or does not find an element called `name`, it will use the filename as the marker name. In the case of multi-image TIFFs, Mantis will append the image file directory index to the filename and use that as the marker name if it is unable to find a name in the ImageDescription tag.
+
+### Downsampling Images
 Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases.
 
+### Additional Formats
 If you encounter an image that you expect to work with Mantis but doesn't or if you need help getting your images into a format that Mantis supports feel free to [create an issue on the GitHub page](https://github.com/ParkerICI/mantis-viewer/issues) or send us an email at <engineering@parkerici.org>.
 
 ## Opening Images
@@ -30,7 +35,7 @@ When you first load the application you should see a blank screen with a few unp
 
 In the `Open` submenu you should see option for `Image Set` and `Project`, which represent the two ways of working with Mantis. If you just want to look at images from a single slide or ROI, you can choose to import an image set.
 
-For an image set Mantis expects one folder with multiple images (one per marker) all stored as TIFFs. If you have images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets. See the below screenshot for an example file structure of a project with detailed view of one of the contained image sets.
+For an image set Mantis expects one folder with a single multi-image TIFF or multiple single-image TIFFs (one per marker). If you have images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets. See the below screenshot for an example file structure of a project with detailed view of one of the contained image sets.
 
 ![Application Load](images/project_structure.png)
 
@@ -61,7 +66,7 @@ Other image controls that do not affect the channels can be accessed by clicking
 
 ![Image Controls](images/image_controls.png)
 
-From the Image Controls you can toggle the presence of a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
+From the Image Controls you can toggle the presence of a zoom inset indicator and a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({% link segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
 
 ## Selected Regions and Populations
 
