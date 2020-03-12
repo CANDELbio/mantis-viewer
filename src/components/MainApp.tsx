@@ -192,6 +192,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onClearSegmentation={() => {
                             projectStore.setClearSegmentationRequested(true)
                         }}
+                        zoomInsetVisible={settingStore.zoomInsetVisible}
+                        setZoomInsetVisible={settingStore.setZoomInsetVisible}
                         legendVisible={settingStore.legendVisible}
                         setLegendVisible={settingStore.setLegendVisible}
                         selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
@@ -231,6 +233,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     exportPath={imageStore.imageExportFilename}
                     onExportComplete={imageStore.clearImageExportFilename}
                     legendVisible={settingStore.legendVisible}
+                    zoomInsetVisible={settingStore.zoomInsetVisible}
                     maxHeight={maxImageHeight}
                 />
             )

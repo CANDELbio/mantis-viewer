@@ -38,6 +38,7 @@ interface SettingStoreData {
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
     legendVisible: boolean | null
+    zoomInsetVisible: boolean | null
     transformCoefficient: number | null
 }
 
@@ -61,17 +62,19 @@ export class SettingStore {
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
-    // selected plot channels to be copied
+    // Selected plot channels to be copied
     @observable public selectedPlotMarkers: string[]
-    //Whether or not the legend is visible on the image
+    // Whether or not the legend is visible on the image
     @observable public legendVisible: boolean
+    // Whether or not the zoom inset is visible on the image
+    @observable public zoomInsetVisible: boolean
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
     @observable public segmentationCentroidsVisible: boolean
 
-    //Plot settings below
+    // Plot settings below
     @observable public plotStatistic: PlotStatistic
     @observable public plotTransform: PlotTransform
     @observable public transformCoefficient: number | null
@@ -117,6 +120,7 @@ export class SettingStore {
         this.segmentationCentroidsVisible = DefaultCentroidsVisible
 
         this.legendVisible = false
+        this.zoomInsetVisible = false
         this.transformCoefficient = null
 
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
@@ -166,6 +170,10 @@ export class SettingStore {
 
     @action public setLegendVisible = (visible: boolean) => {
         this.legendVisible = visible
+    }
+
+    @action public setZoomInsetVisible = (visible: boolean) => {
+        this.zoomInsetVisible = visible
     }
 
     @action public setChannelDomainPercentageCallback = (name: ChannelName) => {
@@ -271,6 +279,7 @@ export class SettingStore {
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
                 legendVisible: this.legendVisible,
+                zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
             let exportingString = JSON.stringify(exporting)
@@ -285,29 +294,32 @@ export class SettingStore {
             let filename = path.join(this.basePath, ImageSettingsFilename)
             if (fs.existsSync(filename)) {
                 try {
-                    let importingContent: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
-                    if (importingContent.channelMarker) this.channelMarker = importingContent.channelMarker
-                    if (importingContent.channelVisibility) this.channelVisibility = importingContent.channelVisibility
-                    if (importingContent.channelDomainPercentage)
-                        this.channelDomainPercentage = importingContent.channelDomainPercentage
-                    if (importingContent.segmentationBasename)
-                        this.segmentationBasename = importingContent.segmentationBasename
-                    if (importingContent.selectedPlotMarkers)
-                        this.selectedPlotMarkers = importingContent.selectedPlotMarkers
-                    if (importingContent.plotStatistic) this.plotStatistic = importingContent.plotStatistic
-                    if (importingContent.plotTransform) this.plotTransform = importingContent.plotTransform
-                    if (importingContent.plotType) this.plotType = importingContent.plotType
-                    if (importingContent.plotNormalization) this.plotNormalization = importingContent.plotNormalization
-                    if (importingContent.plotDotSize) this.plotDotSize = importingContent.plotDotSize
-                    if (importingContent.segmentationFillAlpha)
-                        this.segmentationFillAlpha = importingContent.segmentationFillAlpha
-                    if (importingContent.segmentationOutlineAlpha)
-                        this.segmentationOutlineAlpha = importingContent.segmentationOutlineAlpha
-                    if (importingContent.segmentationCentroidsVisible)
-                        this.segmentationCentroidsVisible = importingContent.segmentationCentroidsVisible
-                    if (importingContent.legendVisible) this.legendVisible = importingContent.legendVisible
-                    if (importingContent.transformCoefficient)
-                        this.transformCoefficient = importingContent.transformCoefficient
+                    let importingSettings: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
+                    if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
+                    if (importingSettings.channelVisibility)
+                        this.channelVisibility = importingSettings.channelVisibility
+                    if (importingSettings.channelDomainPercentage)
+                        this.channelDomainPercentage = importingSettings.channelDomainPercentage
+                    if (importingSettings.segmentationBasename)
+                        this.segmentationBasename = importingSettings.segmentationBasename
+                    if (importingSettings.selectedPlotMarkers)
+                        this.selectedPlotMarkers = importingSettings.selectedPlotMarkers
+                    if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic
+                    if (importingSettings.plotTransform) this.plotTransform = importingSettings.plotTransform
+                    if (importingSettings.plotType) this.plotType = importingSettings.plotType
+                    if (importingSettings.plotNormalization)
+                        this.plotNormalization = importingSettings.plotNormalization
+                    if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
+                    if (importingSettings.segmentationFillAlpha)
+                        this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
+                    if (importingSettings.segmentationOutlineAlpha)
+                        this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
+                    if (importingSettings.segmentationCentroidsVisible)
+                        this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
+                    if (importingSettings.legendVisible) this.legendVisible = importingSettings.legendVisible
+                    if (importingSettings.zoomInsetVisible) this.zoomInsetVisible = importingSettings.zoomInsetVisible
+                    if (importingSettings.transformCoefficient)
+                        this.transformCoefficient = importingSettings.transformCoefficient
                 } catch (e) {
                     console.log('Error importing settings file:')
                     console.log(e)

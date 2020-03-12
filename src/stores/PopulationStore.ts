@@ -168,7 +168,6 @@ export class PopulationStore {
         fs.writeFile(filename, popluationsString, 'utf8', function(err) {
             if (err) {
                 console.log('An error occured while writing populations to JSON file.')
-                return console.log(err)
             }
             console.log('Populations JSON file has been saved.')
         })

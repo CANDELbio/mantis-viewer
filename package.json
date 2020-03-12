@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "main.js",
     "scripts": {
@@ -66,14 +66,14 @@
         "@types/react-select": "^3.0.4",
         "@types/shortid": "0.0.29",
         "@types/underscore": "^1.9.2",
-        "@typescript-eslint/eslint-plugin": "^1.4.0",
-        "@typescript-eslint/parser": "^1.4.0",
+        "@typescript-eslint/eslint-plugin": "^1.13.0",
+        "@typescript-eslint/parser": "^1.13.0",
         "acorn": "^6.1.0",
         "canvas": "^2.3.1",
         "css-loader": "^0.27.3",
         "electron": "^6.0.2",
         "electron-builder": "^21.2.0",
-        "eslint": "^5.14.1",
+        "eslint": "^6.8.0",
         "eslint-config-prettier": "^4.0.0",
         "eslint-plugin-prettier": "^3.0.1",
         "eslint-plugin-react": "^7.12.4",
@@ -98,6 +98,7 @@
     "dependencies": {
         "@blueprintjs/core": "^3.18.0",
         "@types/reactstrap": "^8.0.1",
+        "@types/xml2js": "^0.4.5",
         "about-window": "^1.13.1",
         "bootstrap": "^4.3.1",
         "concaveman": "^1.1.1",
@@ -112,7 +113,7 @@
         "mobx-utils": "^5.1.0",
         "mousetrap": "^1.6.3",
         "normalize.css": "^5.0.0",
-        "npm": "^6.10.1",
+        "npm": "^6.14.2",
         "pixi.js": "^4.8.8",
         "plotly.js": "^1.49.4",
         "popper.js": "^1.15.0",
@@ -129,6 +130,7 @@
         "react-transition-group": "^2.5.0",
         "reactstrap": "^8.0.1",
         "shortid": "^2.2.13",
-        "underscore": "^1.9.1"
+        "underscore": "^1.9.1",
+        "xml2js": "^0.4.23"
     }
 }

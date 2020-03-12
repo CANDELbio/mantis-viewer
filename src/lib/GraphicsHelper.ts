@@ -226,6 +226,67 @@ export function generateBrightnessFilterUniforms(
     return null
 }
 
+function drawHollowRectangle(
+    graphics: PIXI.Graphics,
+    color: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    lineWidth: number,
+): void {
+    let x1 = x
+    let y1 = y
+    let x2 = x1 + width
+    let y2 = y1 + height
+
+    let hx1 = x1 + lineWidth
+    let hy1 = y1 + lineWidth
+    let hx2 = x2 - lineWidth
+    let hy2 = y2 - lineWidth
+
+    graphics.beginFill(color)
+    graphics.drawPolygon([x1, y1, x2, y1, x2, y2, x1, y2])
+    graphics.drawPolygon([hx1, hy1, hx2, hy1, hx2, hy2, hx1, hy2])
+    graphics.addHole()
+    graphics.endFill()
+}
+
+export function drawZoomInset(
+    insetGraphics: PIXI.Graphics,
+    imageWidth: number,
+    imageHeight: number,
+    rendererWidth: number,
+    rendererHeight: number,
+    stageWidth: number,
+    stageHeight: number,
+    stageX: number,
+    stageY: number,
+): void {
+    insetGraphics.clear()
+    insetGraphics.removeChildren()
+
+    let lineWidth = 2
+    let borderPadding = 2
+    let borderHeight = 60
+    let insetRatio = borderHeight / imageHeight
+    let borderWidth = imageWidth * insetRatio
+    let borderX = rendererWidth - (borderWidth + borderPadding)
+    let borderY = borderPadding
+
+    drawHollowRectangle(insetGraphics, 0xffffff, borderX, borderY, borderWidth, borderHeight, lineWidth)
+
+    let xZoomRatio = rendererWidth / stageWidth
+    let yZoomRatio = rendererHeight / stageHeight
+
+    let insetHeight = borderHeight * yZoomRatio
+    let insetWidth = borderWidth * xZoomRatio
+    let insetX = borderX + (Math.abs(stageX) / stageWidth) * borderWidth
+    let insetY = borderY + (Math.abs(stageY) / stageHeight) * borderHeight
+
+    drawHollowRectangle(insetGraphics, 0xffffff, insetX, insetY, insetWidth, insetHeight, lineWidth)
+}
+
 export function drawLegend(
     legendGraphics: PIXI.Graphics,
     imcData: ImageData,

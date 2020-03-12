@@ -263,7 +263,7 @@ Mobx.autorun(() => {
 Mobx.autorun(() => {
     let activeImageStore = projectStore.activeImageSetStore.imageStore
     if (activeImageStore.imageData && activeImageStore.imageData.errors.length > 0) {
-        let msg = 'Error(s) opening tiffs for the following markers: ' + activeImageStore.imageData.errors.join(', ')
+        let msg = 'Error(s) opening tiffs for the following markers:\n' + activeImageStore.imageData.errors.join('\n')
         ipcRenderer.send('mainWindow-show-error-dialog', msg)
         activeImageStore.imageData.clearErrors()
     }
@@ -271,10 +271,11 @@ Mobx.autorun(() => {
 
 Mobx.autorun(() => {
     let activeSegmentationStore = projectStore.activeImageSetStore.segmentationStore
-    if (activeSegmentationStore.segmentationData && activeSegmentationStore.segmentationData.errorLoading) {
-        let msg = 'Error opening segmentation data.'
-        ipcRenderer.send('mainWindow-show-error-dialog', msg)
-        activeSegmentationStore.clearSegmentationData()
+    if (activeSegmentationStore.segmentationData) {
+        let errorMessage = activeSegmentationStore.segmentationData.errorMessage
+        if (errorMessage) {
+            ipcRenderer.send('mainWindow-show-error-dialog', errorMessage)
+        }
     }
 })
 

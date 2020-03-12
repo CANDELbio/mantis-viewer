@@ -43,6 +43,7 @@ export interface ImageProps {
     exportPath: string | null
     onExportComplete: () => void
     legendVisible: boolean
+    zoomInsetVisible: boolean
     maxHeight: number | null
 }
 
@@ -80,6 +81,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private legendGraphics: PIXI.Graphics
     private legendVisible: boolean
 
+    private zoomInsetGraphics: PIXI.Graphics
+    private zoomInsetVisible: boolean
+
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
     // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
@@ -104,6 +108,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         this.legendGraphics = new PIXI.Graphics()
         this.legendVisible = false
+
+        this.zoomInsetGraphics = new PIXI.Graphics()
+        this.zoomInsetVisible = true
 
         let redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
@@ -209,7 +216,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
         this.checkSetStageBounds()
         this.stage.updateTransform()
-        this.resizeLegend()
+        this.resizeStaticGraphics(this.legendGraphics)
+        this.loadZoomInsetGraphics()
         this.renderer.render(this.rootContainer)
     }
 
@@ -250,7 +258,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.stage.position.y += dy
                 this.checkSetStageBounds()
                 this.stage.updateTransform()
-                this.resizeLegend()
+                this.resizeStaticGraphics(this.legendGraphics)
+                this.loadZoomInsetGraphics()
                 this.renderer.render(this.rootContainer)
             }
         })
@@ -556,33 +565,52 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
-    private resizeLegend(xScaleCoefficient = 1, yScaleCoefficient = 1): void {
-        this.stage.removeChild(this.legendGraphics)
+    private resizeStaticGraphics(graphics: PIXI.Graphics, xScaleCoefficient = 1, yScaleCoefficient = 1): void {
+        this.stage.removeChild(graphics)
         let xScale = 1 / this.stage.scale.x
         let yScale = 1 / this.stage.scale.y
-        this.legendGraphics.setTransform(
+        graphics.setTransform(
             Math.abs(this.stage.position.x) * xScale,
             Math.abs(this.stage.position.y) * yScale,
             xScale * xScaleCoefficient,
             yScale * yScaleCoefficient,
         )
-        this.stage.addChild(this.legendGraphics)
+        this.stage.addChild(graphics)
     }
 
     private loadLegendGraphics(
         legendVisible: boolean,
-        legendGraphics: PIXI.Graphics,
         imcData: ImageData,
         channelMarker: Record<ChannelName, string | null>,
     ): void {
         this.legendVisible = legendVisible
         if (legendVisible) {
             GraphicsHelper.drawLegend(this.legendGraphics, imcData, channelMarker)
-            this.resizeLegend()
+            this.resizeStaticGraphics(this.legendGraphics)
         } else {
             // Clear out the legend graphics so they don't get redrawn when zooming.
-            legendGraphics.clear()
-            legendGraphics.removeChildren()
+            this.legendGraphics.clear()
+            this.legendGraphics.removeChildren()
+        }
+    }
+
+    private loadZoomInsetGraphics(): void {
+        if (this.zoomInsetVisible) {
+            GraphicsHelper.drawZoomInset(
+                this.zoomInsetGraphics,
+                this.imageData.width,
+                this.imageData.height,
+                this.renderer.width,
+                this.renderer.height,
+                this.stage.width,
+                this.stage.height,
+                this.stage.position.x,
+                this.stage.position.y,
+            )
+            this.resizeStaticGraphics(this.zoomInsetGraphics)
+        } else {
+            this.zoomInsetGraphics.clear()
+            this.zoomInsetGraphics.removeChildren()
         }
     }
 
@@ -605,7 +633,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.scale.y = yScale
         this.stage.updateTransform()
         this.renderer.resize(width, height)
-        if (this.legendVisible) this.resizeLegend(legendXScaleCoefficient, legendYScaleCoefficient)
+        if (this.legendVisible)
+            this.resizeStaticGraphics(this.legendGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
         this.renderer.render(this.rootContainer)
     }
 
@@ -655,6 +684,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         highlightedSegmentsFromGraph: number[],
         exportPath: string | null,
         legendVisible: boolean,
+        zoomInsetVisible: boolean,
         rendererSize: { width: number | null; height: number | null },
         maxHeight: number | null,
     ): void {
@@ -703,7 +733,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (position && scale) this.setStagePositionAndScale(position, scale)
 
         // Create the legend for which markers are being displayed
-        this.loadLegendGraphics(legendVisible, this.legendGraphics, imcData, channelMarker)
+        this.loadLegendGraphics(legendVisible, imcData, channelMarker)
+        // Update whether or not the zoom inset is visible and then re-render it
+        this.zoomInsetVisible = zoomInsetVisible
+        this.loadZoomInsetGraphics()
 
         this.renderer.render(this.rootContainer)
 
@@ -769,6 +802,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         let legendVisible = this.props.legendVisible
 
+        let zoomInsetVisible = this.props.zoomInsetVisible
+
         let maxHeight = this.props.maxHeight
 
         return (
@@ -795,6 +830,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     highlightedSegmentsFromGraph,
                                     exportPath,
                                     legendVisible,
+                                    zoomInsetVisible,
                                     size,
                                     maxHeight,
                                 )

@@ -29,6 +29,8 @@ export class ImageData {
         this.sprites = {}
         this.errors = []
         this.scaled = false
+        this.width = 0
+        this.height = 0
     }
 
     // Callback function to call with the built ImageData once it has been loaded.
@@ -51,23 +53,54 @@ export class ImageData {
         }
     }
 
-    private async loadFileData(fData: ImageDataWorkerResult): Promise<void> {
-        let markerName = fData.markerName
-        this.width = fData.width
-        this.height = fData.height
-        if (fData.scaled) this.scaled = fData.scaled
-        this.data[markerName] = fData.data
-        this.sprites[markerName] = imageBitmapToSprite(fData.bitmap)
-        this.minmax[markerName] = fData.minmax
+    private async loadImageWorkerResults(imageData: ImageDataWorkerResult): Promise<void> {
+        let markerName = imageData.markerName
+        this.width = imageData.width
+        this.height = imageData.height
+        if (imageData.scaled) this.scaled = imageData.scaled
+        this.data[markerName] = imageData.data
+        this.sprites[markerName] = imageBitmapToSprite(imageData.bitmap)
+        this.minmax[markerName] = imageData.minmax
+
+        // If the tiff that was just read contained multiple images, increase the number of markers we expect
+        // and load the additional images in workers.
+        let numImages = imageData.numImages
+        if (!imageData.input.imageNumber || imageData.input.imageNumber == 0) {
+            this.numMarkers += numImages - 1
+            for (let i = 1; i < numImages; ++i) {
+                this.loadImageInWorker(imageData.input.filepath, imageData.input.useExtInMarkerName, i)
+            }
+        }
         this.fileLoadComplete()
     }
 
-    private async loadFileError(fError: { error: string; markerName: string }): Promise<void> {
-        let err = 'Error loading marker ' + fError.markerName + ': ' + fError.error
-        console.log(err)
-        this.errors.push(fError.markerName)
+    private async loadImageWorkerResultsError(imageError: ImageDataWorkerError): Promise<void> {
+        let err = imageError.markerName + ': ' + imageError.error
+        this.errors.push(err)
         this.numMarkers -= 1
         this.fileLoadComplete()
+    }
+
+    private async loadImageWorkerResultsCallback(
+        imageData: ImageDataWorkerResult | ImageDataWorkerError,
+    ): Promise<void> {
+        if ('error' in imageData) {
+            this.loadImageWorkerResultsError(imageData)
+        } else if ((this.width && this.width != imageData.width) || (this.height && this.height != imageData.height)) {
+            this.loadImageWorkerResultsError({
+                input: imageData.input,
+                markerName: imageData.markerName,
+                error: 'Image dimensions do not match.',
+            })
+        } else if (this.data[imageData.markerName]) {
+            this.loadImageWorkerResultsError({
+                input: imageData.input,
+                markerName: imageData.markerName,
+                error: 'Data already loaded for marker.',
+            })
+        } else {
+            this.loadImageWorkerResults(imageData)
+        }
     }
 
     public removeMarker(markerName: string): void {
@@ -77,6 +110,16 @@ export class ImageData {
             delete this.sprites[markerName]
             delete this.minmax[markerName]
         }
+    }
+
+    private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber?: number): void {
+        let onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
+            this.loadImageWorkerResultsCallback(data)
+        }
+        submitImageDataJob(
+            { useExtInMarkerName: useExtInMarkerName, filepath: filepath, imageNumber: imageNumber },
+            onComplete,
+        )
     }
 
     // Loads a folder in the background using ImageDataWorkers
@@ -94,26 +137,15 @@ export class ImageData {
             // If no tiffs are present in the directory, just return an empty image data.
             this.onReady(this)
         } else {
-            let onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
-                if ('error' in data) {
-                    this.loadFileError(data)
-                } else {
-                    this.loadFileData(data)
-                }
-            }
-
             let baseNames = tiffs.map((v: string) => {
                 return path.parse(v).name
             })
 
             // If there are any files with the same names and different extensions then we want to use extension for markerNames
-            let useExtForMarkerName = baseNames.length !== new Set(baseNames).size
+            let useExtInMarkerName = baseNames.length !== new Set(baseNames).size
 
             tiffs.forEach(f => {
-                submitImageDataJob(
-                    { useExtForMarkerName: useExtForMarkerName, filepath: path.join(dirName, f) },
-                    onComplete,
-                )
+                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName)
             })
         }
     }

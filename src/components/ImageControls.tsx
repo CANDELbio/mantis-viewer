@@ -11,6 +11,9 @@ export interface ImageControlsProps {
     onFillAlphaChange: (value: number) => void
     onOutlineAlphaChange: (value: number) => void
 
+    zoomInsetVisible: boolean
+    setZoomInsetVisible: (visible: boolean) => void
+
     legendVisible: boolean
     setLegendVisible: (visible: boolean) => void
 
@@ -34,6 +37,8 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
     private onOutlineAlphaSliderChange = (value: number) => this.props.onOutlineAlphaChange(value / this.sliderMax)
     private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
         this.props.setCentroidsVisible(event.currentTarget.checked)
+    private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
+        this.props.setZoomInsetVisible(event.currentTarget.checked)
     private onLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
         this.props.setLegendVisible(event.currentTarget.checked)
 
@@ -52,6 +57,11 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
     public render(): React.ReactElement {
         return (
             <div>
+                <Checkbox
+                    checked={this.props.zoomInsetVisible}
+                    label="Show Zoom Inset"
+                    onChange={this.onZoomInsetVisibilityChange}
+                />
                 <Checkbox
                     checked={this.props.legendVisible}
                     label="Show Channel Legend"
