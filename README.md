@@ -12,7 +12,7 @@ If you just want to use the application head to the [releases](https://github.co
 
 ## Develop and Run Locally
 
-To get up and running for the first time first clone the repository and install the dependencies.
+To get up and running for the first time first clone the repository and install the dependencies. You may need to install the build dependencies for [canvas](https://www.npmjs.com/package/canvas) first.
 
 ```shell
 npm install
