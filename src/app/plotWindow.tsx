@@ -123,7 +123,7 @@ ipcRenderer.on(
         size: number,
         coefficient: number,
         data: any,
-    ) => {
+    ): void => {
         markerNames = markers
         selectedPlotMarkers = plotMarkers
         selectedStatistic = statistic
@@ -138,8 +138,11 @@ ipcRenderer.on(
 )
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
-ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number) => {
-    windowWidth = width
-    windowHeight = height
-    render()
-})
+ipcRenderer.on(
+    'window-size',
+    (event: Electron.Event, width: number, height: number): void => {
+        windowWidth = width
+        windowHeight = height
+        render()
+    },
+)

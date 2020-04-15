@@ -1,7 +1,6 @@
 import { observable, action } from 'mobx'
 import * as fs from 'fs'
 import * as shortId from 'shortid'
-import * as csvParse from 'csv-parse'
 import * as stringify from 'csv-stringify'
 import * as _ from 'underscore'
 
@@ -17,7 +16,7 @@ export class PopulationStore {
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
     @observable.ref public highlightedPopulations: string[]
 
-    @action public initialize = () => {
+    @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
     }
@@ -27,7 +26,7 @@ export class PopulationStore {
         return name + renderOrder.toString()
     }
 
-    @action public setSelectedPopulations = (populations: SelectedPopulation[]) => {
+    @action public setSelectedPopulations = (populations: SelectedPopulation[]): void => {
         if (!_.isEqual(populations, this.selectedPopulations)) {
             this.selectedPopulations = populations
         }
@@ -46,8 +45,8 @@ export class PopulationStore {
         selectedSegments: number[],
         namePrefix: string | null,
         name?: string | null,
-        color?: number,
-    ) => {
+        color?: number | null,
+    ): SelectedPopulation => {
         let order = this.getRenderOrder()
         let newRegion = {
             id: shortId.generate(),
@@ -62,33 +61,33 @@ export class PopulationStore {
         return newRegion
     }
 
-    @action public deleteSelectedPopulation = (id: string) => {
+    @action public deleteSelectedPopulation = (id: string): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.filter(region => region.id != id)
+            this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)
         }
     }
 
-    @action public deletePopulationsNotSelectedOnImage = () => {
+    @action public deletePopulationsNotSelectedOnImage = (): void => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.filter(
-                region => region.selectedRegion && region.selectedRegion.length > 0,
+                (region): boolean | null => region.selectedRegion && region.selectedRegion.length > 0,
             )
         }
     }
 
-    @action public highlightSelectedPopulation = (id: string) => {
+    @action public highlightSelectedPopulation = (id: string): void => {
         this.highlightedPopulations = this.highlightedPopulations.concat([id])
     }
 
-    @action public unhighlightSelectedPopulation = (id: string) => {
-        this.highlightedPopulations = this.highlightedPopulations.filter(regionId => regionId != id)
+    @action public unhighlightSelectedPopulation = (id: string): void => {
+        this.highlightedPopulations = this.highlightedPopulations.filter((regionId): boolean => regionId != id)
     }
 
-    @action public updateSelectedPopulationName = (id: string, newName: string) => {
+    @action public updateSelectedPopulationName = (id: string, newName: string): void => {
         if (this.selectedPopulations != null) {
             // Work around to trigger selectedPopulations change
             // TODO: Try replacing selectedPopulations with non ref and use Mobx toJS to send values to plot window.
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
                 if (region.id == id) {
                     region.name = newName
                     return region
@@ -99,9 +98,9 @@ export class PopulationStore {
         }
     }
 
-    @action public updateSelectedPopulationColor = (id: string, color: number) => {
+    @action public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
                 if (region.id == id) {
                     region.color = color
                     return region
@@ -112,9 +111,9 @@ export class PopulationStore {
         }
     }
 
-    @action public updateSelectedPopulationVisibility = (id: string, visible: boolean) => {
+    @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
                 if (region.id == id) {
                     region.visible = visible
                     return region
@@ -125,18 +124,18 @@ export class PopulationStore {
         }
     }
 
-    @action public setAllSelectedPopulationVisibility = (visible: boolean) => {
+    @action public setAllSelectedPopulationVisibility = (visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
                 region.visible = visible
                 return region
             })
         }
     }
 
-    @action public updateSelectedPopulationSegments = (id: string, segments: number[]) => {
+    @action public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
                 if (region.id == id) {
                     region.selectedSegments = segments
                     return region
@@ -147,67 +146,42 @@ export class PopulationStore {
         }
     }
 
-    @action public addPopulationsFromJSON = (filename: string) => {
-        let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
-        let importingPopulations: SelectedPopulation[] = importingContent
-        importingPopulations.map((population: SelectedPopulation) => {
-            this.addSelectedPopulation(
-                population.selectedRegion,
-                population.selectedSegments,
-                null,
-                population.name,
-                population.color,
-            )
-        })
-    }
-
-    public exportPopulationsToJSON = (filename: string) => {
-        let popluationsString = JSON.stringify(this.selectedPopulations)
+    public exportPopulationsToJSON = (filename: string): void => {
+        let populationsString = JSON.stringify(this.selectedPopulations)
 
         // Write data to file
-        fs.writeFile(filename, popluationsString, 'utf8', function(err) {
+        fs.writeFile(filename, populationsString, 'utf8', function(err): void {
             if (err) {
-                console.log('An error occured while writing populations to JSON file.')
+                console.log('An error occurred while writing populations to JSON file.')
             }
             console.log('Populations JSON file has been saved.')
         })
     }
 
-    @action public addPopulationsFromCSV = (filename: string) => {
-        let input = fs.readFileSync(filename, 'utf8')
-
-        let populations: Record<string, number[]> = {}
-
-        // Currently we expect the input to be a csv of the format segmentId,populationName
-        csvParse(input, { delimiter: ',' }, function(err, output: string[][]) {
-            for (let row of output) {
-                let segmentId = Number(row[0])
-                let populationName = row[1]
-                // Check to make sure segmentId is a proper number and populationName is not empty or null.
-                if (!isNaN(segmentId) && populationName) {
-                    if (!(populationName in populations)) populations[populationName] = []
-                    populations[populationName].push(segmentId)
-                }
-            }
-        }).on('end', () => {
-            for (let populationName in populations) {
-                this.addSelectedPopulation(null, populations[populationName], null, populationName, randomHexColor())
-            }
-        })
-    }
-
-    @action public exportPopulationsToCSV = (filename: string) => {
+    @action public exportPopulationsToCSV = (filename: string): void => {
         let data: string[][] = []
-        this.selectedPopulations.map((population: SelectedPopulation) => {
-            population.selectedSegments.map((segmentId: number) => {
-                data.push([segmentId.toString(), population.name])
-            })
-        })
-        stringify(data, { header: false }, (err, output) => {
-            if (err) console.log('Error exporting populations to CSV ' + err)
-            fs.writeFile(filename, output, err => {
+        this.selectedPopulations.map(
+            (population: SelectedPopulation): void => {
+                population.selectedSegments.map(
+                    (segmentId: number): void => {
+                        data.push([segmentId.toString(), population.name])
+                    },
+                )
+            },
+        )
+        stringify(
+            data,
+            { header: false },
+            (err, output): void => {
                 if (err) console.log('Error exporting populations to CSV ' + err)
-            })
-        })
+                fs.writeFile(
+                    filename,
+                    output,
+                    (err): void => {
+                        if (err) console.log('Error exporting populations to CSV ' + err)
+                    },
+                )
+            },
+        )
     }
 }

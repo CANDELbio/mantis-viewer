@@ -1,12 +1,14 @@
 import * as stringify from 'csv-stringify'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as parse from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { PlotStatistic } from '../definitions/UIDefinitions'
 import { writeToFCS } from '../lib/FcsWriter'
+import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
-export function exportMarkerIntensisties(
+export function exportMarkerIntensities(
     filename: string,
     statistic: PlotStatistic,
     imageSetStore: ImageSetStore,
@@ -61,12 +63,20 @@ export function exportMarkerIntensisties(
         }
 
         // Write to a CSV
-        stringify(data, { header: true, columns: columns }, (err, output) => {
-            if (err) console.log('Error saving intensities ' + err)
-            fs.writeFile(filename, output, err => {
+        stringify(
+            data,
+            { header: true, columns: columns },
+            (err, output): void => {
                 if (err) console.log('Error saving intensities ' + err)
-            })
-        })
+                fs.writeFile(
+                    filename,
+                    output,
+                    (err): void => {
+                        if (err) console.log('Error saving intensities ' + err)
+                    },
+                )
+            },
+        )
     }
 }
 
@@ -128,4 +138,49 @@ export function exportPopulationsToFCS(
             exportToFCS(filePath, statistic, imageSetStore, population.selectedSegments)
         }
     }
+}
+
+export function parseActivePopulationsJSON(filename: string): SelectedPopulation[] {
+    let importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
+    return importingContent
+}
+
+export function parseActivePopulationCSV(filename: string): Record<string, number[]> {
+    let input = fs.readFileSync(filename, 'utf8')
+
+    let populations: Record<string, number[]> = {}
+    let records: string[][] = parse(input, { columns: false })
+
+    for (let row of records) {
+        let segmentId = Number(row[0])
+        let populationName = row[1]
+        // Check to make sure segmentId is a proper number and populationName is not empty or null.
+        if (!isNaN(segmentId) && populationName) {
+            if (!(populationName in populations)) populations[populationName] = []
+            populations[populationName].push(segmentId)
+        }
+    }
+
+    return populations
+}
+
+export function parseProjectPopulationCSV(filename: string): Record<string, Record<string, number[]>> {
+    let input = fs.readFileSync(filename, 'utf8')
+
+    let populations: Record<string, Record<string, number[]>> = {}
+    let records: string[][] = parse(input, { columns: false })
+
+    for (let row of records) {
+        let imageSetName = row[0]
+        let segmentId = Number(row[1])
+        let populationName = row[2]
+        // Check to make sure imageSetName is not empty, segmentId is a proper number and populationName is not empty.
+        if (imageSetName && !isNaN(segmentId) && populationName) {
+            if (!(imageSetName in populations)) populations[imageSetName] = {}
+            if (!(populationName in populations[imageSetName])) populations[imageSetName][populationName] = []
+            populations[imageSetName][populationName].push(segmentId)
+        }
+    }
+
+    return populations
 }

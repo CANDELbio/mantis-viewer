@@ -59,7 +59,7 @@ ipcRenderer.on(
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
         anyMarker: Record<ChannelName, boolean>,
-    ) => {
+    ): void => {
         maxImageSetsInMemory = maxImageSets
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
