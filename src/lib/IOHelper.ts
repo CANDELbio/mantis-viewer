@@ -8,6 +8,48 @@ import { PlotStatistic } from '../definitions/UIDefinitions'
 import { writeToFCS } from '../lib/FcsWriter'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
+export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
+    let csvOptions: stringify.Options = { header: false }
+    if (headerCols) {
+        csvOptions = {
+            header: true,
+            columns: headerCols,
+        }
+    }
+    stringify(
+        data,
+        csvOptions,
+        (err, output): void => {
+            if (err) {
+                console.log('An error occurred while exporting to CSV:')
+                console.log(err)
+            }
+            fs.writeFile(
+                filename,
+                output,
+                (err): void => {
+                    if (err) {
+                        console.log('An error occurred while exporting to CSV:')
+                        console.log(err)
+                    }
+                },
+            )
+        },
+    )
+}
+
+export function writeToJSON(object: any, filename: string): void {
+    let exportingString = JSON.stringify(object)
+
+    // Write data to file
+    fs.writeFile(filename, exportingString, 'utf8', function(err): void {
+        if (err) {
+            console.log('An error occurred while exporting to JSON:')
+            console.log(err)
+        }
+    })
+}
+
 export function exportMarkerIntensities(
     filename: string,
     statistic: PlotStatistic,
@@ -63,20 +105,7 @@ export function exportMarkerIntensities(
         }
 
         // Write to a CSV
-        stringify(
-            data,
-            { header: true, columns: columns },
-            (err, output): void => {
-                if (err) console.log('Error saving intensities ' + err)
-                fs.writeFile(
-                    filename,
-                    output,
-                    (err): void => {
-                        if (err) console.log('Error saving intensities ' + err)
-                    },
-                )
-            },
-        )
+        writeToCSV(data, filename, columns)
     }
 }
 

@@ -46,7 +46,7 @@ ipcRenderer.on(
 ipcRenderer.on(
     'export-populations-json',
     (event: Electron.Event, filename: string): void => {
-        projectStore.activeImageSetStore.populationStore.exportPopulationsToJSON(filename)
+        projectStore.exportActivePopulationsToJSON(filename)
     },
 )
 

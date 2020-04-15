@@ -13,6 +13,8 @@ import {
     parseActivePopulationCSV,
     parseProjectPopulationCSV,
     parseActivePopulationsJSON,
+    writeToJSON,
+    writeToCSV,
 } from '../lib/IOHelper'
 import { PlotStatistic } from '../definitions/UIDefinitions'
 
@@ -394,6 +396,11 @@ export class ProjectStore {
         this.exportProjectSummaryStats(dirName, statistic, true, populations)
     }
 
+    public exportActivePopulationsToJSON = (filepath: string): void => {
+        let activePopulationStore = this.activeImageSetStore.populationStore
+        writeToJSON(activePopulationStore.selectedPopulations, filepath)
+    }
+
     public importActivePopulationsFromJSON = (filepath: string): void => {
         let activePopulationStore = this.activeImageSetStore.populationStore
         let populations = parseActivePopulationsJSON(filepath)
@@ -447,8 +454,24 @@ export class ProjectStore {
     }
 
     public exportActivePopulationsToCSV = (filePath: string): void => {
-        this.activeImageSetStore.populationStore.exportPopulationsToCSV(filePath)
+        let activePopulationArray = this.activeImageSetStore.populationStore.getSelectedPopulationsAsArray()
+        writeToCSV(activePopulationArray, filePath, null)
     }
 
-    public exportProjectPopulationsToCSV = (filePath: string): void => {}
+    public exportProjectPopulationsToCSV = (filePath: string): void => {
+        let projectPopulationArray: string[][] = []
+        for (let imageSetPath of this.imageSetPaths) {
+            let imageSetName = path.basename(imageSetPath)
+            let imageSet = this.imageSets[imageSetPath]
+            if (imageSet) {
+                let populationStore = imageSet.populationStore
+                let populationArray = populationStore.getSelectedPopulationsAsArray()
+                for (let population of populationArray) {
+                    population.unshift(imageSetName)
+                    projectPopulationArray.push(population)
+                }
+            }
+        }
+        writeToCSV(projectPopulationArray, filePath, null)
+    }
 }

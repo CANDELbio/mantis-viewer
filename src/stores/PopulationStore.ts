@@ -146,42 +146,17 @@ export class PopulationStore {
         }
     }
 
-    public exportPopulationsToJSON = (filename: string): void => {
-        let populationsString = JSON.stringify(this.selectedPopulations)
-
-        // Write data to file
-        fs.writeFile(filename, populationsString, 'utf8', function(err): void {
-            if (err) {
-                console.log('An error occurred while writing populations to JSON file.')
-            }
-            console.log('Populations JSON file has been saved.')
-        })
-    }
-
-    @action public exportPopulationsToCSV = (filename: string): void => {
-        let data: string[][] = []
+    public getSelectedPopulationsAsArray = (): string[][] => {
+        let asArray: string[][] = []
         this.selectedPopulations.map(
             (population: SelectedPopulation): void => {
                 population.selectedSegments.map(
                     (segmentId: number): void => {
-                        data.push([segmentId.toString(), population.name])
+                        asArray.push([segmentId.toString(), population.name])
                     },
                 )
             },
         )
-        stringify(
-            data,
-            { header: false },
-            (err, output): void => {
-                if (err) console.log('Error exporting populations to CSV ' + err)
-                fs.writeFile(
-                    filename,
-                    output,
-                    (err): void => {
-                        if (err) console.log('Error exporting populations to CSV ' + err)
-                    },
-                )
-            },
-        )
+        return asArray
     }
 }
