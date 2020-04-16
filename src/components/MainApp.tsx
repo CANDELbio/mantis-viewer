@@ -56,66 +56,66 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     // Reverse ImageChannels so that select order is RGBCMYK
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
-    private notEnoughSpaceForChannelAndControls = () => {
-        let windowHeight = this.props.projectStore.windowHeight
+    private notEnoughSpaceForChannelAndControls = (): boolean => {
+        const windowHeight = this.props.projectStore.windowHeight
         if (windowHeight && windowHeight < ChannelControlsCombinedHeight) return true
         return false
     }
 
     // If opening channels, close image controls
-    private handleChannelClick = () => {
-        let newChannelsOpenValue = !this.state.channelsOpen
+    private handleChannelClick = (): void => {
+        const newChannelsOpenValue = !this.state.channelsOpen
         this.setState({ channelsOpen: newChannelsOpenValue })
         if (newChannelsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ controlsOpen: false })
     }
     // If opening image controls, close channels
-    private handleControlsClick = () => {
-        let newControlsOpenValue = !this.state.controlsOpen
+    private handleControlsClick = (): void => {
+        const newControlsOpenValue = !this.state.controlsOpen
         this.setState({ controlsOpen: newControlsOpenValue })
         if (newControlsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ channelsOpen: false })
     }
-    private handleRegionsClick = () => this.setState({ regionsOpen: !this.state.regionsOpen })
-    private handlePlotClick = () => this.setState({ plotOpen: !this.state.plotOpen })
+    private handleRegionsClick = (): void => this.setState({ regionsOpen: !this.state.regionsOpen })
+    private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
 
-    private addSelectionFromGraph = (segmentIds: number[]) => {
-        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
+    private addSelectionFromGraph = (segmentIds: number[]): void => {
+        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
         if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
     }
 
-    private addSelectionFromImage = (selectedRegion: number[], segmentIds: number[], color: number) => {
-        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
+    private addSelectionFromImage = (selectedRegion: number[], segmentIds: number[], color: number): void => {
+        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
         populationStore.addSelectedPopulation(selectedRegion, segmentIds, ImageSelectionPrefix, null, color)
     }
 
-    private updateSelectionsFromImage = (selected: SelectedPopulation[]) => {
-        let populationStore = this.props.projectStore.activeImageSetStore.populationStore
+    private updateSelectionsFromImage = (selected: SelectedPopulation[]): void => {
+        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
         populationStore.setSelectedPopulations(selected)
     }
 
     private getChannelMin(s: ChannelName): number {
-        let settingStore = this.props.projectStore.settingStore
-        let imageStore = this.props.projectStore.activeImageSetStore.imageStore
-        let channelMarker = settingStore.channelMarker[s]
+        const settingStore = this.props.projectStore.settingStore
+        const imageStore = this.props.projectStore.activeImageSetStore.imageStore
+        const channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
-            let minmax = imageStore.imageData.minmax[channelMarker]
+            const minmax = imageStore.imageData.minmax[channelMarker]
             if (minmax) return imageStore.imageData.minmax[channelMarker].min
         }
         return 0
     }
 
     private getChannelMax(s: ChannelName): number {
-        let settingStore = this.props.projectStore.settingStore
-        let imageStore = this.props.projectStore.activeImageSetStore.imageStore
-        let channelMarker = settingStore.channelMarker[s]
+        const settingStore = this.props.projectStore.settingStore
+        const imageStore = this.props.projectStore.activeImageSetStore.imageStore
+        const channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
-            let minmax = imageStore.imageData.minmax[channelMarker]
+            const minmax = imageStore.imageData.minmax[channelMarker]
             if (minmax) return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
     }
 
     public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
-        let windowHeight = props.projectStore.windowHeight
+        const windowHeight = props.projectStore.windowHeight
         // If window height is defined, and we are now too short for both image controls and channels to be open, close controls.
         if (windowHeight && windowHeight < ChannelControlsCombinedHeight && state.channelsOpen && state.controlsOpen)
             return {
@@ -125,13 +125,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
 
     public render(): React.ReactNode {
-        let projectStore = this.props.projectStore
-        let imageSetStore = this.props.projectStore.activeImageSetStore
-        let imageStore = imageSetStore.imageStore
-        let segmentationStore = imageSetStore.segmentationStore
-        let populationStore = imageSetStore.populationStore
-        let plotStore = imageSetStore.plotStore
-        let settingStore = projectStore.settingStore
+        const projectStore = this.props.projectStore
+        const imageSetStore = this.props.projectStore.activeImageSetStore
+        const imageStore = imageSetStore.imageStore
+        const segmentationStore = imageSetStore.segmentationStore
+        const populationStore = imageSetStore.populationStore
+        const plotStore = imageSetStore.plotStore
+        const settingStore = projectStore.settingStore
 
         let imageViewer = null
         let imageMessage = null
@@ -154,11 +154,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         )
 
         if (imageStore.imageData != null) {
-            let markerNames = imageStore.imageData.markerNames
+            const markerNames = imageStore.imageData.markerNames
             if (markerNames.length > 0) {
                 channelControls = this.imageChannelsForControls.map((s: ChannelName) => {
-                    let channelMarker = settingStore.channelMarker[s]
-                    let selectedMarker = channelMarker && markerNames.includes(channelMarker) ? channelMarker : null
+                    const channelMarker = settingStore.channelMarker[s]
+                    const selectedMarker = channelMarker && markerNames.includes(channelMarker) ? channelMarker : null
                     return (
                         <div className="grey-card channel-controls" key={s}>
                             <ChannelControls
@@ -189,7 +189,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
                         centroidsVisible={settingStore.segmentationCentroidsVisible}
                         setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
-                        onClearSegmentation={() => {
+                        onClearSegmentation={(): void => {
                             projectStore.setClearSegmentationRequested(true)
                         }}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
@@ -282,7 +282,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             }
         }
 
-        let selectedPopulations = (
+        const selectedPopulations = (
             <SelectedPopulations
                 populations={populationStore.selectedPopulations}
                 updateName={populationStore.updateSelectedPopulationName}
@@ -295,17 +295,17 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             />
         )
 
-        let fullWidth = { width: '100%' }
-        let fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
-        let paddingStyle = { paddingTop: '8px' }
+        const fullWidth = { width: '100%' }
+        const fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
+        const paddingStyle = { paddingTop: '8px' }
 
-        let displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
+        const displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
 
-        let imageDataLoading = imageStore.imageDataLoading
-        let segmentationDataLoading = segmentationStore.segmentationDataLoading
+        const imageDataLoading = imageStore.imageDataLoading
+        const segmentationDataLoading = segmentationStore.segmentationDataLoading
 
-        let numExported = projectStore.numExported
-        let numToExport = projectStore.numToExport
+        const numExported = projectStore.numExported
+        const numToExport = projectStore.numToExport
 
         return (
             <div>

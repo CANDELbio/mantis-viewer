@@ -12,14 +12,14 @@ import { DefaultSelectionId, DefaultSelectionColor, NumHistogramBins } from '../
 
 // Builds a map of segment id/number to an array the regions of interest id it belongs to.
 function buildSegmentToSelectedRegionMap(selectedRegion: SelectedPopulation[] | null): { [key: number]: string[] } {
-    let map: { [key: number]: string[] } = {}
+    const map: { [key: number]: string[] } = {}
     if (selectedRegion != null) {
         // Iterate through the regions of interest
-        for (let region of selectedRegion) {
-            let regionSelectedSegments = region.selectedSegments
+        for (const region of selectedRegion) {
+            const regionSelectedSegments = region.selectedSegments
             if (regionSelectedSegments != null) {
                 // Iterate over the segmentIds selected in the region
-                for (let segmentId of regionSelectedSegments) {
+                for (const segmentId of regionSelectedSegments) {
                     if (!(segmentId in map)) map[segmentId] = []
                     map[segmentId].push(region.id)
                 }
@@ -30,7 +30,7 @@ function buildSegmentToSelectedRegionMap(selectedRegion: SelectedPopulation[] | 
 }
 
 function hexToPlotlyRGB(hex: number): string {
-    let rgb = hexToRGB(hex)
+    const rgb = hexToRGB(hex)
     return 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'
 }
 
@@ -45,7 +45,7 @@ function getSelectionColor(selectionId: string, selectedRegionMap: { [key: strin
 }
 
 function newPlotDatum(numValues: number): { values: number[][]; text: string[] } {
-    let values = []
+    const values = []
     for (let i = 0; i < numValues; i++) {
         values.push([])
     }
@@ -68,17 +68,17 @@ function calculateRawPlotData(
 } {
     // A map of the data to be used in the plot.
     // Maps selection name (either all segments or the name of a selected region) to a set of data.
-    let plotData: {
+    const plotData: {
         [key: string]: {
             values: number[][]
             text: string[]
         }
     } = {}
 
-    let regionMap = buildSegmentToSelectedRegionMap(selectedPopulations)
+    const regionMap = buildSegmentToSelectedRegionMap(selectedPopulations)
 
     // Iterate through all of the segments/cells in the segmentation data
-    for (let segment in segmentationData.centroidMap) {
+    for (const segment in segmentationData.centroidMap) {
         // Generate a list of all of the selections/ROIs that this segment is in.
         let selections = [DefaultSelectionId]
         if (segment in regionMap) {
@@ -86,8 +86,8 @@ function calculateRawPlotData(
         }
 
         // Calculate the mean or median intensity of the pixels in the segment
-        let curValues = []
-        for (let marker of markers) {
+        const curValues = []
+        for (const marker of markers) {
             curValues.push(
                 getSegmentIntensity(
                     plotStatistic,
@@ -104,11 +104,11 @@ function calculateRawPlotData(
         // Being able to select points on the plot relies on the text being formatted
         // as a space delimited string with the last element being the segment id
         // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
-        for (let selectionId of selections) {
+        for (const selectionId of selections) {
             if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(markers.length)
             plotData[selectionId].text.push('Segment ' + segment)
-            for (let i in curValues) {
-                let v = curValues[i]
+            for (const i in curValues) {
+                const v = curValues[i]
                 plotData[selectionId].values[i].push(v)
             }
         }
@@ -128,7 +128,7 @@ export function calculatePlotData(
     selectedRegions: SelectedPopulation[] | null,
     dotSize?: number,
 ): Partial<Plotly.PlotData>[] {
-    let rawPlotData = calculateRawPlotData(
+    const rawPlotData = calculateRawPlotData(
         markers,
         segmentationData,
         segmentationStatistics,
@@ -138,30 +138,30 @@ export function calculatePlotData(
         selectedRegions,
     )
 
-    let plotData = Array<Plotly.Data>()
+    const plotData = Array<Plotly.Data>()
 
-    let marker = markers[0]
-    let minMax =
+    const marker = markers[0]
+    const minMax =
         plotStatistic == 'mean'
             ? segmentationStatistics.meanMinMaxMap[marker]
             : segmentationStatistics.medianMinMaxMap[marker]
 
     // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
-    let sortedSelectionIds = buildSelectionIdArray(selectedRegions)
+    const sortedSelectionIds = buildSelectionIdArray(selectedRegions)
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
-    let selectedRegionMap = buildSelectedRegionMap(selectedRegions)
+    const selectedRegionMap = buildSelectedRegionMap(selectedRegions)
 
     // Converting from the plotData map to an array of the format that can be passed to Plotly.
-    for (let selectionId of sortedSelectionIds) {
-        let selectionData = rawPlotData[selectionId]
-        let numSelectionValues = selectionData.values.length
+    for (const selectionId of sortedSelectionIds) {
+        const selectionData = rawPlotData[selectionId]
+        const numSelectionValues = selectionData.values.length
 
         let plotlyType: Plotly.PlotData['type'] = 'histogram'
         if (plotType == 'scatter') plotlyType = 'scattergl'
         if (plotType == 'contour') plotlyType = 'scatter'
 
-        let trace: Partial<Plotly.Data> = {
+        const trace: Partial<Plotly.Data> = {
             x: selectionData.values[0],
             y: numSelectionValues > 1 ? selectionData.values[1] : undefined,
             mode: 'markers',
@@ -187,15 +187,19 @@ export function calculatePlotData(
     }
 
     if (plotType == 'contour') {
-        let allData = rawPlotData[DefaultSelectionId]
-        let contourTrace: Partial<Plotly.Data> = {
+        const allData = rawPlotData[DefaultSelectionId]
+        const contourTrace: Partial<Plotly.Data> = {
             x: allData.values[0],
             y: allData.values[1],
             name: 'density',
             ncontours: 30,
-            colorscale: [[0.0, 'rgb(255, 255, 255)'], [1.0, 'rgb(255, 255, 255)']],
+            colorscale: [
+                [0.0, 'rgb(255, 255, 255)'],
+                [1.0, 'rgb(255, 255, 255)'],
+            ],
             reversescale: true,
             showscale: false,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             //@ts-ignore
             type: 'histogram2dcontour',
         }
@@ -214,7 +218,7 @@ export function buildHistogramData(
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
-    let data = calculatePlotData(
+    const data = calculatePlotData(
         markers,
         segmentationData,
         segmentationStatistics,
@@ -224,7 +228,7 @@ export function buildHistogramData(
         transformCoefficient,
         selectedPopulations,
     )
-    let layout: Partial<Plotly.Layout> = {
+    const layout: Partial<Plotly.Layout> = {
         title: markers[0],
         xaxis: { title: markers[0], automargin: true },
         barmode: 'overlay',
@@ -243,7 +247,7 @@ export function buildScatterData(
     selectedPopulations: SelectedPopulation[] | null,
     dotSize?: number,
 ): PlotData {
-    let data = calculatePlotData(
+    const data = calculatePlotData(
         markers,
         segmentationData,
         segmentationStatistics,
@@ -262,7 +266,7 @@ export function buildScatterData(
         yAxis = { ...yAxis, showgrid: false, zeroline: false }
     }
 
-    let layout: Partial<Plotly.Layout> = {
+    const layout: Partial<Plotly.Layout> = {
         title: markers[0] + ' versus ' + markers[1],
         xaxis: xAxis,
         yaxis: yAxis,

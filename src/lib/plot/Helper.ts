@@ -5,9 +5,9 @@ import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/Plot
 import { PlotTransform, PlotStatistic } from '../../definitions/UIDefinitions'
 
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
-    let selectionIds = [DefaultSelectionId]
+    const selectionIds = [DefaultSelectionId]
     if (selectedPopulations != null) {
-        let sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b: SelectedPopulation) => {
+        const sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b: SelectedPopulation) => {
             return a.renderOrder > b.renderOrder ? 1 : -1
         })
         sortedRegions.map((value: SelectedPopulation) => {
@@ -21,9 +21,9 @@ export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] 
 export function buildSelectedRegionMap(
     selectedRegion: SelectedPopulation[] | null,
 ): { [key: string]: SelectedPopulation } {
-    let map: { [key: string]: SelectedPopulation } = {}
+    const map: { [key: string]: SelectedPopulation } = {}
     if (selectedRegion != null) {
-        for (let region of selectedRegion) {
+        for (const region of selectedRegion) {
             map[region.id] = region
         }
     }

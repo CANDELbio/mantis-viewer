@@ -9,13 +9,13 @@ import { buildSelectionIdArray, buildSelectedRegionMap, getSegmentIntensity, get
 import { DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
 
 function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
-    let markerSums: number[] = new Array(intensities[0].length).fill(0)
+    const markerSums: number[] = new Array(intensities[0].length).fill(0)
     intensities.map((population: number[]) => {
         population.map((value: number, index: number) => {
             markerSums[index] += value
         })
     })
-    let markerMeans = markerSums.map((sum: number) => {
+    const markerMeans = markerSums.map((sum: number) => {
         return sum / intensities.length
     })
     return intensities.map((population: number[]) => {
@@ -27,7 +27,7 @@ function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
 
 function normalizeIntensitiesByPopulation(intensities: number[][]): number[][] {
     return intensities.map((population: number[]) => {
-        let populationMean = calculateMean(population)
+        const populationMean = calculateMean(population)
         return population.map((value: number) => {
             return value / populationMean
         })
@@ -53,22 +53,22 @@ function calculateHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
-    let markers = segmentationStatistics.markers
-    let selectionIds = buildSelectionIdArray(selectedPopulations)
-    let intensities = []
+    const markers = segmentationStatistics.markers
+    const selectionIds = buildSelectionIdArray(selectedPopulations)
+    const intensities = []
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
-    let selectedRegionMap = buildSelectedRegionMap(selectedPopulations)
+    const selectedRegionMap = buildSelectedRegionMap(selectedPopulations)
 
-    for (let selectionId of selectionIds) {
+    for (const selectionId of selectionIds) {
         // If we have the default selection id use all segment ids, otherwise get segments for the current selection
-        let selectedSegments =
+        const selectedSegments =
             selectionId == DefaultSelectionId
                 ? segmentationData.segmentIds
                 : selectedRegionMap[selectionId].selectedSegments
-        let markerIntensities = []
-        for (let marker of markers) {
-            let intensity = getSegmentIntensity(
+        const markerIntensities = []
+        for (const marker of markers) {
+            const intensity = getSegmentIntensity(
                 plotStatistic,
                 marker,
                 selectedSegments,
@@ -81,7 +81,7 @@ function calculateHeatmapData(
         intensities.push(markerIntensities)
     }
 
-    let heatmapData = Array<Plotly.Data>()
+    const heatmapData = Array<Plotly.Data>()
 
     // TO-DO: y should be selection names.
     heatmapData.push({
@@ -106,7 +106,7 @@ export function buildHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
-    let data = calculateHeatmapData(
+    const data = calculateHeatmapData(
         segmentationData,
         segmentationStatistics,
         plotStatistic,
@@ -115,7 +115,7 @@ export function buildHeatmapData(
         plotNormalization,
         selectedPopulations,
     )
-    let layout = {
+    const layout = {
         title: 'Heatmap of Marker Intensity',
         xaxis: { tickangle: 45, automargin: true },
         yaxis: { tickangle: 45, automargin: true },

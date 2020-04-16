@@ -1,7 +1,5 @@
 import { observable, action } from 'mobx'
-import * as fs from 'fs'
 import * as shortId from 'shortid'
-import * as stringify from 'csv-stringify'
 import * as _ from 'underscore'
 
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
@@ -22,7 +20,7 @@ export class PopulationStore {
     }
 
     private newROIName(renderOrder: number, namePrefix: string | null): string {
-        let name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
+        const name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
         return name + renderOrder.toString()
     }
 
@@ -33,7 +31,7 @@ export class PopulationStore {
     }
 
     private getRenderOrder(): number {
-        let renderOrders = _.pluck(this.selectedPopulations, 'renderOrder')
+        const renderOrders = _.pluck(this.selectedPopulations, 'renderOrder')
         if (renderOrders.length > 0) return Math.max(...renderOrders) + 1
         return 1
     }
@@ -47,8 +45,8 @@ export class PopulationStore {
         name?: string | null,
         color?: number | null,
     ): SelectedPopulation => {
-        let order = this.getRenderOrder()
-        let newRegion = {
+        const order = this.getRenderOrder()
+        const newRegion = {
             id: shortId.generate(),
             renderOrder: order,
             selectedRegion: selectedRegion,
@@ -87,7 +85,7 @@ export class PopulationStore {
         if (this.selectedPopulations != null) {
             // Work around to trigger selectedPopulations change
             // TODO: Try replacing selectedPopulations with non ref and use Mobx toJS to send values to plot window.
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 if (region.id == id) {
                     region.name = newName
                     return region
@@ -100,7 +98,7 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 if (region.id == id) {
                     region.color = color
                     return region
@@ -113,7 +111,7 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 if (region.id == id) {
                     region.visible = visible
                     return region
@@ -126,7 +124,7 @@ export class PopulationStore {
 
     @action public setAllSelectedPopulationVisibility = (visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 region.visible = visible
                 return region
             })
@@ -135,7 +133,7 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function(region): SelectedPopulation {
+            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 if (region.id == id) {
                     region.selectedSegments = segments
                     return region
@@ -147,16 +145,12 @@ export class PopulationStore {
     }
 
     public getSelectedPopulationsAsArray = (): string[][] => {
-        let asArray: string[][] = []
-        this.selectedPopulations.map(
-            (population: SelectedPopulation): void => {
-                population.selectedSegments.map(
-                    (segmentId: number): void => {
-                        asArray.push([segmentId.toString(), population.name])
-                    },
-                )
-            },
-        )
+        const asArray: string[][] = []
+        this.selectedPopulations.map((population: SelectedPopulation): void => {
+            population.selectedSegments.map((segmentId: number): void => {
+                asArray.push([segmentId.toString(), population.name])
+            })
+        })
         return asArray
     }
 }

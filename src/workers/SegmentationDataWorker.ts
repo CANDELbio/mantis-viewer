@@ -41,7 +41,7 @@ export class SegmentationDataWorker {
         this.worker = new Worker()
         this.worker.addEventListener(
             'message',
-            function(e: { data: SegmentationDataWorkerResult | SegmentationDataWorkerError }) {
+            function (e: { data: SegmentationDataWorkerResult | SegmentationDataWorkerError }) {
                 onComplete(e.data)
             },
             false,

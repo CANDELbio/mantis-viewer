@@ -29,7 +29,7 @@ export class ImageStore {
     } | null
 
     @computed public get channelDomain(): Record<ChannelName, [number, number]> {
-        let results: Record<ChannelName, [number, number]> = {
+        const results: Record<ChannelName, [number, number]> = {
             rChannel: [0, 100],
             gChannel: [0, 100],
             bChannel: [0, 100],
@@ -38,14 +38,14 @@ export class ImageStore {
             yChannel: [0, 100],
             kChannel: [0, 100],
         }
-        let settingStore = this.imageSetStore.projectStore.settingStore
-        for (let channel of ImageChannels) {
-            let channelMarker = settingStore.channelMarker[channel]
+        const settingStore = this.imageSetStore.projectStore.settingStore
+        for (const channel of ImageChannels) {
+            const channelMarker = settingStore.channelMarker[channel]
             if (this.imageData && channelMarker) {
-                let channelMinMax = this.imageData.minmax[channelMarker]
+                const channelMinMax = this.imageData.minmax[channelMarker]
                 if (channelMinMax) {
-                    let channelMax = channelMinMax.max
-                    let channelDomainPercentage = settingStore.channelDomainPercentage[channel]
+                    const channelMax = channelMinMax.max
+                    const channelDomainPercentage = settingStore.channelDomainPercentage[channel]
                     results[channel][0] = channelMax * channelDomainPercentage[0]
                     results[channel][1] = channelMax * channelDomainPercentage[1]
                 }
@@ -54,15 +54,15 @@ export class ImageStore {
         return results
     }
 
-    @action private initialize = () => {
+    @action private initialize = (): void => {
         this.imageDataLoading = false
     }
 
-    @action public setImageDataLoading = (status: boolean) => {
+    @action public setImageDataLoading = (status: boolean): void => {
         this.imageDataLoading = status
     }
 
-    @action public setImageData = (data: ImageData) => {
+    @action public setImageData = (data: ImageData): void => {
         this.imageData = data
         // Segmentation data might have finished loading while image data was loading.
         // If this happens the segmentation file won't get removed from image data.
@@ -71,32 +71,32 @@ export class ImageStore {
         this.setImageDataLoading(false)
     }
 
-    @action public clearImageData = () => {
+    @action public clearImageData = (): void => {
         this.imageData = null
     }
 
-    @action public selectDirectory = (dirName: string) => {
+    @action public selectDirectory = (dirName: string): void => {
         this.selectedDirectory = dirName
         this.refreshImageData()
     }
 
-    @action public refreshImageData = () => {
+    @action public refreshImageData = (): void => {
         if (this.selectedDirectory != null && this.imageData == null) {
             this.setImageDataLoading(true)
-            let imageData = new ImageData()
+            const imageData = new ImageData()
             // Load image data in the background and set on the image store once it's loaded.
-            imageData.loadFolder(this.selectedDirectory, data => {
+            imageData.loadFolder(this.selectedDirectory, (data) => {
                 this.setImageData(data)
             })
         }
     }
 
-    @action public removeMarker = (markerName: string) => {
+    @action public removeMarker = (markerName: string): void => {
         if (this.imageData != null && markerName in this.imageData.data) {
-            let settingStore = this.imageSetStore.projectStore.settingStore
+            const settingStore = this.imageSetStore.projectStore.settingStore
             // Unset the marker if it is being used
-            for (let s of ImageChannels) {
-                let curChannel = s as ChannelName
+            for (const s of ImageChannels) {
+                const curChannel = s as ChannelName
                 if (settingStore.channelMarker[curChannel] == markerName) settingStore.unsetChannelMarker(curChannel)
             }
             // Delete it from image data
@@ -104,24 +104,27 @@ export class ImageStore {
         }
     }
 
-    @action public removeSegmentationFileFromImageData = () => {
-        let selectedSegmentationFile = this.imageSetStore.segmentationStore.selectedSegmentationFile
+    @action public removeSegmentationFileFromImageData = (): void => {
+        const selectedSegmentationFile = this.imageSetStore.segmentationStore.selectedSegmentationFile
         if (selectedSegmentationFile) {
-            let basename = path.parse(selectedSegmentationFile).name
+            const basename = path.parse(selectedSegmentationFile).name
             this.removeMarker(basename)
         }
     }
 
-    @action public setPositionAndScale = (position: { x: number; y: number }, scale: { x: number; y: number }) => {
+    @action public setPositionAndScale = (
+        position: { x: number; y: number },
+        scale: { x: number; y: number },
+    ): void => {
         this.position = position
         this.scale = scale
     }
 
-    @action public setImageExportFilename = (fName: string) => {
+    @action public setImageExportFilename = (fName: string): void => {
         this.imageExportFilename = fName
     }
 
-    @action public clearImageExportFilename = () => {
+    @action public clearImageExportFilename = (): void => {
         this.imageExportFilename = null
     }
 }

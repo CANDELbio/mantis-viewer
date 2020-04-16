@@ -27,7 +27,7 @@ let segmentationLoaded = false
 let populationsSelected = false
 
 function debugging(): boolean {
-    let argv = process.argv
+    const argv = process.argv
     if (argv.length > 2 && argv[2] == 'debug') {
         return true
     }
@@ -37,15 +37,15 @@ function debugging(): boolean {
 function openImageSet(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
-            let message =
+            const message =
                 'Warning: Opening a new image set will close all open image sets. Are you sure you wish to do this?'
-            dialog.showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] }).then(
-                (value: Electron.MessageBoxReturnValue): void => {
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
                         if (mainWindow != null) mainWindow.webContents.send('open-image-set', path)
                     }
-                },
-            )
+                })
         } else {
             mainWindow.webContents.send('open-image-set', path)
         }
@@ -55,15 +55,15 @@ function openImageSet(path: string): void {
 function openProject(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
-            let message =
+            const message =
                 'Warning: Opening a new project will close all open image sets. Are you sure you wish to do this?'
-            dialog.showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] }).then(
-                (value: Electron.MessageBoxReturnValue): void => {
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
                         if (mainWindow != null) mainWindow.webContents.send('open-project', path)
                     }
-                },
-            )
+                })
         } else {
             mainWindow.webContents.send('open-project', path)
         }
@@ -73,15 +73,15 @@ function openProject(path: string): void {
 function openSegmentation(path: string): void {
     if (mainWindow != null) {
         if (segmentationLoaded) {
-            let message =
+            const message =
                 "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
-            dialog.showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] }).then(
-                (value: Electron.MessageBoxReturnValue): void => {
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
                         if (mainWindow != null) mainWindow.webContents.send('open-segmentation-file', path)
                     }
-                },
-            )
+                })
         } else {
             mainWindow.webContents.send('open-segmentation-file', path)
         }
@@ -89,17 +89,15 @@ function openSegmentation(path: string): void {
 }
 
 function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?: string): () => void {
-    let dialogOptions: Electron.OpenDialogOptions = { properties: ['openDirectory'] }
+    const dialogOptions: Electron.OpenDialogOptions = { properties: ['openDirectory'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
     return (): void => {
-        dialog.showOpenDialog(dialogOptions).then(
-            (value: Electron.OpenDialogReturnValue): void => {
-                let filePaths = value.filePaths
-                if (mainWindow != null && filePaths && filePaths[0]) {
-                    callback(filePaths[0])
-                }
-            },
-        )
+        dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue): void => {
+            const filePaths = value.filePaths
+            if (mainWindow != null && filePaths && filePaths[0]) {
+                callback(filePaths[0])
+            }
+        })
     }
 }
 
@@ -108,36 +106,32 @@ function showOpenFileDialog(
     defaultPath?: string,
     fileType?: string,
 ): () => void {
-    let dialogOptions: Electron.OpenDialogOptions = { properties: ['openFile'] }
+    const dialogOptions: Electron.OpenDialogOptions = { properties: ['openFile'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
     if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
     return (): void => {
-        dialog.showOpenDialog(dialogOptions).then(
-            (value: Electron.OpenDialogReturnValue): void => {
-                let filePaths = value.filePaths
-                if (mainWindow != null && filePaths && filePaths[0]) {
-                    if (typeof action == 'string') {
-                        mainWindow.webContents.send(action, filePaths[0])
-                    } else {
-                        action(filePaths[0])
-                    }
+        dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue): void => {
+            const filePaths = value.filePaths
+            if (mainWindow != null && filePaths && filePaths[0]) {
+                if (typeof action == 'string') {
+                    mainWindow.webContents.send(action, filePaths[0])
+                } else {
+                    action(filePaths[0])
                 }
-            },
-        )
+            }
+        })
     }
 }
 
 function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fileType?: string): () => void {
-    let dialogOptions: Electron.SaveDialogOptions = {}
+    const dialogOptions: Electron.SaveDialogOptions = {}
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
     if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
     return (): void => {
-        dialog.showSaveDialog(dialogOptions).then(
-            (value: Electron.SaveDialogReturnValue): void => {
-                let filename = value.filePath
-                if (mainWindow != null && filename != null) mainWindow.webContents.send(ipcMessageName, filename)
-            },
-        )
+        dialog.showSaveDialog(dialogOptions).then((value: Electron.SaveDialogReturnValue): void => {
+            const filename = value.filePath
+            if (mainWindow != null && filename != null) mainWindow.webContents.send(ipcMessageName, filename)
+        })
     }
 }
 
@@ -391,21 +385,21 @@ function generateMenuTemplate(): any {
 }
 
 function setMenu(): void {
-    let menuTemplate = generateMenuTemplate()
+    const menuTemplate = generateMenuTemplate()
     const menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(menu)
 }
 
 function sendMainWindowSize(): void {
     if (mainWindow != null) {
-        let dimensions = mainWindow.getSize()
+        const dimensions = mainWindow.getSize()
         mainWindow.webContents.send('window-size', dimensions[0], dimensions[1])
     }
 }
 
 function sendPlotWindowSize(): void {
     if (plotWindow != null) {
-        let dimensions = plotWindow.getSize()
+        const dimensions = plotWindow.getSize()
         plotWindow.webContents.send('window-size', dimensions[0], dimensions[1])
     }
 }
@@ -462,7 +456,7 @@ function createMainWindow(): void {
     mainWindow.on('show', sendMainWindowSize)
 
     // Emitted when the window is closed.
-    mainWindow.on('closed', function(): void {
+    mainWindow.on('closed', function (): void {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -471,12 +465,9 @@ function createMainWindow(): void {
         closePreferencesWindow()
     })
 
-    mainWindow.on(
-        'ready-to-show',
-        (): void => {
-            if (mainWindow != null) mainWindow.show()
-        },
-    )
+    mainWindow.on('ready-to-show', (): void => {
+        if (mainWindow != null) mainWindow.show()
+    })
 }
 
 function createPlotWindow(): void {
@@ -504,7 +495,7 @@ function createPlotWindow(): void {
     plotWindow.on('show', sendPlotWindowSize)
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
-    plotWindow.on('close', function(event: Electron.Event): void {
+    plotWindow.on('close', function (event: Electron.Event): void {
         event.preventDefault()
         if (plotWindow != null) plotWindow.hide()
         if (mainWindow != null) mainWindow.webContents.send('plot-in-main-window', true)
@@ -531,7 +522,7 @@ function createPreferencesWindow(): void {
     if (debugging()) preferencesWindow.webContents.openDevTools()
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
-    preferencesWindow.on('close', function(event: Electron.Event): void {
+    preferencesWindow.on('close', function (event: Electron.Event): void {
         event.preventDefault()
         if (preferencesWindow != null) preferencesWindow.hide()
     })
@@ -545,7 +536,7 @@ app.on('ready', createPlotWindow)
 app.on('ready', createPreferencesWindow)
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function(): void {
+app.on('window-all-closed', function (): void {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -553,7 +544,7 @@ app.on('window-all-closed', function(): void {
     }
 })
 
-app.on('activate', function(): void {
+app.on('activate', function (): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) createMainWindow()
@@ -561,103 +552,73 @@ app.on('activate', function(): void {
     if (preferencesWindow === null) createPreferencesWindow()
 })
 
-app.on(
-    'before-quit',
-    (): void => {
-        closePlotWindow()
-        closePreferencesWindow()
-    },
-)
+app.on('before-quit', (): void => {
+    closePlotWindow()
+    closePreferencesWindow()
+})
 
 //Functions for setting menu flags and regenerating the menu
-ipcMain.on(
-    'set-image-loaded',
-    (event: Electron.Event, loaded: boolean): void => {
-        imageLoaded = loaded
-        setMenu()
-    },
-)
+ipcMain.on('set-image-loaded', (event: Electron.Event, loaded: boolean): void => {
+    imageLoaded = loaded
+    setMenu()
+})
 
-ipcMain.on(
-    'set-project-loaded',
-    (event: Electron.Event, loaded: boolean): void => {
-        projectLoaded = loaded
-        setMenu()
-    },
-)
+ipcMain.on('set-project-loaded', (event: Electron.Event, loaded: boolean): void => {
+    projectLoaded = loaded
+    setMenu()
+})
 
-ipcMain.on(
-    'set-segmentation-loaded',
-    (event: Electron.Event, loaded: boolean): void => {
-        segmentationLoaded = loaded
-        setMenu()
-    },
-)
+ipcMain.on('set-segmentation-loaded', (event: Electron.Event, loaded: boolean): void => {
+    segmentationLoaded = loaded
+    setMenu()
+})
 
-ipcMain.on(
-    'set-populations-selected',
-    (event: Electron.Event, selected: boolean): void => {
-        populationsSelected = selected
-        setMenu()
-    },
-)
+ipcMain.on('set-populations-selected', (event: Electron.Event, selected: boolean): void => {
+    populationsSelected = selected
+    setMenu()
+})
 
-ipcMain.on(
-    'set-active-image-directory',
-    (event: Electron.Event, directory: string): void => {
-        activeImageDirectory = directory
-        setMenu()
-    },
-)
+ipcMain.on('set-active-image-directory', (event: Electron.Event, directory: string): void => {
+    activeImageDirectory = directory
+    setMenu()
+})
 
-ipcMain.on(
-    'set-project-directory',
-    (event: Electron.Event, directory: string): void => {
-        projectDirectory = directory
-        setMenu()
-    },
-)
+ipcMain.on('set-project-directory', (event: Electron.Event, directory: string): void => {
+    projectDirectory = directory
+    setMenu()
+})
 
 // Show an error dialog with the message passed in.
-ipcMain.on(
-    'mainWindow-show-error-dialog',
-    (event: Electron.Event, message: string): void => {
-        if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'error', message: message })
-    },
-)
+ipcMain.on('mainWindow-show-error-dialog', (event: Electron.Event, message: string): void => {
+    if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'error', message: message })
+})
 
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
-ipcMain.on(
-    'mainWindow-show-remove-image-dialog',
-    (event: Electron.Event, message: string): void => {
-        if (mainWindow != null)
-            dialog.showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] }).then(
-                (value: Electron.MessageBoxReturnValue): void => {
-                    if (value.response == 1) {
-                        if (mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
-                    }
-                },
-            )
-    },
-)
+ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, message: string): void => {
+    if (mainWindow != null)
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (value.response == 1) {
+                    if (mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
+                }
+            })
+})
 
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
-ipcMain.on(
-    'mainWindow-show-remove-segmentation-dialog',
-    (): void => {
-        if (mainWindow != null) {
-            let message =
-                "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
-            dialog.showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] }).then(
-                (value: Electron.MessageBoxReturnValue): void => {
-                    if (value.response == 1) {
-                        if (mainWindow != null) mainWindow.webContents.send('clear-segmentation')
-                    }
-                },
-            )
-        }
-    },
-)
+ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
+    if (mainWindow != null) {
+        const message =
+            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (value.response == 1) {
+                    if (mainWindow != null) mainWindow.webContents.send('clear-segmentation')
+                }
+            })
+    }
+})
 
 // Functions to relay data from the mainWindow to the plotWindow
 ipcMain.on(
@@ -691,75 +652,45 @@ ipcMain.on(
 )
 
 // Functions to relay data from the plotWindow to the mainWindow
-ipcMain.on(
-    'plotWindow-set-markers',
-    (event: Electron.Event, markers: string[]): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-markers', markers)
-    },
-)
+ipcMain.on('plotWindow-set-markers', (event: Electron.Event, markers: string[]): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-markers', markers)
+})
 
-ipcMain.on(
-    'plotWindow-set-statistic',
-    (event: Electron.Event, statistic: any): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-statistic', statistic)
-    },
-)
+ipcMain.on('plotWindow-set-statistic', (event: Electron.Event, statistic: any): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-statistic', statistic)
+})
 
-ipcMain.on(
-    'plotWindow-set-transform',
-    (event: Electron.Event, transform: any): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-transform', transform)
-    },
-)
+ipcMain.on('plotWindow-set-transform', (event: Electron.Event, transform: any): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-transform', transform)
+})
 
-ipcMain.on(
-    'plotWindow-set-type',
-    (event: Electron.Event, type: any): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-type', type)
-    },
-)
+ipcMain.on('plotWindow-set-type', (event: Electron.Event, type: any): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-type', type)
+})
 
-ipcMain.on(
-    'plotWindow-set-dot-size',
-    (event: Electron.Event, size: number): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-dot-size', size)
-    },
-)
+ipcMain.on('plotWindow-set-dot-size', (event: Electron.Event, size: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-dot-size', size)
+})
 
-ipcMain.on(
-    'plotWindow-set-normalization',
-    (event: Electron.Event, normalization: any): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-normalization', normalization)
-    },
-)
+ipcMain.on('plotWindow-set-normalization', (event: Electron.Event, normalization: any): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-normalization', normalization)
+})
 
-ipcMain.on(
-    'plotWindow-add-selected-population',
-    (event: Electron.Event, segmentIds: number[]): void => {
-        if (mainWindow != null) mainWindow.webContents.send('add-plot-selected-population', segmentIds)
-    },
-)
+ipcMain.on('plotWindow-add-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
+    if (mainWindow != null) mainWindow.webContents.send('add-plot-selected-population', segmentIds)
+})
 
-ipcMain.on(
-    'plotWindow-set-hovered-segments',
-    (event: Electron.Event, segmentIds: number[]): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-hovered-segments', segmentIds)
-    },
-)
+ipcMain.on('plotWindow-set-hovered-segments', (event: Electron.Event, segmentIds: number[]): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-hovered-segments', segmentIds)
+})
 
-ipcMain.on(
-    'plotWindow-add-population-from-range',
-    (event: Electron.Event, min: number, max: number): void => {
-        if (mainWindow != null) mainWindow.webContents.send('add-plot-population-from-range', min, max)
-    },
-)
+ipcMain.on('plotWindow-add-population-from-range', (event: Electron.Event, min: number, max: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('add-plot-population-from-range', min, max)
+})
 
-ipcMain.on(
-    'plotWindow-set-coefficient',
-    (event: Electron.Event, coefficient: number): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-plot-coefficient', coefficient)
-    },
-)
+ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-coefficient', coefficient)
+})
 
 // Functions to relay data from the mainWindow to the preferencesWindow
 ipcMain.on(
@@ -785,19 +716,13 @@ ipcMain.on(
 )
 
 // Functions to relay data from the preferencesWindow to the mainWindow
-ipcMain.on(
-    'preferencesWindow-set-max-image-sets',
-    (event: Electron.Event, max: number): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-max-image-sets', max)
-    },
-)
+ipcMain.on('preferencesWindow-set-max-image-sets', (event: Electron.Event, max: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-max-image-sets', max)
+})
 
-ipcMain.on(
-    'preferencesWindow-set-segmentation',
-    (event: Electron.Event, basename: string): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-default-segmentation', basename)
-    },
-)
+ipcMain.on('preferencesWindow-set-segmentation', (event: Electron.Event, basename: string): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-default-segmentation', basename)
+})
 
 ipcMain.on(
     'preferencesWindow-set-channel-markers',
@@ -813,9 +738,6 @@ ipcMain.on(
     },
 )
 
-ipcMain.on(
-    'preferencesWindow-set-use-any-marker',
-    (event: Electron.Event, channel: string, useAny: boolean): void => {
-        if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
-    },
-)
+ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
+})

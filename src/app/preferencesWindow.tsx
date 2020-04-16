@@ -10,23 +10,23 @@ let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
 
-let setMaxImageSetsInMemory = (max: number): void => {
+const setMaxImageSetsInMemory = (max: number): void => {
     ipcRenderer.send('preferencesWindow-set-max-image-sets', max)
 }
 
-let setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
+const setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
     ipcRenderer.send('preferencesWindow-set-channel-markers', channel, markers)
 }
 
-let setDefaultChannelDomain = (channel: ChannelName, domain: [number, number]): void => {
+const setDefaultChannelDomain = (channel: ChannelName, domain: [number, number]): void => {
     ipcRenderer.send('preferencesWindow-set-channel-domain', channel, domain)
 }
 
-let setDefaultSegmentation = (basename: string): void => {
+const setDefaultSegmentation = (basename: string): void => {
     ipcRenderer.send('preferencesWindow-set-segmentation', basename)
 }
 
-let setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => {
+const setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-use-any-marker', channel, useAnyChannel)
 }
 

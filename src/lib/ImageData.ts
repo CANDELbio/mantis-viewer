@@ -37,7 +37,7 @@ export class ImageData {
     private onReady: (imageData: ImageData) => void
 
     public get markerNames(): string[] {
-        let markerNames = _.keys(this.data).sort()
+        const markerNames = _.keys(this.data).sort()
         return markerNames
     }
 
@@ -46,7 +46,7 @@ export class ImageData {
     }
 
     private fileLoadComplete(): void {
-        let markersLoaded = _.keys(this.data)
+        const markersLoaded = _.keys(this.data)
         // If the number of markers loaded is equal to the total number of markers we are done!
         if (markersLoaded.length == this.numMarkers) {
             this.onReady(this)
@@ -54,7 +54,7 @@ export class ImageData {
     }
 
     private async loadImageWorkerResults(imageData: ImageDataWorkerResult): Promise<void> {
-        let markerName = imageData.markerName
+        const markerName = imageData.markerName
         this.width = imageData.width
         this.height = imageData.height
         if (imageData.scaled) this.scaled = imageData.scaled
@@ -64,7 +64,7 @@ export class ImageData {
 
         // If the tiff that was just read contained multiple images, increase the number of markers we expect
         // and load the additional images in workers.
-        let numImages = imageData.numImages
+        const numImages = imageData.numImages
         if (!imageData.input.imageNumber || imageData.input.imageNumber == 0) {
             this.numMarkers += numImages - 1
             for (let i = 1; i < numImages; ++i) {
@@ -75,7 +75,7 @@ export class ImageData {
     }
 
     private async loadImageWorkerResultsError(imageError: ImageDataWorkerError): Promise<void> {
-        let err = imageError.markerName + ': ' + imageError.error
+        const err = imageError.markerName + ': ' + imageError.error
         this.errors.push(err)
         this.numMarkers -= 1
         this.fileLoadComplete()
@@ -113,7 +113,7 @@ export class ImageData {
     }
 
     private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber?: number): void {
-        let onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
+        const onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
             this.loadImageWorkerResultsCallback(data)
         }
         submitImageDataJob(
@@ -126,9 +126,9 @@ export class ImageData {
     public loadFolder(dirName: string, onReady: (imageData: ImageData) => void): void {
         this.onReady = onReady
 
-        let files = fs.readdirSync(dirName)
+        const files = fs.readdirSync(dirName)
 
-        let tiffs = files.filter(f => f.endsWith('.tiff') || f.endsWith('.tif'))
+        const tiffs = files.filter((f) => f.endsWith('.tiff') || f.endsWith('.tif'))
 
         // Store the number of tiffs being loaded so we know when all the background workers have finished
         this.numMarkers = tiffs.length
@@ -137,14 +137,14 @@ export class ImageData {
             // If no tiffs are present in the directory, just return an empty image data.
             this.onReady(this)
         } else {
-            let baseNames = tiffs.map((v: string) => {
+            const baseNames = tiffs.map((v: string) => {
                 return path.parse(v).name
             })
 
             // If there are any files with the same names and different extensions then we want to use extension for markerNames
-            let useExtInMarkerName = baseNames.length !== new Set(baseNames).size
+            const useExtInMarkerName = baseNames.length !== new Set(baseNames).size
 
-            tiffs.forEach(f => {
+            tiffs.forEach((f) => {
                 this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName)
             })
         }

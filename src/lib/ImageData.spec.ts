@@ -16,9 +16,9 @@ jest.mock(
 import * as path from 'path'
 import { ImageData } from './ImageData'
 
-test('loadFolder', function() {
-    let folder = path.join(process.cwd(), 'test/files/project/set_one')
-    let imageData = new ImageData()
+test('loadFolder', function () {
+    const folder = path.join(process.cwd(), 'test/files/project/set_one')
+    const imageData = new ImageData()
     imageData.loadFolder(folder, () => {
         console.log('Ready!')
     })

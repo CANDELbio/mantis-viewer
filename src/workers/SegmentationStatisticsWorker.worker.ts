@@ -8,16 +8,16 @@ import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 const ctx: Worker = self as any
 
 function meanPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, pixels: number[]): number {
-    let values = []
-    for (let curPixel of pixels) {
+    const values = []
+    for (const curPixel of pixels) {
         values.push(tiffData[curPixel])
     }
     return calculateMean(values)
 }
 
 function medianPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, pixels: number[]): number {
-    let values = []
-    for (let curPixel of pixels) {
+    const values = []
+    for (const curPixel of pixels) {
         values.push(tiffData[curPixel])
     }
     return calculateMedian(values)
@@ -32,9 +32,9 @@ function generateStatisticMap(
 ): { map: Record<string, number>; minMax: { min: number | null; max: number | null } } {
     let min: number | null = null
     let max: number | null = null
-    let statisticMap: Record<string, number> = {}
-    for (let segmentId in segmentIndexMap) {
-        let mapKey = marker + '_' + segmentId
+    const statisticMap: Record<string, number> = {}
+    for (const segmentId in segmentIndexMap) {
+        const mapKey = marker + '_' + segmentId
         let curIntensity: number | null = null
         if (statistic == 'mean') {
             curIntensity = meanPixelIntensity(tiffData, segmentIndexMap[segmentId])
@@ -55,9 +55,9 @@ function generateStatisticMap(
 
 ctx.addEventListener(
     'message',
-    message => {
-        let data: SegmentationStatisticsWorkerInput = message.data
-        let { map, minMax } = generateStatisticMap(data.marker, data.tiffData, data.segmentIndexMap, data.statistic)
+    (message) => {
+        const data: SegmentationStatisticsWorkerInput = message.data
+        const { map, minMax } = generateStatisticMap(data.marker, data.tiffData, data.segmentIndexMap, data.statistic)
         ctx.postMessage({
             jobId: data.jobId,
             statistic: data.statistic,

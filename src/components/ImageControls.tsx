@@ -33,17 +33,18 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
 
     private sliderMax = 10
 
-    private onFillAlphaSliderChange = (value: number) => this.props.onFillAlphaChange(value / this.sliderMax)
-    private onOutlineAlphaSliderChange = (value: number) => this.props.onOutlineAlphaChange(value / this.sliderMax)
-    private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
+    private onFillAlphaSliderChange = (value: number): void => this.props.onFillAlphaChange(value / this.sliderMax)
+    private onOutlineAlphaSliderChange = (value: number): void =>
+        this.props.onOutlineAlphaChange(value / this.sliderMax)
+    private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setCentroidsVisible(event.currentTarget.checked)
-    private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
+    private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setZoomInsetVisible(event.currentTarget.checked)
-    private onLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>) =>
+    private onLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setLegendVisible(event.currentTarget.checked)
 
     private selectedSegmentationFileLabel(): JSX.Element {
-        let segmentationFileName = this.props.selectedSegmentationFile
+        const segmentationFileName = this.props.selectedSegmentationFile
             ? path.basename(this.props.selectedSegmentationFile)
             : 'No segmentation file loaded'
         return (

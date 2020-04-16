@@ -38,7 +38,10 @@ export interface SelectOption {
     value: string
 }
 
-export const PlotStatisticOptions = [{ label: 'Median', value: 'median' }, { label: 'Mean', value: 'mean' }]
+export const PlotStatisticOptions = [
+    { label: 'Median', value: 'median' },
+    { label: 'Mean', value: 'mean' },
+]
 
 export type PlotStatistic = 'mean' | 'median'
 

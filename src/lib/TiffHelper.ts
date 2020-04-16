@@ -2,6 +2,7 @@ import * as fs from 'fs'
 
 // Importing from a file for now. This package is available on npm, but hasn't been updated in a few months.
 // The newest version on github supports a compression format that a user requested support for.
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 //@ts-ignore
 import GeoTIFF = require('../modules/geotiff.bundle.min.js')
 
@@ -12,6 +13,7 @@ const maxWidthHeight = 10300.0
 const scaledWidthHeight = 8000.0
 
 export interface TiffData {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
     imageDescription: string
     width: number
@@ -24,9 +26,9 @@ function scaleWidthAndHeight(
     width: number,
     height: number,
 ): { scaled: boolean; rasterOptions: { width: number; height: number } } {
-    let maxDimension = width > height ? width : height
+    const maxDimension = width > height ? width : height
     if (maxDimension > maxWidthHeight) {
-        let scaleFactor = maxDimension / scaledWidthHeight
+        const scaleFactor = maxDimension / scaledWidthHeight
         return {
             scaled: true,
             rasterOptions: { width: Math.round(width / scaleFactor), height: Math.round(height / scaleFactor) },
@@ -36,16 +38,16 @@ function scaleWidthAndHeight(
 }
 
 export async function readTiffData(filepath: string, imageNumber: number): Promise<TiffData> {
-    let rawData = fs.readFileSync(filepath)
-    let tiff = await GeoTIFF.fromArrayBuffer(rawData.buffer)
+    const rawData = fs.readFileSync(filepath)
+    const tiff = await GeoTIFF.fromArrayBuffer(rawData.buffer)
 
-    let numImages = await tiff.getImageCount()
-    let image = await tiff.getImage(imageNumber)
-    let imageDescription = image.fileDirectory.ImageDescription as string
+    const numImages = await tiff.getImageCount()
+    const image = await tiff.getImage(imageNumber)
+    const imageDescription = image.fileDirectory.ImageDescription as string
 
-    let scaleResults = scaleWidthAndHeight(image.getWidth(), image.getHeight())
+    const scaleResults = scaleWidthAndHeight(image.getWidth(), image.getHeight())
 
-    let data = await image.readRasters(scaleResults.rasterOptions)
+    const data = await image.readRasters(scaleResults.rasterOptions)
 
     return {
         data: data[0],

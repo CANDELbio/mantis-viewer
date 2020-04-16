@@ -16,7 +16,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
     public render(): React.ReactNode {
         let modal = null
         if (this.props.imageDataLoading || this.props.segmentationDataLoading) {
-            let modalType = this.props.imageDataLoading ? 'Image Data' : 'Segmentation Data'
+            const modalType = this.props.imageDataLoading ? 'Image Data' : 'Segmentation Data'
             modal = (
                 <Modal isOpen={true}>
                     <ModalHeader>{modalType} is loading...</ModalHeader>

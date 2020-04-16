@@ -17,30 +17,32 @@ export class PlotStore {
     // Regenerates plot data when image store, population store, or plot store data has changed
     private autoGeneratePlotData = autorun(() => {
         if (this.imageSetStore == this.imageSetStore.projectStore.activeImageSetStore) {
-            let imageStore = this.imageSetStore.imageStore
-            let segmentationStore = this.imageSetStore.segmentationStore
-            let populationStore = this.imageSetStore.populationStore
-            let settingStore = this.imageSetStore.projectStore.settingStore
+            const imageStore = this.imageSetStore.imageStore
+            const segmentationStore = this.imageSetStore.segmentationStore
+            const populationStore = this.imageSetStore.populationStore
+            const settingStore = this.imageSetStore.projectStore.settingStore
 
             if (imageStore.imageData) {
-                let imageData = imageStore.imageData
+                const imageData = imageStore.imageData
                 // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
-                let selectedPlotMarkersInImageSet = settingStore.selectedPlotMarkers.every((m: string) => {
+                const selectedPlotMarkersInImageSet = settingStore.selectedPlotMarkers.every((m: string) => {
                     return imageData.markerNames.includes(m)
                 })
                 if (imageStore && populationStore && selectedPlotMarkersInImageSet) {
-                    let loadHistogram =
+                    const loadHistogram =
                         settingStore.selectedPlotMarkers.length > 0 && settingStore.plotType == 'histogram'
-                    let loadScatter = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'scatter'
-                    let loadContour = settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'contour'
-                    let loadHeatmap = settingStore.plotType == 'heatmap'
+                    const loadScatter =
+                        settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'scatter'
+                    const loadContour =
+                        settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'contour'
+                    const loadHeatmap = settingStore.plotType == 'heatmap'
                     if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
                         if (
                             segmentationStore.segmentationData != null &&
                             !segmentationStore.segmentationData.errorMessage &&
                             segmentationStore.segmentationStatistics != null
                         ) {
-                            let plotData = generatePlotData(
+                            const plotData = generatePlotData(
                                 settingStore.selectedPlotMarkers,
                                 segmentationStore.segmentationData,
                                 segmentationStore.segmentationStatistics,
@@ -64,19 +66,19 @@ export class PlotStore {
         }
     })
 
-    @action public initialize = () => {
+    @action public initialize = (): void => {
         this.segmentsHoveredOnPlot = []
     }
 
-    @action public setPlotData = (data: PlotData) => {
+    @action public setPlotData = (data: PlotData): void => {
         this.plotData = data
     }
 
-    @action public clearPlotData = () => {
+    @action public clearPlotData = (): void => {
         this.plotData = null
     }
 
-    @action public setSegmentsHoveredOnPlot = (hoveredSegments: number[]) => {
+    @action public setSegmentsHoveredOnPlot = (hoveredSegments: number[]): void => {
         this.segmentsHoveredOnPlot = hoveredSegments
     }
 }

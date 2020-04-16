@@ -47,33 +47,34 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         maxImageSetsInMemory: undefined,
     }
 
-    private channelTransform = (channel: ChannelName) => {
+    private channelTransform = (channel: ChannelName): string => {
         return ChannelColorNameMap[channel]
     }
 
-    private onSegmentationSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    private onSegmentationSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
         this.props.setDefaultSegmentation(event.target.value)
     }
 
-    private onSelectedChannelChange = (v: SelectOption) => this.setState({ selectedChannel: v.value as ChannelName })
+    private onSelectedChannelChange = (v: SelectOption): void =>
+        this.setState({ selectedChannel: v.value as ChannelName })
 
-    private onDefaultChannelMarkersChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        let markers = event.target.value.split(',').map((s: string) => s.trim())
+    private onDefaultChannelMarkersChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+        const markers = event.target.value.split(',').map((s: string) => s.trim())
         this.props.setDefaultChannelMarkers(this.state.selectedChannel, markers)
     }
 
-    private onChannelDomainRelease = (v: [number, number]) =>
+    private onChannelDomainRelease = (v: [number, number]): void =>
         this.props.setDefaultChannelDomain(this.state.selectedChannel, [v[0] / 100, v[1] / 100])
 
-    private onUseAnyMarkerChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    private onUseAnyMarkerChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
         this.props.setUseAnyMarker(this.state.selectedChannel, event.target.checked)
 
-    private onMaxImageSetsInMemoryChange = (max: number) => {
+    private onMaxImageSetsInMemoryChange = (max: number): void => {
         this.setState({ maxImageSetsInMemory: max })
     }
 
-    private onChannelDomainChange = (v: [number, number]) => {
-        let channelDomains = this.state.defaultChannelDomains
+    private onChannelDomainChange = (v: [number, number]): void => {
+        const channelDomains = this.state.defaultChannelDomains
         if (channelDomains) {
             channelDomains[this.state.selectedChannel] = [v[0] / 100, v[1] / 100]
             this.setState({ defaultChannelDomains: channelDomains })
@@ -81,16 +82,16 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
     }
 
     public render(): React.ReactElement {
-        let selectedChannel = this.state.selectedChannel
-        let channelOptions = generateSelectOptions(this.imageChannelsForControls, this.channelTransform)
-        let selectedValue = getSelectedOptions(selectedChannel, channelOptions)
+        const selectedChannel = this.state.selectedChannel
+        const channelOptions = generateSelectOptions(this.imageChannelsForControls, this.channelTransform)
+        const selectedValue = getSelectedOptions(selectedChannel, channelOptions)
 
-        let defaultChannelMarkersValue = this.props.defaultChannelMarkers[selectedChannel].join(',')
+        const defaultChannelMarkersValue = this.props.defaultChannelMarkers[selectedChannel].join(',')
 
-        let chanelDomains = this.state.defaultChannelDomains
+        const chanelDomains = this.state.defaultChannelDomains
         let brightnessComponent = undefined
         if (chanelDomains) {
-            let defaultChannelDomain = chanelDomains[selectedChannel]
+            const defaultChannelDomain = chanelDomains[selectedChannel]
             brightnessComponent = (
                 <div>
                     <Label>Default Brightness for Channel</Label>

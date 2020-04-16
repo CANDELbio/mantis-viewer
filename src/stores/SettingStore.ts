@@ -82,7 +82,7 @@ export class SettingStore {
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
 
-    @action public initialize = () => {
+    @action public initialize = (): void => {
         this.basePath = null
 
         this.channelMarker = {
@@ -127,76 +127,76 @@ export class SettingStore {
         this.channelDomainPercentage = this.projectStore.preferencesStore.getChannelDomainPercentage()
     }
 
-    @action public setBasePath = (path: string) => {
+    @action public setBasePath = (path: string): void => {
         this.basePath = path
         this.importSettingsFromFile()
     }
 
-    @action public setPlotStatistic = (statistic: PlotStatistic) => {
+    @action public setPlotStatistic = (statistic: PlotStatistic): void => {
         this.plotStatistic = statistic
     }
 
-    @action public setPlotTransform = (transform: PlotTransform) => {
+    @action public setPlotTransform = (transform: PlotTransform): void => {
         this.plotTransform = transform
     }
 
-    @action public setPlotType = (type: PlotType) => {
+    @action public setPlotType = (type: PlotType): void => {
         this.plotType = type
     }
 
-    @action public setPlotNormalization = (normalization: PlotNormalization) => {
+    @action public setPlotNormalization = (normalization: PlotNormalization): void => {
         this.plotNormalization = normalization
     }
 
-    @action public setPlotDotSize = (size: number) => {
+    @action public setPlotDotSize = (size: number): void => {
         this.plotDotSize = size
     }
 
-    @action public setTransformCoefficient = (coefficient: number) => {
+    @action public setTransformCoefficient = (coefficient: number): void => {
         this.transformCoefficient = coefficient
     }
 
-    @action public setSegmentationFillAlpha = (alpha: number) => {
+    @action public setSegmentationFillAlpha = (alpha: number): void => {
         this.segmentationFillAlpha = alpha
     }
 
-    @action public setSegmentationOutlineAlpha = (alpha: number) => {
+    @action public setSegmentationOutlineAlpha = (alpha: number): void => {
         this.segmentationOutlineAlpha = alpha
     }
 
-    @action public setSegmentationCentroidsVisible = (visible: boolean) => {
+    @action public setSegmentationCentroidsVisible = (visible: boolean): void => {
         this.segmentationCentroidsVisible = visible
     }
 
-    @action public setLegendVisible = (visible: boolean) => {
+    @action public setLegendVisible = (visible: boolean): void => {
         this.legendVisible = visible
     }
 
-    @action public setZoomInsetVisible = (visible: boolean) => {
+    @action public setZoomInsetVisible = (visible: boolean): void => {
         this.zoomInsetVisible = visible
     }
 
-    @action public setChannelDomainPercentageCallback = (name: ChannelName) => {
+    @action public setChannelDomainPercentageCallback = (name: ChannelName): ((value: [number, number]) => void) => {
         return action((value: [number, number]) => {
             this.setChannelDomainPercentage(name, value)
         })
     }
 
-    @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]) => {
+    @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]): void => {
         this.channelDomainPercentage[name] = value
     }
 
-    @action public setChannelVisibilityCallback = (name: ChannelName) => {
+    @action public setChannelVisibilityCallback = (name: ChannelName): ((value: boolean) => void) => {
         return action((value: boolean) => {
             this.setChannelVisibility(name, value)
         })
     }
 
-    @action public setChannelVisibility = (name: ChannelName, visible: boolean) => {
+    @action public setChannelVisibility = (name: ChannelName, visible: boolean): void => {
         this.channelVisibility[name] = visible
     }
 
-    @action public setChannelMarkerCallback = (name: ChannelName) => {
+    @action public setChannelMarkerCallback = (name: ChannelName): ((x: string | null) => void) => {
         return action((x: string | null) => {
             // If the SelectOption has a value.
             if (x) {
@@ -208,22 +208,22 @@ export class SettingStore {
         })
     }
 
-    @action public setSegmentationBasename = (basename: string | null) => {
+    @action public setSegmentationBasename = (basename: string | null): void => {
         this.segmentationBasename = basename
     }
 
-    @action public setSelectedPlotMarkers = (markers: string[]) => {
+    @action public setSelectedPlotMarkers = (markers: string[]): void => {
         this.selectedPlotMarkers = markers
     }
 
-    @action public clearSelectedPlotMarkers = () => {
+    @action public clearSelectedPlotMarkers = (): void => {
         this.selectedPlotMarkers = []
     }
 
-    @action public setDefaultImageSetSettings = (imageStore: ImageStore) => {
-        let markers = this.channelMarker
+    @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {
+        const markers = this.channelMarker
         // Set defaults if the project markers are uninitialized
-        let allMarkersUninitalized = ImageChannels.map((value: ChannelName) => {
+        const allMarkersUninitalized = ImageChannels.map((value: ChannelName) => {
             return markers[value] == null
         }).reduce((previous: boolean, current: boolean) => {
             return previous && current
@@ -234,37 +234,37 @@ export class SettingStore {
     }
 
     // If the image store has image data, sets the defaults based on the users's preferences.
-    @action public setChannelMarkerDefaults = (imageStore: ImageStore) => {
+    @action public setChannelMarkerDefaults = (imageStore: ImageStore): void => {
         if (imageStore.imageData != null) {
-            let preferencesStore = this.projectStore.preferencesStore
-            let defaultValues = preferencesStore.getDefaultChannelMarkers(imageStore.imageData.markerNames)
-            for (let s in defaultValues) {
-                let channelName = s as ChannelName
-                let markerName = defaultValues[channelName]
+            const preferencesStore = this.projectStore.preferencesStore
+            const defaultValues = preferencesStore.getDefaultChannelMarkers(imageStore.imageData.markerNames)
+            for (const s in defaultValues) {
+                const channelName = s as ChannelName
+                const markerName = defaultValues[channelName]
                 if (markerName != null) this.setChannelMarker(channelName, markerName)
             }
         }
     }
-    @action public setChannelMarker = (channelName: ChannelName, markerName: string) => {
+    @action public setChannelMarker = (channelName: ChannelName, markerName: string): void => {
         this.channelMarker[channelName] = markerName
         this.setDefaultChannelDomainPercentage(channelName)
     }
 
-    @action public unsetChannelMarker = (channelName: ChannelName) => {
+    @action public unsetChannelMarker = (channelName: ChannelName): void => {
         this.channelMarker[channelName] = null
         this.setDefaultChannelDomainPercentage(channelName)
     }
 
-    @action private setDefaultChannelDomainPercentage = (channelName: ChannelName) => {
-        let preferencesStore = this.projectStore.preferencesStore
-        let domains = preferencesStore.getChannelDomainPercentage()
-        let domainPercentage = domains[channelName]
+    @action private setDefaultChannelDomainPercentage = (channelName: ChannelName): void => {
+        const preferencesStore = this.projectStore.preferencesStore
+        const domains = preferencesStore.getChannelDomainPercentage()
+        const domainPercentage = domains[channelName]
         this.channelDomainPercentage[channelName] = domainPercentage
     }
 
     private exportSettings = autorun(() => {
         if (this.basePath != null) {
-            let exporting: SettingStoreData = {
+            const exporting: SettingStoreData = {
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
@@ -282,19 +282,19 @@ export class SettingStore {
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
-            let exportingString = JSON.stringify(exporting)
-            let filename = path.join(this.basePath, ImageSettingsFilename)
+            const exportingString = JSON.stringify(exporting)
+            const filename = path.join(this.basePath, ImageSettingsFilename)
             // Write data to file
             fs.writeFileSync(filename, exportingString, 'utf8')
         }
     })
 
-    private importSettingsFromFile = () => {
+    private importSettingsFromFile = (): void => {
         if (this.basePath != null) {
-            let filename = path.join(this.basePath, ImageSettingsFilename)
+            const filename = path.join(this.basePath, ImageSettingsFilename)
             if (fs.existsSync(filename)) {
                 try {
-                    let importingSettings: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
+                    const importingSettings: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
                     if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                     if (importingSettings.channelVisibility)
                         this.channelVisibility = importingSettings.channelVisibility

@@ -31,18 +31,18 @@ export class Plot extends React.Component<PlotProps, {}> {
         popoverOpen: false, // TODO: Delete when removing popover
     }
 
-    private onPlotSelected = (data: Plotly.PlotSelectionEvent) => {
+    private onPlotSelected = (data: Plotly.PlotSelectionEvent): void => {
         if (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour')
             this.props.setSelectedSegments(this.parseScatterEvent(data))
         if (this.props.selectedType == 'histogram') {
-            let { min, max } = this.parseHistogramEvent(data)
+            const { min, max } = this.parseHistogramEvent(data)
             if (min != null && max != null) this.props.setSelectedRange(min, max)
         }
     }
-    private onHover = (data: Plotly.PlotSelectionEvent) => {
+    private onHover = (data: Plotly.PlotSelectionEvent): void => {
         if (this.props.selectedType == 'scatter') this.props.setHoveredSegments(this.parseScatterEvent(data))
     }
-    private onUnHover = () => this.props.setHoveredSegments([])
+    private onUnHover = (): void => this.props.setHoveredSegments([])
 
     public componentWillUnmount(): void {
         this.cleanupPlotly()
@@ -53,20 +53,21 @@ export class Plot extends React.Component<PlotProps, {}> {
     // No custom fields, so we are getting the segment id from the title text for the point.
     // Title text with segment id generated in ScatterPlotData.
     private parseScatterEvent(data: Plotly.PlotSelectionEvent): number[] {
-        let selectedSegments: number[] = []
+        const selectedSegments: number[] = []
         if (data != null) {
             if (data.points != null && data.points.length > 0) {
-                for (let point of data.points) {
-                    let pointRegionName = point.data.name
+                for (const point of data.points) {
+                    const pointRegionName = point.data.name
                     // Check if the region name for the point is the default selection name
                     // Sometimes plotly returns incorrect selected points if there are multiple selections
                     // and the point being hovered/highlighted isn't in some of those selections.
                     if (pointRegionName == DefaultSelectionName) {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                         // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
-                        let pointText = point.text
+                        const pointText = point.text
                         if (pointText) {
-                            let splitText: string[] = pointText.split(' ')
-                            let segmentId = Number(splitText[splitText.length - 1])
+                            const splitText: string[] = pointText.split(' ')
+                            const segmentId = Number(splitText[splitText.length - 1])
                             selectedSegments.push(segmentId)
                         }
                     }
@@ -77,7 +78,7 @@ export class Plot extends React.Component<PlotProps, {}> {
     }
 
     private parseHistogramEvent(data: Plotly.PlotSelectionEvent): { min: null | number; max: null | number } {
-        let minMax: { min: null | number; max: null | number } = { min: null, max: null }
+        const minMax: { min: null | number; max: null | number } = { min: null, max: null }
         if (data != null) {
             if (data.range != null) {
                 minMax.min = Math.min(...data.range.x)
@@ -97,10 +98,10 @@ export class Plot extends React.Component<PlotProps, {}> {
         }
     }
 
-    private mountPlot = async (el: HTMLElement | null, width: number | null, height: number | null) => {
+    private mountPlot = async (el: HTMLElement | null, width: number | null, height: number | null): Promise<void> => {
         if (el != null && this.props.plotData != null) {
-            let firstRender = this.container == null
-            let layoutWithSize = this.props.plotData.layout
+            const firstRender = this.container == null
+            const layoutWithSize = this.props.plotData.layout
             if (width != null && height != null) {
                 layoutWithSize.width = width
                 layoutWithSize.height = height
@@ -121,8 +122,9 @@ export class Plot extends React.Component<PlotProps, {}> {
     public render(): React.ReactNode {
         // TODO: Feels a bit hacky. Find a better solution.
         // Dereferencing here so we re-render on resize
-        let windowWidth = this.props.windowWidth
-        let maxPlotHeight = this.props.maxPlotHeight
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const windowWidth = this.props.windowWidth
+        const maxPlotHeight = this.props.maxPlotHeight
 
         let plot = null
 
@@ -132,8 +134,11 @@ export class Plot extends React.Component<PlotProps, {}> {
         } else {
             plot = (
                 <SizeMe monitorWidth={true}>
-                    {({ size }) => (
-                        <div id="plotly-scatterplot" ref={el => this.mountPlot(el, size.width, maxPlotHeight)} />
+                    {({ size }): React.ReactElement => (
+                        <div
+                            id="plotly-scatterplot"
+                            ref={(el): Promise<void> => this.mountPlot(el, size.width, maxPlotHeight)}
+                        />
                     )}
                 </SizeMe>
             )

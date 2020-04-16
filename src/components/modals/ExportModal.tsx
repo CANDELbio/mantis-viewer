@@ -16,7 +16,7 @@ export class ExportModal extends React.Component<ExportModalProps, {}> {
     public render(): React.ReactNode {
         let modal = null
         if (this.props.numToExport > 0) {
-            let exportProgress = (this.props.numExported / this.props.numToExport) * 100
+            const exportProgress = (this.props.numExported / this.props.numToExport) * 100
             modal = (
                 <Modal isOpen={true}>
                     <ModalHeader>Files exporting...</ModalHeader>

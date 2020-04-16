@@ -3,18 +3,18 @@ export function randomHexColor(): number {
 }
 
 export function randomRGBColor(): { r: number; g: number; b: number } {
-    let c = randomHexColor()
-    let r = c >> 16
-    let g = (c >> 8) & 255
-    let b = c & 255
+    const c = randomHexColor()
+    const r = c >> 16
+    const g = (c >> 8) & 255
+    const b = c & 255
     return { r: r, g: g, b: b }
 }
 
 // Gets RGB values from a hex number representing a color.
 export function hexToRGB(hex: number): { r: number; g: number; b: number } {
-    let r = (hex >> 16) & 255
-    let g = (hex >> 8) & 255
-    let b = hex & 255
+    const r = (hex >> 16) & 255
+    const g = (hex >> 8) & 255
+    const b = hex & 255
     return { r: r, g: g, b: b }
 }
 

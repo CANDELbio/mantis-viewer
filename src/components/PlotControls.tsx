@@ -59,39 +59,40 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
         popoverOpen: false,
     }
 
-    private togglePopover = () => this.setState({ popoverOpen: !this.state.popoverOpen })
+    private togglePopover = (): void => this.setState({ popoverOpen: !this.state.popoverOpen })
 
     private markerSelectOptions: { value: string; label: string }[]
 
-    private onPlotMarkerSelect = (x: SelectOption[]) => this.props.setSelectedPlotMarkers(_.pluck(x, 'value'))
+    private onPlotMarkerSelect = (x: SelectOption[]): void => this.props.setSelectedPlotMarkers(_.pluck(x, 'value'))
 
-    private onStatisticSelect = (x: SelectOption) => {
+    private onStatisticSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
     }
-    private onTransformSelect = (x: SelectOption) => {
+    private onTransformSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedTransform(x.value as PlotTransform)
     }
-    private onTypeSelect = (x: SelectOption) => {
+    private onTypeSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedType(x.value as PlotType)
     }
-    private onNormalizationSelect = (x: SelectOption) => {
+    private onNormalizationSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
 
-    private onCoefficientSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    private onCoefficientSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
         this.props.setTransformCoefficient(event.target.valueAsNumber)
     }
 
     public render(): React.ReactNode {
         // TODO: Feels a bit hacky. Find a better solution.
         // Dereferencing here so we re-render on resize
-        let windowWidth = this.props.windowWidth
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const windowWidth = this.props.windowWidth
 
         this.markerSelectOptions = generateSelectOptions(this.props.markers)
 
         // If all selected plot markers are not in all markers, set selected markers to empty
         // TODO is this too much logic for a component?
-        let allSelectedPlotMarkersInAllMarkers = this.props.selectedPlotMarkers.every((m: string) => {
+        const allSelectedPlotMarkersInAllMarkers = this.props.selectedPlotMarkers.every((m: string) => {
             return this.props.markers.includes(m)
         })
 
@@ -107,20 +108,21 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 selectedPlotMarkers = [this.props.selectedPlotMarkers[0]]
             if (this.props.selectedType == 'heatmap') selectedPlotMarkers = []
         }
-        let selectedMarkerSelectOptions = getSelectedOptions(selectedPlotMarkers, this.markerSelectOptions)
+        const selectedMarkerSelectOptions = getSelectedOptions(selectedPlotMarkers, this.markerSelectOptions)
 
         // Can only select two markers for a scatter plot or one for histogram.
         // If max markers are selected, set the options for selecting equal to the currently selected options
-        let maximumScatterMarkersSelected =
+        const maximumScatterMarkersSelected =
             selectedPlotMarkers.length == 2 &&
             (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour')
-        let maximumHistogramMarkersSelected = selectedPlotMarkers.length >= 1 && this.props.selectedType == 'histogram'
+        const maximumHistogramMarkersSelected =
+            selectedPlotMarkers.length >= 1 && this.props.selectedType == 'histogram'
         if (maximumScatterMarkersSelected || maximumHistogramMarkersSelected) {
             this.markerSelectOptions = generateSelectOptions(selectedPlotMarkers)
         }
 
-        let selectedPlotType = getSelectedOptions(this.props.selectedType, PlotTypeOptions)
-        let plotType = (
+        const selectedPlotType = getSelectedOptions(this.props.selectedType, PlotTypeOptions)
+        const plotType = (
             <Select
                 value={selectedPlotType}
                 options={PlotTypeOptions}
@@ -132,8 +134,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             />
         )
 
-        let selectedPlotStatistic = getSelectedOptions(this.props.selectedStatistic, PlotStatisticOptions)
-        let statisticControls = (
+        const selectedPlotStatistic = getSelectedOptions(this.props.selectedStatistic, PlotStatisticOptions)
+        const statisticControls = (
             <Select
                 value={selectedPlotStatistic}
                 options={PlotStatisticOptions}
@@ -146,8 +148,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             />
         )
 
-        let selectedPlotTransform = getSelectedOptions(this.props.selectedTransform, PlotTransformOptions)
-        let transformControls = (
+        const selectedPlotTransform = getSelectedOptions(this.props.selectedTransform, PlotTransformOptions)
+        const transformControls = (
             <Select
                 value={selectedPlotTransform}
                 options={PlotTransformOptions}
@@ -159,7 +161,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             />
         )
 
-        let coefficientControls = (
+        const coefficientControls = (
             <div>
                 Transform Coefficient
                 <Input
@@ -172,9 +174,9 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        let normalizationDisabled = this.props.selectedType != 'heatmap'
-        let selectedPlotNormalization = getSelectedOptions(this.props.selectedNormalization, PlotNormalizationOptions)
-        let normalizationControls = (
+        const normalizationDisabled = this.props.selectedType != 'heatmap'
+        const selectedPlotNormalization = getSelectedOptions(this.props.selectedNormalization, PlotNormalizationOptions)
+        const normalizationControls = (
             <Select
                 value={normalizationDisabled ? null : selectedPlotNormalization}
                 options={PlotNormalizationOptions}
@@ -188,8 +190,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             />
         )
 
-        let dotControlsEnabled = this.props.selectedType == 'scatter' || this.props.selectedType == 'contour'
-        let dotControls = (
+        const dotControlsEnabled = this.props.selectedType == 'scatter' || this.props.selectedType == 'contour'
+        const dotControls = (
             <div>
                 Dot Size
                 <Slider
@@ -202,7 +204,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        let markerControls = (
+        const markerControls = (
             <Select
                 value={selectedMarkerSelectOptions}
                 options={this.markerSelectOptions}

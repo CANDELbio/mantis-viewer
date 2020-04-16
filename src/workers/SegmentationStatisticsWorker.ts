@@ -27,7 +27,7 @@ export class SegmentationStatisticsWorker {
         this.worker = new Worker()
         this.worker.addEventListener(
             'message',
-            function(e: { data: SegmentationStatisticsWorkerResult }) {
+            function (e: { data: SegmentationStatisticsWorkerResult }) {
                 onComplete(e.data)
             },
             false,

@@ -53,34 +53,35 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             pickerVisible: false,
         }
 
-        private deletePopulation = () => {
+        private deletePopulation = (): void => {
             this.props.deletePopulation(this.props.population.id)
         }
 
-        private updateName = (name: string) => {
+        private updateName = (name: string): void => {
             this.props.updateName(this.props.population.id, name)
         }
 
-        private updateColor = (color: number) => {
+        private updateColor = (color: number): void => {
             this.props.updateColor(this.props.population.id, color)
         }
 
-        private updateVisibility = (event: React.FormEvent<HTMLInputElement>) => {
+        private updateVisibility = (event: React.FormEvent<HTMLInputElement>): void => {
             this.props.updateVisibility(this.props.population.id, event.currentTarget.checked)
         }
 
-        private highlightPopulation = () => {
+        private highlightPopulation = (): void => {
             this.props.highlightPopulation(this.props.population.id)
         }
 
-        private unhighlightPopulation = () => {
+        private unhighlightPopulation = (): void => {
             this.props.unhighlightPopulation(this.props.population.id)
         }
 
-        private onTogglePicker = () => this.setState({ pickerVisible: !this.state.pickerVisible })
-        private handleColorChange = (color: ColorResult) => this.updateColor(parseInt(color.hex.replace(/^#/, ''), 16))
+        private onTogglePicker = (): void => this.setState({ pickerVisible: !this.state.pickerVisible })
+        private handleColorChange = (color: ColorResult): void =>
+            this.updateColor(parseInt(color.hex.replace(/^#/, ''), 16))
 
-        private backgroundColor = () => {
+        private backgroundColor = (): string => {
             return hexToString(this.props.population.color)
         }
 
@@ -159,7 +160,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                 .sort((a: SelectedPopulation, b: SelectedPopulation) => {
                     return a.renderOrder > b.renderOrder ? 1 : -1
                 })
-                .map(population => {
+                .map((population) => {
                     return (
                         <this.TableRowItem
                             key={population.id}
@@ -178,13 +179,13 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         return null
     }
 
-    private setVisibility = (event: React.FormEvent<HTMLInputElement>) => {
+    private setVisibility = (event: React.FormEvent<HTMLInputElement>): void => {
         this.props.setAllVisibility(event.currentTarget.checked)
     }
 
     private anyVisible(): boolean {
         if (this.props.populations != null) {
-            for (let population of this.props.populations) {
+            for (const population of this.props.populations) {
                 if (population.visible) {
                     return true
                 }
@@ -205,7 +206,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }
     }
 
-    private setDebounceTableScrolling = () => {
+    private setDebounceTableScrolling = (): void => {
         this.setState({ tableScrolling: true })
         _.debounce((): void => {
             this.setState({ tableScrolling: false })
@@ -213,9 +214,9 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
     }
 
     public render(): React.ReactElement {
-        let populations = this.props.populations
-        let tableHeight = SelectedPopulationsTableHeight + 'px'
-        let theadClassName = populations && populations.length ? undefined : 'empty-table'
+        const populations = this.props.populations
+        const tableHeight = SelectedPopulationsTableHeight + 'px'
+        const theadClassName = populations && populations.length ? undefined : 'empty-table'
         return (
             <div>
                 <style>{'table.population-table th{padding:0.45rem;}'}</style>

@@ -6,12 +6,12 @@ import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {
-    let offScreen = document.createElement('canvas')
+    const offScreen = document.createElement('canvas')
 
     offScreen.width = bitmap.width
     offScreen.height = bitmap.height
 
-    let ctx = offScreen.getContext('2d')
+    const ctx = offScreen.getContext('2d')
     if (ctx) ctx.drawImage(bitmap, 0, 0)
     return new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen))
 }
@@ -57,11 +57,11 @@ function drawCross(graphics: PIXI.Graphics, x: number, y: number, armLength: num
 
 // When passed a map of segmentIds to their centroids
 export function drawCentroids(selectedCentroids: { [key: number]: PixelLocation }, color: number): PIXI.Graphics {
-    let centroidGraphics = new PIXI.Graphics()
+    const centroidGraphics = new PIXI.Graphics()
 
     centroidGraphics.beginFill(color)
-    for (let segmentId in selectedCentroids) {
-        let centroid = selectedCentroids[segmentId]
+    for (const segmentId in selectedCentroids) {
+        const centroid = selectedCentroids[segmentId]
         drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
     }
     centroidGraphics.endFill()
@@ -71,7 +71,7 @@ export function drawCentroids(selectedCentroids: { [key: number]: PixelLocation 
 
 // Draws a selected region of the format [x, y, x, y, ...] of the given color and alpha
 export function drawSelectedRegion(selection: number[], color: number, alpha: number): PIXI.Graphics {
-    let selectionGraphics = new PIXI.Graphics()
+    const selectionGraphics = new PIXI.Graphics()
     selectionGraphics.beginFill(color)
     selectionGraphics.drawPolygon(selection)
     selectionGraphics.endFill()
@@ -84,11 +84,11 @@ export function findSegmentsInSelection(
     selectionGraphics: PIXI.Graphics,
     segmentationData: SegmentationData | null,
 ): number[] {
-    let selectedSegments: number[] = []
+    const selectedSegments: number[] = []
     if (segmentationData != null) {
-        for (let segmentId in segmentationData.centroidMap) {
-            let centroid = segmentationData.centroidMap[segmentId]
-            let centroidPoint = new PIXI.Point(centroid.x, centroid.y)
+        for (const segmentId in segmentationData.centroidMap) {
+            const centroid = segmentationData.centroidMap[segmentId]
+            const centroidPoint = new PIXI.Point(centroid.x, centroid.y)
             if (selectionGraphics.containsPoint(centroidPoint)) {
                 selectedSegments.push(Number(segmentId))
             }
@@ -124,17 +124,17 @@ export function drawOutlines(
     width: number,
     alignment = 0.5,
 ): PIXI.Graphics {
-    let outlineGraphics = new PIXI.Graphics()
+    const outlineGraphics = new PIXI.Graphics()
     // Always set the alpha to 1.0 and adjust it elsewhere
     // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
     outlineGraphics.lineStyle(width, color, 1, alignment)
     for (let outline of outlines) {
         // Copy the outline array so we're not modifying the one being passed in
         outline = outline.slice()
-        let start = outline.shift()
+        const start = outline.shift()
         if (start) {
             outlineGraphics.moveTo(start.x, start.y)
-            for (let point of outline) {
+            for (const point of outline) {
                 outlineGraphics.lineTo(point.x, point.y)
             }
         }
@@ -144,7 +144,7 @@ export function drawOutlines(
 
 // Generating brightness filter code for the passed in channel.
 export function generateBrightnessFilterCode(): string {
-    let filterCode = `
+    const filterCode = `
     varying vec2 vTextureCoord;
     varying vec4 vColor;
 
@@ -185,19 +185,20 @@ export function generateBrightnessFilterUniforms(
     imcData: ImageData,
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): PIXI.UniformDataMap<Record<string, any>> | null {
-    let curChannelDomain = channelDomain[channelName]
+    const curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
-    let marker = channelMarker[channelName]
+    const marker = channelMarker[channelName]
     if (marker) {
-        let channelMinMax = imcData.minmax[marker]
+        const channelMinMax = imcData.minmax[marker]
         if (channelMinMax) {
-            let channelMax = channelMinMax.max
+            const channelMax = channelMinMax.max
 
             // Using slider values to generate m and b for a linear transformation (y = mx + b).
-            let b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
-            let m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
+            const b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
+            const m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
 
             return {
                 m: {
@@ -235,15 +236,15 @@ function drawHollowRectangle(
     height: number,
     lineWidth: number,
 ): void {
-    let x1 = x
-    let y1 = y
-    let x2 = x1 + width
-    let y2 = y1 + height
+    const x1 = x
+    const y1 = y
+    const x2 = x1 + width
+    const y2 = y1 + height
 
-    let hx1 = x1 + lineWidth
-    let hy1 = y1 + lineWidth
-    let hx2 = x2 - lineWidth
-    let hy2 = y2 - lineWidth
+    const hx1 = x1 + lineWidth
+    const hy1 = y1 + lineWidth
+    const hx2 = x2 - lineWidth
+    const hy2 = y2 - lineWidth
 
     graphics.beginFill(color)
     graphics.drawPolygon([x1, y1, x2, y1, x2, y2, x1, y2])
@@ -266,23 +267,23 @@ export function drawZoomInset(
     insetGraphics.clear()
     insetGraphics.removeChildren()
 
-    let lineWidth = 2
-    let borderPadding = 2
-    let borderHeight = 60
-    let insetRatio = borderHeight / imageHeight
-    let borderWidth = imageWidth * insetRatio
-    let borderX = rendererWidth - (borderWidth + borderPadding)
-    let borderY = borderPadding
+    const lineWidth = 2
+    const borderPadding = 2
+    const borderHeight = 60
+    const insetRatio = borderHeight / imageHeight
+    const borderWidth = imageWidth * insetRatio
+    const borderX = rendererWidth - (borderWidth + borderPadding)
+    const borderY = borderPadding
 
     drawHollowRectangle(insetGraphics, 0xffffff, borderX, borderY, borderWidth, borderHeight, lineWidth)
 
-    let xZoomRatio = rendererWidth / stageWidth
-    let yZoomRatio = rendererHeight / stageHeight
+    const xZoomRatio = rendererWidth / stageWidth
+    const yZoomRatio = rendererHeight / stageHeight
 
-    let insetHeight = borderHeight * yZoomRatio
-    let insetWidth = borderWidth * xZoomRatio
-    let insetX = borderX + (Math.abs(stageX) / stageWidth) * borderWidth
-    let insetY = borderY + (Math.abs(stageY) / stageHeight) * borderHeight
+    const insetHeight = borderHeight * yZoomRatio
+    const insetWidth = borderWidth * xZoomRatio
+    const insetX = borderX + (Math.abs(stageX) / stageWidth) * borderWidth
+    const insetY = borderY + (Math.abs(stageY) / stageHeight) * borderHeight
 
     drawHollowRectangle(insetGraphics, 0xffffff, insetX, insetY, insetWidth, insetHeight, lineWidth)
 }
@@ -295,32 +296,32 @@ export function drawLegend(
     legendGraphics.clear()
     legendGraphics.removeChildren()
 
-    let legendRectRadius = 3
-    let legendPadding = 2 // Padding between text and the edges of the renderer
-    let bgBorderWidth = 2 // Width of the white border of the legend
-    let textPadding = 1 // Padding between the text and the inner edges of the legend
-    let textSpacing = 1 // Spacing between the lines of text for each channel
-    let innerBgXY = legendPadding + bgBorderWidth
-    let initialTextlXY = innerBgXY + textPadding
+    const legendRectRadius = 3
+    const legendPadding = 2 // Padding between text and the edges of the renderer
+    const bgBorderWidth = 2 // Width of the white border of the legend
+    const textPadding = 1 // Padding between the text and the inner edges of the legend
+    const textSpacing = 1 // Spacing between the lines of text for each channel
+    const innerBgXY = legendPadding + bgBorderWidth
+    const initialTextlXY = innerBgXY + textPadding
 
     let textWidth = 0
     let textHeight = 0
-    let markerText: PIXI.Text[] = []
+    const markerText: PIXI.Text[] = []
 
     // Create channel names
-    for (let s in channelMarkers) {
-        let curChannel = s as ChannelName
-        let curMarker = channelMarkers[curChannel]
+    for (const s in channelMarkers) {
+        const curChannel = s as ChannelName
+        const curMarker = channelMarkers[curChannel]
         // If a marker is selected for the channel and the image data has a sprite for that marker
         if (curMarker && imcData.sprites[curMarker]) {
             if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
-            let text = new PIXI.Text(curMarker, {
+            const text = new PIXI.Text(curMarker, {
                 fontFamily: 'Arial',
                 fontSize: 14,
                 fill: ChannelColorMap[curChannel],
                 align: 'center',
             })
-            let textY = initialTextlXY + textHeight
+            const textY = initialTextlXY + textHeight
             text.setTransform(initialTextlXY, textY)
             textHeight += text.height
             textWidth = Math.max(textWidth, text.width)
@@ -330,8 +331,8 @@ export function drawLegend(
 
     // If we generated marker text, render the legend
     if (markerText.length > 0) {
-        let outerLegendWidth = textWidth + (bgBorderWidth + textPadding) * 2
-        let outerLegnedHeight = textHeight + (bgBorderWidth + textPadding) * 2
+        const outerLegendWidth = textWidth + (bgBorderWidth + textPadding) * 2
+        const outerLegnedHeight = textHeight + (bgBorderWidth + textPadding) * 2
         legendGraphics.beginFill(0xffffff)
         legendGraphics.drawRoundedRect(
             legendPadding,
@@ -342,13 +343,13 @@ export function drawLegend(
         )
         legendGraphics.endFill()
 
-        let innerLegendWidth = textWidth + textPadding * 2
-        let innerLegendHeight = textHeight + textPadding * 2
+        const innerLegendWidth = textWidth + textPadding * 2
+        const innerLegendHeight = textHeight + textPadding * 2
         legendGraphics.beginFill(0x000000)
         legendGraphics.drawRoundedRect(innerBgXY, innerBgXY, innerLegendWidth, innerLegendHeight, legendRectRadius)
         legendGraphics.endFill()
 
-        for (let textGraphics of markerText) {
+        for (const textGraphics of markerText) {
             legendGraphics.addChild(textGraphics)
         }
     }

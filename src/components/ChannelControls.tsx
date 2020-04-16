@@ -47,10 +47,10 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
     }
 
     private visibleIcon(visible: boolean): JSX.Element {
-        let visibleClick = (): void => {
+        const visibleClick = (): void => {
             this.props.setChannelVisibility(!visible)
         }
-        let icon = visible ? <IoMdEye size="1.5em" /> : <IoMdEyeOff size="1.5em" />
+        const icon = visible ? <IoMdEye size="1.5em" /> : <IoMdEyeOff size="1.5em" />
         return (
             <a href="#" onClick={visibleClick}>
                 {icon}
@@ -58,38 +58,39 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         )
     }
 
-    private onMarkerChange = (x: SelectOption) => {
-        let value = x ? x.value : null
+    private onMarkerChange = (x: SelectOption): void => {
+        const value = x ? x.value : null
         this.props.setMarker(value)
     }
 
     // Convert channel domain to percentage before saving
-    private setChannelDomain = (value: [number, number]) => {
+    private setChannelDomain = (value: [number, number]): void => {
         this.props.setChannelDomainPercentage([value[0] / this.props.sliderMax, value[1] / this.props.sliderMax])
     }
 
     public render(): React.ReactNode {
         // TODO: Feels a bit hacky. Find a better solution.
         // Dereferencing here so we re-render on resize
-        let windowWidth = this.props.windowWidth
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const windowWidth = this.props.windowWidth
 
-        let paddingStyle = { paddingTop: '3px' }
+        const paddingStyle = { paddingTop: '3px' }
 
-        let unroundedStepSize = this.props.sliderMax / 5
-        let roundedStepSize = Math.round(unroundedStepSize)
-        let stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
+        const unroundedStepSize = this.props.sliderMax / 5
+        const roundedStepSize = Math.round(unroundedStepSize)
+        const stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
 
         // Remove nulls and the value selected for this channel from the list of all selected values
-        let filteredSelectedValues = this.props.allSelectedMarkers.filter(value => {
+        const filteredSelectedValues = this.props.allSelectedMarkers.filter((value) => {
             return value != null && value != this.props.selectedMarker
         })
         // Remove all select options in the list of filtered, selected values from above.
         // This is so that a marker cannot be selected to be displayed in two channels.
-        let selectOptions = generateSelectOptions(this.props.markers)
-        let filteredSelectOptions = selectOptions.filter((option: SelectOption) => {
+        const selectOptions = generateSelectOptions(this.props.markers)
+        const filteredSelectOptions = selectOptions.filter((option: SelectOption) => {
             return !filteredSelectedValues.includes(option.value)
         })
-        let selectedValue = getSelectedOptions(this.props.selectedMarker, selectOptions)
+        const selectedValue = getSelectedOptions(this.props.selectedMarker, selectOptions)
 
         return (
             <Grid fluid={true}>

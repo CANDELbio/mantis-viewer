@@ -6,18 +6,18 @@ import {
     SegmentationDataWorkerResult,
 } from './SegmentationDataWorker'
 
-let segmentationDataWorkerPool: SegmentationDataWorker[] = []
-let segmentationDataWorkerCallbacks: Record<string, OnSegmentationDataWorkerComplete> = {}
+const segmentationDataWorkerPool: SegmentationDataWorker[] = []
+const segmentationDataWorkerCallbacks: Record<string, OnSegmentationDataWorkerComplete> = {}
 const maxSegmentationDataWorkers = 1
 
 function onSegmentationDataComplete(data: SegmentationDataWorkerError | SegmentationDataWorkerResult): void {
-    let jobInput = data.filepath
+    const jobInput = data.filepath
     segmentationDataWorkerCallbacks[jobInput](data)
     delete segmentationDataWorkerCallbacks[jobInput]
 }
 
 function getExistingSegmentationDataWorker(): SegmentationDataWorker {
-    let worker = segmentationDataWorkerPool.shift()
+    const worker = segmentationDataWorkerPool.shift()
     if (worker) {
         return worker
     } else {
@@ -29,8 +29,8 @@ function getExistingSegmentationDataWorker(): SegmentationDataWorker {
 }
 
 function getSegmentationDataWorker(): SegmentationDataWorker {
-    let numWorkers = segmentationDataWorkerPool.length
-    let worker =
+    const numWorkers = segmentationDataWorkerPool.length
+    const worker =
         numWorkers < maxSegmentationDataWorkers
             ? new SegmentationDataWorker(onSegmentationDataComplete)
             : getExistingSegmentationDataWorker()
@@ -43,6 +43,6 @@ export function submitSegmentationDataJob(
     onComplete: OnSegmentationDataWorkerComplete,
 ): void {
     segmentationDataWorkerCallbacks[input.filepath] = onComplete
-    let worker = getSegmentationDataWorker()
+    const worker = getSegmentationDataWorker()
     worker.postMessage(input)
 }

@@ -36,7 +36,7 @@ export class ImageDataWorker {
         this.worker = new Worker()
         this.worker.addEventListener(
             'message',
-            function(e: { data: ImageDataWorkerResult | ImageDataWorkerError }) {
+            function (e: { data: ImageDataWorkerResult | ImageDataWorkerError }) {
                 onComplete(e.data)
             },
             false,

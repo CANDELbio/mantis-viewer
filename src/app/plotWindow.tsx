@@ -21,43 +21,43 @@ let dotSize: number
 let transformCoefficient: number | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
-let setSelectedPlotMarkers = (markers: string[]): void => {
+const setSelectedPlotMarkers = (markers: string[]): void => {
     ipcRenderer.send('plotWindow-set-markers', markers)
 }
 
-let setSelectedStatistic = (statistic: any): void => {
+const setSelectedStatistic = (statistic: any): void => {
     ipcRenderer.send('plotWindow-set-statistic', statistic)
 }
 
-let setPlotTranform = (transform: any): void => {
+const setPlotTranform = (transform: any): void => {
     ipcRenderer.send('plotWindow-set-transform', transform)
 }
 
-let setPlotType = (type: any): void => {
+const setPlotType = (type: any): void => {
     ipcRenderer.send('plotWindow-set-type', type)
 }
 
-let setDotSize = (type: any): void => {
+const setDotSize = (type: any): void => {
     ipcRenderer.send('plotWindow-set-dot-size', type)
 }
 
-let setPlotNormalization = (type: any): void => {
+const setPlotNormalization = (type: any): void => {
     ipcRenderer.send('plotWindow-set-normalization', type)
 }
 
-let setTransformCoefficient = (coefficient: number): void => {
+const setTransformCoefficient = (coefficient: number): void => {
     ipcRenderer.send('plotWindow-set-coefficient', coefficient)
 }
 
-let addSelectedPopulation = (segmentIds: number[]): void => {
+const addSelectedPopulation = (segmentIds: number[]): void => {
     if (segmentIds.length != 0) ipcRenderer.send('plotWindow-add-selected-population', segmentIds)
 }
 
-let addPopulationFromRange = (min: number, max: number): void => {
+const addPopulationFromRange = (min: number, max: number): void => {
     ipcRenderer.send('plotWindow-add-population-from-range', min, max)
 }
 
-let setHoveredSegments = (segmentIds: number[]): void => {
+const setHoveredSegments = (segmentIds: number[]): void => {
     if (segmentIds.length != 0) ipcRenderer.send('plotWindow-set-hovered-segments', segmentIds)
 }
 
@@ -138,11 +138,8 @@ ipcRenderer.on(
 )
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
-ipcRenderer.on(
-    'window-size',
-    (event: Electron.Event, width: number, height: number): void => {
-        windowWidth = width
-        windowHeight = height
-        render()
-    },
-)
+ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number): void => {
+    windowWidth = width
+    windowHeight = height
+    render()
+})

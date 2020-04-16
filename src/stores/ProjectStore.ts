@@ -94,7 +94,7 @@ export class ProjectStore {
     // Set the imageSetPaths and initialize all the stores with empty stores.
     @action public initializeImageSetStores = (imageSetPaths: string[]): void => {
         this.imageSetPaths = imageSetPaths
-        for (let dirName of imageSetPaths) {
+        for (const dirName of imageSetPaths) {
             this.imageSets[dirName] = new ImageSetStore(this)
         }
     }
@@ -108,10 +108,10 @@ export class ProjectStore {
     }
 
     @action public openProject = (dirName: string): void => {
-        let files = fs.readdirSync(dirName)
-        let paths = []
-        for (let file of files) {
-            let filePath = path.join(dirName, file)
+        const files = fs.readdirSync(dirName)
+        const paths = []
+        for (const file of files) {
+            const filePath = path.join(dirName, file)
             if (fs.statSync(filePath).isDirectory()) paths.push(filePath)
         }
         if (paths.length > 0) {
@@ -143,7 +143,7 @@ export class ProjectStore {
     }
 
     @action public loadImageStoreData = (dirName: string): void => {
-        let imageStore = this.imageSets[dirName].imageStore
+        const imageStore = this.imageSets[dirName].imageStore
         if (imageStore.imageData == null) {
             // Select the directory for image data
             imageStore.selectDirectory(dirName)
@@ -164,11 +164,11 @@ export class ProjectStore {
 
     // Clears out the image set data if it shouldn't be in memory (i.e. it is not in the image set history)
     private clearImageSetData = (imageSetDir: string): void => {
-        let imageSetStore = this.imageSets[imageSetDir]
+        const imageSetStore = this.imageSets[imageSetDir]
         if (imageSetStore) {
-            let imageStore = imageSetStore.imageStore
-            let segmentationStore = imageSetStore.segmentationStore
-            let selectedDirectory = imageStore.selectedDirectory
+            const imageStore = imageSetStore.imageStore
+            const segmentationStore = imageSetStore.segmentationStore
+            const selectedDirectory = imageStore.selectedDirectory
             if (selectedDirectory && !this.imageSetHistory.includes(selectedDirectory)) {
                 imageStore.clearImageData()
                 segmentationStore.clearSegmentationData()
@@ -180,11 +180,11 @@ export class ProjectStore {
     // Cleans up the oldest image set ImageStore if there are too many in memory.
     @action private cleanImageSetHistory = (dirName: string): void => {
         // If dirName is already in the history, remove it and readd it to the front
-        let historyIndex = this.imageSetHistory.indexOf(dirName)
+        const historyIndex = this.imageSetHistory.indexOf(dirName)
         if (historyIndex > -1) this.imageSetHistory.splice(historyIndex, 1)
         this.imageSetHistory.push(dirName)
         if (this.imageSetHistory.length > this.preferencesStore.maxImageSetsInMemory) {
-            let setToClean = this.imageSetHistory.shift()
+            const setToClean = this.imageSetHistory.shift()
             if (setToClean) this.clearImageSetData(setToClean)
         }
     }
@@ -211,7 +211,7 @@ export class ProjectStore {
     // Currently just raises an error if no images are found.
     @action public setImageSetWarnings = (): void => {
         if (this.activeImageSetPath != null) {
-            let imageStore = this.activeImageSetStore.imageStore
+            const imageStore = this.activeImageSetStore.imageStore
             if (imageStore.imageData != null) {
                 if (imageStore.imageData.markerNames.length == 0) {
                     let msg = 'Warning: No tiffs found in ' + path.basename(this.activeImageSetPath) + '.'
@@ -224,22 +224,22 @@ export class ProjectStore {
 
     // Jumps to the previous image set in the list of image sets
     @action public setPreviousImageSet = (): void => {
-        let activeImageSetPath = this.activeImageSetPath
-        let imageSetPaths = this.imageSetPaths
+        const activeImageSetPath = this.activeImageSetPath
+        const imageSetPaths = this.imageSetPaths
         if (activeImageSetPath && imageSetPaths.length > 1) {
-            let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
-            let previousImageSetIndex = activeImageSetIndex == 0 ? imageSetPaths.length - 1 : activeImageSetIndex - 1
+            const activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
+            const previousImageSetIndex = activeImageSetIndex == 0 ? imageSetPaths.length - 1 : activeImageSetIndex - 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
         }
     }
 
     // Jumps to the next image set in the list of image sets.
     @action public setNextImageSet = (): void => {
-        let activeImageSetPath = this.activeImageSetPath
-        let imageSetPaths = this.imageSetPaths
+        const activeImageSetPath = this.activeImageSetPath
+        const imageSetPaths = this.imageSetPaths
         if (activeImageSetPath && imageSetPaths.length > 1) {
-            let activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
-            let previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
+            const activeImageSetIndex = imageSetPaths.indexOf(activeImageSetPath)
+            const previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
         }
     }
@@ -252,8 +252,8 @@ export class ProjectStore {
     @action public clearSegmentation = (): void => {
         this.settingStore.setSegmentationBasename(null)
         this.settingStore.clearSelectedPlotMarkers()
-        for (let imageSet of this.imageSetPaths) {
-            let curSet = this.imageSets[imageSet]
+        for (const imageSet of this.imageSetPaths) {
+            const curSet = this.imageSets[imageSet]
             if (curSet) {
                 curSet.segmentationStore.clearSegmentationData()
                 curSet.populationStore.deletePopulationsNotSelectedOnImage()
@@ -262,8 +262,8 @@ export class ProjectStore {
     }
 
     @action public setSegmentationBasename = (fName: string): void => {
-        let dirname = path.dirname(fName)
-        let basename = path.basename(fName)
+        const dirname = path.dirname(fName)
+        const basename = path.basename(fName)
         if (dirname == this.activeImageSetPath) {
             this.settingStore.setSegmentationBasename(basename)
         } else {
@@ -274,13 +274,13 @@ export class ProjectStore {
     }
 
     @action public addPopulationFromRange = (min: number, max: number): void => {
-        let settingStore = this.settingStore
-        let populationStore = this.activeImageSetStore.populationStore
-        let segmentationStatistics = this.activeImageSetStore.segmentationStore.segmentationStatistics
+        const settingStore = this.settingStore
+        const populationStore = this.activeImageSetStore.populationStore
+        const segmentationStatistics = this.activeImageSetStore.segmentationStore.segmentationStatistics
         if (segmentationStatistics != null) {
-            let marker = settingStore.selectedPlotMarkers[0]
-            let selectedStatistic = settingStore.plotStatistic
-            let segmentIds = segmentationStatistics.segmentsInIntensityRange(
+            const marker = settingStore.selectedPlotMarkers[0]
+            const selectedStatistic = settingStore.plotStatistic
+            const segmentIds = segmentationStatistics.segmentsInIntensityRange(
                 marker,
                 min,
                 max,
@@ -329,13 +329,13 @@ export class ProjectStore {
         fcs: boolean,
         populations: boolean,
     ): void => {
-        for (let curDir of this.imageSetPaths) {
+        for (const curDir of this.imageSetPaths) {
             // Incrementing num to export so we can have a loading bar.
             this.incrementNumToExport()
             this.loadImageStoreData(curDir)
-            let imageSetStore = this.imageSets[curDir]
-            let imageStore = imageSetStore.imageStore
-            let segmentationStore = imageSetStore.segmentationStore
+            const imageSetStore = this.imageSets[curDir]
+            const imageStore = imageSetStore.imageStore
+            const segmentationStore = imageSetStore.segmentationStore
             when(
                 (): boolean => !imageStore.imageDataLoading,
                 (): void => {
@@ -346,15 +346,15 @@ export class ProjectStore {
                                 !segmentationStore.segmentationDataLoading &&
                                 !segmentationStore.segmentationStatisticsLoading,
                             (): void => {
-                                let selectedDirectory = imageStore.selectedDirectory
+                                const selectedDirectory = imageStore.selectedDirectory
                                 if (selectedDirectory) {
-                                    let imageSetName = path.basename(selectedDirectory)
+                                    const imageSetName = path.basename(selectedDirectory)
                                     if (populations && fcs) {
                                         exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
                                     } else {
-                                        let extension = fcs ? '.fcs' : '.csv'
-                                        let filename = imageSetName + '_' + statistic + extension
-                                        let filePath = path.join(dirName, filename)
+                                        const extension = fcs ? '.fcs' : '.csv'
+                                        const filename = imageSetName + '_' + statistic + extension
+                                        const filePath = path.join(dirName, filename)
                                         if (fcs) {
                                             exportToFCS(filePath, statistic, imageSetStore)
                                         } else {
@@ -398,29 +398,27 @@ export class ProjectStore {
     }
 
     public exportActivePopulationsToJSON = (filepath: string): void => {
-        let activePopulationStore = this.activeImageSetStore.populationStore
+        const activePopulationStore = this.activeImageSetStore.populationStore
         writeToJSON(activePopulationStore.selectedPopulations, filepath)
     }
 
     public importActivePopulationsFromJSON = (filepath: string): void => {
-        let activePopulationStore = this.activeImageSetStore.populationStore
-        let populations = parseActivePopulationsJSON(filepath)
-        populations.map(
-            (population): void => {
-                activePopulationStore.addSelectedPopulation(
-                    population.selectedRegion,
-                    population.selectedSegments,
-                    null,
-                    population.name,
-                    population.color,
-                )
-            },
-        )
+        const activePopulationStore = this.activeImageSetStore.populationStore
+        const populations = parseActivePopulationsJSON(filepath)
+        populations.map((population): void => {
+            activePopulationStore.addSelectedPopulation(
+                population.selectedRegion,
+                population.selectedSegments,
+                null,
+                population.name,
+                population.color,
+            )
+        })
     }
 
     public importActivePopulationsFromCSV = (filePath: string): void => {
-        let populations = parseActivePopulationCSV(filePath)
-        for (let populationName in populations) {
+        const populations = parseActivePopulationCSV(filePath)
+        for (const populationName in populations) {
             this.activeImageSetStore.populationStore.addSelectedPopulation(
                 null,
                 populations[populationName],
@@ -432,15 +430,15 @@ export class ProjectStore {
     }
 
     public importProjectPopulationsFromCSV = (filePath: string): void => {
-        let populations = parseProjectPopulationCSV(filePath)
-        for (let imageSetName in populations) {
-            let imageSetPopulations = populations[imageSetName]
+        const populations = parseProjectPopulationCSV(filePath)
+        for (const imageSetName in populations) {
+            const imageSetPopulations = populations[imageSetName]
             if (this.projectPath) {
-                let imageSetPath = path.join(this.projectPath, imageSetName)
-                let imageSet = this.imageSets[imageSetPath]
+                const imageSetPath = path.join(this.projectPath, imageSetName)
+                const imageSet = this.imageSets[imageSetPath]
                 if (imageSet) {
-                    let populationStore = imageSet.populationStore
-                    for (let populationName in imageSetPopulations) {
+                    const populationStore = imageSet.populationStore
+                    for (const populationName in imageSetPopulations) {
                         populationStore.addSelectedPopulation(
                             null,
                             imageSetPopulations[populationName],
@@ -455,19 +453,19 @@ export class ProjectStore {
     }
 
     public exportActivePopulationsToCSV = (filePath: string): void => {
-        let activePopulationArray = this.activeImageSetStore.populationStore.getSelectedPopulationsAsArray()
+        const activePopulationArray = this.activeImageSetStore.populationStore.getSelectedPopulationsAsArray()
         writeToCSV(activePopulationArray, filePath, null)
     }
 
     public exportProjectPopulationsToCSV = (filePath: string): void => {
-        let projectPopulationArray: string[][] = []
-        for (let imageSetPath of this.imageSetPaths) {
-            let imageSetName = path.basename(imageSetPath)
-            let imageSet = this.imageSets[imageSetPath]
+        const projectPopulationArray: string[][] = []
+        for (const imageSetPath of this.imageSetPaths) {
+            const imageSetName = path.basename(imageSetPath)
+            const imageSet = this.imageSets[imageSetPath]
             if (imageSet) {
-                let populationStore = imageSet.populationStore
-                let populationArray = populationStore.getSelectedPopulationsAsArray()
-                for (let population of populationArray) {
+                const populationStore = imageSet.populationStore
+                const populationArray = populationStore.getSelectedPopulationsAsArray()
+                for (const population of populationArray) {
                     population.unshift(imageSetName)
                     projectPopulationArray.push(population)
                 }

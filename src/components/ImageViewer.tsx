@@ -112,31 +112,31 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.zoomInsetGraphics = new PIXI.Graphics()
         this.zoomInsetVisible = true
 
-        let redFilter = new PIXI.filters.ColorMatrixFilter()
+        const redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         redFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let greenFilter = new PIXI.filters.ColorMatrixFilter()
+        const greenFilter = new PIXI.filters.ColorMatrixFilter()
         greenFilter.matrix = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         greenFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let blueFilter = new PIXI.filters.ColorMatrixFilter()
+        const blueFilter = new PIXI.filters.ColorMatrixFilter()
         blueFilter.matrix = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         blueFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let cyanFilter = new PIXI.filters.ColorMatrixFilter()
+        const cyanFilter = new PIXI.filters.ColorMatrixFilter()
         cyanFilter.matrix = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         cyanFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let magentaFilter = new PIXI.filters.ColorMatrixFilter()
+        const magentaFilter = new PIXI.filters.ColorMatrixFilter()
         magentaFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         magentaFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let yellowFilter = new PIXI.filters.ColorMatrixFilter()
+        const yellowFilter = new PIXI.filters.ColorMatrixFilter()
         yellowFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         yellowFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        let blackFilter = new PIXI.filters.ColorMatrixFilter()
+        const blackFilter = new PIXI.filters.ColorMatrixFilter()
         blackFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         blackFilter.blendMode = PIXI.BLEND_MODES.ADD
 
@@ -156,15 +156,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selecting = false
     }
 
-    private onExportComplete = () => this.props.onExportComplete()
-    private addSelectedRegionToStore = (selectedRegion: number[] | null, selectedSegments: number[], color: number) => {
+    private onExportComplete = (): void => this.props.onExportComplete()
+    private addSelectedRegionToStore = (
+        selectedRegion: number[] | null,
+        selectedSegments: number[],
+        color: number,
+    ): void => {
         this.props.addSelectedRegion(selectedRegion, selectedSegments, color)
     }
-    private updateSelectedRegionsInStore = (selectedRegions: SelectedPopulation[]) => {
+    private updateSelectedRegionsInStore = (selectedRegions: SelectedPopulation[]): void => {
         this.props.updateSelectedRegions(selectedRegions)
     }
 
-    private syncPositionAndScale = () => {
+    private syncPositionAndScale = (): void => {
         this.props.setPositionAndScale(
             { x: this.stage.position.x, y: this.stage.position.y },
             { x: this.stage.scale.x, y: this.stage.scale.y },
@@ -178,8 +182,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (this.stage.position.y > 0) this.stage.position.y = 0
 
         // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
-        let minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
-        let minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
+        const minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
+        const minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
 
         // Not able to scroll past the bottom right corner
         if (this.stage.position.x < minX) this.stage.position.x = minX
@@ -197,19 +201,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private zoom(isZoomIn: boolean): void {
-        let beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+        const beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
-        let direction = isZoomIn ? 1 : -1
-        let factor = 1 + direction * 0.05
+        const direction = isZoomIn ? 1 : -1
+        const factor = 1 + direction * 0.05
         this.stage.scale.x *= factor
         this.stage.scale.y *= factor
 
-        let atMinScale = this.checkSetMinScale()
+        const atMinScale = this.checkSetMinScale()
 
         //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
         if (!atMinScale) {
             this.stage.updateTransform()
-            let afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            const afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
             this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
             this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
@@ -222,7 +226,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private addZoom(el: HTMLDivElement): void {
-        el.addEventListener('wheel', e => {
+        el.addEventListener('wheel', (e) => {
             e.stopPropagation()
             e.preventDefault()
             this.zoom(e.deltaY < 0)
@@ -238,10 +242,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         // On mousedown set dragging to true and save the mouse position where we started dragging
         el.addEventListener('mousedown', () => {
-            let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+            const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
             if (!altPressed) {
                 this.dragging = true
-                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 mouseDownX = pos.x
                 mouseDownY = pos.y
             }
@@ -250,9 +254,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
         el.addEventListener('mousemove', () => {
             if (this.dragging) {
-                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                let dx = (pos.x - mouseDownX) * this.stage.scale.x
-                let dy = (pos.y - mouseDownY) * this.stage.scale.y
+                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                const dx = (pos.x - mouseDownX) * this.stage.scale.x
+                const dy = (pos.y - mouseDownY) * this.stage.scale.y
 
                 this.stage.position.x += dx
                 this.stage.position.y += dy
@@ -293,12 +297,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
         el.addEventListener('mousedown', () => {
-            let altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
-            let metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+            const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+            const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
             if (altPressed || metaPressed) {
                 this.selecting = true
                 selectionColor = randomHexColor()
-                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 selection.push(pos.x)
                 selection.push(pos.y)
             }
@@ -307,7 +311,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
         el.addEventListener('mousemove', () => {
             if (this.selecting) {
-                let pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 selection.push(pos.x)
                 selection.push(pos.y)
 
@@ -416,18 +420,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>,
     ): void {
-        let filterCode = GraphicsHelper.generateBrightnessFilterCode()
-        let curMarker = channelMarker[curChannel]
+        const filterCode = GraphicsHelper.generateBrightnessFilterCode()
+        const curMarker = channelMarker[curChannel]
         if (curMarker != null) {
-            let sprite = imcData.sprites[curMarker]
-            let uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
+            const sprite = imcData.sprites[curMarker]
+            const uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
                 curChannel,
                 imcData,
                 channelMarker,
                 channelDomain,
             )
             if (sprite && uniforms) {
-                let brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
+                const brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
                 // Delete sprite filters so they get cleared from memory before adding new ones
                 sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
                 this.stage.addChild(sprite)
@@ -436,7 +440,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private refreshSegmentationGraphicsIfChanged(segmentationData: SegmentationData | null): boolean {
-        let segmentationDataChanged = segmentationData != this.segmentationData
+        const segmentationDataChanged = segmentationData != this.segmentationData
         if (segmentationDataChanged && segmentationData) {
             // If the segmentation data has changed and segmentation data is not null then refresh the sprites and graphics
             this.segmentationData = segmentationData
@@ -491,7 +495,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.selectedRegions = selectedRegions
             this.selectedRegionGraphics = {}
             if (selectedRegions != null) {
-                for (let region of selectedRegions) {
+                for (const region of selectedRegions) {
                     if (region.visible) {
                         let regionGraphics: PIXI.Graphics | null = null
                         let outlineGraphics: PIXI.Graphics | null = null
@@ -528,8 +532,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Adds the graphics for regions or segment/cell populations selected by users to the stage.
     private loadSelectedRegionGraphics(stage: PIXI.Container, highlightedRegions: string[]): void {
         if (this.selectedRegionGraphics != null) {
-            for (let regionId in this.selectedRegionGraphics) {
-                let curGraphics = this.selectedRegionGraphics[regionId]
+            for (const regionId in this.selectedRegionGraphics) {
+                const curGraphics = this.selectedRegionGraphics[regionId]
                 // Set the alpha correctly for regions that need to be highlighted
                 let regionAlpha = SelectedRegionAlpha
                 let outlineAlpha = SelectedSegmentOutlineAlpha
@@ -538,13 +542,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                     outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
                 }
 
-                let regionGraphics = curGraphics.region
+                const regionGraphics = curGraphics.region
                 if (regionGraphics != null) {
                     regionGraphics.alpha = regionAlpha
                     stage.addChild(regionGraphics)
                 }
 
-                let outlineGraphics = curGraphics.outline
+                const outlineGraphics = curGraphics.outline
                 if (outlineGraphics != null) {
                     outlineGraphics.alpha = outlineAlpha
                     stage.addChild(outlineGraphics)
@@ -556,7 +560,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Generates and adds segments highlighted/moused over on the graph.
     private loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]): void {
         if (highlightedSegments.length > 0) {
-            let graphics = segmentationData.segmentOutlineGraphics(
+            const graphics = segmentationData.segmentOutlineGraphics(
                 HighlightedSegmentOutlineColor,
                 SelectedSegmentOutlineWidth,
                 highlightedSegments,
@@ -567,8 +571,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private resizeStaticGraphics(graphics: PIXI.Graphics, xScaleCoefficient = 1, yScaleCoefficient = 1): void {
         this.stage.removeChild(graphics)
-        let xScale = 1 / this.stage.scale.x
-        let yScale = 1 / this.stage.scale.y
+        const xScale = 1 / this.stage.scale.x
+        const yScale = 1 / this.stage.scale.y
         graphics.setTransform(
             Math.abs(this.stage.position.x) * xScale,
             Math.abs(this.stage.position.y) * yScale,
@@ -627,8 +631,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Adjust the position so that the same point is still centered if we're zoomed in.
         this.stage.position.x = this.stage.position.x * (width / this.rendererWidth)
         this.stage.position.y = this.stage.position.y * (height / this.rendererHeight)
-        let legendXScaleCoefficient = xScale / this.stage.scale.x
-        let legendYScaleCoefficient = yScale / this.stage.scale.y
+        const legendXScaleCoefficient = xScale / this.stage.scale.x
+        const legendYScaleCoefficient = yScale / this.stage.scale.y
         this.stage.scale.x = xScale
         this.stage.scale.y = yScale
         this.stage.updateTransform()
@@ -639,29 +643,29 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private exportRenderer(exportPath: string): void {
-        let initialXScale = this.stage.scale.x
-        let initialYScale = this.stage.scale.y
+        const initialXScale = this.stage.scale.x
+        const initialYScale = this.stage.scale.y
 
-        let exportXScale = (this.imageData.width / this.rendererWidth) * initialXScale
-        let exportYScale = (this.imageData.height / this.rendererHeight) * initialYScale
+        const exportXScale = (this.imageData.width / this.rendererWidth) * initialXScale
+        const exportYScale = (this.imageData.height / this.rendererHeight) * initialYScale
 
         // Resizes the renderer to be the width and height of the original image for export
         // TODO: Should this be smaller if the user is zoomed in?
         this.resizeRendererForExport(this.imageData.width, this.imageData.height, exportXScale, exportYScale)
 
         // Get the source canvas that we are exporting from pixi
-        let sourceCanvas = this.renderer.extract.canvas()
+        const sourceCanvas = this.renderer.extract.canvas()
 
         // Return the size of the renderer to its original size
         this.resizeRendererForExport(this.rendererWidth, this.rendererHeight, initialXScale, initialYScale)
 
         // Save the export to a file
-        let sourceContext = sourceCanvas.getContext('2d')
+        const sourceContext = sourceCanvas.getContext('2d')
         if (sourceContext) {
             // Convert to a base64 encoded png
-            let exportingImage = sourceCanvas.toDataURL('image/png')
+            const exportingImage = sourceCanvas.toDataURL('image/png')
             // Replace the header so that we just have the base64 encoded string
-            let exportingData = exportingImage.replace(/^data:image\/png;base64,/, '')
+            const exportingData = exportingImage.replace(/^data:image\/png;base64,/, '')
             // Save the base64 encoded string to file.
             fs.writeFileSync(exportPath, exportingData, 'base64')
         }
@@ -691,7 +695,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (el == null) return
         this.el = el
 
-        let maxRendererSize = rendererSize
+        const maxRendererSize = rendererSize
         if (maxHeight != null) maxRendererSize.height = maxHeight
 
         if (!this.el.hasChildNodes()) {
@@ -713,13 +717,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.removeChildren()
 
         // For each channel setting the brightness and color filters
-        for (let s of ImageChannels) {
-            let curChannel = s as ChannelName
+        for (const s of ImageChannels) {
+            const curChannel = s as ChannelName
             if (channelVisibility[s]) this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
         }
 
         // Update and load segmentation data graphics
-        let segmentationDataChanged = this.refreshSegmentationGraphicsIfChanged(segmentationData)
+        const segmentationDataChanged = this.refreshSegmentationGraphicsIfChanged(segmentationData)
         this.loadSegmentationGraphics(segmentationFillAlpha, segmentationOutlineAlpha, segmentationCentroidsVisible)
 
         // Update and load selected region graphics
@@ -750,7 +754,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         //Dereferencing these here is necessary for Mobx to trigger, because
         //render is the only tracked function (i.e. this will not trigger if
         //the variables are dereferenced inside renderImage)
-        let channelMarker = {
+        const channelMarker = {
             rChannel: this.props.channelMarker.rChannel,
             gChannel: this.props.channelMarker.gChannel,
             bChannel: this.props.channelMarker.bChannel,
@@ -760,7 +764,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             kChannel: this.props.channelMarker.kChannel,
         }
 
-        let channelDomain = {
+        const channelDomain = {
             rChannel: this.props.channelDomain.rChannel,
             gChannel: this.props.channelDomain.gChannel,
             bChannel: this.props.channelDomain.bChannel,
@@ -770,7 +774,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             kChannel: this.props.channelDomain.kChannel,
         }
 
-        let channelVisibility = {
+        const channelVisibility = {
             rChannel: this.props.channelVisibility.rChannel,
             gChannel: this.props.channelVisibility.gChannel,
             bChannel: this.props.channelVisibility.bChannel,
@@ -780,39 +784,39 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             kChannel: this.props.channelVisibility.kChannel,
         }
 
-        let imcData = this.props.imageData
+        const imcData = this.props.imageData
 
         let position: { x: number; y: number } | null = null
         if (this.props.position) position = { x: this.props.position.x, y: this.props.position.y }
         let scale: { x: number; y: number } | null = null
         if (this.props.scale) scale = { x: this.props.scale.x, y: this.props.scale.y }
 
-        let segmentationData = this.props.segmentationData
-        let segmentationFillAlpha = this.props.segmentationFillAlpha
-        let segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
-        let segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
+        const segmentationData = this.props.segmentationData
+        const segmentationFillAlpha = this.props.segmentationFillAlpha
+        const segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
+        const segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
 
-        let regions = this.props.selectedRegions
+        const regions = this.props.selectedRegions
 
-        let highlightedRegions = this.props.hightlightedRegions
+        const highlightedRegions = this.props.hightlightedRegions
 
-        let highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
+        const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 
-        let exportPath = this.props.exportPath
+        const exportPath = this.props.exportPath
 
-        let legendVisible = this.props.legendVisible
+        const legendVisible = this.props.legendVisible
 
-        let zoomInsetVisible = this.props.zoomInsetVisible
+        const zoomInsetVisible = this.props.zoomInsetVisible
 
-        let maxHeight = this.props.maxHeight
+        const maxHeight = this.props.maxHeight
 
         return (
             <SizeMe>
-                {({ size }) => (
+                {({ size }): React.ReactElement => (
                     <div>
                         <div
                             className="imcimage"
-                            ref={el => {
+                            ref={(el): void => {
                                 this.renderImage(
                                     el,
                                     imcData,

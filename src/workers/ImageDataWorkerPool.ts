@@ -8,17 +8,17 @@ import {
     OnImageDataWorkerComplete,
 } from './ImageDataWorker'
 
-let imageDataWorkerPool: ImageDataWorker[] = []
-let imageDataWorkerCallbacks: Record<string, OnImageDataWorkerComplete> = {}
+const imageDataWorkerPool: ImageDataWorker[] = []
+const imageDataWorkerCallbacks: Record<string, OnImageDataWorkerComplete> = {}
 const maxImageDataWorkers = navigator.hardwareConcurrency
 
 function onImageDataComplete(data: ImageDataWorkerError | ImageDataWorkerResult): void {
-    let jobInput = data.input.filepath
+    const jobInput = data.input.filepath
     imageDataWorkerCallbacks[jobInput](data)
 }
 
 function getExistingImageDataWorker(): ImageDataWorker {
-    let worker = imageDataWorkerPool.shift()
+    const worker = imageDataWorkerPool.shift()
     if (worker) {
         return worker
     } else {
@@ -30,8 +30,8 @@ function getExistingImageDataWorker(): ImageDataWorker {
 }
 
 function getImageDataWorker(): ImageDataWorker {
-    let numWorkers = imageDataWorkerPool.length
-    let worker =
+    const numWorkers = imageDataWorkerPool.length
+    const worker =
         numWorkers < maxImageDataWorkers ? new ImageDataWorker(onImageDataComplete) : getExistingImageDataWorker()
     imageDataWorkerPool.push(worker)
     return worker
@@ -39,6 +39,6 @@ function getImageDataWorker(): ImageDataWorker {
 
 export function submitImageDataJob(input: ImageDataWorkerInput, onComplete: OnImageDataWorkerComplete): void {
     imageDataWorkerCallbacks[input.filepath] = onComplete
-    let worker = getImageDataWorker()
+    const worker = getImageDataWorker()
     worker.postMessage(input)
 }

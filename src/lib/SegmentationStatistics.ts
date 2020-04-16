@@ -41,12 +41,12 @@ export class SegmentationStatistics {
 
     private async loadStatisticData(data: SegmentationStatisticsWorkerResult): Promise<void> {
         if (data.statistic == 'mean') {
-            for (let key in data.map) {
+            for (const key in data.map) {
                 this.meanMap[key] = data.map[key]
             }
             this.meanMinMaxMap[data.markerName] = data.minmax
         } else if (data.statistic == 'median') {
-            for (let key in data.map) {
+            for (const key in data.map) {
                 this.medianMap[key] = data.map[key]
             }
             this.medianMinMaxMap[data.markerName] = data.minmax
@@ -56,12 +56,12 @@ export class SegmentationStatistics {
     }
 
     public generateStatistics(imageData: ImageData, segmentationData: SegmentationData): void {
-        let onComplete = (data: SegmentationStatisticsWorkerResult): Promise<void> => this.loadStatisticData(data)
+        const onComplete = (data: SegmentationStatisticsWorkerResult): Promise<void> => this.loadStatisticData(data)
 
-        for (let marker in imageData.data) {
+        for (const marker in imageData.data) {
             this.markers.push(marker)
             this.numStatistics += 2
-            let tiffData = imageData.data[marker]
+            const tiffData = imageData.data[marker]
 
             submitSegmentationStatisticsJob(
                 {
@@ -86,10 +86,10 @@ export class SegmentationStatistics {
     }
 
     private intensity(marker: string, segmentIds: number[], mean: boolean): number {
-        let intensities = []
-        for (let segmentId of segmentIds) {
-            let mapKey = marker + '_' + segmentId
-            let curIntensity = mean ? this.meanMap[mapKey] : this.medianMap[mapKey]
+        const intensities = []
+        for (const segmentId of segmentIds) {
+            const mapKey = marker + '_' + segmentId
+            const curIntensity = mean ? this.meanMap[mapKey] : this.medianMap[mapKey]
             intensities.push(curIntensity)
         }
         return mean ? calculateMean(intensities) : calculateMedian(intensities)
@@ -104,19 +104,19 @@ export class SegmentationStatistics {
     }
 
     private splitMapKey(key: string): { marker: string; segmentId: string | undefined } {
-        let splat = key.split('_')
-        let segmentId = splat.pop()
-        let marker = splat.join('_')
+        const splat = key.split('_')
+        const segmentId = splat.pop()
+        const marker = splat.join('_')
         return { marker: marker, segmentId: segmentId }
     }
 
     public segmentsInIntensityRange(selectedMarker: string, min: number, max: number, mean: boolean): number[] {
-        let segments = []
-        let intensityMap = mean ? this.meanMap : this.medianMap
-        for (let key in intensityMap) {
-            let { marker: marker, segmentId } = this.splitMapKey(key)
+        const segments = []
+        const intensityMap = mean ? this.meanMap : this.medianMap
+        for (const key in intensityMap) {
+            const { marker: marker, segmentId } = this.splitMapKey(key)
             if (marker == selectedMarker && segmentId) {
-                let curIntensity = intensityMap[key]
+                const curIntensity = intensityMap[key]
                 if (min <= curIntensity && curIntensity <= max) {
                     segments.push(Number(segmentId))
                 }

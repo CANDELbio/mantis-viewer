@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
@@ -18,25 +19,22 @@ async function bitmapFromData(
     minmax: MinMax,
 ): Promise<ImageBitmap> {
     // @ts-ignore
-    let offScreen = new OffscreenCanvas(width, height)
+    const offScreen = new OffscreenCanvas(width, height)
 
-    let thisCtx = offScreen.getContext('2d')
+    const thisCtx = offScreen.getContext('2d')
     if (thisCtx) {
         // @ts-ignore
-        let imageData = thisCtx.getImageData(0, 0, offScreen.width, offScreen.height)
-        let canvasData = imageData.data
+        const imageData = thisCtx.getImageData(0, 0, offScreen.width, offScreen.height)
+        const canvasData = imageData.data
 
-        let colorScale = d3Scale
-            .scaleLinear()
-            .domain([minmax.min, minmax.max])
-            .range([0, 255])
+        const colorScale = d3Scale.scaleLinear().domain([minmax.min, minmax.max]).range([0, 255])
 
         // iterating through the values in the tiff and setting them in the canvas
         for (let i = 0; i < v.length; ++i) {
-            let x = colorScale(v[i])
+            const x = colorScale(v[i])
             // tiff data (v) has one value per pixel whereas a canvas has four (rgba)
             // Bitshift by 2 (same as multiplying by 4) to get the starting index on the canvas
-            let canvasIndex = i << 2
+            const canvasIndex = i << 2
             canvasData[canvasIndex] = x // r
             canvasData[canvasIndex + 1] = x // g
             canvasData[canvasIndex + 2] = x // b
@@ -46,7 +44,7 @@ async function bitmapFromData(
         thisCtx.putImageData(imageData, 0, 0)
     }
 
-    let bitmap = await createImageBitmap(offScreen)
+    const bitmap = await createImageBitmap(offScreen)
 
     return bitmap
 }
@@ -54,7 +52,7 @@ async function bitmapFromData(
 function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): { min: number; max: number } {
     let min = v[0]
     let max = v[0]
-    for (let curValue of v) {
+    for (const curValue of v) {
         if (curValue < min) min = curValue
         if (curValue > max) max = curValue
     }
@@ -64,8 +62,8 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
 // Does a BFS of the imageDescription parsed XML looking for an object property named 'name'
 // TODO: Make the xml field name/object property names configurable.
 function getMarkerNameFromImageDescription(imageDescription: any): string | null {
-    let descriptionValues = []
-    for (let key in imageDescription) {
+    const descriptionValues = []
+    for (const key in imageDescription) {
         if (key.toLowerCase() == 'name') {
             // xml2js parses xml elements into arrays
             //If there's a name field we want to make sure it has elements and then return the first.
@@ -73,11 +71,11 @@ function getMarkerNameFromImageDescription(imageDescription: any): string | null
                 return imageDescription[key][0] as string
             }
         }
-        let curValue = imageDescription[key]
+        const curValue = imageDescription[key]
         if (typeof curValue === 'object' && curValue !== null) descriptionValues.push(curValue)
     }
-    for (let descriptionValue of descriptionValues) {
-        let descriptionValueMarkerName = getMarkerNameFromImageDescription(descriptionValue)
+    for (const descriptionValue of descriptionValues) {
+        const descriptionValueMarkerName = getMarkerNameFromImageDescription(descriptionValue)
         if (descriptionValueMarkerName) return descriptionValueMarkerName
     }
     return null
@@ -92,7 +90,7 @@ async function generateMarkerName(
     let markerNameFromImageDescription = null
     // If we can find a name in the image description use that, otherwise use the filename.
     try {
-        let parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
+        const parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
         markerNameFromImageDescription = getMarkerNameFromImageDescription(parsedImageDescription)
     } finally {
         let markerName = markerNameFromFilename
@@ -107,21 +105,21 @@ async function generateMarkerName(
 }
 
 export async function readFile(input: ImageDataWorkerInput): Promise<ImageDataWorkerResult | ImageDataWorkerError> {
-    let filepath = input.filepath
-    let useExtInMarkerName = input.useExtInMarkerName
-    let parsed = path.parse(filepath)
-    let markerNameFromFilename = useExtInMarkerName ? parsed.base : parsed.name
+    const filepath = input.filepath
+    const useExtInMarkerName = input.useExtInMarkerName
+    const parsed = path.parse(filepath)
+    const markerNameFromFilename = useExtInMarkerName ? parsed.base : parsed.name
     try {
-        let imageNumber = input.imageNumber ? input.imageNumber : 0
-        let tiffData = await readTiffData(filepath, imageNumber)
-        let { data, width, height, scaled, numImages, imageDescription } = tiffData
-        let markerName = await generateMarkerName(imageDescription, markerNameFromFilename, numImages, imageNumber)
+        const imageNumber = input.imageNumber ? input.imageNumber : 0
+        const tiffData = await readTiffData(filepath, imageNumber)
+        const { data, width, height, scaled, numImages, imageDescription } = tiffData
+        const markerName = await generateMarkerName(imageDescription, markerNameFromFilename, numImages, imageNumber)
 
         // Calculate the minimum and maximum marker intensity
-        let minmax = calculateMinMaxIntensity(data)
+        const minmax = calculateMinMaxIntensity(data)
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
-        let bitmap = await bitmapFromData(data, width, height, minmax)
+        const bitmap = await bitmapFromData(data, width, height, minmax)
 
         return {
             input: {
@@ -145,9 +143,9 @@ export async function readFile(input: ImageDataWorkerInput): Promise<ImageDataWo
 
 ctx.addEventListener(
     'message',
-    message => {
-        var data: ImageDataWorkerInput = message.data
-        readFile(data).then(message => {
+    (message) => {
+        const data: ImageDataWorkerInput = message.data
+        readFile(data).then((message) => {
             // Send the message and then specify the large data array and bitmap as transferrables
             // Using transferrables dramatically speeds up transfer back to the main thread
             if ('error' in message) {

@@ -1,11 +1,11 @@
 import { SelectOption } from '../definitions/UIDefinitions'
 
 export const SelectStyle = {
-    option: (provided: React.CSSProperties) => ({
+    option: (provided: React.CSSProperties): React.CSSProperties => ({
         ...provided,
         width: '100%',
     }),
-    menu: (provided: React.CSSProperties) => ({
+    menu: (provided: React.CSSProperties): React.CSSProperties => ({
         ...provided,
         width: '100%',
         minWidth: 'fit-content',
@@ -14,6 +14,7 @@ export const SelectStyle = {
 
 // TODO: Can't figure out which type to import from react-select
 // TODO: Stick these theme colors somewhere
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SelectTheme = (theme: any): any => ({
     ...theme,
     colors: {
@@ -27,7 +28,7 @@ export const SelectTheme = (theme: any): any => ({
 
 export function generateSelectOptions(values: string[], labelTransform?: (i: string) => string): SelectOption[] {
     return values.map((s: string) => {
-        let l = labelTransform ? labelTransform(s) : s
+        const l = labelTransform ? labelTransform(s) : s
         return { value: s, label: l }
     })
 }

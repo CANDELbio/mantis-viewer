@@ -31,12 +31,10 @@ export class SegmentationData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
-    public constructor() {}
-
     public segmentOutlineGraphics(color: number, width: number, segments?: number[]): PIXI.Graphics {
-        let outlines = []
-        for (let segment in this.segmentOutlineMap) {
-            let segmentId = Number(segment)
+        const outlines = []
+        for (const segment in this.segmentOutlineMap) {
+            const segmentId = Number(segment)
             if (segments) {
                 if (segments.indexOf(segmentId) != -1) outlines.push(this.segmentOutlineMap[segmentId])
             } else {
@@ -47,7 +45,7 @@ export class SegmentationData {
     }
 
     private async loadFileError(fError: { error: string }): Promise<void> {
-        let err = 'Error loading segmentation data: ' + fError.error
+        const err = 'Error loading segmentation data: ' + fError.error
         console.log(err)
         this.errorMessage = err
         this.onReady(this)
@@ -75,7 +73,7 @@ export class SegmentationData {
         this.errorMessage = null
         this.onReady = onReady
 
-        let onComplete = (data: SegmentationDataWorkerResult | SegmentationDataWorkerError): void => {
+        const onComplete = (data: SegmentationDataWorkerResult | SegmentationDataWorkerError): void => {
             if ('error' in data) {
                 this.loadFileError(data)
             } else this.loadFileData(data)

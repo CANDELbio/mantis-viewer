@@ -21,7 +21,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
         super(props)
     }
 
-    private onImageSetChange = (x: SelectOption) => {
+    private onImageSetChange = (x: SelectOption): void => {
         this.props.setSelectedImageSet(x.value)
     }
 
@@ -40,8 +40,8 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
             )
         }
 
-        let imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
-        let selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
+        const imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
+        const selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
         return (
             <Grid fluid={true}>
                 <Row between="xs">
