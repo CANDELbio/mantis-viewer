@@ -228,7 +228,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     addSelectedRegion={this.addSelectionFromImage}
                     updateSelectedRegions={this.updateSelectionsFromImage}
                     selectedRegions={populationStore.selectedPopulations}
-                    hightlightedRegions={populationStore.highlightedPopulations}
+                    highlightedRegions={populationStore.highlightedPopulations}
                     highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
                     exportPath={imageStore.imageExportFilename}
                     onExportComplete={imageStore.clearImageExportFilename}

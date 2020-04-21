@@ -38,7 +38,7 @@ export interface ImageProps {
     selectedRegions: SelectedPopulation[] | null
     addSelectedRegion: (selectedRegion: number[] | null, selectedSegments: number[], color: number) => void
     updateSelectedRegions: (selectedRegions: SelectedPopulation[]) => void
-    hightlightedRegions: string[]
+    highlightedRegions: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
     onExportComplete: () => void
@@ -85,7 +85,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private zoomInsetVisible: boolean
 
     // Selected regions stored locally so that we can compare to the selected regions being passed in from the store
-    // If there is a difference, we update this object and the rerender the graphics stored in selectedRegionGraphics
+    // If there is a difference, we update this object and the re-render the graphics stored in selectedRegionGraphics
     // selectedRegionGraphics is a map of regionId to Graphics
     // selectedRegionGraphics below
     private selectedRegions: SelectedPopulation[] | null
@@ -177,17 +177,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     private checkSetStageBounds(): void {
-        // Not able to scroll past top left corner
+        // Beyond top and left edges are out of bounds
         if (this.stage.position.x > 0) this.stage.position.x = 0
         if (this.stage.position.y > 0) this.stage.position.y = 0
 
-        // Calculate where the coordinates of the botttom right corner are in relation to the current window/stage size and the scale of the image.
-        const minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
-        const minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
+        // Calculate where the coordinates of the bottom right corner
+        // This is done by doing imageDimension * minScale - imageDimension * currentScale
+        const maxX = this.imageData.width * (this.minScale - this.stage.scale.x)
+        const maxY = this.imageData.height * (this.minScale - this.stage.scale.y)
 
-        // Not able to scroll past the bottom right corner
-        if (this.stage.position.x < minX) this.stage.position.x = minX
-        if (this.stage.position.y < minY) this.stage.position.y = minY
+        // Beyond bottom and right edges are out of bounds
+        if (this.stage.position.x < maxX) this.stage.position.x = maxX
+        if (this.stage.position.y < maxY) this.stage.position.y = maxY
     }
 
     private checkSetMinScale(): boolean {
@@ -201,6 +202,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private zoom(isZoomIn: boolean): void {
+        // TODO: Check if X and Y are in image bounds
         const beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
         const direction = isZoomIn ? 1 : -1
@@ -243,7 +245,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // On mousedown set dragging to true and save the mouse position where we started dragging
         el.addEventListener('mousedown', () => {
             const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
-            if (!altPressed) {
+            const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+            // TODO: Check if X and Y are in image bounds
+            if (!(altPressed | metaPressed)) {
                 this.dragging = true
                 const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
                 mouseDownX = pos.x
@@ -251,7 +255,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             }
         })
 
-        // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
+        // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
         el.addEventListener('mousemove', () => {
             if (this.dragging) {
                 const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
@@ -285,6 +289,27 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         })
     }
 
+    private addPositionToSelection(selection: number[]): void {
+        const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+        let xPosition = position.x
+        let yPosition = position.y
+
+        // If the user is trying to select outside of the top or left edges, stop them
+        if (xPosition < 0) xPosition = 0
+        if (yPosition < 0) yPosition = 0
+
+        const maxX = this.imageData.width
+        const maxY = this.imageData.height
+
+        // If the user is trying to select outside of the bottom or right edges, stop them
+
+        if (xPosition > maxX) xPosition = maxX
+        if (yPosition > maxY) yPosition = maxY
+
+        selection.push(xPosition)
+        selection.push(yPosition)
+    }
+
     private addSelect(el: HTMLDivElement): void {
         let selection: number[] = []
         // Graphics object storing the selected area
@@ -302,18 +327,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             if (altPressed || metaPressed) {
                 this.selecting = true
                 selectionColor = randomHexColor()
-                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                selection.push(pos.x)
-                selection.push(pos.y)
+                this.addPositionToSelection(selection)
             }
         })
 
-        // If the mouse moves and we are dragging, adjust the position of the stage and rerender.
+        // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
         el.addEventListener('mousemove', () => {
             if (this.selecting) {
-                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                selection.push(pos.x)
-                selection.push(pos.y)
+                this.addPositionToSelection(selection)
 
                 GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
 
@@ -361,22 +382,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         maxRendererSize: { width: number | null; height: number | null },
     ): void {
         if (maxRendererSize.width != null && maxRendererSize.height != null) {
-            // Setting up the scale factor trying to maximize the width
-            let scaleFactor = maxRendererSize.width / imcData.width
-            let scaledHeight = imcData.height * scaleFactor
-            let scaledWidth = maxRendererSize.width
+            // The renderer is created as a square, so we will set the width and height
+            // to the min of the max width and max height
+            const renderWidthHeight = Math.min(maxRendererSize.width, maxRendererSize.height)
 
-            // If the scaled height is larger than the max allowable, scale to maximize the height.
-            if (scaledHeight > maxRendererSize.height) {
-                scaleFactor = maxRendererSize.height / imcData.height
-                scaledHeight = maxRendererSize.height
-                scaledWidth = imcData.width * scaleFactor
-            }
+            const maxImcDimension = Math.max(imcData.width, imcData.height)
 
-            // Save the results
-            this.rendererWidth = scaledWidth
-            this.rendererHeight = scaledHeight
-            this.minScale = scaleFactor
+            this.rendererWidth = renderWidthHeight
+            this.rendererHeight = renderWidthHeight
+            this.minScale = renderWidthHeight / maxImcDimension
         }
     }
 
@@ -404,7 +418,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.setScaleFactors(imcData, maxRendererSize)
 
         // Setting up the renderer
-        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight)
+        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight, { transparent: true })
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners
@@ -475,7 +489,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.stage.addChild(this.segmentationSprite)
         }
 
-        // Add segementation outlines
+        // Add segmentation outlines
         if (this.segmentationOutlineGraphics) {
             this.segmentationOutlineGraphics.alpha = segmentationOutlineAlpha
             this.stage.addChild(this.segmentationOutlineGraphics)
@@ -671,6 +685,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private calculateMaxRendererSize(
+        parentElementSize: { width: number | null; height: number | null },
+        maxHeight: number | null,
+    ): { width: number | null; height: number | null } {
+        const maxRendererSize = parentElementSize
+        if (maxHeight != null) maxRendererSize.height = maxHeight
+        return maxRendererSize
+    }
+
     private renderImage(
         el: HTMLDivElement | null,
         imcData: ImageData,
@@ -689,14 +712,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         exportPath: string | null,
         legendVisible: boolean,
         zoomInsetVisible: boolean,
-        rendererSize: { width: number | null; height: number | null },
+        parentElementSize: { width: number | null; height: number | null },
         maxHeight: number | null,
     ): void {
         if (el == null) return
         this.el = el
 
-        const maxRendererSize = rendererSize
-        if (maxHeight != null) maxRendererSize.height = maxHeight
+        const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, maxHeight)
 
         if (!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, maxRendererSize)
@@ -751,7 +773,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     public render(): React.ReactNode {
-        //Dereferencing these here is necessary for Mobx to trigger, because
+        //Dereferencing these here is necessary for MobX to trigger, because
         //render is the only tracked function (i.e. this will not trigger if
         //the variables are dereferenced inside renderImage)
         const channelMarker = {
@@ -798,7 +820,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         const regions = this.props.selectedRegions
 
-        const highlightedRegions = this.props.hightlightedRegions
+        const highlightedRegions = this.props.highlightedRegions
 
         const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 

@@ -267,8 +267,11 @@ export function drawZoomInset(
     insetGraphics.clear()
     insetGraphics.removeChildren()
 
+    // Width of the lines being drawn
     const lineWidth = 2
+    // Padding between the outside border and the renderer. Set as a constant.
     const borderPadding = 2
+    // Height of the zoom inset outside border. Set as a constant.
     const borderHeight = 60
     const insetRatio = borderHeight / imageHeight
     const borderWidth = imageWidth * insetRatio
@@ -280,10 +283,15 @@ export function drawZoomInset(
     const xZoomRatio = rendererWidth / stageWidth
     const yZoomRatio = rendererHeight / stageHeight
 
-    const insetHeight = borderHeight * yZoomRatio
-    const insetWidth = borderWidth * xZoomRatio
+    let insetHeight = borderHeight * yZoomRatio
+    let insetWidth = borderWidth * xZoomRatio
     const insetX = borderX + (Math.abs(stageX) / stageWidth) * borderWidth
     const insetY = borderY + (Math.abs(stageY) / stageHeight) * borderHeight
+
+    // If the inset is running over the edge of the outside border
+    // we change the height so that it stops at the border.
+    if (insetX + insetWidth > borderX + borderWidth) insetWidth = borderX + borderWidth - insetX
+    if (insetY + insetHeight > borderY + borderHeight) insetHeight = borderY + borderHeight - insetY
 
     drawHollowRectangle(insetGraphics, 0xffffff, insetX, insetY, insetWidth, insetHeight, lineWidth)
 }
