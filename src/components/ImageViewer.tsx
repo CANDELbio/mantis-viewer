@@ -399,15 +399,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         maxRendererSize: { width: number | null; height: number | null },
     ): void {
         if (maxRendererSize.width != null && maxRendererSize.height != null) {
-            // The renderer is created as a square, so we will set the width and height
-            // to the min of the max width and max height
-            const renderWidthHeight = Math.min(maxRendererSize.width, maxRendererSize.height)
-
-            const maxImcDimension = Math.max(imcData.width, imcData.height)
-
-            this.rendererWidth = renderWidthHeight
-            this.rendererHeight = renderWidthHeight
-            this.minScale = renderWidthHeight / maxImcDimension
+            this.rendererWidth = maxRendererSize.width
+            this.rendererHeight = maxRendererSize.height
+            this.minScale = Math.min(maxRendererSize.width / imcData.width, maxRendererSize.height / imcData.height)
         }
     }
 
@@ -629,11 +623,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
-    private loadZoomInsetGraphics(): void {
-        if (this.zoomInsetVisible && (this.stage.scale.x > this.minScale || this.stage.scale.y > this.minScale)) {
-            // In case the image is taller than it is wide, we want to caculate how much of the renderer is visible
+    private loadZoomInsetGraphics(scaleRatio = 1): void {
+        // Adjust minScale by scaleRatio so that we don't show the zoom inset when we shouldn't
+        const minScale = this.minScale * scaleRatio
+        if (this.zoomInsetVisible && (this.stage.scale.x > minScale || this.stage.scale.y > minScale)) {
+            // In case the image is taller than it is wide, we want to calculate how much of the renderer is visible
             // So that we can draw the zoom inset in the upper right corner of what is visible
-            const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.rendererWidth)
+            const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.renderer.width)
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
                 this.imageData.width,
@@ -644,6 +640,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.stage.height,
                 this.stage.position.x,
                 this.stage.position.y,
+                scaleRatio,
             )
             this.resizeStaticGraphics(this.zoomInsetGraphics)
         } else {
@@ -673,7 +670,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.renderer.resize(width, height)
         if (this.legendVisible)
             this.resizeStaticGraphics(this.legendGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
-        this.resizeStaticGraphics(this.zoomInsetGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
+        this.loadZoomInsetGraphics(legendXScaleCoefficient)
         this.renderer.render(this.rootContainer)
     }
 
@@ -681,22 +678,24 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const initialXScale = this.stage.scale.x
         const initialYScale = this.stage.scale.y
 
-        // The renderer is fixed as a square, but the image is probably not a square
-        // So we calculate the exportScale by calculating the ratio of the longest dimension
-        // to the width or height of the renderer.
+        // The visible portion of the renderer changes as the user resizes, and is most likely
+        // not proportional to the aspect ratio of the original image.
+        // So we calculate the exportScale and exportWidth and exportHeight by calculating the ratio
+        // of the longest dimension to its corresponding dimension on the renderer
         let exportScale = (this.imageData.width / this.rendererWidth) * initialXScale
+        let exportWidth = this.imageData.width
+        let exportHeight = this.rendererHeight * (this.imageData.width / this.rendererWidth)
         if (this.imageData.height > this.imageData.width) {
             exportScale = (this.imageData.height / this.rendererHeight) * initialYScale
+            exportHeight = this.imageData.height
+            exportWidth = this.rendererWidth * (this.imageData.height / this.rendererHeight)
         }
-
-        // We want the export size to be the same ratio as the renderer.
-        // When fully zoomed out, the visible portion of the renderer has the same dimensions as the image
-        // But when zoomed in it becomes a square. The below calculations are to size the export appropriately
-        // depending on how zoomed in we are.
-        // TODO: Should this be smaller if the user is zoomed in? Or configurable
-        const maxImageDimension = Math.max(this.imageData.width, this.imageData.height)
-        const exportWidth = Math.min(maxImageDimension, this.imageData.width * exportScale)
-        const exportHeight = Math.min(maxImageDimension, this.imageData.height * exportScale)
+        // We want the export size to be the same ratio as the renderer if zoomed in, but
+        // when fully zoomed out, the visible portion of the renderer has the same dimensions as the image
+        // as the user zoomes in the dimensions change to gradually fill the space.
+        // The below calculations are to size the export appropriately depending on how zoomed in we are.
+        exportWidth = Math.min(exportWidth, this.imageData.width * exportScale)
+        exportHeight = Math.min(exportHeight, this.imageData.height * exportScale)
 
         this.resizeRendererForExport(exportWidth, exportHeight, exportScale, exportScale)
 

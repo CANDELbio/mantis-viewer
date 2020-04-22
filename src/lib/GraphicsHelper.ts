@@ -263,16 +263,17 @@ export function drawZoomInset(
     stageHeight: number,
     stageX: number,
     stageY: number,
+    scaleRatio = 1,
 ): void {
     insetGraphics.clear()
     insetGraphics.removeChildren()
 
     // Width of the lines being drawn
-    const lineWidth = 2
+    const lineWidth = 2 * scaleRatio
     // Padding between the outside border and the renderer. Set as a constant.
-    const borderPadding = 2
+    const borderPadding = 2 * scaleRatio
     // Height of the zoom inset outside border. Set as a constant.
-    const borderHeight = 60
+    const borderHeight = 60 * scaleRatio
     const insetRatio = borderHeight / imageHeight
     const borderWidth = imageWidth * insetRatio
     const borderX = rendererWidth - (borderWidth + borderPadding)
