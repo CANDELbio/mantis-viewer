@@ -631,11 +631,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private loadZoomInsetGraphics(): void {
         if (this.zoomInsetVisible && (this.stage.scale.x > this.minScale || this.stage.scale.y > this.minScale)) {
+            // In case the image is taller than it is wide, we want to caculate how much of the renderer is visible
+            // So that we can draw the zoom inset in the upper right corner of what is visible
+            const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.rendererWidth)
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
                 this.imageData.width,
                 this.imageData.height,
-                this.renderer.width,
+                visibleRendererWidth,
                 this.renderer.height,
                 this.stage.width,
                 this.stage.height,
