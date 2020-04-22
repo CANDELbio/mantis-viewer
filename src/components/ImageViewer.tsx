@@ -177,18 +177,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     private checkSetStageBounds(): void {
-        // Beyond top and left edges are out of bounds
+        // Calculate where the coordinates of the bottom right corner are in relation to the current window/stage size and the scale of the image.
+        const minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
+        const minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
+
+        // Not able to scroll past the bottom right corner
+        if (this.stage.position.x < minX) this.stage.position.x = minX
+        if (this.stage.position.y < minY) this.stage.position.y = minY
+
+        // Not able to scroll past top left corner
+        // Do this check second, because sometimes when we're fully zoomed out we're actually past
+        // the bottom right corner
         if (this.stage.position.x > 0) this.stage.position.x = 0
         if (this.stage.position.y > 0) this.stage.position.y = 0
-
-        // Calculate where the coordinates of the bottom right corner
-        // This is done by doing imageDimension * minScale - imageDimension * currentScale
-        const maxX = this.imageData.width * (this.minScale - this.stage.scale.x)
-        const maxY = this.imageData.height * (this.minScale - this.stage.scale.y)
-
-        // Beyond bottom and right edges are out of bounds
-        if (this.stage.position.x < maxX) this.stage.position.x = maxX
-        if (this.stage.position.y < maxY) this.stage.position.y = maxY
     }
 
     private checkSetMinScale(): boolean {
@@ -201,30 +202,39 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         return false
     }
 
+    // Checks if an x y coordinate is within the image bounds
+    private positionInBounds(position: { x: number; y: number }): boolean {
+        const maxX = this.imageData.width
+        const maxY = this.imageData.height
+        if (position.x < 0 || position.y < 0 || position.x > maxX || position.y > maxY) return false
+        return true
+    }
+
     private zoom(isZoomIn: boolean): void {
-        // TODO: Check if X and Y are in image bounds
         const beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+        // Only zoom if the user is zooming on the image
+        if (this.positionInBounds(beforeTransform)) {
+            const direction = isZoomIn ? 1 : -1
+            const factor = 1 + direction * 0.05
+            this.stage.scale.x *= factor
+            this.stage.scale.y *= factor
 
-        const direction = isZoomIn ? 1 : -1
-        const factor = 1 + direction * 0.05
-        this.stage.scale.x *= factor
-        this.stage.scale.y *= factor
+            const atMinScale = this.checkSetMinScale()
 
-        const atMinScale = this.checkSetMinScale()
+            //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
+            if (!atMinScale) {
+                this.stage.updateTransform()
+                const afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
-        //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
-        if (!atMinScale) {
+                this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
+                this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
+            }
+            this.checkSetStageBounds()
             this.stage.updateTransform()
-            const afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-
-            this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
-            this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
+            this.resizeStaticGraphics(this.legendGraphics)
+            this.loadZoomInsetGraphics()
+            this.renderer.render(this.rootContainer)
         }
-        this.checkSetStageBounds()
-        this.stage.updateTransform()
-        this.resizeStaticGraphics(this.legendGraphics)
-        this.loadZoomInsetGraphics()
-        this.renderer.render(this.rootContainer)
     }
 
     private addZoom(el: HTMLDivElement): void {
@@ -246,12 +256,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         el.addEventListener('mousedown', () => {
             const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
             const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
-            // TODO: Check if X and Y are in image bounds
             if (!(altPressed | metaPressed)) {
-                this.dragging = true
                 const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                mouseDownX = pos.x
-                mouseDownY = pos.y
+                if (this.positionInBounds(pos)) {
+                    this.dragging = true
+                    mouseDownX = pos.x
+                    mouseDownY = pos.y
+                }
             }
         })
 
@@ -259,16 +270,21 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         el.addEventListener('mousemove', () => {
             if (this.dragging) {
                 const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                const dx = (pos.x - mouseDownX) * this.stage.scale.x
-                const dy = (pos.y - mouseDownY) * this.stage.scale.y
-
-                this.stage.position.x += dx
-                this.stage.position.y += dy
-                this.checkSetStageBounds()
-                this.stage.updateTransform()
-                this.resizeStaticGraphics(this.legendGraphics)
-                this.loadZoomInsetGraphics()
-                this.renderer.render(this.rootContainer)
+                if (this.positionInBounds(pos)) {
+                    const dx = (pos.x - mouseDownX) * this.stage.scale.x
+                    const dy = (pos.y - mouseDownY) * this.stage.scale.y
+                    this.stage.position.x += dx
+                    this.stage.position.y += dy
+                    this.checkSetStageBounds()
+                    this.stage.updateTransform()
+                    this.resizeStaticGraphics(this.legendGraphics)
+                    this.loadZoomInsetGraphics()
+                    this.renderer.render(this.rootContainer)
+                } else {
+                    // If the user mouses off of the image, treat this as a mouseout.
+                    this.dragging = false
+                    this.syncPositionAndScale()
+                }
             }
         })
 
@@ -285,6 +301,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         el.addEventListener('mouseout', () => {
             if (this.dragging) {
                 this.dragging = false
+                this.syncPositionAndScale()
             }
         })
     }
@@ -653,6 +670,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.renderer.resize(width, height)
         if (this.legendVisible)
             this.resizeStaticGraphics(this.legendGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
+        this.resizeStaticGraphics(this.zoomInsetGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
         this.renderer.render(this.rootContainer)
     }
 
@@ -660,12 +678,24 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const initialXScale = this.stage.scale.x
         const initialYScale = this.stage.scale.y
 
-        const exportXScale = (this.imageData.width / this.rendererWidth) * initialXScale
-        const exportYScale = (this.imageData.height / this.rendererHeight) * initialYScale
+        // The renderer is fixed as a square, but the image is probably not a square
+        // So we calculate the exportScale by calculating the ratio of the longest dimension
+        // to the width or height of the renderer.
+        let exportScale = (this.imageData.width / this.rendererWidth) * initialXScale
+        if (this.imageData.height > this.imageData.width) {
+            exportScale = (this.imageData.height / this.rendererHeight) * initialYScale
+        }
 
-        // Resizes the renderer to be the width and height of the original image for export
-        // TODO: Should this be smaller if the user is zoomed in?
-        this.resizeRendererForExport(this.imageData.width, this.imageData.height, exportXScale, exportYScale)
+        // We want the export size to be the same ratio as the renderer.
+        // When fully zoomed out, the visible portion of the renderer has the same dimensions as the image
+        // But when zoomed in it becomes a square. The below calculations are to size the export appropriately
+        // depending on how zoomed in we are.
+        // TODO: Should this be smaller if the user is zoomed in? Or configurable
+        const maxImageDimension = Math.max(this.imageData.width, this.imageData.height)
+        const exportWidth = Math.min(maxImageDimension, this.imageData.width * exportScale)
+        const exportHeight = Math.min(maxImageDimension, this.imageData.height * exportScale)
+
+        this.resizeRendererForExport(exportWidth, exportHeight, exportScale, exportScale)
 
         // Get the source canvas that we are exporting from pixi
         const sourceCanvas = this.renderer.extract.canvas()
