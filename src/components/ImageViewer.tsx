@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import * as _ from 'underscore'
+import * as Mousetrap from 'mousetrap'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -17,6 +18,7 @@ import {
     SelectedSegmentOutlineWidth,
     SegmentOutlineColor,
     SegmentOutlineWidth,
+    ImageViewerHeightPadding,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
@@ -44,7 +46,7 @@ export interface ImageProps {
     onExportComplete: () => void
     legendVisible: boolean
     zoomInsetVisible: boolean
-    maxHeight: number | null
+    windowHeight: number | null
 }
 
 @observer
@@ -96,6 +98,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private dragging: boolean
     private selecting: boolean
+
+    // If the renderer is full screened or not
+    private fullScreen: boolean
 
     public constructor(props: ImageProps) {
         super(props)
@@ -154,6 +159,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         this.dragging = false
         this.selecting = false
+        this.fullScreen = false
+    }
+
+    public componentWillUnmount = (): void => {
+        document.removeEventListener('fullscreenchange', this.handleFullscreenChange)
     }
 
     private onExportComplete = (): void => this.props.onExportComplete()
@@ -401,7 +411,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (maxRendererSize.width != null && maxRendererSize.height != null) {
             this.rendererWidth = maxRendererSize.width
             this.rendererHeight = maxRendererSize.height
-            this.minScale = Math.min(maxRendererSize.width / imcData.width, maxRendererSize.height / imcData.height)
+            // Scale the scale (i.e. zoom) to be the same for the new renderer size
+            const newMinScale = Math.min(maxRendererSize.width / imcData.width, maxRendererSize.height / imcData.height)
+            const scaleRatio = newMinScale / this.minScale
+            this.stage.scale.x *= scaleRatio
+            this.stage.scale.y *= scaleRatio
+            this.minScale = newMinScale
         }
     }
 
@@ -409,6 +424,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
     // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
     private resizeGraphics(imcData: ImageData, maxRendererSize: { width: number | null; height: number | null }): void {
+        if (maxRendererSize.width && maxRendererSize.height)
+            this.maxRendererSize = { width: maxRendererSize.width, height: maxRendererSize.height }
         this.setScaleFactors(imcData, maxRendererSize)
         this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
@@ -418,6 +435,25 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
         this.stage.scale.x = this.minScale
         this.stage.scale.y = this.minScale
+    }
+
+    // Handles a change to and from fullscreen
+    private handleFullscreenChange = (): void => {
+        if (document.fullscreenElement) {
+            this.fullScreen = true
+        } else {
+            this.fullScreen = false
+        }
+    }
+
+    // Adds fullscreen shortcut and event listeners
+    private addFullscreen(el: HTMLDivElement): void {
+        Mousetrap.bind(['command+f', 'alt+f'], () => {
+            const rendererParent = el.parentElement
+            if (rendererParent) rendererParent.requestFullscreen()
+        })
+
+        document.addEventListener('fullscreenchange', this.handleFullscreenChange)
     }
 
     private initializeGraphics(
@@ -437,6 +473,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
+        this.addFullscreen(this.el)
     }
 
     private loadChannelGraphics(
@@ -629,6 +666,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (this.zoomInsetVisible && (this.stage.scale.x > minScale || this.stage.scale.y > minScale)) {
             // In case the image is taller than it is wide, we want to calculate how much of the renderer is visible
             // So that we can draw the zoom inset in the upper right corner of what is visible
+            // Use this.render.width instead of rendererWidth for the case when we're exporting the image
             const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.renderer.width)
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
@@ -692,7 +730,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
         // We want the export size to be the same ratio as the renderer if zoomed in, but
         // when fully zoomed out, the visible portion of the renderer has the same dimensions as the image
-        // as the user zoomes in the dimensions change to gradually fill the space.
+        // as the user zooms in the dimensions change to gradually fill the space.
         // The below calculations are to size the export appropriately depending on how zoomed in we are.
         exportWidth = Math.min(exportWidth, this.imageData.width * exportScale)
         exportHeight = Math.min(exportHeight, this.imageData.height * exportScale)
@@ -719,10 +757,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private calculateMaxRendererSize(
         parentElementSize: { width: number | null; height: number | null },
-        maxHeight: number | null,
+        windowHeight: number | null,
     ): { width: number | null; height: number | null } {
-        const maxRendererSize = parentElementSize
-        if (maxHeight != null) maxRendererSize.height = maxHeight
+        const maxRendererSize = { width: parentElementSize.width, height: parentElementSize.height }
+        if (windowHeight != null && this.fullScreen) maxRendererSize.height = windowHeight
+        if (windowHeight != null && !this.fullScreen) maxRendererSize.height = windowHeight - ImageViewerHeightPadding
         return maxRendererSize
     }
 
@@ -745,12 +784,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         legendVisible: boolean,
         zoomInsetVisible: boolean,
         parentElementSize: { width: number | null; height: number | null },
-        maxHeight: number | null,
+        windowHeight: number | null,
     ): void {
         if (el == null) return
         this.el = el
 
-        const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, maxHeight)
+        const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, windowHeight)
 
         if (!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, maxRendererSize)
@@ -763,8 +802,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.resetZoom()
         }
 
+        // Reload saved position and scale
+        if (position && scale) this.setStagePositionAndScale(position, scale)
+
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
-        if (this.maxRendererSize != maxRendererSize) {
+        if (
+            this.maxRendererSize.width != maxRendererSize.width ||
+            this.maxRendererSize.height != maxRendererSize.height
+        ) {
             this.resizeGraphics(imcData, maxRendererSize)
         }
 
@@ -787,8 +832,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (segmentationData != null) {
             this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
         }
-
-        if (position && scale) this.setStagePositionAndScale(position, scale)
 
         // Create the legend for which markers are being displayed
         this.loadLegendGraphics(legendVisible, imcData, channelMarker)
@@ -862,7 +905,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
-        const maxHeight = this.props.maxHeight
+        const windowHeight = this.props.windowHeight
 
         return (
             <SizeMe>
@@ -890,7 +933,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     legendVisible,
                                     zoomInsetVisible,
                                     size,
-                                    maxHeight,
+                                    windowHeight,
                                 )
                             }}
                         />

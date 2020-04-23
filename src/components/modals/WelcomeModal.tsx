@@ -34,6 +34,10 @@ export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
                                 <b>Command/Windows</b> and then pressing the left or right arrow key.
                             </li>
                             <li>
+                                You can fullscreen the renderer by pressing <b>Alt</b> or <b>Command/Window</b> and F.
+                                You can exit fullscreen by pressing escape.
+                            </li>
+                            <li>
                                 You can select populations on the plot by using the <b>Lasso Select</b> or{' '}
                                 <b>Box Select</b> tool in the menu at the top of the plot.
                             </li>
