@@ -9,7 +9,6 @@ import * as piciLogo from '../assets/pici_logo.png'
 import { ProjectStore } from '../stores/ProjectStore'
 import {
     ChannelName,
-    ImageViewerHeightPadding,
     MainPlotHeightPadding,
     ChannelControlsCombinedHeight,
     ImageChannels,
@@ -202,15 +201,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 </div>
             )
 
-            let maxImageHeight = null
-            if (projectStore.windowHeight != null) maxImageHeight = projectStore.windowHeight - ImageViewerHeightPadding
+            let windowHeight = projectStore.windowHeight
             if (imageStore.imageData.scaled) {
                 imageMessage = (
                     <div style={{ position: 'relative', textAlign: 'center' }}>
                         This image has been downsampled to fit in memory.
                     </div>
                 )
-                if (maxImageHeight) maxImageHeight -= 20
+                if (windowHeight) windowHeight -= 20
             }
             imageViewer = (
                 <ImageViewer
@@ -234,7 +232,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     onExportComplete={imageStore.clearImageExportFilename}
                     legendVisible={settingStore.legendVisible}
                     zoomInsetVisible={settingStore.zoomInsetVisible}
-                    maxHeight={maxImageHeight}
+                    windowHeight={windowHeight}
                 />
             )
             if (segmentationStore.segmentationData != null) {

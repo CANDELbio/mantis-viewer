@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import * as _ from 'underscore'
+import * as Mousetrap from 'mousetrap'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -17,6 +18,7 @@ import {
     SelectedSegmentOutlineWidth,
     SegmentOutlineColor,
     SegmentOutlineWidth,
+    ImageViewerHeightPadding,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
@@ -44,7 +46,7 @@ export interface ImageProps {
     onExportComplete: () => void
     legendVisible: boolean
     zoomInsetVisible: boolean
-    maxHeight: number | null
+    windowHeight: number | null
 }
 
 @observer
@@ -94,8 +96,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     } | null
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
-    private dragging: boolean
-    private selecting: boolean
+    private panState: { active: boolean; x?: number; y?: number }
+    private selectState: {
+        active: boolean
+        selection: number[]
+        selectionGraphics: PIXI.Graphics | null
+        segmentOutlineGraphics: PIXI.Graphics | null
+        selectedSegments: number[]
+        selectionColor: number
+    }
+
+    // If the renderer is full screened or not
+    private fullScreen: boolean
 
     public constructor(props: ImageProps) {
         super(props)
@@ -152,8 +164,30 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         this.minScale = 1.0
 
-        this.dragging = false
-        this.selecting = false
+        this.panState = { active: false }
+        this.selectState = {
+            active: false,
+            selection: [],
+            selectionGraphics: null,
+            segmentOutlineGraphics: null,
+            selectedSegments: [],
+            selectionColor: 0,
+        }
+        this.fullScreen = false
+    }
+
+    public componentWillUnmount = (): void => {
+        document.removeEventListener('fullscreenchange', this.handleFullscreenChange)
+        if (this.el) {
+            this.el.removeEventListener('wheel', this.zoomHandler)
+            this.el.removeEventListener('mousedown', this.panMouseDownHandler)
+            this.el.removeEventListener('mousemove', this.panMouseMoveHandler)
+            this.el.removeEventListener('mouseup', this.panMouseUpHandler)
+            this.el.removeEventListener('mouseout', this.panMouseOutHandler)
+            this.el.removeEventListener('mousedown', this.selectMouseDownHandler)
+            this.el.removeEventListener('mousemove', this.selectMouseMoveHandler)
+            this.el.removeEventListener('mouseup', this.selectMouseUpHandler)
+        }
     }
 
     private onExportComplete = (): void => this.props.onExportComplete()
@@ -237,73 +271,79 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private zoomHandler = (e: WheelEvent): void => {
+        e.stopPropagation()
+        e.preventDefault()
+        this.zoom(e.deltaY < 0)
+        // When the user is done scrolling, update the scale and position with the store.
+        _.debounce((): void => {
+            this.syncPositionAndScale()
+        }, 200)()
+    }
+
     private addZoom(el: HTMLDivElement): void {
-        el.addEventListener('wheel', (e) => {
-            e.stopPropagation()
-            e.preventDefault()
-            this.zoom(e.deltaY < 0)
-            // When the user is done scrolling, update the scale and position with the store.
-            _.debounce((): void => {
-                this.syncPositionAndScale()
-            }, 200)()
-        })
+        el.addEventListener('wheel', this.zoomHandler)
+    }
+
+    // On mousedown set dragging to true and save the mouse position where we started dragging
+    private panMouseDownHandler = (): void => {
+        const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+        const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+        if (!(altPressed | metaPressed)) {
+            const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            if (this.positionInBounds(pos)) {
+                this.panState.active = true
+                this.panState.x = pos.x
+                this.panState.y = pos.y
+            }
+        }
+    }
+
+    // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
+    private panMouseMoveHandler = (): void => {
+        if (this.panState.active) {
+            const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            if (this.positionInBounds(pos) && this.panState.x && this.panState.y) {
+                const dx = (pos.x - this.panState.x) * this.stage.scale.x
+                const dy = (pos.y - this.panState.y) * this.stage.scale.y
+                this.stage.position.x += dx
+                this.stage.position.y += dy
+                this.checkSetStageBounds()
+                this.stage.updateTransform()
+                // Moves the legend and zoom inset
+                this.resizeStaticGraphics(this.legendGraphics)
+                this.loadZoomInsetGraphics()
+                // Re-render!
+                this.renderer.render(this.rootContainer)
+            } else {
+                // If the user mouses off of the image, treat this as a mouseout.
+                this.panMouseOutHandler()
+            }
+        }
+    }
+
+    // If the mouse is released stop dragging
+    private panMouseUpHandler = (): void => {
+        if (this.panState.active) {
+            this.panState.active = false
+            // When the user is done scrolling, update the position and scale
+            this.syncPositionAndScale()
+        }
+    }
+
+    // If the mouse exits the PIXI element stop dragging
+    private panMouseOutHandler = (): void => {
+        if (this.panState.active) {
+            this.panState.active = false
+            this.syncPositionAndScale()
+        }
     }
 
     private addPan(el: HTMLDivElement): void {
-        let mouseDownX: number, mouseDownY: number
-
-        // On mousedown set dragging to true and save the mouse position where we started dragging
-        el.addEventListener('mousedown', () => {
-            const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
-            const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
-            if (!(altPressed | metaPressed)) {
-                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                if (this.positionInBounds(pos)) {
-                    this.dragging = true
-                    mouseDownX = pos.x
-                    mouseDownY = pos.y
-                }
-            }
-        })
-
-        // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
-        el.addEventListener('mousemove', () => {
-            if (this.dragging) {
-                const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-                if (this.positionInBounds(pos)) {
-                    const dx = (pos.x - mouseDownX) * this.stage.scale.x
-                    const dy = (pos.y - mouseDownY) * this.stage.scale.y
-                    this.stage.position.x += dx
-                    this.stage.position.y += dy
-                    this.checkSetStageBounds()
-                    this.stage.updateTransform()
-                    this.resizeStaticGraphics(this.legendGraphics)
-                    this.loadZoomInsetGraphics()
-                    this.renderer.render(this.rootContainer)
-                } else {
-                    // If the user mouses off of the image, treat this as a mouseout.
-                    this.dragging = false
-                    this.syncPositionAndScale()
-                }
-            }
-        })
-
-        // If the mouse is released stop dragging
-        el.addEventListener('mouseup', () => {
-            if (this.dragging) {
-                this.dragging = false
-                // When the user is done scrolling, update the position and scale
-                this.syncPositionAndScale()
-            }
-        })
-
-        // If the mouse exits the PIXI element stop dragging
-        el.addEventListener('mouseout', () => {
-            if (this.dragging) {
-                this.dragging = false
-                this.syncPositionAndScale()
-            }
-        })
+        el.addEventListener('mousedown', this.panMouseDownHandler)
+        el.addEventListener('mousemove', this.panMouseMoveHandler)
+        el.addEventListener('mouseup', this.panMouseUpHandler)
+        el.addEventListener('mouseout', this.panMouseOutHandler)
     }
 
     private addPositionToSelection(selection: number[]): void {
@@ -327,64 +367,70 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         selection.push(yPosition)
     }
 
+    // On mousedown, if alt is pressed set selecting to true and start adding positions to the selection
+    private selectMouseDownHandler = (): void => {
+        const state = this.selectState
+        const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+        const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+        if (altPressed || metaPressed) {
+            state.active = true
+            state.selectionColor = randomHexColor()
+            this.addPositionToSelection(state.selection)
+        }
+    }
+
+    // If the mouse moves and we are selecting, add the position to the selection and start drawing the
+    // selected region and the highlighted segments
+    private selectMouseMoveHandler = (): void => {
+        const state = this.selectState
+        if (state.active) {
+            this.addPositionToSelection(state.selection)
+
+            GraphicsHelper.cleanUpStage(this.stage, state.selectionGraphics, state.segmentOutlineGraphics)
+
+            state.selectionGraphics = GraphicsHelper.drawSelectedRegion(
+                state.selection,
+                state.selectionColor,
+                SelectedRegionAlpha,
+            )
+            state.selectedSegments = GraphicsHelper.findSegmentsInSelection(
+                state.selectionGraphics,
+                this.segmentationData,
+            )
+            this.stage.addChild(state.selectionGraphics)
+
+            if (this.segmentationData != null) {
+                state.segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(
+                    state.selectionColor,
+                    SelectedSegmentOutlineWidth,
+                    state.selectedSegments,
+                )
+                state.segmentOutlineGraphics.alpha = SelectedSegmentOutlineAlpha
+                this.stage.addChild(state.segmentOutlineGraphics)
+            }
+
+            this.renderer.render(this.rootContainer)
+        }
+    }
+
+    // If the mouse is released stop selecting
+    private selectMouseUpHandler = (): void => {
+        const state = this.selectState
+        if (state.active) {
+            this.addSelectedRegionToStore(state.selection, state.selectedSegments, state.selectionColor)
+            // Clear the temp storage now that we've stored the selection.
+            state.selectionGraphics = null
+            state.segmentOutlineGraphics = null
+            state.active = false
+            state.selection = []
+            state.selectionColor = 0
+        }
+    }
+
     private addSelect(el: HTMLDivElement): void {
-        let selection: number[] = []
-        // Graphics object storing the selected area
-        let selectionGraphics: PIXI.Graphics | null = null
-        // Graphics object storing the outlines of the selected segments
-        let segmentOutlineGraphics: PIXI.Graphics | null = null
-        // Array of the selected segment IDs
-        let selectedSegments: number[] = []
-        let selectionColor = 0
-
-        // On mousedown, if alt is pressed set selecting to true and save the mouse position where we started selecting
-        el.addEventListener('mousedown', () => {
-            const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
-            const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
-            if (altPressed || metaPressed) {
-                this.selecting = true
-                selectionColor = randomHexColor()
-                this.addPositionToSelection(selection)
-            }
-        })
-
-        // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
-        el.addEventListener('mousemove', () => {
-            if (this.selecting) {
-                this.addPositionToSelection(selection)
-
-                GraphicsHelper.cleanUpStage(this.stage, selectionGraphics, segmentOutlineGraphics)
-
-                selectionGraphics = GraphicsHelper.drawSelectedRegion(selection, selectionColor, SelectedRegionAlpha)
-                selectedSegments = GraphicsHelper.findSegmentsInSelection(selectionGraphics, this.segmentationData)
-                this.stage.addChild(selectionGraphics)
-
-                if (this.segmentationData != null) {
-                    segmentOutlineGraphics = this.segmentationData.segmentOutlineGraphics(
-                        selectionColor,
-                        SelectedSegmentOutlineWidth,
-                        selectedSegments,
-                    )
-                    segmentOutlineGraphics.alpha = SelectedSegmentOutlineAlpha
-                    this.stage.addChild(segmentOutlineGraphics)
-                }
-
-                this.renderer.render(this.rootContainer)
-            }
-        })
-
-        // If the mouse is released stop selecting
-        el.addEventListener('mouseup', () => {
-            if (this.selecting) {
-                this.addSelectedRegionToStore(selection, selectedSegments, selectionColor)
-                // Clear the temp storage now that we've stored the selection.
-                selectionGraphics = null
-                segmentOutlineGraphics = null
-                this.selecting = false
-                selection = []
-                selectionColor = 0
-            }
-        })
+        el.addEventListener('mousedown', this.selectMouseDownHandler)
+        el.addEventListener('mousemove', this.selectMouseMoveHandler)
+        el.addEventListener('mouseup', this.selectMouseUpHandler)
     }
 
     // Checks the stage scale factor and x,y position to make sure we aren't too zoomed out
@@ -401,7 +447,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (maxRendererSize.width != null && maxRendererSize.height != null) {
             this.rendererWidth = maxRendererSize.width
             this.rendererHeight = maxRendererSize.height
-            this.minScale = Math.min(maxRendererSize.width / imcData.width, maxRendererSize.height / imcData.height)
+            // Scale the scale (i.e. zoom) to be the same for the new renderer size
+            const newMinScale = Math.min(maxRendererSize.width / imcData.width, maxRendererSize.height / imcData.height)
+            const scaleRatio = newMinScale / this.minScale
+            this.stage.scale.x *= scaleRatio
+            this.stage.scale.y *= scaleRatio
+            this.minScale = newMinScale
         }
     }
 
@@ -409,6 +460,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
     // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
     private resizeGraphics(imcData: ImageData, maxRendererSize: { width: number | null; height: number | null }): void {
+        if (maxRendererSize.width && maxRendererSize.height)
+            this.maxRendererSize = { width: maxRendererSize.width, height: maxRendererSize.height }
         this.setScaleFactors(imcData, maxRendererSize)
         this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
@@ -418,6 +471,25 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Setting the initial scale/zoom of the stage so the image fills the stage when we start.
         this.stage.scale.x = this.minScale
         this.stage.scale.y = this.minScale
+    }
+
+    // Handles a change to and from fullscreen
+    private handleFullscreenChange = (): void => {
+        if (document.fullscreenElement) {
+            this.fullScreen = true
+        } else {
+            this.fullScreen = false
+        }
+    }
+
+    // Adds fullscreen shortcut and event listeners
+    private addFullscreen(el: HTMLDivElement): void {
+        Mousetrap.bind(['command+f', 'alt+f'], () => {
+            const rendererParent = el.parentElement
+            if (rendererParent) rendererParent.requestFullscreen()
+        })
+
+        document.addEventListener('fullscreenchange', this.handleFullscreenChange)
     }
 
     private initializeGraphics(
@@ -433,10 +505,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners
-        // TODO: Make sure these don't get added again if a new set of images is selected.
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
+        this.addFullscreen(this.el)
     }
 
     private loadChannelGraphics(
@@ -629,6 +701,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (this.zoomInsetVisible && (this.stage.scale.x > minScale || this.stage.scale.y > minScale)) {
             // In case the image is taller than it is wide, we want to calculate how much of the renderer is visible
             // So that we can draw the zoom inset in the upper right corner of what is visible
+            // Use this.render.width instead of rendererWidth for the case when we're exporting the image
             const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.renderer.width)
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
@@ -692,7 +765,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
         // We want the export size to be the same ratio as the renderer if zoomed in, but
         // when fully zoomed out, the visible portion of the renderer has the same dimensions as the image
-        // as the user zoomes in the dimensions change to gradually fill the space.
+        // as the user zooms in the dimensions change to gradually fill the space.
         // The below calculations are to size the export appropriately depending on how zoomed in we are.
         exportWidth = Math.min(exportWidth, this.imageData.width * exportScale)
         exportHeight = Math.min(exportHeight, this.imageData.height * exportScale)
@@ -719,10 +792,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private calculateMaxRendererSize(
         parentElementSize: { width: number | null; height: number | null },
-        maxHeight: number | null,
+        windowHeight: number | null,
     ): { width: number | null; height: number | null } {
-        const maxRendererSize = parentElementSize
-        if (maxHeight != null) maxRendererSize.height = maxHeight
+        const maxRendererSize = { width: parentElementSize.width, height: parentElementSize.height }
+        if (windowHeight != null && this.fullScreen) maxRendererSize.height = windowHeight
+        if (windowHeight != null && !this.fullScreen) maxRendererSize.height = windowHeight - ImageViewerHeightPadding
         return maxRendererSize
     }
 
@@ -745,12 +819,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         legendVisible: boolean,
         zoomInsetVisible: boolean,
         parentElementSize: { width: number | null; height: number | null },
-        maxHeight: number | null,
+        windowHeight: number | null,
     ): void {
         if (el == null) return
         this.el = el
 
-        const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, maxHeight)
+        const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, windowHeight)
 
         if (!this.el.hasChildNodes()) {
             this.initializeGraphics(imcData, maxRendererSize)
@@ -763,8 +837,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.resetZoom()
         }
 
+        // Reload saved position and scale
+        if (position && scale) this.setStagePositionAndScale(position, scale)
+
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
-        if (this.maxRendererSize != maxRendererSize) {
+        if (
+            this.maxRendererSize.width != maxRendererSize.width ||
+            this.maxRendererSize.height != maxRendererSize.height
+        ) {
             this.resizeGraphics(imcData, maxRendererSize)
         }
 
@@ -787,8 +867,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (segmentationData != null) {
             this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
         }
-
-        if (position && scale) this.setStagePositionAndScale(position, scale)
 
         // Create the legend for which markers are being displayed
         this.loadLegendGraphics(legendVisible, imcData, channelMarker)
@@ -862,7 +940,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
-        const maxHeight = this.props.maxHeight
+        const windowHeight = this.props.windowHeight
 
         return (
             <SizeMe>
@@ -890,7 +968,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     legendVisible,
                                     zoomInsetVisible,
                                     size,
-                                    maxHeight,
+                                    windowHeight,
                                 )
                             }}
                         />
