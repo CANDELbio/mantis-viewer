@@ -132,7 +132,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const plotStore = imageSetStore.plotStore
         const settingStore = projectStore.settingStore
 
+        const imageSetTwo = this.props.projectStore.imageSets[this.props.projectStore.imageSetPaths[0]]
+
         let imageViewer = null
+        let imageViewerTwo = null
         let imageMessage = null
         let imageSetSelector = null
         let channelControls = null
@@ -235,6 +238,39 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     windowHeight={windowHeight}
                 />
             )
+            if (imageSetTwo) {
+                const imageStoreTwo = imageSetTwo.imageStore
+                const segmentationStoreTwo = imageSetTwo.segmentationStore
+                const populationStoreTwo = imageSetTwo.populationStore
+                if (imageStoreTwo.imageData) {
+                    imageViewerTwo = (
+                        <ImageViewer
+                            imageData={imageStoreTwo.imageData}
+                            segmentationData={segmentationStoreTwo.segmentationData}
+                            segmentationFillAlpha={settingStore.segmentationFillAlpha}
+                            segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
+                            segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
+                            channelDomain={imageStoreTwo.channelDomain}
+                            channelVisibility={settingStore.channelVisibility}
+                            channelMarker={settingStore.channelMarker}
+                            position={imageStoreTwo.position}
+                            scale={imageStoreTwo.scale}
+                            setPositionAndScale={imageStoreTwo.setPositionAndScale}
+                            addSelectedRegion={this.addSelectionFromImage}
+                            updateSelectedRegions={this.updateSelectionsFromImage}
+                            selectedRegions={populationStoreTwo.selectedPopulations}
+                            highlightedRegions={populationStoreTwo.highlightedPopulations}
+                            highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                            exportPath={imageStoreTwo.imageExportFilename}
+                            onExportComplete={imageStoreTwo.clearImageExportFilename}
+                            legendVisible={settingStore.legendVisible}
+                            zoomInsetVisible={settingStore.zoomInsetVisible}
+                            windowHeight={windowHeight}
+                        />
+                    )
+                }
+            }
+
             if (segmentationStore.segmentationData != null) {
                 if (projectStore.plotInMainWindow) {
                     let maxPlotHeight = null
@@ -327,8 +363,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{imageControls}</div>
                             </Collapse>
                         </Col>
-                        <Col xs={6} sm={6} md={6} lg={6}>
+                        <Col xs={3} sm={3} md={3} lg={3}>
                             {imageViewer}
+                            {imageMessage}
+                        </Col>
+                        <Col xs={3} sm={3} md={3} lg={3}>
+                            {imageViewerTwo}
                             {imageMessage}
                         </Col>
                         <Col xs={4} sm={4} md={4} lg={4}>
