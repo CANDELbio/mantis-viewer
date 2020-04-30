@@ -25,6 +25,7 @@ interface SelectedPopulationProps extends SelectedProps {
     populations: SelectedPopulation[] | null
     setAllVisibility: (visibility: boolean) => void
     addEmptyPopulation: () => void
+    segmentationDataLoaded: boolean
 }
 
 interface SelectedDataRowProps extends SelectedProps {
@@ -295,7 +296,11 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                 </th>
                                 <th />
                                 <th>
-                                    <a href="#" onClick={this.props.addEmptyPopulation}>
+                                    <a
+                                        href="#"
+                                        onClick={this.props.addEmptyPopulation}
+                                        className={`${this.props.segmentationDataLoaded ? '' : 'disabled'}`}
+                                    >
                                         <IoMdAddCircle size="1.5em" />
                                     </a>
                                 </th>

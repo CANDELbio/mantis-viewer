@@ -292,6 +292,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 highlightPopulation={populationStore.highlightSelectedPopulation}
                 unhighlightPopulation={populationStore.unhighlightSelectedPopulation}
                 addEmptyPopulation={populationStore.addEmptyPopulation}
+                segmentationDataLoaded={segmentationStore.segmentationData != null}
             />
         )
 

@@ -123,6 +123,12 @@ a:active {
     color: #313377;
 }
 
+a.disabled {
+    color: #a197e6;
+    pointer-events: none;
+    cursor: default;
+}
+
 /* Styles for elements in the loading modals */
 .spinner-border.text-secondary {
     color: #685bc7 !important;
