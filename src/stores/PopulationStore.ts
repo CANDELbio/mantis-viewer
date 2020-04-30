@@ -59,6 +59,10 @@ export class PopulationStore {
         return newRegion
     }
 
+    @action public addEmptyPopulation = (): void => {
+        this.addSelectedPopulation(null, [], 'Empty')
+    }
+
     @action public deleteSelectedPopulation = (id: string): void => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)
