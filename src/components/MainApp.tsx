@@ -286,10 +286,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 updateName={populationStore.updateSelectedPopulationName}
                 updateColor={populationStore.updateSelectedPopulationColor}
                 updateVisibility={populationStore.updateSelectedPopulationVisibility}
+                updateSegments={populationStore.updateSelectedPopulationSegments}
                 deletePopulation={populationStore.deleteSelectedPopulation}
                 setAllVisibility={populationStore.setAllSelectedPopulationVisibility}
                 highlightPopulation={populationStore.highlightSelectedPopulation}
                 unhighlightPopulation={populationStore.unhighlightSelectedPopulation}
+                addEmptyPopulation={populationStore.addEmptyPopulation}
+                segmentationDataLoaded={segmentationStore.segmentationData != null}
             />
         )
 

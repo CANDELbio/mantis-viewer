@@ -4,7 +4,7 @@ import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
 import { Popover, PopoverBody } from 'reactstrap'
-import { Badge } from 'reactstrap'
+import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
 import { hexToString } from '../lib/ColorHelper'
 
@@ -15,6 +15,7 @@ interface SelectedProps {
     updateName: (id: string, name: string) => void
     updateColor: (id: string, color: number) => void
     updateVisibility: (id: string, visibility: boolean) => void
+    updateSegments: (id: string, segments: number[]) => void
     deletePopulation: (id: string) => void
     highlightPopulation: (id: string) => void
     unhighlightPopulation: (id: string) => void
@@ -23,6 +24,8 @@ interface SelectedProps {
 interface SelectedPopulationProps extends SelectedProps {
     populations: SelectedPopulation[] | null
     setAllVisibility: (visibility: boolean) => void
+    addEmptyPopulation: () => void
+    segmentationDataLoaded: boolean
 }
 
 interface SelectedDataRowProps extends SelectedProps {
@@ -35,7 +38,8 @@ interface SelectedPopulationState {
 }
 
 interface SelectedDataRowState {
-    pickerVisible: boolean
+    colorPopoverVisible: boolean
+    segmentPopoverVisible: boolean
 }
 
 @observer
@@ -50,7 +54,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
     private TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, SelectedDataRowState> {
         public state = {
-            pickerVisible: false,
+            colorPopoverVisible: false,
+            segmentPopoverVisible: false,
         }
 
         private deletePopulation = (): void => {
@@ -77,7 +82,9 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             this.props.unhighlightPopulation(this.props.population.id)
         }
 
-        private onTogglePicker = (): void => this.setState({ pickerVisible: !this.state.pickerVisible })
+        private onToggleColorPopover = (): void =>
+            this.setState({ colorPopoverVisible: !this.state.colorPopoverVisible, segmentPopoverVisible: false })
+
         private handleColorChange = (color: ColorResult): void =>
             this.updateColor(parseInt(color.hex.replace(/^#/, ''), 16))
 
@@ -85,32 +92,49 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             return hexToString(this.props.population.color)
         }
 
+        private onToggleSegmentPopover = (): void =>
+            this.setState({ colorPopoverVisible: false, segmentPopoverVisible: !this.state.segmentPopoverVisible })
+
+        private onChangeSelectedSegments = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+            const updatedSegments = event.target.value
+                .split(',')
+                .map((v: string): number => {
+                    return parseInt(v)
+                })
+                .filter((v: number): boolean => {
+                    return !Number.isNaN(v)
+                })
+            this.props.updateSegments(this.props.population.id, updatedSegments)
+        }
+
         // Use this special function to turn off the picker whenever the user starts scrolling on the parent table.
         public static getDerivedStateFromProps(
             props: SelectedDataRowProps,
             state: SelectedDataRowState,
         ): SelectedDataRowState | null {
-            if (state.pickerVisible && props.tableScrolling) {
+            if ((state.colorPopoverVisible || state.segmentPopoverVisible) && props.tableScrolling) {
                 return {
-                    pickerVisible: false,
+                    colorPopoverVisible: false,
+                    segmentPopoverVisible: false,
                 }
             }
             return null
         }
 
         public render(): React.ReactElement {
+            const rowPopulation = this.props.population
             return (
                 <tr onMouseEnter={this.highlightPopulation} onMouseLeave={this.unhighlightPopulation}>
                     <td>
                         <EditableText
-                            defaultValue={this.props.population.name}
+                            defaultValue={rowPopulation.name}
                             onConfirm={this.updateName}
                             selectAllOnFocus={true}
                         />
                     </td>
                     <td
-                        id={'color-' + this.props.population.id}
-                        onClick={this.onTogglePicker}
+                        id={'color-' + rowPopulation.id}
+                        onClick={this.onToggleColorPopover}
                         style={{
                             backgroundColor: this.backgroundColor(),
                             cursor: 'pointer',
@@ -120,10 +144,10 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                     {/* Popover outside of the td so that the user can interact with it */}
                     <Popover
                         placement="left"
-                        isOpen={this.state.pickerVisible && !this.props.tableScrolling}
+                        isOpen={this.state.colorPopoverVisible && !this.props.tableScrolling}
                         trigger="legacy"
-                        target={'color-' + this.props.population.id}
-                        toggle={this.onTogglePicker}
+                        target={'color-' + rowPopulation.id}
+                        toggle={this.onToggleColorPopover}
                         style={{ backgroundColor: 'transparent' }}
                     >
                         {/* Compact picker is meant to be used as its own popover element, but doesn't work with ReactTableContainer */}
@@ -133,21 +157,51 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             <div style={{ position: 'relative' }}>
                                 <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
                                 <CompactPicker
-                                    color={'#' + this.props.population.color.toString(16)}
+                                    color={'#' + rowPopulation.color.toString(16)}
                                     onChangeComplete={this.handleColorChange}
                                 />
                             </div>
                         </PopoverBody>
                     </Popover>
                     <td>
-                        <Checkbox checked={this.props.population.visible} onChange={this.updateVisibility} />
+                        <Checkbox checked={rowPopulation.visible} onChange={this.updateVisibility} />
                     </td>
+                    <td id={'edit-' + rowPopulation.id} onClick={this.onToggleSegmentPopover}>
+                        <a href="#">
+                            <IoMdCreate size="1.5em" />
+                        </a>
+                    </td>
+                    {/* Popover outside of the td so that the user can interact with it */}
+                    <Popover
+                        placement="left"
+                        isOpen={this.state.segmentPopoverVisible && !this.props.tableScrolling}
+                        trigger="legacy"
+                        target={'edit-' + rowPopulation.id}
+                        toggle={this.onToggleSegmentPopover}
+                        style={{ backgroundColor: 'transparent' }}
+                    >
+                        <PopoverBody>
+                            <div
+                                style={{ position: 'relative' }}
+                                // Stop the scroll from propagating to the table and causing the popover to close
+                                onWheel={(e): void => {
+                                    e.stopPropagation()
+                                }}
+                            >
+                                <textarea
+                                    defaultValue={rowPopulation.selectedSegments.join(', ')}
+                                    readOnly={rowPopulation.selectedRegion ? true : false}
+                                    disabled={rowPopulation.selectedRegion ? true : false}
+                                    onBlur={this.onChangeSelectedSegments}
+                                    style={{ overflow: 'auto' }}
+                                />
+                            </div>
+                        </PopoverBody>
+                    </Popover>
                     <td>
-                        <h5>
-                            <Badge onClick={this.deletePopulation} color="danger" style={{ cursor: 'pointer' }}>
-                                Delete
-                            </Badge>
-                        </h5>
+                        <a href="#" onClick={this.deletePopulation}>
+                            <IoMdCloseCircle size="1.5em" />
+                        </a>
                     </td>
                 </tr>
             )
@@ -171,6 +225,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             updateVisibility={this.props.updateVisibility}
                             highlightPopulation={this.props.highlightPopulation}
                             unhighlightPopulation={this.props.unhighlightPopulation}
+                            updateSegments={this.props.updateSegments}
                             tableScrolling={tableScrolling}
                         />
                     )
@@ -239,7 +294,16 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                         style={{ display: 'table-cell' }}
                                     />
                                 </th>
-                                <th> </th>
+                                <th />
+                                <th>
+                                    <a
+                                        href="#"
+                                        onClick={this.props.addEmptyPopulation}
+                                        className={`${this.props.segmentationDataLoaded ? '' : 'disabled'}`}
+                                    >
+                                        <IoMdAddCircle size="1.5em" />
+                                    </a>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>{this.populationRows(populations, this.state.tableScrolling)}</tbody>

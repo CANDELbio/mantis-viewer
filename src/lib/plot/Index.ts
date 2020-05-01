@@ -20,6 +20,11 @@ export function generatePlotData(
     dotSize?: number,
 ): PlotData | null {
     let plotData: PlotData | null = null
+    const filteredPopulations = selectedPopulations
+        ? selectedPopulations.filter((p: SelectedPopulation): boolean => {
+              return p.selectedSegments.length > 0
+          })
+        : null
     if (plotType == 'histogram' && markers.length > 0) {
         plotData = buildHistogramData(
             [markers[0]],
@@ -28,7 +33,7 @@ export function generatePlotData(
             plotStatistic,
             plotTransform,
             transformCoefficient,
-            selectedPopulations,
+            filteredPopulations,
         )
     } else if ((plotType == 'scatter' || plotType == 'contour') && markers.length == 2) {
         plotData = buildScatterData(
@@ -39,7 +44,7 @@ export function generatePlotData(
             plotStatistic,
             plotTransform,
             transformCoefficient,
-            selectedPopulations,
+            filteredPopulations,
             dotSize,
         )
     } else if (plotType == 'heatmap') {
@@ -51,7 +56,7 @@ export function generatePlotData(
             plotTransform,
             transformCoefficient,
             plotNormalization,
-            selectedPopulations,
+            filteredPopulations,
         )
     }
     return plotData
