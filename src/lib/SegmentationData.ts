@@ -59,9 +59,7 @@ export class SegmentationData {
         this.segmentLocationMap = fData.segmentLocationMap
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
-        this.segmentIds = Object.keys(this.centroidMap).map((value: string) => {
-            return parseInt(value)
-        })
+        this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
         this.segmentFillSprite = imageBitmapToSprite(fData.fillBitmap)
         this.onReady(this)
     }

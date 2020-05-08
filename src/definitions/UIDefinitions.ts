@@ -96,6 +96,7 @@ export const GraphSelectionPrefix = 'Graph'
 export const ImageSelectionPrefix = 'Image'
 
 export const ImageSettingsFilename = '.mantisImageSettings'
+export const DbFilename = '.mantisDb'
 
 // TODO: Need to test on a big monitor
 // Combined height of the leftmost pannel when channel and segmentation are both open.
