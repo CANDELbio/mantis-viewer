@@ -1,11 +1,11 @@
-import better = require('better-sqlite3')
+import sqlite3 = require('better-sqlite3')
 
 import * as path from 'path'
 import { DbFilename } from '../definitions/UIDefinitions'
+import { MinMax } from '../interfaces/ImageInterfaces'
 
 export class Db {
-    private basePath: string
-    private db: better.Database
+    public basePath: string
 
     public constructor(basePath: string) {
         this.basePath = basePath
@@ -16,8 +16,8 @@ export class Db {
         return path.join(this.basePath, DbFilename)
     }
 
-    private getConnection(): better.Database {
-        return new better(this.dbPath(), { verbose: console.log })
+    private getConnection(): sqlite3.Database {
+        return new sqlite3(this.dbPath(), { verbose: console.log })
     }
 
     private initialize(): void {
@@ -80,6 +80,17 @@ export class Db {
 
         db.close()
         return results
+    }
+
+    public minMaxValues(imageSet: string, marker: string, feature: string): MinMax {
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT MIN(value) AS min, MAX(value) AS max
+                                 FROM features
+                                 WHERE image_set = ? AND
+                                 marker = ? AND
+                                 feature = ?`)
+        const values = stmt.get(imageSet, marker, feature)
+        return { min: values.min, max: values.max }
     }
 
     public minValue(imageSet: string, marker: string, feature: string): number {

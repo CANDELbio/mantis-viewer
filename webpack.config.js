@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+const CopyPlugin = require('copy-webpack-plugin')
+
 module.exports = {
     mode: 'development',
     entry: {
@@ -59,6 +62,10 @@ module.exports = {
                 loader: 'source-map-loader',
                 exclude: /(node_modules)/,
             },
+            {
+                test: /\.worker\.js$/,
+                use: { loader: 'worker-loader' },
+            },
         ],
     },
     // When importing a module whose path matches one of the following, just
@@ -69,5 +76,16 @@ module.exports = {
     //     "react": "React",
     //     "react-dom": "ReactDOM",
     // },
+    externals: {
+        'better-sqlite3': 'commonjs better-sqlite3',
+    },
+    // plugins: [
+    //     new CopyPlugin([
+    //         {
+    //             from: 'node_modules/better-sqlite3/',
+    //             to: 'app/node_modules/better-sqlite3/', // still under node_modules directory so it could find this module
+    //         },
+    //     ]),
+    // ],
     target: 'electron-main',
 }

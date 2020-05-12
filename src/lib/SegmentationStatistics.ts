@@ -4,24 +4,29 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 import { SegmentationStatisticsWorkerResult } from '../workers/SegmentationStatisticsWorker'
 import { submitSegmentationStatisticsJob } from '../workers/SegmentationStatisticsWorkerPool'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
+import { Db } from './Db'
 
 export class SegmentationStatistics {
     public markers: string[]
     // Map of marker/marker names plus segment id (marker_segmentid) the median intensity for that marker and segment
     private meanMap: Record<string, number>
-    // Map of marker/marker names plus segment id (_segmentid) the median intensity for that marker and segment
+    // Map of marker/marker names plus segment id (marker_segmentid) the median intensity for that marker and segment
     private medianMap: Record<string, number>
 
     public meanMinMaxMap: Record<string, MinMax>
     public medianMinMaxMap: Record<string, MinMax>
 
+    private db: Db
+    private imageSetName: string
     // Keep track of the number of markers to calculate statistics for and the number complete
     private numStatistics: number
     private numStatisticsComplete: number
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (statistics: SegmentationStatistics) => void
 
-    public constructor(onReady: (statistics: SegmentationStatistics) => void) {
+    public constructor(basePath: string, imageSetName: string, onReady: (statistics: SegmentationStatistics) => void) {
+        this.db = new Db(basePath)
+        this.imageSetName = imageSetName
         this.numStatistics = 0
         this.numStatisticsComplete = 0
         this.markers = []
@@ -40,16 +45,20 @@ export class SegmentationStatistics {
     }
 
     private async loadStatisticData(data: SegmentationStatisticsWorkerResult): Promise<void> {
+        const dataMap = this.db.selectFeatures(this.imageSetName, data.markerName, data.statistic)
+        const minMax = this.db.minMaxValues(this.imageSetName, data.markerName, data.statistic)
         if (data.statistic == 'mean') {
-            for (const key in data.map) {
-                this.meanMap[key] = data.map[key]
+            for (const segmentId of Object.keys(dataMap)) {
+                const key = data.markerName + '_' + segmentId
+                this.meanMap[key] = dataMap[parseInt(segmentId)]
             }
-            this.meanMinMaxMap[data.markerName] = data.minmax
+            this.meanMinMaxMap[data.markerName] = minMax
         } else if (data.statistic == 'median') {
-            for (const key in data.map) {
-                this.medianMap[key] = data.map[key]
+            for (const segmentId of Object.keys(dataMap)) {
+                const key = data.markerName + '_' + segmentId
+                this.medianMap[key] = dataMap[parseInt(segmentId)]
             }
-            this.medianMinMaxMap[data.markerName] = data.minmax
+            this.medianMinMaxMap[data.markerName] = minMax
         }
         this.numStatisticsComplete += 1
         this.statisticsLoadComplete()
@@ -65,6 +74,8 @@ export class SegmentationStatistics {
 
             submitSegmentationStatisticsJob(
                 {
+                    basePath: this.db.basePath,
+                    imageSetName: this.imageSetName,
                     marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,
@@ -75,6 +86,8 @@ export class SegmentationStatistics {
 
             submitSegmentationStatisticsJob(
                 {
+                    basePath: this.db.basePath,
+                    imageSetName: this.imageSetName,
                     marker: marker,
                     tiffData: tiffData,
                     segmentIndexMap: segmentationData.segmentIndexMap,

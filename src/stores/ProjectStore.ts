@@ -346,9 +346,8 @@ export class ProjectStore {
                                 !segmentationStore.segmentationDataLoading &&
                                 !segmentationStore.segmentationStatisticsLoading,
                             (): void => {
-                                const selectedDirectory = imageStore.selectedDirectory
-                                if (selectedDirectory) {
-                                    const imageSetName = path.basename(selectedDirectory)
+                                const imageSetName = imageStore.imageSetName()
+                                if (imageSetName) {
                                     if (populations && fcs) {
                                         exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
                                     } else {

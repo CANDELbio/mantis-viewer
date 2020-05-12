@@ -45,10 +45,13 @@ export class SegmentationStore {
     // TODO: Maybe should manually call when setting and unsetting segmentation data
     // Could imagine condition where segmentation data done loading and statistics loading status still false
     private calculateSegmentationStatistics = autorun(() => {
-        const imageData = this.imageSetStore.imageStore.imageData
-        if (imageData && this.segmentationData) {
+        const imageStore = this.imageSetStore.imageStore
+        const imageData = imageStore.imageData
+        const imageSetName = imageStore.imageSetName()
+        const basePath = this.imageSetStore.projectStore.settingStore.basePath
+        if (imageData && basePath && imageSetName && this.segmentationData) {
             this.setSegmentationStatisticLoadingStatus(true)
-            const statistics = new SegmentationStatistics(this.setSegmentationStatistics)
+            const statistics = new SegmentationStatistics(basePath, imageSetName, this.setSegmentationStatistics)
             statistics.generateStatistics(imageData, this.segmentationData)
         } else {
             this.setSegmentationStatisticLoadingStatus(false)

@@ -45,3 +45,8 @@ test('minValue', () => {
     const minValue = db.minValue(imageSet, marker, feature)
     expect(minValue).toEqual(1.0)
 })
+
+test('minMaxValues', () => {
+    const minMax = db.minMaxValues(imageSet, marker, feature)
+    expect(minMax).toEqual({ min: 1.0, max: 3.0 })
+})

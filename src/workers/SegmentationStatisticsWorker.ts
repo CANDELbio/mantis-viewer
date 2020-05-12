@@ -1,9 +1,10 @@
 import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker.worker')
-import { MinMax } from '../interfaces/ImageInterfaces'
 import { PlotStatistic } from '../definitions/UIDefinitions'
 
 export interface SegmentationStatisticsWorkerInput {
     jobId?: string
+    basePath: string
+    imageSetName: string
     marker: string
     tiffData: Float32Array | Uint16Array | Uint8Array
     segmentIndexMap: Record<number, number[]>
@@ -13,8 +14,6 @@ export interface SegmentationStatisticsWorkerInput {
 export interface SegmentationStatisticsWorkerResult {
     jobId: string
     statistic: PlotStatistic
-    map: Record<string, number>
-    minmax: MinMax
     markerName: string
 }
 
