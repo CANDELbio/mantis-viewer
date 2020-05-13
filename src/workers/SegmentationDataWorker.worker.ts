@@ -246,7 +246,10 @@ function generateMapsFromText(
     // x and y coordinates for the pixel.
     // e.g. x1, y1, x2, y2, ...
     const segmentationData = fs.readFileSync(filepath).toString()
-    const lines = segmentationData.split(/\r\n|\n/)
+    const lines = segmentationData
+        .split(/\r\n|\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
 
     for (let segmentId = 0; segmentId < lines.length; ++segmentId) {
         // Split the line for the current segment into an array of the format
