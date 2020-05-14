@@ -6,12 +6,12 @@
     "scripts": {
         "start": "electron . debug",
         "build": "tsc main.ts --sourceMap && webpack",
-        "rebuild": "electron-rebuild -f -w better-sqlite3",
         "pack": "electron-builder --dir",
         "dist": "electron-builder -mwl --x64",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
-        "eslint-fix": "eslint --fix --ext .tsx --ext .ts ."
+        "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
+        "postinstall": "electron-builder install-app-deps"
     },
     "repository": "https://github.com/ParkerICI/imc-viewer-js",
     "keywords": [
@@ -20,6 +20,7 @@
     ],
     "build": {
         "appId": "com.mantis-viewer.app",
+        "buildDependenciesFromSource": true,
         "mac": {
             "category": "public.app-category.medical",
             "target": "dmg"
@@ -76,7 +77,6 @@
         "css-loader": "^0.27.3",
         "electron": "^8.2.2",
         "electron-builder": "^22.5.1",
-        "electron-rebuild": "^1.10.1",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.1",
         "eslint-plugin-prettier": "^3.1.3",
