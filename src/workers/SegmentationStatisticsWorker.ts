@@ -15,6 +15,7 @@ export interface SegmentationStatisticsWorkerResult {
     jobId: string
     statistic: PlotStatistic
     markerName: string
+    statisticMap: Record<number, number>
 }
 
 export type OnSegmentationStatisticsWorkerComplete = (data: SegmentationStatisticsWorkerResult) => void

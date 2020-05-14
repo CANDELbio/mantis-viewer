@@ -3,7 +3,6 @@
 import { PlotStatistic } from '../definitions/UIDefinitions'
 import { SegmentationStatisticsWorkerInput } from './SegmentationStatisticsWorker'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
-import { Db } from '../lib/Db'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any
@@ -49,13 +48,12 @@ ctx.addEventListener(
     (message) => {
         const data: SegmentationStatisticsWorkerInput = message.data
         const map = generateStatisticMap(data.tiffData, data.segmentIndexMap, data.statistic)
-        const db = new Db(data.basePath)
-        db.insertFeatures(data.imageSetName, data.marker, data.statistic, map)
 
         ctx.postMessage({
             jobId: data.jobId,
             statistic: data.statistic,
             markerName: data.marker,
+            statisticMap: map,
         })
     },
     false,

@@ -17,7 +17,7 @@ export class Db {
     }
 
     private getConnection(): sqlite3.Database {
-        return new sqlite3(this.dbPath(), { verbose: console.log })
+        return new sqlite3(this.dbPath())
     }
 
     private initialize(): void {
@@ -80,6 +80,15 @@ export class Db {
 
         db.close()
         return results
+    }
+
+    public deleteFeatures(imageSet: string, marker: string, feature: string): void {
+        const db = this.getConnection()
+        const stmt = db.prepare(`DELETE FROM features
+                                 WHERE image_set = ? AND
+                                 marker = ? AND
+                                 feature = ?`)
+        stmt.run(imageSet, marker, feature)
     }
 
     public minMaxValues(imageSet: string, marker: string, feature: string): MinMax {

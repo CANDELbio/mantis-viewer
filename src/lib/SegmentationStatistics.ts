@@ -45,8 +45,11 @@ export class SegmentationStatistics {
     }
 
     private async loadStatisticData(data: SegmentationStatisticsWorkerResult): Promise<void> {
-        const dataMap = this.db.selectFeatures(this.imageSetName, data.markerName, data.statistic)
+        const dataMap = data.statisticMap
+        this.db.deleteFeatures(this.imageSetName, data.markerName, data.statistic)
+        this.db.insertFeatures(this.imageSetName, data.markerName, data.statistic, dataMap)
         const minMax = this.db.minMaxValues(this.imageSetName, data.markerName, data.statistic)
+
         if (data.statistic == 'mean') {
             for (const segmentId of Object.keys(dataMap)) {
                 const key = data.markerName + '_' + segmentId

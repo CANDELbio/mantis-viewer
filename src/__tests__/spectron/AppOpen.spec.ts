@@ -1,8 +1,8 @@
 import * as electron from 'electron'
 import { Application } from 'spectron'
 
-describe('Application launch', function() {
-    let app: Application = new Application({
+describe('Application launch', function () {
+    const app: Application = new Application({
         // path to electron app
         args: ['./main.js'],
         path: '' + electron,
@@ -10,17 +10,16 @@ describe('Application launch', function() {
         waitTimeout: 30000,
     })
 
-    beforeEach(function() {
+    beforeEach(function () {
         return app.start()
     })
 
-    afterEach(function() {
+    afterEach(function () {
         return app.stop()
     })
 
-    it('shows an initial window', async function() {
-        jest.setTimeout(10000)
-        let windowCount = await app.client.getWindowCount()
+    it('shows an initial window', async function () {
+        const windowCount = await app.client.getWindowCount()
         expect(windowCount).toEqual(3)
     })
 })
