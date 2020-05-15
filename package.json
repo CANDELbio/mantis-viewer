@@ -8,6 +8,7 @@
         "build": "tsc main.ts --sourceMap && webpack",
         "pack": "electron-builder --dir",
         "dist": "electron-builder -ml --x64",
+        "dist-win": "electron-builder -w --x64",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
