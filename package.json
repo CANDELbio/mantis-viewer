@@ -7,7 +7,7 @@
         "start": "electron . debug",
         "build": "tsc main.ts --sourceMap && webpack",
         "pack": "electron-builder --dir",
-        "dist": "electron-builder -mwl --x64",
+        "dist": "electron-builder -ml --x64",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
@@ -20,7 +20,6 @@
     ],
     "build": {
         "appId": "com.mantis-viewer.app",
-        "buildDependenciesFromSource": true,
         "mac": {
             "category": "public.app-category.medical",
             "target": "dmg"
