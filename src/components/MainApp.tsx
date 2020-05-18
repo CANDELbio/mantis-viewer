@@ -229,7 +229,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     highlightedRegions={populationStore.highlightedPopulations}
                     highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
                     exportPath={imageStore.imageExportFilename}
-                    onExportComplete={imageStore.clearImageExportFilename}
+                    onExportComplete={imageStore.clearImageExportFilePath}
                     legendVisible={settingStore.legendVisible}
                     zoomInsetVisible={settingStore.zoomInsetVisible}
                     windowHeight={windowHeight}

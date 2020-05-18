@@ -185,6 +185,22 @@ function generateMenuTemplate(): any {
                                 },
                             ],
                         },
+                        {
+                            label: 'Cell Level Data',
+                            enabled: segmentationLoaded,
+                            submenu: [
+                                {
+                                    label: 'For active image set from CSV',
+                                    enabled: segmentationLoaded,
+                                    click: showOpenFileDialog('add-cell-data', activeImageDirectory, 'csv'),
+                                },
+                                {
+                                    label: 'For project from single CSV',
+                                    enabled: segmentationLoaded,
+                                    click: showOpenFileDialog('add-project-cell-data', activeImageDirectory, 'csv'),
+                                },
+                            ],
+                        },
                     ],
                 },
                 {

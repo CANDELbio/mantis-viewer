@@ -29,44 +29,44 @@ ipcRenderer.on(
     },
 )
 
-ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filename: string): void => {
-    projectStore.setSegmentationBasename(filename)
+ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: string): void => {
+    projectStore.setSegmentationBasename(filePath)
 })
 
-ipcRenderer.on('add-populations-json', (event: Electron.Event, filename: string): void => {
-    projectStore.importActivePopulationsFromJSON(filename)
+ipcRenderer.on('add-populations-json', (event: Electron.Event, filePath: string): void => {
+    projectStore.importActivePopulationsFromJSON(filePath)
 })
 
-ipcRenderer.on('export-populations-json', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActivePopulationsToJSON(filename)
+ipcRenderer.on('export-populations-json', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActivePopulationsToJSON(filePath)
 })
 
-ipcRenderer.on('add-populations-csv', (event: Electron.Event, filename: string): void => {
-    projectStore.importActivePopulationsFromCSV(filename)
+ipcRenderer.on('add-populations-csv', (event: Electron.Event, filePath: string): void => {
+    projectStore.importActivePopulationsFromCSV(filePath)
 })
 
-ipcRenderer.on('add-project-populations-csv', (event: Electron.Event, filename: string): void => {
-    projectStore.importProjectPopulationsFromCSV(filename)
+ipcRenderer.on('add-project-populations-csv', (event: Electron.Event, filePath: string): void => {
+    projectStore.importProjectPopulationsFromCSV(filePath)
 })
 
-ipcRenderer.on('export-populations-csv', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActivePopulationsToCSV(filename)
+ipcRenderer.on('export-populations-csv', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActivePopulationsToCSV(filePath)
 })
 
-ipcRenderer.on('export-project-populations-csv', (event: Electron.Event, filename: string): void => {
-    projectStore.exportProjectPopulationsToCSV(filename)
+ipcRenderer.on('export-project-populations-csv', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportProjectPopulationsToCSV(filePath)
 })
 
-ipcRenderer.on('export-image', (event: Electron.Event, filename: string): void => {
-    projectStore.activeImageSetStore.imageStore.setImageExportFilename(filename)
+ipcRenderer.on('export-image', (event: Electron.Event, filePath: string): void => {
+    projectStore.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
 })
 
-ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActiveImageSetMarkerIntensities(filename, 'mean')
+ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetMarkerIntensities(filePath, 'mean')
 })
 
-ipcRenderer.on('export-median-intensities', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActiveImageSetMarkerIntensities(filename, 'median')
+ipcRenderer.on('export-median-intensities', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetMarkerIntensities(filePath, 'median')
 })
 
 ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string): void => {
@@ -179,20 +179,24 @@ ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, 
     projectStore.exportProjectToFCS(dirName, 'median', true)
 })
 
-ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActiveImageSetToFcs(filename, 'mean')
+ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetToFcs(filePath, 'mean')
 })
 
-ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filename: string): void => {
-    projectStore.exportActiveImageSetToFcs(filename, 'median')
+ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetToFcs(filePath, 'median')
 })
 
 ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string): void => {
     projectStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
-ipcRenderer.on('export-project-median-segmentation-to-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectToFCS(dirName, 'median', false)
+ipcRenderer.on('add-cell-data', (event: Electron.Event, filePath: string): void => {
+    projectStore.importActiveCellDataFromCSV(filePath)
+})
+
+ipcRenderer.on('add-project-cell-data', (event: Electron.Event, filePath: string): void => {
+    projectStore.importCellDataFromCSV(filePath)
 })
 
 // Keyboard shortcuts!

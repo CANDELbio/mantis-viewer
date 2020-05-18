@@ -124,11 +124,11 @@ export class ImageStore {
         this.scale = scale
     }
 
-    @action public setImageExportFilename = (fName: string): void => {
-        this.imageExportFilename = fName
+    @action public setImageExportFilePath = (filePath: string): void => {
+        this.imageExportFilename = filePath
     }
 
-    @action public clearImageExportFilename = (): void => {
+    @action public clearImageExportFilePath = (): void => {
         this.imageExportFilename = null
     }
 }

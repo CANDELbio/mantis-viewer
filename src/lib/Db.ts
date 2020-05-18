@@ -1,6 +1,9 @@
 import sqlite3 = require('better-sqlite3')
 
 import * as path from 'path'
+import * as fs from 'fs'
+import * as parseCSV from 'csv-parse/lib/sync'
+
 import { DbFilename } from '../definitions/UIDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
 

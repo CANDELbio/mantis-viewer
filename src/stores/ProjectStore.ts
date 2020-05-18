@@ -15,8 +15,10 @@ import {
     parseActivePopulationsJSON,
     writeToJSON,
     writeToCSV,
-} from '../lib/IOHelper'
+    parseCellDataCSV,
+} from '../lib/IO'
 import { PlotStatistic } from '../definitions/UIDefinitions'
+import { Db } from '../lib/Db'
 
 export class ProjectStore {
     public appVersion: string
@@ -471,5 +473,31 @@ export class ProjectStore {
             }
         }
         writeToCSV(projectPopulationArray, filePath, null)
+    }
+
+    public importActiveCellDataFromCSV = (filePath: string): void => {
+        const basePath = this.settingStore.basePath
+        if (this.activeImageSetPath && basePath) {
+            const activeImageSetName = path.basename(this.activeImageSetPath)
+            this.importCellDataFromCSV(filePath, activeImageSetName)
+        }
+    }
+
+    public importCellDataFromCSV = (filePath: string, imageSet?: string): void => {
+        const basePath = this.settingStore.basePath
+        if (basePath) {
+            const db = new Db(basePath)
+            const cellData = parseCellDataCSV(filePath, imageSet)
+            for (const imageSet of Object.keys(cellData)) {
+                const imageSetData = cellData[imageSet]
+                for (const marker of Object.keys(imageSetData)) {
+                    const markerData = imageSetData[marker]
+                    for (const feature of Object.keys(markerData)) {
+                        const segmentValues = markerData[feature]
+                        db.insertFeatures(imageSet, marker, feature, segmentValues)
+                    }
+                }
+            }
+        }
     }
 }

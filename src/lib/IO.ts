@@ -1,11 +1,11 @@
 import * as stringify from 'csv-stringify'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as parse from 'csv-parse/lib/sync'
+import * as parseCSV from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { writeToFCS } from '../lib/FcsWriter'
+import { writeToFCS } from './FcsWriter'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
@@ -171,7 +171,7 @@ export function parseActivePopulationCSV(filename: string): Record<string, numbe
     const input = fs.readFileSync(filename, 'utf8')
 
     const populations: Record<string, number[]> = {}
-    const records: string[][] = parse(input, { columns: false })
+    const records: string[][] = parseCSV(input, { columns: false })
 
     for (const row of records) {
         const segmentId = Number(row[0])
@@ -190,7 +190,7 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
     const input = fs.readFileSync(filename, 'utf8')
 
     const populations: Record<string, Record<string, number[]>> = {}
-    const records: string[][] = parse(input, { columns: false })
+    const records: string[][] = parseCSV(input, { columns: false })
 
     for (const row of records) {
         const imageSetName = row[0]
@@ -205,4 +205,21 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
     }
 
     return populations
+}
+
+// Returns a map that is nested four times.
+// The first level is keyed on imageSet
+// The second level is keyed on marker
+// The third level is keyed on the feature
+// The fourth level is keyed on the segmentId
+export function parseCellDataCSV(
+    filePath: string,
+    imageSet?: string,
+): Record<string, Record<string, Record<string, Record<number, number>>>> {
+    const cellData: Record<string, Record<string, Record<string, Record<number, number>>>> = {}
+    const input = fs.readFileSync(filePath, 'utf8')
+    const records: string[][] = parseCSV(input, { columns: false })
+    const header = records.shift()
+    // TODO: Parse CSV into Maps.
+    return cellData
 }
