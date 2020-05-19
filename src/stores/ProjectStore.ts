@@ -307,8 +307,8 @@ export class ProjectStore {
         this.plotInMainWindow = inWindow
     }
 
-    @action public incrementNumToExport = (): void => {
-        this.numToExport += 1
+    @action public setNumToExport = (value: number): void => {
+        this.numToExport = value
     }
 
     @action public incrementNumExported = (): void => {
@@ -329,52 +329,83 @@ export class ProjectStore {
         fcs: boolean,
         populations: boolean,
     ): void => {
-        for (const curDir of this.imageSetPaths) {
-            // Incrementing num to export so we can have a loading bar.
-            this.incrementNumToExport()
-            this.loadImageStoreData(curDir)
-            const imageSetStore = this.imageSets[curDir]
-            const imageStore = imageSetStore.imageStore
-            const segmentationStore = imageSetStore.segmentationStore
-            when(
-                (): boolean => !imageStore.imageDataLoading,
-                (): void => {
-                    // If we don't have segmentation, then skip this one.
-                    if (segmentationStore.selectedSegmentationFile) {
-                        when(
-                            (): boolean =>
-                                !segmentationStore.segmentationDataLoading &&
-                                !segmentationStore.segmentationStatisticsLoading,
-                            (): void => {
-                                const selectedDirectory = imageStore.selectedDirectory
-                                if (selectedDirectory) {
-                                    const imageSetName = path.basename(selectedDirectory)
-                                    if (populations && fcs) {
-                                        exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
+        // Setting num to export so we can have a loading bar.
+        this.setNumToExport(this.imageSetPaths.length)
+        this.exportImageSetSummaryStats(this.imageSetPaths, dirName, statistic, fcs, populations)
+    }
+
+    // Loads the data for one image set, waits until it's loaded, and exports the summary stats sequentially.
+    // We call this recursively from within the when blocks to prevent multiple image sets being loaded into memory at once.
+    private exportImageSetSummaryStats = (
+        remainingImageSetPaths: string[],
+        dirName: string,
+        statistic: PlotStatistic,
+        fcs: boolean,
+        populations: boolean,
+    ): void => {
+        const curDir = remainingImageSetPaths[0]
+        this.loadImageStoreData(curDir)
+        const imageSetStore = this.imageSets[curDir]
+        const imageStore = imageSetStore.imageStore
+        const segmentationStore = imageSetStore.segmentationStore
+        when(
+            (): boolean => !imageStore.imageDataLoading,
+            (): void => {
+                // If we don't have segmentation, then skip this one.
+                if (segmentationStore.selectedSegmentationFile) {
+                    when(
+                        (): boolean =>
+                            !segmentationStore.segmentationDataLoading &&
+                            !segmentationStore.segmentationStatisticsLoading,
+                        (): void => {
+                            const selectedDirectory = imageStore.selectedDirectory
+                            if (selectedDirectory) {
+                                const imageSetName = path.basename(selectedDirectory)
+                                if (populations && fcs) {
+                                    exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
+                                } else {
+                                    const extension = fcs ? '.fcs' : '.csv'
+                                    const filename = imageSetName + '_' + statistic + extension
+                                    const filePath = path.join(dirName, filename)
+                                    if (fcs) {
+                                        exportToFCS(filePath, statistic, imageSetStore)
                                     } else {
-                                        const extension = fcs ? '.fcs' : '.csv'
-                                        const filename = imageSetName + '_' + statistic + extension
-                                        const filePath = path.join(dirName, filename)
-                                        if (fcs) {
-                                            exportToFCS(filePath, statistic, imageSetStore)
-                                        } else {
-                                            exportMarkerIntensities(filePath, statistic, imageSetStore)
-                                        }
+                                        exportMarkerIntensities(filePath, statistic, imageSetStore)
                                     }
-                                    // Mark this set of files as loaded for loading bar.
-                                    this.incrementNumExported()
-                                    this.clearImageSetData(curDir)
                                 }
-                            },
+                                // Mark this set of files as loaded for loading bar.
+                                this.incrementNumExported()
+                                this.clearImageSetData(curDir)
+                                // If there are more imageSets to process, recurse and process the next one.
+                                if (remainingImageSetPaths.length > 1) {
+                                    this.exportImageSetSummaryStats(
+                                        remainingImageSetPaths.slice(1),
+                                        dirName,
+                                        statistic,
+                                        fcs,
+                                        populations,
+                                    )
+                                }
+                            }
+                        },
+                    )
+                } else {
+                    // Mark as success if we're not going to export it
+                    this.incrementNumExported()
+                    this.clearImageSetData(curDir)
+                    // If there are more imageSets to process, recurse and process the next one.
+                    if (remainingImageSetPaths.length > 1) {
+                        this.exportImageSetSummaryStats(
+                            remainingImageSetPaths.slice(1),
+                            dirName,
+                            statistic,
+                            fcs,
+                            populations,
                         )
-                    } else {
-                        // Mark as success if we're not going to export it
-                        this.incrementNumExported()
-                        this.clearImageSetData(curDir)
                     }
-                },
-            )
-        }
+                }
+            },
+        )
     }
 
     public exportActiveImageSetMarkerIntensities = (filePath: string, statistic: PlotStatistic): void => {
