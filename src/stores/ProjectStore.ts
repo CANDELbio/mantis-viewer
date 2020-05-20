@@ -526,6 +526,7 @@ export class ProjectStore {
                     const markerData = imageSetData[marker]
                     for (const feature of Object.keys(markerData)) {
                         const segmentValues = markerData[feature]
+                        db.deleteFeatures(imageSet, marker, feature)
                         db.insertFeatures(imageSet, marker, feature, segmentValues)
                     }
                 }
