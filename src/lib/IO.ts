@@ -207,6 +207,9 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
     return populations
 }
 
+// Expects input CSV at filepath to have a header.
+// If imageSet is not included, expects imageSet to be in the 0th column.
+// After that, expects marker, segmentId, and then features in the header and values in the data rows.
 // Returns a map that is nested four times.
 // The first level is keyed on imageSet
 // The second level is keyed on marker
@@ -220,6 +223,26 @@ export function parseCellDataCSV(
     const input = fs.readFileSync(filePath, 'utf8')
     const records: string[][] = parseCSV(input, { columns: false })
     const header = records.shift()
-    // TODO: Parse CSV into Maps.
+    if (header) {
+        // If imageSet is included we'll use that, otherwise we get it from the 0 index column in the CSV
+        // In this case we offset the other indexes by 1.
+        const indexOffset = imageSet ? 0 : 1
+        const features = header?.slice(2 + indexOffset)
+        for (const row of records) {
+            const curImageSet = imageSet ? imageSet : row[0]
+            const curMarker = row[0 + indexOffset]
+            const curSegmentId = parseInt(row[1 + indexOffset])
+            const curValues = row.slice(2 + indexOffset).map((v) => parseFloat(v))
+            if (!(curImageSet in cellData)) cellData[curImageSet] = {}
+            const curImageSetData = cellData[curImageSet]
+            if (!(curMarker in curImageSetData)) curImageSetData[curMarker] = {}
+            const curMarkerData = curImageSetData[curMarker]
+            features.forEach((curFeature, featureIndex) => {
+                if (!(curFeature in curMarkerData)) curMarkerData[curFeature] = {}
+                const curFeatureData = curMarkerData[curFeature]
+                curFeatureData[curSegmentId] = curValues[featureIndex]
+            })
+        }
+    }
     return cellData
 }
