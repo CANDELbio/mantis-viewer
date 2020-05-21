@@ -7,7 +7,7 @@ permalink: /segmentation/
 
 ## Overview
 
-Many of the features in Mantis rely on segmentation data. Segmentation is a process by which regions of an image are identified as cells. Mantis is not able to segment at this point in time, but there are many publicly available methods available to segment images.
+Many of the features in Mantis rely on segmentation data. Segmentation is a process by which regions of an image are identified as cells. Mantis is not able to generate segmentation data, but there are many publicly available methods available to segment images.
 
 ## Segmentation Format
 
@@ -16,6 +16,22 @@ Mantis Viewer currently supports two different segmentation formats: a TIFF-base
 For the TIFF format, Mantis expects segmentation data to be stored as a TIFF where pixels belonging to a segment have a unique numerical segment id as their value (e.g. all of the pixels belonging to first segment have the value of 1, second segment has value of 2, etc.), and where pixels not belonging to a segment have a 0 value.
 
 For the TXT/CSV format, Mantis expects segmentation data to be stored in a TXT or CSV file where each row contains a comma separated list of all of the X and Y values belonging to a segment (e.g. row 1 in the file contains all of the X and Y coordinates for the first segment in the format X,Y,X,Y,...).
+
+## Generating Segmentation Data
+
+The Parker Institute for Cancer Immunotherapy does not currently provide any tools for generating segmentation data. We are currently working with our member labs to develop publicly available tools, and we will update this section when they are released. In the interim, you can use [CellProfiler](https://cellprofiler.org/) to generate segmentation data.
+
+You can download our [example segmentation pipeline](files/example_segmentation.cpproj) if you've never used CellProfiler before and want an example to get you started. If you already have a segmentation pipleine built in CellProfiler you can make the following modifications to export the results in a format that Mantis accepts.
+
+First, you will add a ConvertObjectsToImage module and select the output of your final segmentation module as the input and uint16 as the color format.
+
+![Convert Objects](images/cell_profiler_convert_objects.png)
+
+Finally, you will add a SaveImages module to save the image generated in the ConvertObjectsToImage module and to make sure that the image bit depth is set to 16-bit integer.
+
+![Save Images](images/cell_profiler_save_images.png)
+
+The output from the SaveImages module will be in the TIFF format described in the [Segmentation Format Section](#segmentation-format).
 
 ## Loading Segmentation Data
 
