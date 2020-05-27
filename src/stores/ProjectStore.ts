@@ -539,7 +539,6 @@ export class ProjectStore {
     }
 
     @action public setCheckRecalculateSegmentationStatistics = (check: boolean): void => {
-        console.log('setCheckRecalculateSegmentationStatistics: ' + check.toString())
         this.checkRecalculateSegmentationStatistics = check
     }
 

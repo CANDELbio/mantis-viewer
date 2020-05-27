@@ -28,6 +28,7 @@ export class SegmentationStore {
         const imageData = imageStore.imageData
         const settingStore = this.imageSetStore.projectStore.settingStore
         const segmentationBasename = settingStore.segmentationBasename
+
         // Check if there is a file to load and if image data has loaded (so we know width and height for text segmentation)
         if (segmentationBasename && imageData) {
             const destinationPath = imageStore.selectedDirectory
@@ -48,8 +49,7 @@ export class SegmentationStore {
         const imageStore = this.imageSetStore.imageStore
         const imageData = imageStore.imageData
         const imageSetName = imageStore.imageSetName()
-        const basePath = this.imageSetStore.projectStore.settingStore.basePath
-        if (imageData && basePath && imageSetName && this.segmentationData) {
+        if (imageData && imageSetName && this.segmentationData) {
             this.calculateSegmentationStatistics()
         }
     })
