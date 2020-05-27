@@ -122,6 +122,22 @@ ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelNam
     projectStore.preferencesStore.setUseAnyMarker(channel, useAny)
 })
 
+ipcRenderer.on('set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setRememberRecalculateSegmentationStatistics(value)
+})
+
+ipcRenderer.on('set-recalculate', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setRecalculateSegmentationStatistics(value)
+})
+
+ipcRenderer.on('set-remember-clear', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setRememberClearDuplicateSegmentFeatures(value)
+})
+
+ipcRenderer.on('set-clear', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setClearDuplicateSegmentFeatures(value)
+})
+
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-markers', (event: Electron.Event, markers: string[]): void => {
     projectStore.settingStore.setSelectedPlotMarkers(markers)
@@ -191,13 +207,24 @@ ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event
     projectStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
-ipcRenderer.on('add-cell-data', (event: Electron.Event, filePath: string): void => {
-    projectStore.importActiveCellDataFromCSV(filePath)
+ipcRenderer.on('add-segment-data', (event: Electron.Event, filePath: string): void => {
+    projectStore.importActiveSegmentDataFromCSV(filePath)
 })
 
-ipcRenderer.on('add-project-cell-data', (event: Electron.Event, filePath: string): void => {
-    projectStore.importCellDataFromCSV(filePath)
+ipcRenderer.on('add-project-segment-data', (event: Electron.Event, filePath: string): void => {
+    projectStore.importSegmentDataFromCSV(filePath)
 })
+
+ipcRenderer.on('recalculate-segment-data', (): void => {
+    projectStore.activeImageSetStore.segmentationStore.calculateSegmentationStatistics(false, true)
+})
+
+ipcRenderer.on(
+    'recalculate-segmentation-stats',
+    (event: Electron.Event, recalculate: boolean, remember: boolean): void => {
+        projectStore.recalculateSegmentationStatistics(recalculate, remember)
+    },
+)
 
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
@@ -254,6 +281,10 @@ Mobx.autorun((): void => {
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),
         Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
+        preferencesStore.rememberRecalculateSegmentationStatistics,
+        preferencesStore.recalculateSegmentationStatistics,
+        preferencesStore.rememberClearDuplicateSegmentFeatures,
+        preferencesStore.clearDuplicateSegmentFeatures,
     )
 })
 
@@ -328,6 +359,13 @@ Mobx.autorun((): void => {
         'set-populations-selected',
         projectStore.activeImageSetStore.populationStore.selectedPopulations.length > 0,
     )
+})
+
+Mobx.autorun((): void => {
+    if (projectStore.checkRecalculateSegmentationStatistics) {
+        ipcRenderer.send('mainWindow-show-recalculate-segmentation-stats-dialog')
+        projectStore.setCheckRecalculateSegmentationStatistics(false)
+    }
 })
 
 ReactDOM.render(

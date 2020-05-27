@@ -36,6 +36,13 @@ test('selectFeatures', () => {
     expect(selectedFeatures).toEqual(segmentValues)
 })
 
+test('featuresPresent', () => {
+    const present = db.featuresPresent(imageSet, feature)
+    const notPresent = db.featuresPresent(imageSet, 'feature2')
+    expect(present).toBe(true)
+    expect(notPresent).toBe(false)
+})
+
 test('maxValue', () => {
     const maxValue = db.maxValue(imageSet, marker, feature)
     expect(maxValue).toEqual(3.0)

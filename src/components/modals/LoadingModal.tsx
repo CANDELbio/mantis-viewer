@@ -5,6 +5,7 @@ import { Modal, ModalHeader, ModalBody, Spinner } from 'reactstrap'
 export interface LoadingModalProps {
     imageDataLoading: boolean
     segmentationDataLoading: boolean
+    segmentationStatisticsLoading: boolean
 }
 
 @observer
@@ -15,11 +16,17 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
 
     public render(): React.ReactNode {
         let modal = null
-        if (this.props.imageDataLoading || this.props.segmentationDataLoading) {
-            const modalType = this.props.imageDataLoading ? 'Image Data' : 'Segmentation Data'
+        if (
+            this.props.imageDataLoading ||
+            this.props.segmentationDataLoading ||
+            this.props.segmentationStatisticsLoading
+        ) {
+            let modalText = 'Image Data is loading...'
+            if (this.props.segmentationDataLoading) modalText = 'Segmentation Data is loading...'
+            if (this.props.segmentationStatisticsLoading) modalText = 'Segmentation Statistics are loading...'
             modal = (
                 <Modal isOpen={true}>
-                    <ModalHeader>{modalType} is loading...</ModalHeader>
+                    <ModalHeader>{modalText}</ModalHeader>
                     <ModalBody>
                         <div style={{ textAlign: 'center' }}>
                             <Spinner style={{ width: '5rem', height: '5rem' }} color="secondary" />

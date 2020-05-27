@@ -1,10 +1,11 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { MinMax } from '../interfaces/ImageInterfaces'
-import { SegmentationStatisticsWorkerResult } from '../workers/SegmentationStatisticsWorker'
+import { SegmentationStatisticsResult } from '../workers/SegmentationStatisticsWorker'
 import { submitSegmentationStatisticsJob } from '../workers/SegmentationStatisticsWorkerPool'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 import { Db } from './Db'
+import { PlotStatistic } from '../definitions/UIDefinitions'
 
 export class SegmentationStatistics {
     public markers: string[]
@@ -18,15 +19,23 @@ export class SegmentationStatistics {
 
     private db: Db
     private imageSetName: string
+    // Whether or not we should recalculate the statistics if they've already been calculated
+    private recalculateStatistics: boolean
     // Keep track of the number of markers to calculate statistics for and the number complete
     private numStatistics: number
     private numStatisticsComplete: number
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (statistics: SegmentationStatistics) => void
 
-    public constructor(basePath: string, imageSetName: string, onReady: (statistics: SegmentationStatistics) => void) {
+    public constructor(
+        basePath: string,
+        imageSetName: string,
+        recalculateStatistics: boolean,
+        onReady: (statistics: SegmentationStatistics) => void,
+    ) {
         this.db = new Db(basePath)
         this.imageSetName = imageSetName
+        this.recalculateStatistics = recalculateStatistics
         this.numStatistics = 0
         this.numStatisticsComplete = 0
         this.markers = []
@@ -44,11 +53,9 @@ export class SegmentationStatistics {
         }
     }
 
-    private async loadStatisticData(data: SegmentationStatisticsWorkerResult): Promise<void> {
+    private async loadStatisticData(data: SegmentationStatisticsResult): Promise<void> {
         const dataMap = data.statisticMap
-        this.db.deleteFeatures(this.imageSetName, data.markerName, data.statistic)
-        this.db.insertFeatures(this.imageSetName, data.markerName, data.statistic, dataMap)
-        const minMax = this.db.minMaxValues(this.imageSetName, data.markerName, data.statistic)
+        const minMax = data.minMax
 
         if (data.statistic == 'mean') {
             for (const segmentId of Object.keys(dataMap)) {
@@ -67,37 +74,61 @@ export class SegmentationStatistics {
         this.statisticsLoadComplete()
     }
 
+    private storeStatisticData(data: SegmentationStatisticsResult): void {
+        const dataMap = data.statisticMap
+        this.db.deleteFeatures(this.imageSetName, data.markerName, data.statistic)
+        this.db.insertFeatures(this.imageSetName, data.markerName, data.statistic, dataMap)
+    }
+
+    public statisticsPresent(): boolean {
+        return (
+            this.db.featuresPresent(this.imageSetName, 'mean') || this.db.featuresPresent(this.imageSetName, 'median')
+        )
+    }
+
     public generateStatistics(imageData: ImageData, segmentationData: SegmentationData): void {
-        const onComplete = (data: SegmentationStatisticsWorkerResult): Promise<void> => this.loadStatisticData(data)
+        const onComplete = (data: SegmentationStatisticsResult): Promise<void> => {
+            this.storeStatisticData(data)
+            return this.loadStatisticData(data)
+        }
 
         for (const marker in imageData.data) {
             this.markers.push(marker)
             this.numStatistics += 2
             const tiffData = imageData.data[marker]
 
-            submitSegmentationStatisticsJob(
-                {
-                    basePath: this.db.basePath,
-                    imageSetName: this.imageSetName,
-                    marker: marker,
-                    tiffData: tiffData,
-                    segmentIndexMap: segmentationData.segmentIndexMap,
-                    statistic: 'mean',
-                },
-                onComplete,
-            )
-
-            submitSegmentationStatisticsJob(
-                {
-                    basePath: this.db.basePath,
-                    imageSetName: this.imageSetName,
-                    marker: marker,
-                    tiffData: tiffData,
-                    segmentIndexMap: segmentationData.segmentIndexMap,
-                    statistic: 'median',
-                },
-                onComplete,
-            )
+            for (const s of ['mean', 'median']) {
+                const statistic = s as PlotStatistic
+                let curStatistics = {}
+                if (!this.recalculateStatistics) {
+                    // If we don't want to recalculate statistics, try to grab them from the DB
+                    curStatistics = this.db.selectFeatures(this.imageSetName, marker, statistic)
+                }
+                if (Object.keys(curStatistics).length > 0) {
+                    // Check if we were able to fetch any statistics from the DB.
+                    // If we were, load that data.
+                    const minMax = this.db.minMaxValues(this.imageSetName, marker, statistic)
+                    this.loadStatisticData({
+                        statistic: statistic,
+                        markerName: marker,
+                        statisticMap: curStatistics,
+                        minMax: minMax,
+                    })
+                } else {
+                    // Otherwise we submit a job to calculate the data for us.
+                    submitSegmentationStatisticsJob(
+                        {
+                            basePath: this.db.basePath,
+                            imageSetName: this.imageSetName,
+                            marker: marker,
+                            tiffData: tiffData,
+                            segmentIndexMap: segmentationData.segmentIndexMap,
+                            statistic: statistic,
+                        },
+                        onComplete,
+                    )
+                }
+            }
         }
     }
 

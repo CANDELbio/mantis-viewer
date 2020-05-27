@@ -18,6 +18,14 @@ export interface PreferencesProps {
     setDefaultChannelDomain: (channel: ChannelName, domain: [number, number]) => void
     useAnyMarker: Record<ChannelName, boolean>
     setUseAnyMarker: (channel: ChannelName, useAnyMarker: boolean) => void
+    rememberRecalculate: boolean
+    setRememberRecalculate: (value: boolean) => void
+    recalculate: boolean
+    setRecalculate: (value: boolean) => void
+    rememberClearDuplicates: boolean
+    setRememberClearDuplicates: (value: boolean) => void
+    clearDuplicates: boolean
+    setClearDuplicates: (value: boolean) => void
 }
 
 // Storing defaultChannelDomains and maxImageSetsInMemory in state so that the
@@ -146,6 +154,44 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         checked={this.props.useAnyMarker[this.state.selectedChannel]}
                         onChange={this.onUseAnyMarkerChange}
                         label="Use Any Marker if Defaults Not Present"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.rememberRecalculate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setRememberRecalculate(e.target.checked)
+                        }
+                        label="Remember my choice for recalculating segmentation statistics"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.recalculate}
+                        disabled={!this.props.rememberRecalculate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setRecalculate(e.target.checked)
+                        }
+                        label="Recalculate segmentation statistics when loading segmentation data"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.rememberClearDuplicates}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setRememberClearDuplicates(e.target.checked)
+                        }
+                        label="Remember my choice for clearing duplicate segment features"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.clearDuplicates}
+                        disabled={!this.props.rememberClearDuplicates}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setClearDuplicates(e.target.checked)
+                        }
+                        label="Clear duplicate segment features when loading custom features"
                     />
                 </Label>
             </div>

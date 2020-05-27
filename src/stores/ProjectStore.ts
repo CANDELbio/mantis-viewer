@@ -15,7 +15,7 @@ import {
     parseActivePopulationsJSON,
     writeToJSON,
     writeToCSV,
-    parseCellDataCSV,
+    parseSegmentDataCSV,
 } from '../lib/IO'
 import { PlotStatistic } from '../definitions/UIDefinitions'
 import { Db } from '../lib/Db'
@@ -51,6 +51,10 @@ export class ProjectStore {
 
     // Gets set to true when the user requests to clear segmentation so that we can ask to confirm.
     @observable public clearSegmentationRequested: boolean
+
+    // Gets set to true when segmentation statistics have already been calculated
+    // So that we can ask the user if they want to recalculate
+    @observable public checkRecalculateSegmentationStatistics: boolean
 
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
@@ -507,21 +511,21 @@ export class ProjectStore {
         writeToCSV(projectPopulationArray, filePath, null)
     }
 
-    public importActiveCellDataFromCSV = (filePath: string): void => {
+    public importActiveSegmentDataFromCSV = (filePath: string): void => {
         const basePath = this.settingStore.basePath
         if (this.activeImageSetPath && basePath) {
             const activeImageSetName = path.basename(this.activeImageSetPath)
-            this.importCellDataFromCSV(filePath, activeImageSetName)
+            this.importSegmentDataFromCSV(filePath, activeImageSetName)
         }
     }
 
-    public importCellDataFromCSV = (filePath: string, imageSet?: string): void => {
+    public importSegmentDataFromCSV = (filePath: string, imageSet?: string): void => {
         const basePath = this.settingStore.basePath
         if (basePath) {
             const db = new Db(basePath)
-            const cellData = parseCellDataCSV(filePath, imageSet)
-            for (const imageSet of Object.keys(cellData)) {
-                const imageSetData = cellData[imageSet]
+            const segmentData = parseSegmentDataCSV(filePath, imageSet)
+            for (const imageSet of Object.keys(segmentData)) {
+                const imageSetData = segmentData[imageSet]
                 for (const marker of Object.keys(imageSetData)) {
                     const markerData = imageSetData[marker]
                     for (const feature of Object.keys(markerData)) {
@@ -532,5 +536,18 @@ export class ProjectStore {
                 }
             }
         }
+    }
+
+    @action public setCheckRecalculateSegmentationStatistics = (check: boolean): void => {
+        console.log('setCheckRecalculateSegmentationStatistics: ' + check.toString())
+        this.checkRecalculateSegmentationStatistics = check
+    }
+
+    public recalculateSegmentationStatistics = (recalculate: boolean, remember: boolean): void => {
+        this.preferencesStore.setRecalculateSegmentationStatistics(recalculate)
+        this.preferencesStore.setRememberRecalculateSegmentationStatistics(remember)
+        // When calling calculate from this method, the user has already intervened so we don't need to check
+        // We do need to pass along whether or not we're recalculating or using previously calculated data though.
+        this.activeImageSetStore.segmentationStore.calculateSegmentationStatistics(false, recalculate)
     }
 }

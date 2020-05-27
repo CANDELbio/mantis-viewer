@@ -44,20 +44,56 @@ export class SegmentationStore {
 
     // TODO: Maybe should manually call when setting and unsetting segmentation data
     // Could imagine condition where segmentation data done loading and statistics loading status still false
-    private calculateSegmentationStatistics = autorun(() => {
+    private autorunCalculateSegmentationStatistics = autorun(() => {
         const imageStore = this.imageSetStore.imageStore
         const imageData = imageStore.imageData
         const imageSetName = imageStore.imageSetName()
         const basePath = this.imageSetStore.projectStore.settingStore.basePath
         if (imageData && basePath && imageSetName && this.segmentationData) {
+            this.calculateSegmentationStatistics()
+        }
+    })
+
+    @action public calculateSegmentationStatistics = (
+        checkRecalculateArg?: boolean,
+        recalculateStatisticsArg?: boolean,
+    ): void => {
+        const imageStore = this.imageSetStore.imageStore
+        const imageData = imageStore.imageData
+        const imageSetName = imageStore.imageSetName()
+        const projectStore = this.imageSetStore.projectStore
+        const basePath = this.imageSetStore.projectStore.settingStore.basePath
+        const preferencesStore = this.imageSetStore.projectStore.preferencesStore
+        // If checkRecalculateArg is passed in use the value from that, otherwise go from user preferences
+        // This is so we can skip checking when the user explicitly approves of calculating statistics
+        const checkRecalculate =
+            checkRecalculateArg == undefined
+                ? !preferencesStore.rememberRecalculateSegmentationStatistics
+                : checkRecalculateArg
+        const recalculateStatistics =
+            recalculateStatisticsArg == undefined
+                ? preferencesStore.recalculateSegmentationStatistics
+                : recalculateStatisticsArg
+        if (imageData && basePath && imageSetName && this.segmentationData) {
+            const statistics = new SegmentationStatistics(
+                basePath,
+                imageSetName,
+                recalculateStatistics,
+                this.setSegmentationStatistics,
+            )
             this.setSegmentationStatisticLoadingStatus(true)
-            const statistics = new SegmentationStatistics(basePath, imageSetName, this.setSegmentationStatistics)
-            statistics.generateStatistics(imageData, this.segmentationData)
+            if (statistics.statisticsPresent() && checkRecalculate) {
+                // If statistics are already present and we should check to recalculate, kick to the user to ask
+                projectStore.setCheckRecalculateSegmentationStatistics(true)
+            } else {
+                // Otherwise generate the statistics!
+                statistics.generateStatistics(imageData, this.segmentationData)
+            }
         } else {
             this.setSegmentationStatisticLoadingStatus(false)
             this.setSegmentationStatistics(null)
         }
-    })
+    }
 
     @action private initialize = (): void => {
         this.segmentationDataLoading = false

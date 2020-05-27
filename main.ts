@@ -186,18 +186,18 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
-                            label: 'Cell Level Data',
+                            label: 'Segment Level Data',
                             enabled: segmentationLoaded,
                             submenu: [
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: segmentationLoaded,
-                                    click: showOpenFileDialog('add-cell-data', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialog('add-segment-data', activeImageDirectory, 'csv'),
                                 },
                                 {
                                     label: 'For project from single CSV',
                                     enabled: segmentationLoaded,
-                                    click: showOpenFileDialog('add-project-cell-data', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialog('add-project-segment-data', activeImageDirectory, 'csv'),
                                 },
                             ],
                         },
@@ -340,6 +340,18 @@ function generateMenuTemplate(): any {
                                     }, projectDirectory),
                                 },
                             ],
+                        },
+                    ],
+                },
+                {
+                    label: 'Calculate',
+                    submenu: [
+                        {
+                            label: 'Segment Level Data for active image set',
+                            enabled: imageLoaded && segmentationLoaded,
+                            click: (): void => {
+                                mainWindow.webContents.send('recalculate-segment-data')
+                            },
                         },
                     ],
                 },
@@ -559,7 +571,7 @@ function createPlotWindow(): void {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 430,
+        height: 580,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -674,6 +686,50 @@ ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
     }
 })
 
+ipcMain.on('mainWindow-show-recalculate-segmentation-stats-dialog', (): void => {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Question',
+            message:
+                'Segmentation statics have been previously calculated for this image set. Do you want to use the previously calculated statistics?',
+            detail: 'You can manually refresh segmentation statistics from the main menu at any time',
+            checkboxLabel: 'Remember my answer (you can change this in preferences)',
+            checkboxChecked: true,
+        }
+        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+            if (mainWindow != null)
+                mainWindow.webContents.send(
+                    'recalculate-segmentation-stats',
+                    value.response == 1,
+                    value.checkboxChecked,
+                )
+        })
+    }
+})
+
+ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Question',
+            message:
+                'Some of the segment features you are importing are already present. Do you wish to drop these features before importing?',
+            detail: 'Choosing no can lead to duplicate or overlapping data',
+            checkboxLabel: 'Remember my answer (you can change this in preferences)',
+            checkboxChecked: true,
+        }
+        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+            if (mainWindow != null)
+                mainWindow.webContents.send('clear-segment-features', value.response == 0, value.checkboxChecked)
+        })
+    }
+})
+
 // Functions to relay data from the mainWindow to the plotWindow
 ipcMain.on(
     'mainWindow-set-plot-data',
@@ -756,6 +812,10 @@ ipcMain.on(
         markers: any,
         domains: any,
         anyChannel: any,
+        rememberRecalculateSegmentationStatistics: boolean,
+        recalculateSegmentationStatistics: boolean,
+        rememberClearDuplicateSegmentFeatures: boolean,
+        clearDuplicateSegmentFeatures: boolean,
     ): void => {
         if (preferencesWindow != null)
             preferencesWindow.webContents.send(
@@ -765,6 +825,10 @@ ipcMain.on(
                 markers,
                 domains,
                 anyChannel,
+                rememberRecalculateSegmentationStatistics,
+                recalculateSegmentationStatistics,
+                rememberClearDuplicateSegmentFeatures,
+                clearDuplicateSegmentFeatures,
             )
     },
 )
@@ -794,4 +858,20 @@ ipcMain.on(
 
 ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
+})
+
+ipcMain.on('preferencesWindow-set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-remember-recalculate', value)
+})
+
+ipcMain.on('preferencesWindow-set-recalculate', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-recalculate', value)
+})
+
+ipcMain.on('preferencesWindow-set-remember-clear', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-remember-clear', value)
+})
+
+ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
 })

@@ -223,17 +223,17 @@ export class SettingStore {
     @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {
         const markers = this.channelMarker
         // Set defaults if the project markers are uninitialized
-        const allMarkersUninitalized = ImageChannels.map((value: ChannelName) => {
+        const allMarkersUninitialized = ImageChannels.map((value: ChannelName) => {
             return markers[value] == null
         }).reduce((previous: boolean, current: boolean) => {
             return previous && current
         })
-        if (allMarkersUninitalized) {
+        if (allMarkersUninitialized) {
             this.setChannelMarkerDefaults(imageStore)
         }
     }
 
-    // If the image store has image data, sets the defaults based on the users's preferences.
+    // If the image store has image data, sets the defaults based on the users' preferences.
     @action public setChannelMarkerDefaults = (imageStore: ImageStore): void => {
         if (imageStore.imageData != null) {
             const preferencesStore = this.projectStore.preferencesStore

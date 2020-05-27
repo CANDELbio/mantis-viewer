@@ -304,6 +304,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         const imageDataLoading = imageStore.imageDataLoading
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
+        const segmentationStatisticsLoading = segmentationStore.segmentationStatisticsLoading
 
         const numExported = projectStore.numExported
         const numToExport = projectStore.numToExport
@@ -311,7 +312,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return (
             <div>
                 <WelcomeModal displayModal={displayWelcomeModal} />
-                <LoadingModal imageDataLoading={imageDataLoading} segmentationDataLoading={segmentationDataLoading} />
+                <LoadingModal
+                    imageDataLoading={imageDataLoading}
+                    segmentationDataLoading={segmentationDataLoading}
+                    segmentationStatisticsLoading={segmentationStatisticsLoading}
+                />
                 <ExportModal numExported={numExported} numToExport={numToExport} />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">

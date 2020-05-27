@@ -9,6 +9,10 @@ let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
+let rememberRecalculateSegmentationStatistics: boolean
+let recalculateSegmentationStatistics: boolean
+let rememberClearDuplicateSegmentFeatures: boolean
+let clearDuplicateSegmentFeatures: boolean
 
 const setMaxImageSetsInMemory = (max: number): void => {
     ipcRenderer.send('preferencesWindow-set-max-image-sets', max)
@@ -30,6 +34,22 @@ const setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => 
     ipcRenderer.send('preferencesWindow-set-use-any-marker', channel, useAnyChannel)
 }
 
+const setRememberRecalculate = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-remember-recalculate', value)
+}
+
+const setRecalculate = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-recalculate', value)
+}
+
+const setRememberClear = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-remember-clear', value)
+}
+
+const setClear = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-clear', value)
+}
+
 function render(): void {
     ReactDOM.render(
         <div style={{ paddingTop: '10px', paddingLeft: '15px', paddingRight: '15px' }}>
@@ -44,6 +64,14 @@ function render(): void {
                 setDefaultChannelDomain={setDefaultChannelDomain}
                 useAnyMarker={useAnyMarker}
                 setUseAnyMarker={setUseAnyMarker}
+                rememberRecalculate={rememberRecalculateSegmentationStatistics}
+                setRememberRecalculate={setRememberRecalculate}
+                recalculate={recalculateSegmentationStatistics}
+                setRecalculate={setRecalculate}
+                rememberClearDuplicates={rememberClearDuplicateSegmentFeatures}
+                setRememberClearDuplicates={setRememberClear}
+                clearDuplicates={clearDuplicateSegmentFeatures}
+                setClearDuplicates={setClear}
             />
         </div>,
         document.getElementById('preferences'),
@@ -59,12 +87,20 @@ ipcRenderer.on(
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
         anyMarker: Record<ChannelName, boolean>,
+        rememberRecalculate: boolean,
+        recalculate: boolean,
+        rememberClear: boolean,
+        clear: boolean,
     ): void => {
         maxImageSetsInMemory = maxImageSets
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
         useAnyMarker = anyMarker
+        rememberRecalculateSegmentationStatistics = rememberRecalculate
+        recalculateSegmentationStatistics = recalculate
+        rememberClearDuplicateSegmentFeatures = rememberClear
+        clearDuplicateSegmentFeatures = clear
         render()
     },
 )

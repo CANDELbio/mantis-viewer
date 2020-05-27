@@ -1,8 +1,6 @@
 import sqlite3 = require('better-sqlite3')
 
 import * as path from 'path'
-import * as fs from 'fs'
-import * as parseCSV from 'csv-parse/lib/sync'
 
 import { DbFilename } from '../definitions/UIDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
@@ -20,6 +18,8 @@ export class Db {
     }
 
     private getConnection(): sqlite3.Database {
+        // Uncomment for verbose
+        // return new sqlite3(this.dbPath(), { verbose: console.log })
         return new sqlite3(this.dbPath())
     }
 
@@ -83,6 +83,16 @@ export class Db {
 
         db.close()
         return results
+    }
+
+    public featuresPresent(imageSet: string, feature: string): boolean {
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT COUNT(*) AS count
+                                 FROM features
+                                 WHERE image_set = ? AND
+                                 feature = ?`)
+        const values = stmt.get(imageSet, feature)
+        return values.count > 0
     }
 
     public deleteFeatures(imageSet: string, marker: string, feature: string): void {

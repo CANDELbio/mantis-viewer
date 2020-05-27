@@ -215,7 +215,7 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
 // The second level is keyed on marker
 // The third level is keyed on the feature
 // The fourth level is keyed on the segmentId
-export function parseCellDataCSV(
+export function parseSegmentDataCSV(
     filePath: string,
     imageSet?: string,
 ): Record<string, Record<string, Record<string, Record<number, number>>>> {
