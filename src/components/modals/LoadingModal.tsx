@@ -21,9 +21,9 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
             this.props.segmentationDataLoading ||
             this.props.segmentationStatisticsLoading
         ) {
-            let modalText = 'Image Data is loading...'
-            if (this.props.segmentationDataLoading) modalText = 'Segmentation Data is loading...'
-            if (this.props.segmentationStatisticsLoading) modalText = 'Segmentation Statistics are loading...'
+            let modalText = 'Image data is loading...'
+            if (this.props.segmentationDataLoading) modalText = 'Segmentation data is loading...'
+            if (this.props.segmentationStatisticsLoading) modalText = 'Segment intensities are loading...'
             modal = (
                 <Modal isOpen={true}>
                     <ModalHeader>{modalText}</ModalHeader>

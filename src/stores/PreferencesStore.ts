@@ -157,18 +157,20 @@ export class PreferencesStore {
 
     @action public setRememberRecalculateSegmentationStatistics = (remember: boolean): void => {
         this.rememberRecalculateSegmentationStatistics = remember
+        if (!remember) this.recalculateSegmentationStatistics = false
     }
 
     @action public setRecalculateSegmentationStatistics = (recalculate: boolean): void => {
-        this.recalculateSegmentationStatistics = recalculate
+        if (this.rememberRecalculateSegmentationStatistics) this.recalculateSegmentationStatistics = recalculate
     }
 
     @action public setRememberClearDuplicateSegmentFeatures = (remember: boolean): void => {
         this.rememberClearDuplicateSegmentFeatures = remember
+        if (!remember) this.clearDuplicateSegmentFeatures = false
     }
 
     @action public setClearDuplicateSegmentFeatures = (clear: boolean): void => {
-        this.clearDuplicateSegmentFeatures = clear
+        if (this.rememberClearDuplicateSegmentFeatures) this.clearDuplicateSegmentFeatures = clear
     }
 
     private saveToStore = autorun(() => {

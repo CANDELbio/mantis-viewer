@@ -162,7 +162,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                             this.props.setRememberRecalculate(e.target.checked)
                         }
-                        label="Remember my choice for recalculating segmentation statistics"
+                        label="Remember my choice for recalculating segment intensities"
                     />
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>
@@ -172,7 +172,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                             this.props.setRecalculate(e.target.checked)
                         }
-                        label="Recalculate segmentation statistics when loading segmentation data"
+                        label="Recalculate segment intensities when loading segmentation data"
                     />
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>

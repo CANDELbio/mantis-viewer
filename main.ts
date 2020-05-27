@@ -347,7 +347,7 @@ function generateMenuTemplate(): any {
                     label: 'Calculate',
                     submenu: [
                         {
-                            label: 'Segment Level Data for active image set',
+                            label: 'Segment intensities for active image set',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
                                 mainWindow.webContents.send('recalculate-segment-data')
@@ -694,8 +694,8 @@ ipcMain.on('mainWindow-show-recalculate-segmentation-stats-dialog', (): void => 
             defaultId: 0,
             title: 'Question',
             message:
-                'Segmentation statics have been previously calculated for this image set. Do you want to use the previously calculated statistics?',
-            detail: 'You can manually refresh segmentation statistics from the main menu at any time',
+                'Segment intensities have been previously calculated for this image set. Do you want to use the previously calculated intensities?',
+            detail: 'You can manually refresh segment intensities from the main menu at any time',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
         }
