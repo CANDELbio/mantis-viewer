@@ -186,18 +186,22 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
-                            label: 'Segment Level Data',
+                            label: 'Segment Features',
                             enabled: segmentationLoaded,
                             submenu: [
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: segmentationLoaded,
-                                    click: showOpenFileDialog('add-segment-data', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialog('add-segment-features', activeImageDirectory, 'csv'),
                                 },
                                 {
                                     label: 'For project from single CSV',
                                     enabled: segmentationLoaded,
-                                    click: showOpenFileDialog('add-project-segment-data', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialog(
+                                        'add-project-segment-features',
+                                        activeImageDirectory,
+                                        'csv',
+                                    ),
                                 },
                             ],
                         },
@@ -717,15 +721,18 @@ ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
             buttons: ['Yes', 'No'],
             defaultId: 0,
             title: 'Question',
-            message:
-                'Some of the segment features you are importing are already present. Do you wish to drop these features before importing?',
-            detail: 'Choosing no can lead to duplicate or overlapping data',
+            message: 'Do you wish to delete any existing features with overlapping names before importing?',
+            detail: 'Choosing no can lead to duplicate data',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
         }
         dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send('clear-segment-features', value.response == 0, value.checkboxChecked)
+                mainWindow.webContents.send(
+                    'continue-segment-feature-import',
+                    value.response == 0,
+                    value.checkboxChecked,
+                )
         })
     }
 })

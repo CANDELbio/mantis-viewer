@@ -45,7 +45,7 @@ export class Db {
 
     public insertFeatures(
         imageSet: string,
-        marker: string,
+        marker: string | null,
         feature: string,
         segmentValues: Record<number, number>,
     ): void {
@@ -95,7 +95,7 @@ export class Db {
         return values.count > 0
     }
 
-    public deleteFeatures(imageSet: string, marker: string, feature: string): void {
+    public deleteFeatures(imageSet: string, marker: string | null, feature: string): void {
         const db = this.getConnection()
         const stmt = db.prepare(`DELETE FROM features
                                  WHERE image_set = ? AND
@@ -135,5 +135,13 @@ export class Db {
                                  feature = ?`)
         const maxFeature = stmt.get(imageSet, marker, feature)
         return maxFeature.max
+    }
+
+    public countFeatures(): number {
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT COUNT(*) AS count
+                                 FROM features`)
+        const values = stmt.get()
+        return values.count
     }
 }

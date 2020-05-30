@@ -13,3 +13,4 @@ app/*.png
 _site
 .sass-cache
 .jekyll-metadata
+Release

@@ -12,7 +12,7 @@
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
-        "postinstall": "electron-builder install-app-deps"
+        "postinstall": "electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release ."
     },
     "repository": "https://github.com/ParkerICI/imc-viewer-js",
     "keywords": [
@@ -73,7 +73,6 @@
         "@typescript-eslint/parser": "^2.28.0",
         "acorn": "^6.4.1",
         "canvas": "^2.6.1",
-        "copy-webpack-plugin": "^5.1.1",
         "css-loader": "^0.27.3",
         "electron": "^8.2.2",
         "electron-builder": "^22.5.1",

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = {
     mode: 'development',
@@ -79,13 +78,5 @@ module.exports = {
     externals: {
         'better-sqlite3': 'commonjs better-sqlite3',
     },
-    // plugins: [
-    //     new CopyPlugin([
-    //         {
-    //             from: 'node_modules/better-sqlite3/',
-    //             to: 'app/node_modules/better-sqlite3/', // still under node_modules directory so it could find this module
-    //         },
-    //     ]),
-    // ],
     target: 'electron-main',
 }

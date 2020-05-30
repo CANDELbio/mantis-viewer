@@ -15,10 +15,10 @@ import {
     parseActivePopulationsJSON,
     writeToJSON,
     writeToCSV,
-    parseSegmentDataCSV,
 } from '../lib/IO'
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { Db } from '../lib/Db'
+
+import { SegmentFeatureWorkerResult, importSegmentFeatureCSV } from '../workers/SegmentFeatureWorker'
 
 export class ProjectStore {
     public appVersion: string
@@ -61,8 +61,14 @@ export class ProjectStore {
     @observable public imageSetHistory: string[]
 
     // Used to track progress when exporting FCS/Stats for whole project
+    // TODO: Is .ref necessary?
     @observable.ref public numToExport: number
     @observable.ref public numExported: number
+
+    // Used to turn on the loading modal for segment features
+    @observable public importingSegmentFeaturesPath: string | null
+    @observable public importingSegmentFeaturesForProject: boolean | null
+    @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
 
     public constructor(appVersion: string) {
         this.appVersion = appVersion
@@ -83,6 +89,9 @@ export class ProjectStore {
         this.imageSetHistory = []
         this.numToExport = 0
         this.numExported = 0
+        this.importingSegmentFeaturesPath = null
+        this.importingSegmentFeaturesForProject = null
+        this.checkImportingSegmentFeaturesClearDuplicates = false
         this.initializeImageSets()
     }
 
@@ -511,30 +520,55 @@ export class ProjectStore {
         writeToCSV(projectPopulationArray, filePath, null)
     }
 
-    public importActiveSegmentDataFromCSV = (filePath: string): void => {
-        const basePath = this.settingStore.basePath
-        if (this.activeImageSetPath && basePath) {
-            const activeImageSetName = path.basename(this.activeImageSetPath)
-            this.importSegmentDataFromCSV(filePath, activeImageSetName)
+    @action setCheckImportingSegmentFeaturesClearDuplicates = (value: boolean): void => {
+        this.checkImportingSegmentFeaturesClearDuplicates = value
+    }
+
+    @action setImportingSegmentFeaturesValues = (filePath: string | null, forProject: boolean | null): void => {
+        // Set the importing features values
+        this.importingSegmentFeaturesPath = filePath
+        this.importingSegmentFeaturesForProject = forProject
+        const rememberClearDuplicates = this.preferencesStore.rememberClearDuplicateSegmentFeatures
+        if (rememberClearDuplicates && filePath && forProject != null) {
+            // If the user wants us to remember their choice to clear duplicates, kick off importing segment features
+            this.importSegmentFeatures(this.preferencesStore.clearDuplicateSegmentFeatures)
+        } else if (filePath != null && forProject != null) {
+            // Otherwise, ask the user if we should clear duplicates before importing
+            this.setCheckImportingSegmentFeaturesClearDuplicates(true)
         }
     }
 
-    public importSegmentDataFromCSV = (filePath: string, imageSet?: string): void => {
+    public importSegmentFeatures = (clearDuplicates: boolean, remember?: boolean): void => {
         const basePath = this.settingStore.basePath
-        if (basePath) {
-            const db = new Db(basePath)
-            const segmentData = parseSegmentDataCSV(filePath, imageSet)
-            for (const imageSet of Object.keys(segmentData)) {
-                const imageSetData = segmentData[imageSet]
-                for (const marker of Object.keys(imageSetData)) {
-                    const markerData = imageSetData[marker]
-                    for (const feature of Object.keys(markerData)) {
-                        const segmentValues = markerData[feature]
-                        db.deleteFeatures(imageSet, marker, feature)
-                        db.insertFeatures(imageSet, marker, feature, segmentValues)
-                    }
-                }
+        const filePath = this.importingSegmentFeaturesPath
+        const forProject = this.importingSegmentFeaturesForProject
+
+        if (remember != null) {
+            // If this is being called from a context where we want to remember or forget the choice
+            // Then save the values to the preferences store
+            this.preferencesStore.setRememberClearDuplicateSegmentFeatures(remember)
+            this.preferencesStore.setClearDuplicateSegmentFeatures(clearDuplicates)
+        }
+
+        // If we're importing for the project, set to undefined.
+        // Otherwise get the name of the active image set
+        const imageSet = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
+        const onImportComplete = (result: SegmentFeatureWorkerResult): void => {
+            if (result.error) {
+                this.errorMessage = result.error
             }
+            this.setImportingSegmentFeaturesValues(null, null)
+        }
+        if (basePath && filePath) {
+            // Launch a worker to import segment features from the CSV.
+            importSegmentFeatureCSV(
+                { basePath: basePath, filePath: filePath, imageSet: imageSet, clearDuplicates: clearDuplicates },
+                onImportComplete,
+            )
+        } else {
+            // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
+            this.errorMessage = 'Could not import segment features. Unable to find database path or file path.'
+            this.setImportingSegmentFeaturesValues(null, null)
         }
     }
 

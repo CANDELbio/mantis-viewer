@@ -207,12 +207,16 @@ ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event
     projectStore.exportProjectToFCS(dirName, 'mean', false)
 })
 
-ipcRenderer.on('add-segment-data', (event: Electron.Event, filePath: string): void => {
-    projectStore.importActiveSegmentDataFromCSV(filePath)
+ipcRenderer.on('add-segment-features', (event: Electron.Event, filePath: string): void => {
+    projectStore.setImportingSegmentFeaturesValues(filePath, false)
 })
 
-ipcRenderer.on('add-project-segment-data', (event: Electron.Event, filePath: string): void => {
-    projectStore.importSegmentDataFromCSV(filePath)
+ipcRenderer.on('add-project-segment-features', (event: Electron.Event, filePath: string): void => {
+    projectStore.setImportingSegmentFeaturesValues(filePath, true)
+})
+
+ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, clear: boolean, remember: boolean): void => {
+    projectStore.importSegmentFeatures(clear, remember)
 })
 
 ipcRenderer.on('recalculate-segment-data', (): void => {
@@ -365,6 +369,13 @@ Mobx.autorun((): void => {
     if (projectStore.checkRecalculateSegmentationStatistics) {
         ipcRenderer.send('mainWindow-show-recalculate-segmentation-stats-dialog')
         projectStore.setCheckRecalculateSegmentationStatistics(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    if (projectStore.checkImportingSegmentFeaturesClearDuplicates) {
+        ipcRenderer.send('mainWindow-show-clear-segment-features-dialog')
+        projectStore.setCheckImportingSegmentFeaturesClearDuplicates(false)
     }
 })
 
