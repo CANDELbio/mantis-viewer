@@ -1,12 +1,11 @@
 import * as Plotly from 'plotly.js'
 
 import { SegmentationData } from '../SegmentationData'
-import { SegmentationStatistics } from '../SegmentationStatistics'
-import { PlotStatistic, PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
+import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
+import { SelectedPopulation, MinMax } from '../../interfaces/ImageInterfaces'
 import { hexToRGB } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
-import { buildSelectionIdArray, buildSelectedRegionMap, getSegmentIntensity, getSelectionName } from './Helper'
+import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
 
 import { DefaultSelectionId, DefaultSelectionColor, NumHistogramBins } from '../../definitions/PlotDataDefinitions'
 
@@ -53,10 +52,9 @@ function newPlotDatum(numValues: number): { values: number[][]; text: string[] }
 }
 
 function calculateRawPlotData(
-    markers: string[],
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
-    plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
@@ -86,18 +84,10 @@ function calculateRawPlotData(
         }
 
         // Calculate the mean or median intensity of the pixels in the segment
-        const curValues = []
-        for (const marker of markers) {
-            curValues.push(
-                getSegmentIntensity(
-                    plotStatistic,
-                    marker,
-                    [parseInt(segment)],
-                    plotTransform,
-                    transformCoefficient,
-                    segmentationStatistics,
-                ),
-            )
+        const values = []
+        for (const feature of features) {
+            const curValue = featureValues[feature][parseInt(segment)]
+            values.push(applyTransform(curValue, plotTransform, transformCoefficient))
         }
 
         // Add the intensities to the data map for each selection the segment is in.
@@ -105,10 +95,10 @@ function calculateRawPlotData(
         // as a space delimited string with the last element being the segment id
         // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
         for (const selectionId of selections) {
-            if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(markers.length)
+            if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(features.length)
             plotData[selectionId].text.push('Segment ' + segment)
-            for (const i in curValues) {
-                const v = curValues[i]
+            for (const i in values) {
+                const v = values[i]
                 plotData[selectionId].values[i].push(v)
             }
         }
@@ -118,39 +108,32 @@ function calculateRawPlotData(
 }
 
 export function calculatePlotData(
-    markers: string[],
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
+    featureMinMaxes: Record<string, MinMax>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
     plotType: PlotType,
-    plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
-    selectedRegions: SelectedPopulation[] | null,
+    selectedPopulations: SelectedPopulation[] | null,
     dotSize?: number,
 ): Partial<Plotly.PlotData>[] {
     const rawPlotData = calculateRawPlotData(
-        markers,
+        features,
+        featureValues,
         segmentationData,
-        segmentationStatistics,
-        plotStatistic,
         plotTransform,
         transformCoefficient,
-        selectedRegions,
+        selectedPopulations,
     )
 
     const plotData = Array<Plotly.Data>()
 
-    const marker = markers[0]
-    const minMax =
-        plotStatistic == 'mean'
-            ? segmentationStatistics.meanMinMaxMap[marker]
-            : segmentationStatistics.medianMinMaxMap[marker]
-
     // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
-    const sortedSelectionIds = buildSelectionIdArray(selectedRegions)
+    const sortedSelectionIds = buildSelectionIdArray(selectedPopulations)
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
-    const selectedRegionMap = buildSelectedRegionMap(selectedRegions)
+    const selectedRegionMap = buildSelectedPopulationMap(selectedPopulations)
 
     // Converting from the plotData map to an array of the format that can be passed to Plotly.
     for (const selectionId of sortedSelectionIds) {
@@ -175,6 +158,8 @@ export function calculatePlotData(
         }
 
         if (plotType == 'histogram') {
+            const feature = features[0]
+            const minMax = featureMinMaxes[feature]
             trace.autobinx = false
             trace.xbins = {
                 start: minMax.min,
@@ -210,56 +195,56 @@ export function calculatePlotData(
 }
 
 export function buildHistogramData(
-    markers: string[],
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
+    featureMinMaxes: Record<string, MinMax>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
-    plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
     const data = calculatePlotData(
-        markers,
+        features,
+        featureValues,
+        featureMinMaxes,
         segmentationData,
-        segmentationStatistics,
         'histogram',
-        plotStatistic,
         plotTransform,
         transformCoefficient,
         selectedPopulations,
     )
     const layout: Partial<Plotly.Layout> = {
-        title: markers[0],
-        xaxis: { title: markers[0], automargin: true },
+        title: features[0],
+        xaxis: { title: features[0], automargin: true },
         barmode: 'overlay',
     }
-    return { markers: markers, data: data, layout: layout }
+    return { features: features, data: data, layout: layout }
 }
 
 export function buildScatterData(
     plotType: PlotType,
-    markers: string[],
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
+    featureMinMaxes: Record<string, MinMax>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
-    plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
     dotSize?: number,
 ): PlotData {
     const data = calculatePlotData(
-        markers,
+        features,
+        featureValues,
+        featureMinMaxes,
         segmentationData,
-        segmentationStatistics,
         plotType,
-        plotStatistic,
         plotTransform,
         transformCoefficient,
         selectedPopulations,
         dotSize,
     )
-    let xAxis: Partial<Plotly.LayoutAxis> = { title: markers[0], automargin: true }
-    let yAxis: Partial<Plotly.LayoutAxis> = { title: markers[1], automargin: true, scaleanchor: 'x' }
+    let xAxis: Partial<Plotly.LayoutAxis> = { title: features[0], automargin: true }
+    let yAxis: Partial<Plotly.LayoutAxis> = { title: features[1], automargin: true, scaleanchor: 'x' }
 
     if (plotType == 'contour') {
         xAxis = { ...xAxis, showgrid: false, zeroline: false }
@@ -267,10 +252,10 @@ export function buildScatterData(
     }
 
     const layout: Partial<Plotly.Layout> = {
-        title: markers[0] + ' versus ' + markers[1],
+        title: features[0] + ' versus ' + features[1],
         xaxis: xAxis,
         yaxis: yAxis,
     }
 
-    return { markers: markers, data: data, layout: layout }
+    return { features: features, data: data, layout: layout }
 }

@@ -22,43 +22,47 @@ test('numFeatures', () => {
 })
 
 const imageSet = 'set1'
-const marker = 'marker1'
 const feature = 'feature1'
 const segmentValues = { 1: 1.0, 2: 2.0, 3: 3.0 }
 
 test('insertFeatures', () => {
-    db.insertFeatures(imageSet, marker, feature, segmentValues)
+    db.insertFeatures(imageSet, feature, segmentValues)
     expect(db.numFeatures()).toEqual(3)
 })
 
-test('selectFeatures', () => {
-    const selectedFeatures = db.selectFeatures(imageSet, marker, feature)
+test('selectValues', () => {
+    const selectedFeatures = db.selectValues(imageSet, feature)
     expect(selectedFeatures).toEqual(segmentValues)
 })
 
 test('featuresPresent', () => {
-    const present = db.featuresPresent(imageSet, feature)
-    const notPresent = db.featuresPresent(imageSet, 'feature2')
+    const present = db.featuresPresent(imageSet)
+    const notPresent = db.featuresPresent('set2')
     expect(present).toBe(true)
     expect(notPresent).toBe(false)
 })
 
+test('listFeatures', () => {
+    const features = db.listFeatures(imageSet)
+    expect(features).toEqual([feature])
+})
+
 test('maxValue', () => {
-    const maxValue = db.maxValue(imageSet, marker, feature)
+    const maxValue = db.maxValue(imageSet, feature)
     expect(maxValue).toEqual(3.0)
 })
 
 test('minValue', () => {
-    const minValue = db.minValue(imageSet, marker, feature)
+    const minValue = db.minValue(imageSet, feature)
     expect(minValue).toEqual(1.0)
 })
 
 test('minMaxValues', () => {
-    const minMax = db.minMaxValues(imageSet, marker, feature)
+    const minMax = db.minMaxValues(imageSet, feature)
     expect(minMax).toEqual({ min: 1.0, max: 3.0 })
 })
 
 test('deleteFeatures', () => {
-    db.deleteFeatures(imageSet, marker, feature)
+    db.deleteFeatures(imageSet, feature)
     expect(db.numFeatures()).toEqual(0)
 })

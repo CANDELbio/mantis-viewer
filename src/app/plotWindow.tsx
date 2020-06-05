@@ -8,8 +8,8 @@ import { PlotControls } from '../components/PlotControls'
 import { Plot } from '../components/Plot'
 import { ExternalPlotHeightPadding, PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
 
-let markerNames: string[]
-let selectedPlotMarkers: string[] | null
+let featureNames: string[]
+let selectedPlotFeatures: string[] | null
 let selectedStatistic: PlotStatistic | null
 let selectedTransform: PlotTransform | null
 let selectedType: PlotType | null
@@ -21,8 +21,8 @@ let dotSize: number
 let transformCoefficient: number | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
-const setSelectedPlotMarkers = (markers: string[]): void => {
-    ipcRenderer.send('plotWindow-set-markers', markers)
+const setSelectedPlotFeatures = (features: string[]): void => {
+    ipcRenderer.send('plotWindow-set-features', features)
 }
 
 const setSelectedStatistic = (statistic: any): void => {
@@ -63,8 +63,8 @@ const setHoveredSegments = (segmentIds: number[]): void => {
 
 function render(): void {
     if (
-        markerNames &&
-        selectedPlotMarkers &&
+        featureNames &&
+        selectedPlotFeatures &&
         selectedStatistic &&
         selectedTransform &&
         selectedType &&
@@ -77,9 +77,9 @@ function render(): void {
                 <div className="grey-card plot-controls">
                     <PlotControls
                         windowWidth={windowWidth}
-                        markers={markerNames}
-                        selectedPlotMarkers={selectedPlotMarkers}
-                        setSelectedPlotMarkers={setSelectedPlotMarkers}
+                        features={featureNames}
+                        selectedPlotFeatures={selectedPlotFeatures}
+                        setSelectedPlotFeatures={setSelectedPlotFeatures}
                         selectedStatistic={selectedStatistic}
                         setSelectedStatistic={setSelectedStatistic}
                         selectedTransform={selectedTransform}
@@ -114,8 +114,8 @@ ipcRenderer.on(
     'set-plot-data',
     (
         event: Electron.Event,
-        markers: string[],
-        plotMarkers: string[],
+        features: string[],
+        plotFeatures: string[],
         statistic: PlotStatistic,
         transform: PlotTransform,
         type: PlotType,
@@ -124,8 +124,8 @@ ipcRenderer.on(
         coefficient: number,
         data: any,
     ): void => {
-        markerNames = markers
-        selectedPlotMarkers = plotMarkers
+        featureNames = features
+        selectedPlotFeatures = plotFeatures
         selectedStatistic = statistic
         selectedTransform = transform
         selectedType = type

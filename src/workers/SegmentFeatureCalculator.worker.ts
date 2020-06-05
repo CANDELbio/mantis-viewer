@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { SegmentationStatisticsWorkerInput } from './SegmentationStatisticsWorker'
+import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
 import { calculateMean, calculateMedian } from '../lib/StatsHelper'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
@@ -55,7 +55,7 @@ function generateStatisticMap(
 ctx.addEventListener(
     'message',
     (message) => {
-        const data: SegmentationStatisticsWorkerInput = message.data
+        const data: SegmentFeatureCalculatorInput = message.data
         const { statisticMap, minMax } = generateStatisticMap(
             data.marker,
             data.tiffData,

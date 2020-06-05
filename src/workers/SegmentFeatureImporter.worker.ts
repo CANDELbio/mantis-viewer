@@ -4,9 +4,14 @@ const ctx: Worker = self as any
 
 import { Db } from '../lib/Db'
 import { parseSegmentDataCSV } from '../lib/IO'
-import { SegmentFeatureWorkerInput, SegmentFeatureWorkerResult } from './SegmentFeatureWorker'
+import { SegmentFeatureImporterInput, SegmentFeatureImporterResult } from './SegmentFeatureImporter'
 
-function importSegmentFeaturesFromCSV(basePath: string, filePath: string, imageSet: string | undefined): void {
+function importSegmentFeaturesFromCSV(
+    basePath: string,
+    filePath: string,
+    imageSet: string | undefined,
+    clearDuplicates: boolean,
+): void {
     if (filePath && basePath) {
         const db = new Db(basePath)
         const segmentData = parseSegmentDataCSV(filePath, imageSet)
@@ -14,8 +19,8 @@ function importSegmentFeaturesFromCSV(basePath: string, filePath: string, imageS
             const imageSetData = segmentData[imageSet]
             for (const feature of Object.keys(imageSetData)) {
                 const segmentValues = imageSetData[feature]
-                db.deleteFeatures(imageSet, null, feature)
-                db.insertFeatures(imageSet, null, feature, segmentValues)
+                if (clearDuplicates) db.deleteFeatures(imageSet, feature)
+                db.insertFeatures(imageSet, feature, segmentValues)
             }
         }
     }
@@ -24,10 +29,10 @@ function importSegmentFeaturesFromCSV(basePath: string, filePath: string, imageS
 ctx.addEventListener(
     'message',
     (message) => {
-        const input: SegmentFeatureWorkerInput = message.data
-        const results: SegmentFeatureWorkerResult = {}
+        const input: SegmentFeatureImporterInput = message.data
+        const results: SegmentFeatureImporterResult = {}
         try {
-            importSegmentFeaturesFromCSV(input.basePath, input.filePath, input.imageSet)
+            importSegmentFeaturesFromCSV(input.basePath, input.filePath, input.imageSet, input.clearDuplicates)
         } catch (err) {
             results.error = err.message
         }

@@ -1,18 +1,18 @@
 import { buildHeatmapData } from './HeatMap'
 import { buildScatterData, buildHistogramData } from './HistogramAndScatter'
 import { SegmentationData } from '../SegmentationData'
-import { SegmentationStatistics } from '../SegmentationStatistics'
-import { PlotStatistic, PlotTransform, PlotType, PlotNormalization } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
+import { PlotTransform, PlotType, PlotNormalization, PlotStatistic } from '../../definitions/UIDefinitions'
+import { SelectedPopulation, MinMax } from '../../interfaces/ImageInterfaces'
 import { PlotData } from '../../interfaces/DataInterfaces'
 
 // dotSize is optional and only used for Scatter.
 export function generatePlotData(
-    markers: string[],
+    selectedFeatures: string[],
+    featureValues: Record<string, Record<number, number>>,
+    featureMinMaxes: Record<string, MinMax>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
-    plotType: PlotType,
     plotStatistic: PlotStatistic,
+    plotType: PlotType,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
@@ -25,23 +25,23 @@ export function generatePlotData(
               return p.selectedSegments.length > 0
           })
         : null
-    if (plotType == 'histogram' && markers.length > 0) {
+    if (plotType == 'histogram' && selectedFeatures.length > 0) {
         plotData = buildHistogramData(
-            [markers[0]],
+            selectedFeatures.slice(0, 1),
+            featureValues,
+            featureMinMaxes,
             segmentationData,
-            segmentationStatistics,
-            plotStatistic,
             plotTransform,
             transformCoefficient,
             filteredPopulations,
         )
-    } else if ((plotType == 'scatter' || plotType == 'contour') && markers.length == 2) {
+    } else if ((plotType == 'scatter' || plotType == 'contour') && selectedFeatures.length > 1) {
         plotData = buildScatterData(
             plotType,
-            markers,
+            selectedFeatures.slice(0, 2),
+            featureValues,
+            featureMinMaxes,
             segmentationData,
-            segmentationStatistics,
-            plotStatistic,
             plotTransform,
             transformCoefficient,
             filteredPopulations,
@@ -49,9 +49,9 @@ export function generatePlotData(
         )
     } else if (plotType == 'heatmap') {
         plotData = buildHeatmapData(
-            markers,
+            selectedFeatures,
+            featureValues,
             segmentationData,
-            segmentationStatistics,
             plotStatistic,
             plotTransform,
             transformCoefficient,

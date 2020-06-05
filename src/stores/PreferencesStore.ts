@@ -23,8 +23,10 @@ export class PreferencesStore {
     @observable public useAnyMarkerIfNoMatch: Record<ChannelName, boolean>
 
     // Segmentation statistics/Segment level data settings
-    @observable public rememberRecalculateSegmentationStatistics: boolean
-    @observable public recalculateSegmentationStatistics: boolean
+    @observable public rememberCalculateSegmentFeatures: boolean
+    @observable public calculateSegmentFeatures: boolean
+    @observable public rememberRecalculateSegmentFeatures: boolean
+    @observable public recalculateSegmentFeatures: boolean
     @observable public rememberClearDuplicateSegmentFeatures: boolean
     @observable public clearDuplicateSegmentFeatures: boolean
 
@@ -67,8 +69,10 @@ export class PreferencesStore {
             yChannel: false,
             kChannel: false,
         }
-        this.rememberRecalculateSegmentationStatistics = false
-        this.recalculateSegmentationStatistics = false
+        this.rememberCalculateSegmentFeatures = false
+        this.calculateSegmentFeatures = false
+        this.rememberRecalculateSegmentFeatures = false
+        this.recalculateSegmentFeatures = false
         this.rememberClearDuplicateSegmentFeatures = false
         this.clearDuplicateSegmentFeatures = false
     }
@@ -155,13 +159,13 @@ export class PreferencesStore {
         return defaultMarkers
     }
 
-    @action public setRememberRecalculateSegmentationStatistics = (remember: boolean): void => {
-        this.rememberRecalculateSegmentationStatistics = remember
-        if (!remember) this.recalculateSegmentationStatistics = false
+    @action public setRememberRecalculateSegmentFeatures = (remember: boolean): void => {
+        this.rememberRecalculateSegmentFeatures = remember
+        if (!remember) this.recalculateSegmentFeatures = false
     }
 
-    @action public setRecalculateSegmentationStatistics = (recalculate: boolean): void => {
-        if (this.rememberRecalculateSegmentationStatistics) this.recalculateSegmentationStatistics = recalculate
+    @action public setRecalculateSegmentFeatures = (recalculate: boolean): void => {
+        if (this.rememberRecalculateSegmentFeatures) this.recalculateSegmentFeatures = recalculate
     }
 
     @action public setRememberClearDuplicateSegmentFeatures = (remember: boolean): void => {
@@ -179,8 +183,10 @@ export class PreferencesStore {
         store.set('defaultChannelMarkers', this.defaultChannelMarkers)
         store.set('defaultChannelDomains', this.defaultChannelDomains)
         store.set('useAnyMarkerIfNoMatch', this.useAnyMarkerIfNoMatch)
-        store.set('rememberRecalculateSegmentationStatistics', this.rememberRecalculateSegmentationStatistics)
-        store.set('recalculateSegmentationStatistics', this.recalculateSegmentationStatistics)
+        store.set('rememberCalculateSegmentationStatistics', this.rememberCalculateSegmentFeatures)
+        store.set('calculateSegmentationStatistics', this.calculateSegmentFeatures)
+        store.set('rememberRecalculateSegmentationStatistics', this.rememberRecalculateSegmentFeatures)
+        store.set('recalculateSegmentationStatistics', this.recalculateSegmentFeatures)
         store.set('rememberClearDuplicateSegmentFeatures', this.rememberClearDuplicateSegmentFeatures)
         store.set('clearDuplicateSegmentFeatures', this.clearDuplicateSegmentFeatures)
         if (this.defaultSegmentationBasename) {
@@ -202,10 +208,14 @@ export class PreferencesStore {
         if (useAnyMarkerIfNoMatch) this.useAnyMarkerIfNoMatch = useAnyMarkerIfNoMatch
         const defaultSegmentationBasename = store.get('defaultSegmentationBasename')
         if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename
+        const rememberCalculate = store.get('rememberCalculateSegmentationStatistics')
+        if (rememberCalculate) this.rememberCalculateSegmentFeatures = rememberCalculate
+        const calculate = store.get('calculateSegmentationStatistics')
+        if (calculate) this.calculateSegmentFeatures = calculate
         const rememberRecalculate = store.get('rememberRecalculateSegmentationStatistics')
-        if (rememberRecalculate) this.rememberRecalculateSegmentationStatistics = rememberRecalculate
+        if (rememberRecalculate) this.rememberRecalculateSegmentFeatures = rememberRecalculate
         const recalculate = store.get('recalculateSegmentationStatistics')
-        if (recalculate) this.recalculateSegmentationStatistics = recalculate
+        if (recalculate) this.recalculateSegmentFeatures = recalculate
         const rememberClear = store.get('rememberClearDuplicateSegmentFeatures')
         if (rememberClear) this.rememberClearDuplicateSegmentFeatures = rememberClear
         const clear = store.get('clearDuplicateSegmentFeatures')

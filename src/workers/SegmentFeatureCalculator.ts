@@ -1,8 +1,8 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentationStatisticsWorker.worker')
+import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureCalculator.worker')
 import { PlotStatistic } from '../definitions/UIDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
 
-export interface SegmentationStatisticsWorkerInput {
+export interface SegmentFeatureCalculatorInput {
     jobId?: string
     basePath: string
     imageSetName: string
@@ -12,27 +12,27 @@ export interface SegmentationStatisticsWorkerInput {
     statistic: PlotStatistic
 }
 
-export interface SegmentationStatisticsWorkerResult extends SegmentationStatisticsResult {
+export interface SegmentFeatureCalculatorResult extends SegmentFeatureResult {
     jobId: string
 }
 
-export interface SegmentationStatisticsResult {
+export interface SegmentFeatureResult {
     statistic: PlotStatistic
     statisticMap: Record<string, number>
     minMax: MinMax
     markerName: string
 }
 
-export type OnSegmentationStatisticsWorkerComplete = (data: SegmentationStatisticsWorkerResult) => void
+export type OnSegmentFeatureCalculatorComplete = (data: SegmentFeatureCalculatorResult) => void
 
-export class SegmentationStatisticsWorker {
+export class SegmentFeatureCalculator {
     private worker: Worker
 
-    public constructor(onComplete: OnSegmentationStatisticsWorkerComplete) {
+    public constructor(onComplete: OnSegmentFeatureCalculatorComplete) {
         this.worker = new Worker()
         this.worker.addEventListener(
             'message',
-            function (e: { data: SegmentationStatisticsWorkerResult }) {
+            function (e: { data: SegmentFeatureCalculatorResult }) {
                 onComplete(e.data)
             },
             false,
@@ -43,7 +43,7 @@ export class SegmentationStatisticsWorker {
         this.worker.terminate
     }
 
-    public postMessage(message: SegmentationStatisticsWorkerInput): void {
+    public postMessage(message: SegmentFeatureCalculatorInput): void {
         this.worker.postMessage(message)
     }
 }

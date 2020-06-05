@@ -1,10 +1,9 @@
 import { SegmentationData } from '../SegmentationData'
-import { SegmentationStatistics } from '../SegmentationStatistics'
 import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
-import { calculateMean } from '../../lib/StatsHelper'
+import { calculateMean, calculateMedian } from '../../lib/StatsHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
-import { buildSelectionIdArray, buildSelectedRegionMap, getSegmentIntensity, getSelectionName } from './Helper'
+import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
 
 import { DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
 
@@ -44,21 +43,42 @@ function normalizeHeatmapIntensities(intensities: number[][], plotNormalization:
     }
 }
 
+function getPopulationIntensity(
+    segmentIds: number[],
+    featureValues: Record<number, number>,
+    plotStatistic: PlotStatistic,
+    plotTransform: PlotTransform,
+    transformCoefficient: number | null,
+): number {
+    let result: number
+
+    const populationValues = segmentIds.map((value: number) => featureValues[value])
+
+    // Get the mean or median depending on what the user selected.
+    if (plotStatistic == 'mean') {
+        result = calculateMean(populationValues)
+    } else {
+        result = calculateMedian(populationValues)
+    }
+
+    return applyTransform(result, plotTransform, transformCoefficient)
+}
+
 function calculateHeatmapData(
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
-    const markers = segmentationStatistics.markers
     const selectionIds = buildSelectionIdArray(selectedPopulations)
     const intensities = []
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
-    const selectedRegionMap = buildSelectedRegionMap(selectedPopulations)
+    const selectedRegionMap = buildSelectedPopulationMap(selectedPopulations)
 
     for (const selectionId of selectionIds) {
         // If we have the default selection id use all segment ids, otherwise get segments for the current selection
@@ -66,19 +86,19 @@ function calculateHeatmapData(
             selectionId == DefaultSelectionId
                 ? segmentationData.segmentIds
                 : selectedRegionMap[selectionId].selectedSegments
-        const markerIntensities = []
-        for (const marker of markers) {
-            const intensity = getSegmentIntensity(
-                plotStatistic,
-                marker,
+        const featureIntensities = []
+        for (const feature of features) {
+            const curValues = featureValues[feature]
+            const intensity = getPopulationIntensity(
                 selectedSegments,
+                curValues,
+                plotStatistic,
                 plotTransform,
                 transformCoefficient,
-                segmentationStatistics,
             )
-            markerIntensities.push(intensity)
+            featureIntensities.push(intensity)
         }
-        intensities.push(markerIntensities)
+        intensities.push(featureIntensities)
     }
 
     const heatmapData = Array<Plotly.Data>()
@@ -86,7 +106,7 @@ function calculateHeatmapData(
     // TO-DO: y should be selection names.
     heatmapData.push({
         z: normalizeHeatmapIntensities(intensities, plotNormalization),
-        x: markers,
+        x: features,
         y: selectionIds.map((selectionId: string) => {
             return getSelectionName(selectionId, selectedRegionMap)
         }),
@@ -97,9 +117,9 @@ function calculateHeatmapData(
 }
 
 export function buildHeatmapData(
-    markers: string[],
+    features: string[],
+    featureValues: Record<string, Record<number, number>>,
     segmentationData: SegmentationData,
-    segmentationStatistics: SegmentationStatistics,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
@@ -107,8 +127,9 @@ export function buildHeatmapData(
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
     const data = calculateHeatmapData(
+        features,
+        featureValues,
         segmentationData,
-        segmentationStatistics,
         plotStatistic,
         plotTransform,
         transformCoefficient,
@@ -120,5 +141,5 @@ export function buildHeatmapData(
         xaxis: { tickangle: 45, automargin: true },
         yaxis: { tickangle: 45, automargin: true },
     }
-    return { markers: markers, data: data, layout: layout }
+    return { features: features, data: data, layout: layout }
 }

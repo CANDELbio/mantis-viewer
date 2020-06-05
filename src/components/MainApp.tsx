@@ -245,9 +245,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <div className="grey-card plot-controls">
                             <PlotControls
                                 windowWidth={projectStore.windowWidth}
-                                markers={markerNames}
-                                selectedPlotMarkers={settingStore.selectedPlotMarkers}
-                                setSelectedPlotMarkers={settingStore.setSelectedPlotMarkers}
+                                features={segmentationStore.availableFeatures}
+                                selectedPlotFeatures={settingStore.selectedPlotFeatures}
+                                setSelectedPlotFeatures={settingStore.setSelectedPlotFeatures}
                                 selectedStatistic={settingStore.plotStatistic}
                                 setSelectedStatistic={settingStore.setPlotStatistic}
                                 selectedTransform={settingStore.plotTransform}
@@ -304,8 +304,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         const imageDataLoading = imageStore.imageDataLoading
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
-        const segmentationStatisticsLoading = segmentationStore.segmentationStatisticsLoading
-        const segmentFeaturesLoading = projectStore.importingSegmentFeaturesPath != null
+        const segmentFeaturesLoading = segmentationStore.segmentFeaturesLoading
+        const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
 
         const numExported = projectStore.numExported
         const numToExport = projectStore.numToExport
@@ -316,8 +316,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <LoadingModal
                     imageDataLoading={imageDataLoading}
                     segmentationDataLoading={segmentationDataLoading}
-                    segmentationStatisticsLoading={segmentationStatisticsLoading}
                     segmentFeaturesLoading={segmentFeaturesLoading}
+                    segmentFeaturesImporting={segmentFeaturesImporting}
                 />
                 <ExportModal numExported={numExported} numToExport={numToExport} />
                 <Grid fluid={true} style={paddingStyle}>

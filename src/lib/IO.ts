@@ -43,43 +43,34 @@ export function writeToJSON(object: any, filename: string): void {
     })
 }
 
-export function exportMarkerIntensities(
-    filename: string,
-    statistic: PlotStatistic,
-    imageSetStore: ImageSetStore,
-): void {
+export function exportMarkerIntensities(filename: string, imageSetStore: ImageSetStore): void {
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
     const segmentationStore = imageSetStore.segmentationStore
     const segmentationData = segmentationStore.segmentationData
-    const segmentationStatistics = segmentationStore.segmentationStatistics
     const populationStore = imageSetStore.populationStore
 
-    if (imageData != null && segmentationData != null && segmentationStatistics != null) {
-        const markers = imageData.markerNames
+    if (imageData != null && segmentationData != null) {
+        const features = segmentationStore.availableFeatures
+        const featureValues = segmentationStore.getValues(features)
         const data = [] as string[][]
 
         // Generate the header
         const columns = ['Segment ID']
-        for (const marker of markers) {
-            columns.push(marker)
+        for (const feature of features) {
+            columns.push(feature)
         }
         columns.push('Centroid X')
         columns.push('Centroid Y')
         columns.push('Populations')
-
-        // Iterate through the segments and calculate the intensity for each marker
+        // Iterate through the segments and get the intensity for each feature
         const indexMap = segmentationData.segmentIndexMap
         const centroidMap = segmentationData.centroidMap
         for (const s in indexMap) {
             const segmentId = parseInt(s)
             const segmentData = [s] as string[]
-            for (const marker of markers) {
-                if (statistic == 'mean') {
-                    segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]).toString())
-                } else {
-                    segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]).toString())
-                }
+            for (const feature of features) {
+                segmentData.push(featureValues[feature][segmentId].toString())
             }
 
             // Add the Centroid points
@@ -102,21 +93,16 @@ export function exportMarkerIntensities(
     }
 }
 
-export function exportToFCS(
-    filePath: string,
-    statistic: PlotStatistic,
-    imageSetStore: ImageSetStore,
-    segmentIds?: number[],
-): void {
+export function exportToFCS(filePath: string, imageSetStore: ImageSetStore, segmentIds?: number[]): void {
     const projectStore = imageSetStore.projectStore
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
     const segmentationStore = imageSetStore.segmentationStore
     const segmentationData = segmentationStore.segmentationData
-    const segmentationStatistics = segmentationStore.segmentationStatistics
 
-    if (imageData != null && segmentationData != null && segmentationStatistics != null) {
-        const markers = imageData.markerNames
+    if (imageData != null && segmentationData != null) {
+        const features = segmentationStore.availableFeatures
+        const featureValues = segmentationStore.getValues(features)
         const data = [] as number[][]
         // Iterate through the segments and calculate the intensity for each marker
         const indexMap = segmentationData.segmentIndexMap
@@ -126,12 +112,8 @@ export function exportToFCS(
             // If segmentIds isn't defined include this segment, otherwise check if this segment is in segmentIds
             if (segmentIds == undefined || segmentIds.includes(segmentId)) {
                 const segmentData = [] as number[]
-                for (const marker of markers) {
-                    if (statistic == 'mean') {
-                        segmentData.push(segmentationStatistics.meanIntensity(marker, [segmentId]))
-                    } else {
-                        segmentData.push(segmentationStatistics.medianIntensity(marker, [segmentId]))
-                    }
+                for (const feature of features) {
+                    segmentData.push(featureValues[feature][segmentId])
                 }
                 const segmentCentroid = centroidMap[segmentId]
                 segmentData.push(segmentCentroid.x)
@@ -140,24 +122,19 @@ export function exportToFCS(
                 data.push(segmentData)
             }
         }
-        writeToFCS(filePath, markers.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data, projectStore.appVersion)
+        writeToFCS(filePath, features.concat(['Centroid X', 'Centroid Y', 'Segment ID']), data, projectStore.appVersion)
     }
 }
 
-export function exportPopulationsToFCS(
-    dirName: string,
-    statistic: PlotStatistic,
-    imageSetStore: ImageSetStore,
-    filePrefix?: string,
-): void {
+export function exportPopulationsToFCS(dirName: string, imageSetStore: ImageSetStore, filePrefix?: string): void {
     const populationStore = imageSetStore.populationStore
     for (const population of populationStore.selectedPopulations) {
         // Replace spaces with underscores in the population name and add the statistic being exported
-        let filename = population.name.replace(/ /g, '_') + '_' + statistic + '.fcs'
+        let filename = population.name.replace(/ /g, '_') + '.fcs'
         if (filePrefix) filename = filePrefix + '_' + filename
         const filePath = path.join(dirName, filename)
         if (population.selectedSegments.length > 0) {
-            exportToFCS(filePath, statistic, imageSetStore, population.selectedSegments)
+            exportToFCS(filePath, imageSetStore, population.selectedSegments)
         }
     }
 }

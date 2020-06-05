@@ -1,7 +1,6 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
 import * as React from 'react'
-import * as _ from 'underscore'
 import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
@@ -25,9 +24,9 @@ import {
 import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
 interface PlotControlsProps {
-    markers: string[]
-    selectedPlotMarkers: string[]
-    setSelectedPlotMarkers: (x: string[]) => void
+    features: string[]
+    selectedPlotFeatures: string[]
+    setSelectedPlotFeatures: (x: string[]) => void
     selectedStatistic: PlotStatistic
     setSelectedStatistic: (x: PlotStatistic) => void
     selectedTransform: PlotTransform
@@ -61,13 +60,21 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
 
     private togglePopover = (): void => this.setState({ popoverOpen: !this.state.popoverOpen })
 
-    private markerSelectOptions: { value: string; label: string }[]
+    private featureSelectOptions: { value: string; label: string }[]
 
-    private onPlotMarkerSelect = (x: SelectOption[]): void => this.props.setSelectedPlotMarkers(_.pluck(x, 'value'))
+    private onPlotFeatureSelect = (selected: SelectOption[] | null): void => {
+        let features: string[] = []
+        if (selected != null)
+            features = selected.map((o: SelectOption) => {
+                return o.value
+            })
+        this.props.setSelectedPlotFeatures(features)
+    }
 
     private onStatisticSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedStatistic(x.value as PlotStatistic)
     }
+
     private onTransformSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedTransform(x.value as PlotTransform)
     }
@@ -88,37 +95,38 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const windowWidth = this.props.windowWidth
 
-        this.markerSelectOptions = generateSelectOptions(this.props.markers)
+        this.featureSelectOptions = generateSelectOptions(this.props.features)
 
-        // If all selected plot markers are not in all markers, set selected markers to empty
+        // If all selected plot features are not in all features, set selected features to empty
         // TODO is this too much logic for a component?
-        const allSelectedPlotMarkersInAllMarkers = this.props.selectedPlotMarkers.every((m: string) => {
-            return this.props.markers.includes(m)
+        const allSelectedPlotFeaturesInAllFeatures = this.props.selectedPlotFeatures.every((m: string) => {
+            return this.props.features.includes(m)
         })
 
-        // A little bit of logic to display only the first marker for histograms if multiple markers are selected
-        // Or to display no markers if heatmap is selected
+        // A little bit of logic to display only the first feature for histograms if multiple features are selected
         // (This can/will happen when the user is switching between plot types so we can preserve them)
         // TODO is this too much logic for a component?
 
-        let selectedPlotMarkers: string[] = []
-        if (allSelectedPlotMarkersInAllMarkers) {
-            selectedPlotMarkers = this.props.selectedPlotMarkers
-            if (this.props.selectedType == 'histogram' && this.props.selectedPlotMarkers.length > 1)
-                selectedPlotMarkers = [this.props.selectedPlotMarkers[0]]
-            if (this.props.selectedType == 'heatmap') selectedPlotMarkers = []
+        let selectedPlotFeatures: string[] = []
+        if (allSelectedPlotFeaturesInAllFeatures) {
+            selectedPlotFeatures = this.props.selectedPlotFeatures
+            if (this.props.selectedType == 'histogram') {
+                selectedPlotFeatures = this.props.selectedPlotFeatures.slice(0, 1)
+            } else if (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour') {
+                selectedPlotFeatures = this.props.selectedPlotFeatures.slice(0, 2)
+            }
         }
-        const selectedMarkerSelectOptions = getSelectedOptions(selectedPlotMarkers, this.markerSelectOptions)
+        const selectedFeatureSelectOptions = getSelectedOptions(selectedPlotFeatures, this.featureSelectOptions)
 
-        // Can only select two markers for a scatter plot or one for histogram.
-        // If max markers are selected, set the options for selecting equal to the currently selected options
-        const maximumScatterMarkersSelected =
-            selectedPlotMarkers.length == 2 &&
+        // Can only select two features for a scatter plot or one for histogram.
+        // If max features are selected, set the options for selecting equal to the currently selected options
+        const maximumScatterFeaturesSelected =
+            selectedPlotFeatures.length == 2 &&
             (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour')
-        const maximumHistogramMarkersSelected =
-            selectedPlotMarkers.length >= 1 && this.props.selectedType == 'histogram'
-        if (maximumScatterMarkersSelected || maximumHistogramMarkersSelected) {
-            this.markerSelectOptions = generateSelectOptions(selectedPlotMarkers)
+        const maximumHistogramFeaturesSelected =
+            selectedPlotFeatures.length >= 1 && this.props.selectedType == 'histogram'
+        if (maximumScatterFeaturesSelected || maximumHistogramFeaturesSelected) {
+            this.featureSelectOptions = generateSelectOptions(selectedPlotFeatures)
         }
 
         const selectedPlotType = getSelectedOptions(this.props.selectedType, PlotTypeOptions)
@@ -141,6 +149,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 options={PlotStatisticOptions}
                 onChange={this.onStatisticSelect}
                 isClearable={false}
+                isDisabled={this.props.selectedType != 'heatmap'}
                 placeholder="Statistic"
                 styles={SelectStyle}
                 className="space-bottom"
@@ -204,14 +213,13 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        const markerControls = (
+        const featureControls = (
             <Select
-                value={selectedMarkerSelectOptions}
-                options={this.markerSelectOptions}
-                onChange={this.onPlotMarkerSelect}
+                value={selectedFeatureSelectOptions}
+                options={this.featureSelectOptions}
+                onChange={this.onPlotFeatureSelect}
                 isMulti={true}
-                isDisabled={this.props.selectedType == 'heatmap'}
-                placeholder="Select plot markers..."
+                placeholder="Select features to plot..."
                 styles={SelectStyle}
                 theme={SelectTheme}
             />
@@ -222,7 +230,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 <Grid fluid={true}>
                     <Row between="xs">
                         <Col xs={10} sm={10} md={10} lg={10}>
-                            {markerControls}
+                            {featureControls}
                         </Col>
                         <Col xs={2} sm={2} md={2} lg={2}>
                             <Button id="controls" type="button" size="sm" className="vertical-center">

@@ -27,6 +27,16 @@ npm start
 
 If you are actively developing you will need to run `npm run build` before running `npm start` to see your changes.
 
+## Running tests
+
+Running tests is a little funky. It isn't possible to install a version of Node locally that has the same API version as the version of Node that's bundled with Electron. Since this project makes use of native modules, which have to be compiled targeting a specific Node API version, we have to reinstall or recompile the native modules before running tests so they can run using the local Node version, and after running tests so that the modules can be used with Electron's Node version. There's probably a better way to do this, but for now these are the three commands that you need to run tests locally.
+
+```shell
+npm rebuild
+npm run test
+npm run postinstall
+```
+
 ## Generating executables
 
 To generate executables you will first need to make sure all dependencies are installed

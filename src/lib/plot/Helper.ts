@@ -1,8 +1,7 @@
-import { SegmentationStatistics } from '../SegmentationStatistics'
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 
 import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
-import { PlotTransform, PlotStatistic } from '../../definitions/UIDefinitions'
+import { PlotTransform } from '../../definitions/UIDefinitions'
 
 export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
     const selectionIds = [DefaultSelectionId]
@@ -17,35 +16,25 @@ export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] 
     return selectionIds
 }
 
-// Builds a map of regionId to the region it belongs to.
-export function buildSelectedRegionMap(
-    selectedRegion: SelectedPopulation[] | null,
+// Builds a map of populationId to the population it belongs to.
+export function buildSelectedPopulationMap(
+    selectedPopulation: SelectedPopulation[] | null,
 ): { [key: string]: SelectedPopulation } {
     const map: { [key: string]: SelectedPopulation } = {}
-    if (selectedRegion != null) {
-        for (const region of selectedRegion) {
+    if (selectedPopulation != null) {
+        for (const region of selectedPopulation) {
             map[region.id] = region
         }
     }
     return map
 }
 
-export function getSegmentIntensity(
-    plotStatistic: PlotStatistic,
-    marker: string,
-    segmentIds: number[],
+export function applyTransform(
+    value: number,
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
-    segmentationStatistics: SegmentationStatistics,
 ): number {
-    let result: number
-
-    // Get the mean or median depending on what the user selected.
-    if (plotStatistic == 'mean') {
-        result = segmentationStatistics.meanIntensity(marker, segmentIds)
-    } else {
-        result = segmentationStatistics.medianIntensity(marker, segmentIds)
-    }
+    let result = value
 
     if (plotTransform != 'none' && transformCoefficient) result = result * transformCoefficient
 

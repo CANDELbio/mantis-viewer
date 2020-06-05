@@ -28,7 +28,6 @@ export class Db {
         db.prepare(
             `CREATE TABLE IF NOT EXISTS features (
                 image_set TEXT NOT NULL,
-                marker TEXT,
                 feature TEXT NOT NULL,
                 segment_id INTEGER NOT NULL,
                 value REAL NOT NULL
@@ -43,15 +42,10 @@ export class Db {
         return stmt.get().count
     }
 
-    public insertFeatures(
-        imageSet: string,
-        marker: string | null,
-        feature: string,
-        segmentValues: Record<number, number>,
-    ): void {
+    public insertFeatures(imageSet: string, feature: string, segmentValues: Record<number, number>): void {
         const db = this.getConnection()
-        const insert = db.prepare(`INSERT INTO features (image_set, marker, feature, segment_id, value)
-                                   VALUES (@imageSet, @marker, @feature, @segmentId, @value)`)
+        const insert = db.prepare(`INSERT INTO features (image_set, feature, segment_id, value)
+                                   VALUES (@imageSet, @feature, @segmentId, @value)`)
 
         const insertMany = db.transaction((features) => {
             for (const feature of features) insert.run(feature)
@@ -61,23 +55,22 @@ export class Db {
         const segmentIds = Object.keys(segmentValues).map((value) => parseInt(value))
         for (const segmentId of segmentIds) {
             const value = segmentValues[segmentId]
-            features.push({ imageSet: imageSet, marker: marker, feature: feature, segmentId: segmentId, value: value })
+            features.push({ imageSet: imageSet, feature: feature, segmentId: segmentId, value: value })
         }
         insertMany(features)
 
         db.close()
     }
 
-    public selectFeatures(imageSet: string, marker: string, feature: string): Record<number, number> {
+    public selectValues(imageSet: string, feature: string): Record<number, number> {
         const results: Record<number, number> = {}
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT segment_id, value
                                  FROM features
                                  WHERE image_set = ? AND
-                                 marker = ? AND
                                  feature = ?`)
 
-        for (const row of stmt.iterate(imageSet, marker, feature)) {
+        for (const row of stmt.iterate(imageSet, feature)) {
             results[row.segment_id] = row.value
         }
 
@@ -85,55 +78,66 @@ export class Db {
         return results
     }
 
-    public featuresPresent(imageSet: string, feature: string): boolean {
+    public listFeatures(imageSet: string): string[] {
+        const results: string[] = []
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT feature
+                                 FROM features
+                                 WHERE image_set = ?
+                                 GROUP BY feature`)
+
+        for (const row of stmt.iterate(imageSet)) {
+            results.push(row.feature)
+        }
+
+        db.close()
+        return results
+    }
+
+    public featuresPresent(imageSet: string): boolean {
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT COUNT(*) AS count
                                  FROM features
-                                 WHERE image_set = ? AND
-                                 feature = ?`)
-        const values = stmt.get(imageSet, feature)
+                                 WHERE image_set = ?`)
+        const values = stmt.get(imageSet)
         return values.count > 0
     }
 
-    public deleteFeatures(imageSet: string, marker: string | null, feature: string): void {
+    public deleteFeatures(imageSet: string, feature: string): void {
         const db = this.getConnection()
         const stmt = db.prepare(`DELETE FROM features
                                  WHERE image_set = ? AND
-                                 marker = ? AND
                                  feature = ?`)
-        stmt.run(imageSet, marker, feature)
+        stmt.run(imageSet, feature)
     }
 
-    public minMaxValues(imageSet: string, marker: string, feature: string): MinMax {
+    public minMaxValues(imageSet: string, feature: string): MinMax {
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT MIN(value) AS min, MAX(value) AS max
                                  FROM features
                                  WHERE image_set = ? AND
-                                 marker = ? AND
                                  feature = ?`)
-        const values = stmt.get(imageSet, marker, feature)
+        const values = stmt.get(imageSet, feature)
         return { min: values.min, max: values.max }
     }
 
-    public minValue(imageSet: string, marker: string, feature: string): number {
+    public minValue(imageSet: string, feature: string): number {
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT MIN(value) AS min
                                  FROM features
                                  WHERE image_set = ? AND
-                                 marker = ? AND
                                  feature = ?`)
-        const minFeature = stmt.get(imageSet, marker, feature)
+        const minFeature = stmt.get(imageSet, feature)
         return minFeature.min
     }
 
-    public maxValue(imageSet: string, marker: string, feature: string): number {
+    public maxValue(imageSet: string, feature: string): number {
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT MAX(value) AS max
                                  FROM features
                                  WHERE image_set = ? AND
-                                 marker = ? AND
                                  feature = ?`)
-        const maxFeature = stmt.get(imageSet, marker, feature)
+        const maxFeature = stmt.get(imageSet, feature)
         return maxFeature.max
     }
 

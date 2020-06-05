@@ -61,21 +61,23 @@ ipcRenderer.on('export-image', (event: Electron.Event, filePath: string): void =
     projectStore.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
 })
 
-ipcRenderer.on('export-mean-intensities', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActiveImageSetMarkerIntensities(filePath, 'mean')
+ipcRenderer.on('export-segment-features', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetMarkerIntensities(filePath)
 })
 
-ipcRenderer.on('export-median-intensities', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActiveImageSetMarkerIntensities(filePath, 'median')
-})
-
-ipcRenderer.on('export-project-mean-intensities', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectMarkerIntensities(dirName, 'mean')
-})
-
-ipcRenderer.on('export-project-median-intensities', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectMarkerIntensities(dirName, 'median')
-})
+ipcRenderer.on(
+    'export-project-segment-features',
+    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
+        const preferencesStore = projectStore.preferencesStore
+        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+        if (rememberPreference) {
+            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, recalculatePreference)
+        } else {
+            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
+        }
+    },
+)
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number): void => {
@@ -123,11 +125,11 @@ ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelNam
 })
 
 ipcRenderer.on('set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRememberRecalculateSegmentationStatistics(value)
+    projectStore.preferencesStore.setRememberRecalculateSegmentFeatures(value)
 })
 
 ipcRenderer.on('set-recalculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRecalculateSegmentationStatistics(value)
+    projectStore.preferencesStore.setRecalculateSegmentFeatures(value)
 })
 
 ipcRenderer.on('set-remember-clear', (event: Electron.Event, value: boolean): void => {
@@ -139,8 +141,8 @@ ipcRenderer.on('set-clear', (event: Electron.Event, value: boolean): void => {
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
-ipcRenderer.on('set-plot-markers', (event: Electron.Event, markers: string[]): void => {
-    projectStore.settingStore.setSelectedPlotMarkers(markers)
+ipcRenderer.on('set-plot-features', (event: Electron.Event, features: string[]): void => {
+    projectStore.settingStore.setSelectedPlotFeatures(features)
 })
 
 ipcRenderer.on('set-plot-statistic', (event: Electron.Event, statistic: any): void => {
@@ -179,33 +181,42 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
     projectStore.addPopulationFromRange(min, max)
 })
 
-ipcRenderer.on('export-mean-populations-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportActiveImageSetPopulationsToFcs(dirName, 'mean')
+ipcRenderer.on('export-populations-fcs', (event: Electron.Event, dirName: string): void => {
+    projectStore.exportActiveImageSetPopulationsToFcs(dirName)
 })
 
-ipcRenderer.on('export-median-populations-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportActiveImageSetPopulationsToFcs(dirName, 'median')
+ipcRenderer.on(
+    'export-project-populations-fcs',
+    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
+        const preferencesStore = projectStore.preferencesStore
+        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+        // If the user has a preference for recalculating data use that, otherwise don't recalculate.
+        if (rememberPreference) {
+            projectStore.exportProjectFeaturesToFCS(dirName, true, calculateFeatures, recalculatePreference)
+        } else {
+            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
+        }
+    },
+)
+
+ipcRenderer.on('export-segments-to-fcs', (event: Electron.Event, filePath: string): void => {
+    projectStore.exportActiveImageSetToFcs(filePath)
 })
 
-ipcRenderer.on('export-project-mean-populations-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectToFCS(dirName, 'mean', true)
-})
-
-ipcRenderer.on('export-project-median-populations-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectToFCS(dirName, 'median', true)
-})
-
-ipcRenderer.on('export-mean-segmentation-to-fcs', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActiveImageSetToFcs(filePath, 'mean')
-})
-
-ipcRenderer.on('export-median-segmentation-to-fcs', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActiveImageSetToFcs(filePath, 'median')
-})
-
-ipcRenderer.on('export-project-mean-segmentation-to-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportProjectToFCS(dirName, 'mean', false)
-})
+ipcRenderer.on(
+    'export-project-segments-to-fcs',
+    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
+        const preferencesStore = projectStore.preferencesStore
+        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+        if (rememberPreference) {
+            projectStore.exportProjectFeaturesToFCS(dirName, false, calculateFeatures, recalculatePreference)
+        } else {
+            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
+        }
+    },
+)
 
 ipcRenderer.on('add-segment-features', (event: Electron.Event, filePath: string): void => {
     projectStore.setImportingSegmentFeaturesValues(filePath, false)
@@ -220,13 +231,13 @@ ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, clear:
 })
 
 ipcRenderer.on('recalculate-segment-data', (): void => {
-    projectStore.activeImageSetStore.segmentationStore.calculateSegmentationStatistics(false, true)
+    projectStore.activeImageSetStore.segmentationStore.calculateSegmentFeatures(false, true)
 })
 
 ipcRenderer.on(
     'recalculate-segmentation-stats',
     (event: Electron.Event, recalculate: boolean, remember: boolean): void => {
-        projectStore.recalculateSegmentationStatistics(recalculate, remember)
+        projectStore.recalculateSegmentFeatures(recalculate, remember)
     },
 )
 
@@ -264,7 +275,7 @@ Mobx.autorun((): void => {
     ipcRenderer.send(
         'mainWindow-set-plot-data',
         markerNames,
-        Mobx.toJS(settingStore.selectedPlotMarkers),
+        Mobx.toJS(settingStore.selectedPlotFeatures),
         settingStore.plotStatistic,
         settingStore.plotTransform,
         settingStore.plotType,
@@ -285,8 +296,8 @@ Mobx.autorun((): void => {
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),
         Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
-        preferencesStore.rememberRecalculateSegmentationStatistics,
-        preferencesStore.recalculateSegmentationStatistics,
+        preferencesStore.rememberRecalculateSegmentFeatures,
+        preferencesStore.recalculateSegmentFeatures,
         preferencesStore.rememberClearDuplicateSegmentFeatures,
         preferencesStore.clearDuplicateSegmentFeatures,
     )
@@ -366,9 +377,9 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.checkRecalculateSegmentationStatistics) {
+    if (projectStore.checkRecalculateSegmentFeatures) {
         ipcRenderer.send('mainWindow-show-recalculate-segmentation-stats-dialog')
-        projectStore.setCheckRecalculateSegmentationStatistics(false)
+        projectStore.setCheckRecalculateSegmentFeatures(false)
     }
 })
 

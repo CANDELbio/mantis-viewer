@@ -28,7 +28,7 @@ interface SettingStoreData {
     channelDomainPercentage: Record<ChannelName, [number, number]> | null
     channelVisibility: Record<ChannelName, boolean> | null
     segmentationBasename: string | null
-    selectedPlotMarkers: string[] | null
+    selectedPlotFeatures: string[] | null
     plotStatistic: PlotStatistic | null
     plotTransform: PlotTransform | null
     plotType: PlotType | null
@@ -62,8 +62,6 @@ export class SettingStore {
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
-    // Selected plot channels to be copied
-    @observable public selectedPlotMarkers: string[]
     // Whether or not the legend is visible on the image
     @observable public legendVisible: boolean
     // Whether or not the zoom inset is visible on the image
@@ -75,6 +73,8 @@ export class SettingStore {
     @observable public segmentationCentroidsVisible: boolean
 
     // Plot settings below
+    // Selected plot features to be copied
+    @observable public selectedPlotFeatures: string[]
     @observable public plotStatistic: PlotStatistic
     @observable public plotTransform: PlotTransform
     @observable public transformCoefficient: number | null
@@ -107,7 +107,7 @@ export class SettingStore {
 
         this.segmentationBasename = null
 
-        this.selectedPlotMarkers = []
+        this.selectedPlotFeatures = []
 
         this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.plotTransform = PlotTransformOptions[0].value as PlotTransform
@@ -212,12 +212,12 @@ export class SettingStore {
         this.segmentationBasename = basename
     }
 
-    @action public setSelectedPlotMarkers = (markers: string[]): void => {
-        this.selectedPlotMarkers = markers
+    @action public setSelectedPlotFeatures = (features: string[]): void => {
+        this.selectedPlotFeatures = features
     }
 
-    @action public clearSelectedPlotMarkers = (): void => {
-        this.selectedPlotMarkers = []
+    @action public clearSelectedPlotFeatures = (): void => {
+        this.selectedPlotFeatures = []
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {
@@ -269,7 +269,7 @@ export class SettingStore {
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
                 segmentationBasename: this.segmentationBasename,
-                selectedPlotMarkers: toJS(this.selectedPlotMarkers),
+                selectedPlotFeatures: toJS(this.selectedPlotFeatures),
                 plotStatistic: this.plotStatistic,
                 plotTransform: this.plotTransform,
                 plotType: this.plotType,
@@ -302,8 +302,8 @@ export class SettingStore {
                         this.channelDomainPercentage = importingSettings.channelDomainPercentage
                     if (importingSettings.segmentationBasename)
                         this.segmentationBasename = importingSettings.segmentationBasename
-                    if (importingSettings.selectedPlotMarkers)
-                        this.selectedPlotMarkers = importingSettings.selectedPlotMarkers
+                    if (importingSettings.selectedPlotFeatures)
+                        this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
                     if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic
                     if (importingSettings.plotTransform) this.plotTransform = importingSettings.plotTransform
                     if (importingSettings.plotType) this.plotType = importingSettings.plotType

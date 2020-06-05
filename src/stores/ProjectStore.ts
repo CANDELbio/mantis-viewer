@@ -4,7 +4,6 @@ import * as path from 'path'
 
 import { SettingStore } from '../stores/SettingStore'
 import { PreferencesStore } from './PreferencesStore'
-import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 import { ImageSetStore } from './ImageSetStore'
 import {
     exportMarkerIntensities,
@@ -16,9 +15,9 @@ import {
     writeToJSON,
     writeToCSV,
 } from '../lib/IO'
-import { PlotStatistic } from '../definitions/UIDefinitions'
+import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
-import { SegmentFeatureWorkerResult, importSegmentFeatureCSV } from '../workers/SegmentFeatureWorker'
+import { SegmentFeatureImporterResult, importSegmentFeatureCSV } from '../workers/SegmentFeatureImporter'
 
 export class ProjectStore {
     public appVersion: string
@@ -52,9 +51,9 @@ export class ProjectStore {
     // Gets set to true when the user requests to clear segmentation so that we can ask to confirm.
     @observable public clearSegmentationRequested: boolean
 
-    // Gets set to true when segmentation statistics have already been calculated
+    // Gets set to true when segmentation features have already been calculated
     // So that we can ask the user if they want to recalculate
-    @observable public checkRecalculateSegmentationStatistics: boolean
+    @observable public checkRecalculateSegmentFeatures: boolean
 
     // An array to keep track of the imageSets that have been recently used/
     // Used to clear old image sets to clean up memory.
@@ -76,6 +75,11 @@ export class ProjectStore {
     }
 
     @action public initialize = (): void => {
+        // Initialize the preferences store (for storing user preferences)
+        this.preferencesStore = new PreferencesStore()
+        // Initialize the setting store (for storing image display settings to transfer when switching)
+        this.settingStore = new SettingStore(this)
+
         this.plotInMainWindow = true
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
@@ -84,8 +88,6 @@ export class ProjectStore {
         this.activeImageSetStore = this.nullImageSet
 
         this.clearSegmentationRequested = false
-        this.preferencesStore = new PreferencesStore()
-        this.settingStore = new SettingStore(this)
         this.imageSetHistory = []
         this.numToExport = 0
         this.numExported = 0
@@ -117,8 +119,8 @@ export class ProjectStore {
     @action public openImageSet = (dirName: string): void => {
         // Clear out old image sets
         this.initializeImageSets()
-        this.initializeImageSetStores([dirName])
         this.settingStore.setBasePath(dirName)
+        this.initializeImageSetStores([dirName])
         this.setActiveImageSet(dirName)
     }
 
@@ -132,9 +134,9 @@ export class ProjectStore {
         if (paths.length > 0) {
             // Clear out old image sets
             this.initializeImageSets()
+            this.settingStore.setBasePath(dirName)
             this.projectPath = dirName
             this.initializeImageSetStores(paths)
-            this.settingStore.setBasePath(dirName)
             this.setActiveImageSet(this.imageSetPaths[0])
         } else {
             this.errorMessage = 'Warning: No image set directories found in ' + path.basename(dirName) + '.'
@@ -266,7 +268,7 @@ export class ProjectStore {
     // Gets called when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = (): void => {
         this.settingStore.setSegmentationBasename(null)
-        this.settingStore.clearSelectedPlotMarkers()
+        this.settingStore.clearSelectedPlotFeatures()
         for (const imageSet of this.imageSetPaths) {
             const curSet = this.imageSets[imageSet]
             if (curSet) {
@@ -291,18 +293,10 @@ export class ProjectStore {
     @action public addPopulationFromRange = (min: number, max: number): void => {
         const settingStore = this.settingStore
         const populationStore = this.activeImageSetStore.populationStore
-        const segmentationStatistics = this.activeImageSetStore.segmentationStore.segmentationStatistics
-        if (segmentationStatistics != null) {
-            const marker = settingStore.selectedPlotMarkers[0]
-            const selectedStatistic = settingStore.plotStatistic
-            const segmentIds = segmentationStatistics.segmentsInIntensityRange(
-                marker,
-                min,
-                max,
-                selectedStatistic == 'mean',
-            )
-            if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
-        }
+        const segmentationStore = this.activeImageSetStore.segmentationStore
+        const feature = settingStore.selectedPlotFeatures[0]
+        const segmentIds = segmentationStore.segmentsInRange(feature, min, max)
+        if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
     }
 
     @action public clearErrorMessage = (): void => {
@@ -338,25 +332,34 @@ export class ProjectStore {
     // Export project level summary stats to fcs if fcs is true or csv if fcs is false.
     // CSVs always contain population information. FCSs do not have anywhere to store this.
     // If populations is true, exports one FCS file per population. Has no effect if fcs is false.
-    private exportProjectSummaryStats = (
+    private exportProjectFeatures = (
         dirName: string,
-        statistic: PlotStatistic,
         fcs: boolean,
         populations: boolean,
+        calculateFeatures: boolean,
+        recaculateExistingFeatures: boolean,
     ): void => {
         // Setting num to export so we can have a loading bar.
         this.setNumToExport(this.imageSetPaths.length)
-        this.exportImageSetSummaryStats(this.imageSetPaths, dirName, statistic, fcs, populations)
+        this.exportImageSetFeatures(
+            this.imageSetPaths,
+            dirName,
+            fcs,
+            populations,
+            calculateFeatures,
+            recaculateExistingFeatures,
+        )
     }
 
     // Loads the data for one image set, waits until it's loaded, and exports the summary stats sequentially.
     // We call this recursively from within the when blocks to prevent multiple image sets being loaded into memory at once.
-    private exportImageSetSummaryStats = (
+    private exportImageSetFeatures = (
         remainingImageSetPaths: string[],
         dirName: string,
-        statistic: PlotStatistic,
         fcs: boolean,
         populations: boolean,
+        calculateFeatures: boolean,
+        recalculateExistingFeatures: boolean,
     ): void => {
         const curDir = remainingImageSetPaths[0]
         this.loadImageStoreData(curDir)
@@ -368,40 +371,49 @@ export class ProjectStore {
             (): void => {
                 // If we don't have segmentation, then skip this one.
                 if (segmentationStore.selectedSegmentationFile) {
+                    // TODO: Check with Lacey what the desired behavior should be here
+                    // Maybe warn/ask the user if we should ca
                     when(
-                        (): boolean =>
-                            !segmentationStore.segmentationDataLoading &&
-                            !segmentationStore.segmentationStatisticsLoading,
+                        (): boolean => !segmentationStore.segmentationDataLoading,
                         (): void => {
-                            const selectedDirectory = imageStore.selectedDirectory
-                            if (selectedDirectory) {
-                                const imageSetName = path.basename(selectedDirectory)
-                                if (populations && fcs) {
-                                    exportPopulationsToFCS(dirName, statistic, imageSetStore, imageSetName)
-                                } else {
-                                    const extension = fcs ? '.fcs' : '.csv'
-                                    const filename = imageSetName + '_' + statistic + extension
-                                    const filePath = path.join(dirName, filename)
-                                    if (fcs) {
-                                        exportToFCS(filePath, statistic, imageSetStore)
-                                    } else {
-                                        exportMarkerIntensities(filePath, statistic, imageSetStore)
-                                    }
-                                }
-                                // Mark this set of files as loaded for loading bar.
-                                this.incrementNumExported()
-                                this.clearImageSetData(curDir)
-                                // If there are more imageSets to process, recurse and process the next one.
-                                if (remainingImageSetPaths.length > 1) {
-                                    this.exportImageSetSummaryStats(
-                                        remainingImageSetPaths.slice(1),
-                                        dirName,
-                                        statistic,
-                                        fcs,
-                                        populations,
-                                    )
-                                }
+                            if (calculateFeatures) {
+                                segmentationStore.calculateSegmentFeatures(false, recalculateExistingFeatures)
                             }
+                            when(
+                                (): boolean => !segmentationStore.segmentFeaturesLoading,
+                                (): void => {
+                                    const selectedDirectory = imageStore.selectedDirectory
+                                    if (selectedDirectory) {
+                                        const imageSetName = path.basename(selectedDirectory)
+                                        if (populations && fcs) {
+                                            exportPopulationsToFCS(dirName, imageSetStore, imageSetName)
+                                        } else {
+                                            const extension = fcs ? '.fcs' : '.csv'
+                                            const filename = imageSetName + extension
+                                            const filePath = path.join(dirName, filename)
+                                            if (fcs) {
+                                                exportToFCS(filePath, imageSetStore)
+                                            } else {
+                                                exportMarkerIntensities(filePath, imageSetStore)
+                                            }
+                                        }
+                                        // Mark this set of files as loaded for loading bar.
+                                        this.incrementNumExported()
+                                        this.clearImageSetData(curDir)
+                                        // If there are more imageSets to process, recurse and process the next one.
+                                        if (remainingImageSetPaths.length > 1) {
+                                            this.exportImageSetFeatures(
+                                                remainingImageSetPaths.slice(1),
+                                                dirName,
+                                                fcs,
+                                                populations,
+                                                calculateFeatures,
+                                                recalculateExistingFeatures,
+                                            )
+                                        }
+                                    }
+                                },
+                            )
                         },
                     )
                 } else {
@@ -410,12 +422,13 @@ export class ProjectStore {
                     this.clearImageSetData(curDir)
                     // If there are more imageSets to process, recurse and process the next one.
                     if (remainingImageSetPaths.length > 1) {
-                        this.exportImageSetSummaryStats(
+                        this.exportImageSetFeatures(
                             remainingImageSetPaths.slice(1),
                             dirName,
-                            statistic,
                             fcs,
                             populations,
+                            calculateFeatures,
+                            recalculateExistingFeatures,
                         )
                     }
                 }
@@ -423,24 +436,33 @@ export class ProjectStore {
         )
     }
 
-    public exportActiveImageSetMarkerIntensities = (filePath: string, statistic: PlotStatistic): void => {
-        exportMarkerIntensities(filePath, statistic, this.activeImageSetStore)
+    public exportActiveImageSetMarkerIntensities = (filePath: string): void => {
+        exportMarkerIntensities(filePath, this.activeImageSetStore)
     }
 
-    public exportProjectMarkerIntensities = (dirName: string, statistic: PlotStatistic): void => {
-        this.exportProjectSummaryStats(dirName, statistic, false, false)
+    public exportProjectFeaturesToCSV = (
+        dirName: string,
+        calculateFeatures: boolean,
+        recalculateExistingFeatures: boolean,
+    ): void => {
+        this.exportProjectFeatures(dirName, false, false, calculateFeatures, recalculateExistingFeatures)
     }
 
-    public exportActiveImageSetToFcs = (filePath: string, statistic: PlotStatistic): void => {
-        exportToFCS(filePath, statistic, this.activeImageSetStore)
+    public exportActiveImageSetToFcs = (filePath: string): void => {
+        exportToFCS(filePath, this.activeImageSetStore)
     }
 
-    public exportActiveImageSetPopulationsToFcs = (filePath: string, statistic: PlotStatistic): void => {
-        exportPopulationsToFCS(filePath, statistic, this.activeImageSetStore)
+    public exportActiveImageSetPopulationsToFcs = (filePath: string): void => {
+        exportPopulationsToFCS(filePath, this.activeImageSetStore)
     }
 
-    public exportProjectToFCS = (dirName: string, statistic: PlotStatistic, populations: boolean): void => {
-        this.exportProjectSummaryStats(dirName, statistic, true, populations)
+    public exportProjectFeaturesToFCS = (
+        dirName: string,
+        populations: boolean,
+        calculateFeatures: boolean,
+        recalculateExistingFeatures: boolean,
+    ): void => {
+        this.exportProjectFeatures(dirName, true, populations, calculateFeatures, recalculateExistingFeatures)
     }
 
     public exportActivePopulationsToJSON = (filepath: string): void => {
@@ -553,11 +575,12 @@ export class ProjectStore {
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
         const imageSet = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
-        const onImportComplete = (result: SegmentFeatureWorkerResult): void => {
+        const onImportComplete = (result: SegmentFeatureImporterResult): void => {
             if (result.error) {
                 this.errorMessage = result.error
             }
             this.setImportingSegmentFeaturesValues(null, null)
+            this.activeImageSetStore.segmentationStore.refreshAvailableFeatures()
         }
         if (basePath && filePath) {
             // Launch a worker to import segment features from the CSV.
@@ -572,15 +595,15 @@ export class ProjectStore {
         }
     }
 
-    @action public setCheckRecalculateSegmentationStatistics = (check: boolean): void => {
-        this.checkRecalculateSegmentationStatistics = check
+    @action public setCheckRecalculateSegmentFeatures = (check: boolean): void => {
+        this.checkRecalculateSegmentFeatures = check
     }
 
-    public recalculateSegmentationStatistics = (recalculate: boolean, remember: boolean): void => {
-        this.preferencesStore.setRecalculateSegmentationStatistics(recalculate)
-        this.preferencesStore.setRememberRecalculateSegmentationStatistics(remember)
+    public recalculateSegmentFeatures = (recalculate: boolean, remember: boolean): void => {
+        this.preferencesStore.setRecalculateSegmentFeatures(recalculate)
+        this.preferencesStore.setRememberRecalculateSegmentFeatures(remember)
         // When calling calculate from this method, the user has already intervened so we don't need to check
         // We do need to pass along whether or not we're recalculating or using previously calculated data though.
-        this.activeImageSetStore.segmentationStore.calculateSegmentationStatistics(false, recalculate)
+        this.activeImageSetStore.segmentationStore.calculateSegmentFeatures(false, recalculate)
     }
 }

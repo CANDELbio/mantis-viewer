@@ -2,6 +2,7 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer'
 
 import * as _ from 'underscore'
 
@@ -135,6 +136,22 @@ function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
     }
 }
 
+function askCalculateFeatures(channel: string, dir: string): void {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Question',
+            message: 'Do you want to calculate mean and median segment features for all image sets before exporting?',
+            detail: 'These features will also be available in the plot once data has been exported',
+        }
+        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+            if (mainWindow != null) mainWindow.webContents.send(channel, dir, value.response == 0)
+        })
+    }
+}
+
 function generateMenuTemplate(): any {
     return [
         {
@@ -244,103 +261,53 @@ function generateMenuTemplate(): any {
                             ],
                         },
                         {
-                            label: 'Segment statistics to CSV',
+                            label: 'Segment features to CSV',
                             submenu: [
                                 {
-                                    label: 'Mean intensities for active image set',
+                                    label: 'For active image set',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showSaveFileIpcDialog(
-                                        'export-mean-intensities',
+                                        'export-segment-features',
                                         activeImageDirectory,
                                         'csv',
                                     ),
                                 },
                                 {
-                                    label: 'Median intensities for active image set',
-                                    enabled: imageLoaded && segmentationLoaded,
-                                    click: showSaveFileIpcDialog(
-                                        'export-median-intensities',
-                                        activeImageDirectory,
-                                        'csv',
-                                    ),
-                                },
-                                {
-                                    label: 'Mean intensities for project',
+                                    label: 'For project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-mean-intensities', dir)
-                                    }, projectDirectory),
-                                },
-                                {
-                                    label: 'Median intensities for project',
-                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-median-intensities', dir)
+                                        askCalculateFeatures('export-project-segment-features', dir)
                                     }, projectDirectory),
                                 },
                             ],
                         },
                         {
-                            label: 'Segment statistics to FCS',
+                            label: 'Segment features to FCS',
                             submenu: [
                                 {
-                                    label: 'Mean intensities for all segments in active image set',
+                                    label: 'For all segments in active image set',
                                     enabled: imageLoaded && segmentationLoaded,
-                                    click: showSaveFileIpcDialog(
-                                        'export-mean-segmentation-to-fcs',
-                                        activeImageDirectory,
-                                        'fcs',
-                                    ),
+                                    click: showSaveFileIpcDialog('export-segments-to-fcs', activeImageDirectory, 'fcs'),
                                 },
                                 {
-                                    label: 'Median intensities for all segments in active image set',
-                                    enabled: imageLoaded && segmentationLoaded,
-                                    click: showSaveFileIpcDialog(
-                                        'export-median-segmentation-to-fcs',
-                                        activeImageDirectory,
-                                        'fcs',
-                                    ),
+                                    label: 'For all segments in project',
+                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
+                                    click: showOpenDirectoryDialog((dir: string): void => {
+                                        askCalculateFeatures('export-project-segments-to-fcs', dir)
+                                    }, projectDirectory),
                                 },
                                 {
-                                    label: 'Mean intensities for all populations in active image set',
+                                    label: 'For all populations in active image set',
                                     enabled: imageLoaded && segmentationLoaded && populationsSelected,
                                     click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-mean-populations-fcs', dir)
+                                        mainWindow.webContents.send('export-populations-fcs', dir)
                                     }, activeImageDirectory),
                                 },
                                 {
-                                    label: 'Median intensities for all populations in active image set',
-                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-median-populations-fcs', dir)
-                                    }, activeImageDirectory),
-                                },
-                                {
-                                    label: 'Mean intensities for all segments in project',
+                                    label: 'For all populations in project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-mean-segmentation-to-fcs', dir)
-                                    }, projectDirectory),
-                                },
-                                {
-                                    label: 'Median intensities for all segments in project',
-                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-median-segmentation-to-fcs', dir)
-                                    }, projectDirectory),
-                                },
-                                {
-                                    label: 'Mean intensities for all populations in project',
-                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-mean-populations-fcs', dir)
-                                    }, projectDirectory),
-                                },
-                                {
-                                    label: 'Median intensities for all populations in project',
-                                    enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
-                                        mainWindow.webContents.send('export-project-median-populations-fcs', dir)
+                                        askCalculateFeatures('export-project-populations-fcs', dir)
                                     }, projectDirectory),
                                 },
                             ],
@@ -492,6 +459,18 @@ function closePreferencesWindow(): void {
     }
 }
 
+function registerDebuggingFinishLoadEventHandler(window: BrowserWindow): void {
+    window.webContents.on('did-frame-finish-load', () => {
+        if (debugging()) {
+            contextMenu({ showInspectElement: true })
+            window.webContents.openDevTools()
+            window.webContents.on('devtools-opened', () => {
+                window.focus()
+            })
+        }
+    })
+}
+
 function createMainWindow(): void {
     // Create the browser window.
     mainWindow = new BrowserWindow({
@@ -514,10 +493,7 @@ function createMainWindow(): void {
     )
 
     // Open the DevTools.
-    if (debugging()) {
-        mainWindow.webContents.openDevTools()
-        contextMenu({ showInspectElement: true })
-    }
+    registerDebuggingFinishLoadEventHandler(mainWindow)
 
     // Use throttle so that when we resize we only send the window size every 333 ms
     mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
@@ -556,7 +532,7 @@ function createPlotWindow(): void {
         }),
     )
 
-    if (debugging()) plotWindow.webContents.openDevTools()
+    registerDebuggingFinishLoadEventHandler(plotWindow)
 
     // Use throttle so that when we resize we only send the window size every 333 ms
     plotWindow.on('resize', _.throttle(sendPlotWindowSize, 333))
@@ -589,7 +565,7 @@ function createPreferencesWindow(): void {
         }),
     )
 
-    if (debugging()) preferencesWindow.webContents.openDevTools()
+    registerDebuggingFinishLoadEventHandler(preferencesWindow)
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
     preferencesWindow.on('close', function (event: Electron.Event): void {
@@ -601,9 +577,16 @@ function createPreferencesWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createMainWindow)
-app.on('ready', createPlotWindow)
-app.on('ready', createPreferencesWindow)
+app.on('ready', () => {
+    if (debugging()) {
+        installExtension(REACT_DEVELOPER_TOOLS)
+            .then((name) => console.log(`Added Extension:  ${name}`))
+            .catch((err) => console.log('An error occurred: ', err))
+    }
+    createMainWindow()
+    createPlotWindow()
+    createPreferencesWindow()
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function (): void {
@@ -743,7 +726,7 @@ ipcMain.on(
     (
         event: Electron.Event,
         selectOptions: { value: string; label: string }[],
-        plotChannels: string[],
+        plotFeatures: string[],
         statistic: string,
         transform: string,
         type: string,
@@ -756,7 +739,7 @@ ipcMain.on(
             plotWindow.webContents.send(
                 'set-plot-data',
                 selectOptions,
-                plotChannels,
+                plotFeatures,
                 statistic,
                 transform,
                 type,
@@ -769,8 +752,8 @@ ipcMain.on(
 )
 
 // Functions to relay data from the plotWindow to the mainWindow
-ipcMain.on('plotWindow-set-markers', (event: Electron.Event, markers: string[]): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-plot-markers', markers)
+ipcMain.on('plotWindow-set-features', (event: Electron.Event, features: string[]): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-features', features)
 })
 
 ipcMain.on('plotWindow-set-statistic', (event: Electron.Event, statistic: any): void => {

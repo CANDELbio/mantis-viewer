@@ -22,46 +22,46 @@ export class PlotStore {
             const populationStore = this.imageSetStore.populationStore
             const settingStore = this.imageSetStore.projectStore.settingStore
 
-            if (imageStore.imageData) {
-                const imageData = imageStore.imageData
-                // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
-                const selectedPlotMarkersInImageSet = settingStore.selectedPlotMarkers.every((m: string) => {
-                    return imageData.markerNames.includes(m)
-                })
-                if (imageStore && populationStore && selectedPlotMarkersInImageSet) {
-                    const loadHistogram =
-                        settingStore.selectedPlotMarkers.length > 0 && settingStore.plotType == 'histogram'
-                    const loadScatter =
-                        settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'scatter'
-                    const loadContour =
-                        settingStore.selectedPlotMarkers.length == 2 && settingStore.plotType == 'contour'
-                    const loadHeatmap = settingStore.plotType == 'heatmap'
-                    if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
-                        if (
-                            segmentationStore.segmentationData != null &&
-                            !segmentationStore.segmentationData.errorMessage &&
-                            segmentationStore.segmentationStatistics != null
-                        ) {
-                            const plotData = generatePlotData(
-                                settingStore.selectedPlotMarkers,
-                                segmentationStore.segmentationData,
-                                segmentationStore.segmentationStatistics,
-                                settingStore.plotType,
-                                settingStore.plotStatistic,
-                                settingStore.plotTransform,
-                                settingStore.transformCoefficient,
-                                settingStore.plotNormalization,
-                                populationStore.selectedPopulations,
-                                settingStore.plotDotSize,
-                            )
-                            if (plotData != null) this.setPlotData(plotData)
-                        }
-                    } else {
-                        this.clearPlotData()
+            // Kind of hackey. Probably a better way to do this
+            const dataAvailable = settingStore.selectedPlotFeatures.every((m: string) => {
+                return m in segmentationStore.featureValues && m in segmentationStore.featureMinMaxes
+            })
+
+            // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
+            const selectedPlotFeaturesInImageSet = settingStore.selectedPlotFeatures.every((m: string) => {
+                return segmentationStore.availableFeatures.includes(m)
+            })
+            if (imageStore && populationStore && dataAvailable && selectedPlotFeaturesInImageSet) {
+                const loadHistogram =
+                    settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
+                const loadScatter = settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
+                const loadContour = settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
+                const loadHeatmap = settingStore.plotType == 'heatmap'
+                if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
+                    if (
+                        segmentationStore.segmentationData != null &&
+                        !segmentationStore.segmentationData.errorMessage
+                    ) {
+                        const plotData = generatePlotData(
+                            settingStore.selectedPlotFeatures,
+                            segmentationStore.featureValues,
+                            segmentationStore.featureMinMaxes,
+                            segmentationStore.segmentationData,
+                            settingStore.plotStatistic,
+                            settingStore.plotType,
+                            settingStore.plotTransform,
+                            settingStore.transformCoefficient,
+                            settingStore.plotNormalization,
+                            populationStore.selectedPopulations,
+                            settingStore.plotDotSize,
+                        )
+                        if (plotData != null) this.setPlotData(plotData)
                     }
                 } else {
                     this.clearPlotData()
                 }
+            } else {
+                this.clearPlotData()
             }
         }
     })
