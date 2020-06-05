@@ -9,6 +9,8 @@ let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
+let rememberCalculateSegmentationStatistics: boolean
+let calculateSegmentationStatistics: boolean
 let rememberRecalculateSegmentationStatistics: boolean
 let recalculateSegmentationStatistics: boolean
 let rememberClearDuplicateSegmentFeatures: boolean
@@ -32,6 +34,14 @@ const setDefaultSegmentation = (basename: string): void => {
 
 const setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-use-any-marker', channel, useAnyChannel)
+}
+
+const setRememberCalculate = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-remember-calculate', value)
+}
+
+const setCalculate = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-calculate', value)
 }
 
 const setRememberRecalculate = (value: boolean): void => {
@@ -64,6 +74,10 @@ function render(): void {
                 setDefaultChannelDomain={setDefaultChannelDomain}
                 useAnyMarker={useAnyMarker}
                 setUseAnyMarker={setUseAnyMarker}
+                rememberCalculate={rememberCalculateSegmentationStatistics}
+                setRememberCalculate={setRememberCalculate}
+                calculate={calculateSegmentationStatistics}
+                setCalculate={setCalculate}
                 rememberRecalculate={rememberRecalculateSegmentationStatistics}
                 setRememberRecalculate={setRememberRecalculate}
                 recalculate={recalculateSegmentationStatistics}
@@ -87,6 +101,8 @@ ipcRenderer.on(
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
         anyMarker: Record<ChannelName, boolean>,
+        rememberCalculate: boolean,
+        calculate: boolean,
         rememberRecalculate: boolean,
         recalculate: boolean,
         rememberClear: boolean,
@@ -97,6 +113,8 @@ ipcRenderer.on(
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
         useAnyMarker = anyMarker
+        rememberCalculateSegmentationStatistics = rememberCalculate
+        calculateSegmentationStatistics = calculate
         rememberRecalculateSegmentationStatistics = rememberRecalculate
         recalculateSegmentationStatistics = recalculate
         rememberClearDuplicateSegmentFeatures = rememberClear

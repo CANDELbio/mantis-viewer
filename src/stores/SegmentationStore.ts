@@ -114,15 +114,27 @@ export class SegmentationStore {
         this.setSegmentationDataLoadingStatus(false)
     }
 
+    // Calculates segment features using the stored preferences about recalculating if features are present
+    public calculateSegmentFeaturesWithPreferences = (): void => {
+        const preferencesStore = this.imageSetStore.projectStore.preferencesStore
+        const checkRecalculate = !preferencesStore.rememberRecalculateSegmentFeatures
+        const recalculate = preferencesStore.recalculateSegmentFeatures
+        this.calculateSegmentFeatures(checkRecalculate, recalculate)
+    }
+
     private autoCalculateSegmentFeatures = (): void => {
         const projectStore = this.imageSetStore.projectStore
         const notExporting = projectStore.numToExport == 0
         // Only want to auto calculate if we're not exporting. Otherwise we want to
         if (notExporting) {
             const preferencesStore = this.imageSetStore.projectStore.preferencesStore
-            const checkRecalculate = !preferencesStore.rememberRecalculateSegmentFeatures
-            const recalculate = preferencesStore.recalculateSegmentFeatures
-            this.calculateSegmentFeatures(checkRecalculate, recalculate)
+            const checkCalculate = !preferencesStore.rememberCalculateSegmentFeatures
+            const calculate = preferencesStore.calculateSegmentFeatures
+            if (checkCalculate) {
+                projectStore.setCheckCalculateSegmentFeatures(true)
+            } else if (calculate) {
+                this.calculateSegmentFeaturesWithPreferences()
+            }
         }
     }
 

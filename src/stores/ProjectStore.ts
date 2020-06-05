@@ -53,6 +53,10 @@ export class ProjectStore {
 
     // Gets set to true when segmentation features have already been calculated
     // So that we can ask the user if they want to recalculate
+    @observable public checkCalculateSegmentFeatures: boolean
+
+    // Gets set to true when segmentation features have already been calculated
+    // So that we can ask the user if they want to recalculate
     @observable public checkRecalculateSegmentFeatures: boolean
 
     // An array to keep track of the imageSets that have been recently used/
@@ -592,6 +596,18 @@ export class ProjectStore {
             // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
             this.errorMessage = 'Could not import segment features. Unable to find database path or file path.'
             this.setImportingSegmentFeaturesValues(null, null)
+        }
+    }
+
+    @action public setCheckCalculateSegmentFeatures = (check: boolean): void => {
+        this.checkCalculateSegmentFeatures = check
+    }
+
+    public continueCalculatingSegmentFeatures = (calculate: boolean, remember: boolean): void => {
+        this.preferencesStore.setCalculateSegmentFeatures(calculate)
+        this.preferencesStore.setRememberCalculateSegmentFeatures(remember)
+        if (calculate) {
+            this.activeImageSetStore.segmentationStore.calculateSegmentFeaturesWithPreferences()
         }
     }
 

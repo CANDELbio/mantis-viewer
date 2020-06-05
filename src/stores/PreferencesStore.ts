@@ -159,6 +159,15 @@ export class PreferencesStore {
         return defaultMarkers
     }
 
+    @action public setRememberCalculateSegmentFeatures = (remember: boolean): void => {
+        this.rememberCalculateSegmentFeatures = remember
+        if (!remember) this.calculateSegmentFeatures = false
+    }
+
+    @action public setCalculateSegmentFeatures = (calculate: boolean): void => {
+        if (this.rememberCalculateSegmentFeatures) this.calculateSegmentFeatures = calculate
+    }
+
     @action public setRememberRecalculateSegmentFeatures = (remember: boolean): void => {
         this.rememberRecalculateSegmentFeatures = remember
         if (!remember) this.recalculateSegmentFeatures = false

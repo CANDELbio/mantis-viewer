@@ -124,6 +124,14 @@ ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelNam
     projectStore.preferencesStore.setUseAnyMarker(channel, useAny)
 })
 
+ipcRenderer.on('set-remember-calculate', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setRememberCalculateSegmentFeatures(value)
+})
+
+ipcRenderer.on('set-calculate', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setCalculateSegmentFeatures(value)
+})
+
 ipcRenderer.on('set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setRememberRecalculateSegmentFeatures(value)
 })
@@ -234,8 +242,12 @@ ipcRenderer.on('recalculate-segment-data', (): void => {
     projectStore.activeImageSetStore.segmentationStore.calculateSegmentFeatures(false, true)
 })
 
+ipcRenderer.on('calculate-segment-features', (event: Electron.Event, calculate: boolean, remember: boolean): void => {
+    projectStore.continueCalculatingSegmentFeatures(calculate, remember)
+})
+
 ipcRenderer.on(
-    'recalculate-segmentation-stats',
+    'recalculate-segment-features',
     (event: Electron.Event, recalculate: boolean, remember: boolean): void => {
         projectStore.recalculateSegmentFeatures(recalculate, remember)
     },
@@ -296,6 +308,8 @@ Mobx.autorun((): void => {
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),
         Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
+        preferencesStore.rememberCalculateSegmentFeatures,
+        preferencesStore.calculateSegmentFeatures,
         preferencesStore.rememberRecalculateSegmentFeatures,
         preferencesStore.recalculateSegmentFeatures,
         preferencesStore.rememberClearDuplicateSegmentFeatures,
@@ -377,8 +391,15 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
+    if (projectStore.checkCalculateSegmentFeatures) {
+        ipcRenderer.send('mainWindow-show-calculate-segment-features-dialog')
+        projectStore.setCheckRecalculateSegmentFeatures(false)
+    }
+})
+
+Mobx.autorun((): void => {
     if (projectStore.checkRecalculateSegmentFeatures) {
-        ipcRenderer.send('mainWindow-show-recalculate-segmentation-stats-dialog')
+        ipcRenderer.send('mainWindow-show-recalculate-segment-features-dialog')
         projectStore.setCheckRecalculateSegmentFeatures(false)
     }
 })

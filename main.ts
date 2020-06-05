@@ -551,7 +551,7 @@ function createPlotWindow(): void {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 580,
+        height: 655,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -673,7 +673,26 @@ ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
     }
 })
 
-ipcMain.on('mainWindow-show-recalculate-segmentation-stats-dialog', (): void => {
+ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Question',
+            message: 'Do you want Mantis to calculate mean and median segment intensities?',
+            detail: 'If you select no you will not be able to generate plots until you have loaded your own features.',
+            checkboxLabel: 'Remember my answer (you can change this in preferences)',
+            checkboxChecked: true,
+        }
+        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+            if (mainWindow != null)
+                mainWindow.webContents.send('calculate-segment-features', value.response == 0, value.checkboxChecked)
+        })
+    }
+})
+
+ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
@@ -688,11 +707,7 @@ ipcMain.on('mainWindow-show-recalculate-segmentation-stats-dialog', (): void => 
         }
         dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send(
-                    'recalculate-segmentation-stats',
-                    value.response == 1,
-                    value.checkboxChecked,
-                )
+                mainWindow.webContents.send('recalculate-segment-features', value.response == 1, value.checkboxChecked)
         })
     }
 })
@@ -802,6 +817,8 @@ ipcMain.on(
         markers: any,
         domains: any,
         anyChannel: any,
+        rememberCalculateSegmentationStatistics: boolean,
+        calculateSegmentationStatistics: boolean,
         rememberRecalculateSegmentationStatistics: boolean,
         recalculateSegmentationStatistics: boolean,
         rememberClearDuplicateSegmentFeatures: boolean,
@@ -815,6 +832,8 @@ ipcMain.on(
                 markers,
                 domains,
                 anyChannel,
+                rememberCalculateSegmentationStatistics,
+                calculateSegmentationStatistics,
                 rememberRecalculateSegmentationStatistics,
                 recalculateSegmentationStatistics,
                 rememberClearDuplicateSegmentFeatures,
@@ -848,6 +867,14 @@ ipcMain.on(
 
 ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
+})
+
+ipcMain.on('preferencesWindow-set-remember-calculate', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-remember-calculate', value)
+})
+
+ipcMain.on('preferencesWindow-set-calculate', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-calculate', value)
 })
 
 ipcMain.on('preferencesWindow-set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
