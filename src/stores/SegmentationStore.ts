@@ -53,7 +53,7 @@ export class SegmentationStore {
     // the feature statistics we have loaded from the database.
     private autoRefreshFeatureStatistics = autorun(() => {
         const features = this.imageSetStore.projectStore.settingStore.selectedPlotFeatures
-        this.refreshFeatureStatistics(features)
+        this.setFeatureStatistics(features)
     })
 
     @action private initialize = (): void => {
@@ -96,6 +96,7 @@ export class SegmentationStore {
 
     @action public onSegmentFeaturesGenerated = (): void => {
         this.refreshAvailableFeatures()
+        this.refreshFeatureStatistics()
         this.setSegmentFeatureLoadingStatus(false)
     }
 
@@ -176,7 +177,7 @@ export class SegmentationStore {
         if (this.db && imageSetName) this.availableFeatures = this.db.listFeatures(imageSetName)
     }
 
-    @action public refreshFeatureStatistics = (features: string[]): void => {
+    @action public setFeatureStatistics = (features: string[]): void => {
         const refreshedValues: Record<string, Record<number, number>> = {}
         const refreshedMinMaxes: Record<string, MinMax> = {}
 
@@ -202,6 +203,11 @@ export class SegmentationStore {
         }
         this.featureValues = refreshedValues
         this.featureMinMaxes = refreshedMinMaxes
+    }
+
+    @action public refreshFeatureStatistics = (): void => {
+        const features = this.imageSetStore.projectStore.settingStore.selectedPlotFeatures
+        this.setFeatureStatistics(features)
     }
 
     public getValues = (features: string[]): Record<string, Record<number, number>> => {

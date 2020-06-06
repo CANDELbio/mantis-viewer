@@ -31,6 +31,7 @@ export class PlotStore {
             const selectedPlotFeaturesInImageSet = settingStore.selectedPlotFeatures.every((m: string) => {
                 return segmentationStore.availableFeatures.includes(m)
             })
+
             if (imageStore && populationStore && dataAvailable && selectedPlotFeaturesInImageSet) {
                 const loadHistogram =
                     settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
