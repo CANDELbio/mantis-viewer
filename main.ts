@@ -10,6 +10,9 @@ import path = require('path')
 import url = require('url')
 const openAboutWindow = require('about-window').default
 const contextMenu = require('electron-context-menu').default
+// TODO: Figure out how to not use the eslint-disable for this import
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const isDev = require('electron-is-dev')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -26,14 +29,6 @@ let imageLoaded = false
 let projectLoaded = false
 let segmentationLoaded = false
 let populationsSelected = false
-
-function debugging(): boolean {
-    const argv = process.argv
-    if (argv.length > 2 && argv[2] == 'debug') {
-        return true
-    }
-    return false
-}
 
 function openImageSet(path: string): void {
     if (mainWindow != null) {
@@ -461,7 +456,7 @@ function closePreferencesWindow(): void {
 
 function registerDebuggingFinishLoadEventHandler(window: BrowserWindow): void {
     window.webContents.on('did-frame-finish-load', () => {
-        if (debugging()) {
+        if (isDev) {
             contextMenu({ showInspectElement: true })
             window.webContents.openDevTools()
             window.webContents.on('devtools-opened', () => {
@@ -578,7 +573,7 @@ function createPreferencesWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    if (debugging()) {
+    if (isDev) {
         installExtension(REACT_DEVELOPER_TOOLS)
             .then((name) => console.log(`Added Extension:  ${name}`))
             .catch((err) => console.log('An error occurred: ', err))
