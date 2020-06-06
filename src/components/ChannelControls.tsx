@@ -78,7 +78,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
         const unroundedStepSize = this.props.sliderMax / 5
         const roundedStepSize = Math.round(unroundedStepSize)
-        const stepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
+        const labelStepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
 
         // Remove nulls and the value selected for this channel from the list of all selected values
         const filteredSelectedValues = this.props.allSelectedMarkers.filter((value) => {
@@ -91,6 +91,22 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
             return !filteredSelectedValues.includes(option.value)
         })
         const selectedValue = getSelectedOptions(this.props.selectedMarker, selectOptions)
+
+        let brightnessSlider = (
+            <RangeSlider
+                min={this.props.sliderMin}
+                max={this.props.sliderMax}
+                value={this.props.sliderValue}
+                labelStepSize={labelStepSize}
+                labelPrecision={1}
+                stepSize={this.props.sliderMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
+                onChange={this.setChannelDomain}
+            />
+        )
+
+        if (this.props.sliderMin == this.props.sliderMax) {
+            brightnessSlider = <div>No non-zero values present in image</div>
+        }
 
         return (
             <Grid fluid={true}>
@@ -111,15 +127,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                 </Row>
                 <Row between="xs" style={paddingStyle}>
                     <Col xs={10} sm={10} md={10} lg={10}>
-                        <RangeSlider
-                            min={this.props.sliderMin}
-                            max={this.props.sliderMax}
-                            value={this.props.sliderValue}
-                            labelStepSize={stepSize}
-                            labelPrecision={1}
-                            stepSize={this.props.sliderMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                            onChange={this.setChannelDomain}
-                        />
+                        {brightnessSlider}
                     </Col>
                     <Col xs={2} sm={2} md={2} lg={2}>
                         {this.visibleIcon(this.props.channelVisible)}
