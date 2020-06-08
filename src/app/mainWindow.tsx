@@ -238,10 +238,6 @@ ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, clear:
     projectStore.importSegmentFeatures(clear, remember)
 })
 
-ipcRenderer.on('recalculate-segment-data', (): void => {
-    projectStore.activeImageSetStore.segmentationStore.calculateSegmentFeatures(false, true)
-})
-
 ipcRenderer.on('calculate-segment-features', (event: Electron.Event, calculate: boolean, remember: boolean): void => {
     projectStore.continueCalculatingSegmentFeatures(calculate, remember)
 })
@@ -253,6 +249,10 @@ ipcRenderer.on(
     },
 )
 
+ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
+    projectStore.calculateSegmentFeaturesFromMenu()
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 Mousetrap.bind(['command+left', 'alt+left'], function (): void {
@@ -260,7 +260,7 @@ Mousetrap.bind(['command+left', 'alt+left'], function (): void {
     if (
         !imageSetStore.imageStore.imageDataLoading &&
         !imageSetStore.segmentationStore.segmentationDataLoading &&
-        projectStore.numToExport == 0
+        projectStore.notificationStore.numToExport == 0
     ) {
         projectStore.setPreviousImageSet()
     }
@@ -271,7 +271,7 @@ Mousetrap.bind(['command+right', 'alt+right'], function (): void {
     if (
         !imageSetStore.imageStore.imageDataLoading &&
         !imageSetStore.segmentationStore.segmentationDataLoading &&
-        projectStore.numToExport == 0
+        projectStore.notificationStore.numToExport == 0
     ) {
         projectStore.setNextImageSet()
     }
@@ -328,16 +328,29 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.errorMessage != null) {
-        ipcRenderer.send('mainWindow-show-error-dialog', projectStore.errorMessage)
-        projectStore.clearErrorMessage()
+    const notificationStore = projectStore.notificationStore
+    const infoMessage = notificationStore.infoMessage
+    if (infoMessage != null) {
+        ipcRenderer.send('mainWindow-show-info-dialog', infoMessage)
+        notificationStore.clearInfoMessage()
     }
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.removeMessage != null) {
-        ipcRenderer.send('mainWindow-show-remove-image-dialog', projectStore.removeMessage)
-        projectStore.clearRemoveMessage()
+    const notificationStore = projectStore.notificationStore
+    const errorMessage = notificationStore.errorMessage
+    if (errorMessage != null) {
+        ipcRenderer.send('mainWindow-show-error-dialog', errorMessage)
+        notificationStore.clearErrorMessage()
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    const removeMessage = notificationStore.errorMessage
+    if (removeMessage != null) {
+        ipcRenderer.send('mainWindow-show-remove-image-dialog', removeMessage)
+        notificationStore.clearRemoveMessage()
     }
 })
 
@@ -361,9 +374,10 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.clearSegmentationRequested) {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.clearSegmentationRequested) {
         ipcRenderer.send('mainWindow-show-remove-segmentation-dialog')
-        projectStore.setClearSegmentationRequested(false)
+        notificationStore.setClearSegmentationRequested(false)
     }
 })
 
@@ -405,9 +419,10 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.checkImportingSegmentFeaturesClearDuplicates) {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.checkImportingSegmentFeaturesClearDuplicates) {
         ipcRenderer.send('mainWindow-show-clear-segment-features-dialog')
-        projectStore.setCheckImportingSegmentFeaturesClearDuplicates(false)
+        notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(false)
     }
 })
 

@@ -131,6 +131,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const populationStore = imageSetStore.populationStore
         const plotStore = imageSetStore.plotStore
         const settingStore = projectStore.settingStore
+        const notificationStore = projectStore.notificationStore
 
         let imageViewer = null
         let imageMessage = null
@@ -189,7 +190,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         centroidsVisible={settingStore.segmentationCentroidsVisible}
                         setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
                         onClearSegmentation={(): void => {
-                            projectStore.setClearSegmentationRequested(true)
+                            notificationStore.setClearSegmentationRequested(true)
                         }}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         setZoomInsetVisible={settingStore.setZoomInsetVisible}
@@ -307,8 +308,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const segmentFeaturesLoading = segmentationStore.segmentFeaturesLoading
         const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
 
-        const numExported = projectStore.numExported
-        const numToExport = projectStore.numToExport
+        const numExported = notificationStore.numExported
+        const numToExport = notificationStore.numToExport
 
         return (
             <div>

@@ -4,7 +4,6 @@ import * as path from 'path'
 import * as parseCSV from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
-import { PlotStatistic } from '../definitions/UIDefinitions'
 import { writeToFCS } from './FcsWriter'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
@@ -184,7 +183,7 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
     return populations
 }
 
-// Expects input CSV at filepath to have a header.
+// Expects input CSV at file path to have a header.
 // If imageSet is not included, expects imageSet to be in the 0th column.
 // After that, expects marker, segmentId, and then features in the header and values in the data rows.
 // Returns a map that is nested four times.
@@ -194,7 +193,14 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
 export function parseSegmentDataCSV(
     filePath: string,
     imageSet?: string,
-): Record<string, Record<string, Record<number, number>>> {
+): {
+    data: Record<string, Record<string, Record<number, number>>>
+    info: { totalFeatures: number; validFeatures: number; invalidFeatureNames: string[] }
+} {
+    let totalFeatures = 0
+    let validFeatures = 0
+    const invalidFeatureNames: string[] = []
+
     const cellData: Record<string, Record<string, Record<number, number>>> = {}
     const input = fs.readFileSync(filePath, 'utf8')
     const records: string[][] = parseCSV(input, { columns: false })
@@ -212,13 +218,24 @@ export function parseSegmentDataCSV(
             const curImageSetData = cellData[curImageSet]
             features.forEach((curFeature, featureIndex) => {
                 const curValue = curValues[featureIndex]
+                totalFeatures += 1
                 if (!Number.isNaN(curValue)) {
+                    validFeatures += 1
                     if (!(curFeature in curImageSetData)) curImageSetData[curFeature] = {}
                     const curFeatureData = curImageSetData[curFeature]
                     curFeatureData[curSegmentId] = curValue
+                } else {
+                    if (!invalidFeatureNames.includes(curFeature)) invalidFeatureNames.push(curFeature)
                 }
             })
         }
     }
-    return cellData
+    return {
+        data: cellData,
+        info: {
+            totalFeatures: totalFeatures,
+            validFeatures: validFeatures,
+            invalidFeatureNames: invalidFeatureNames,
+        },
+    }
 }

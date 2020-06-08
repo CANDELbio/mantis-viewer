@@ -208,7 +208,7 @@ function generateMenuTemplate(): any {
                                 },
                                 {
                                     label: 'For project from single CSV',
-                                    enabled: segmentationLoaded,
+                                    enabled: projectLoaded && segmentationLoaded,
                                     click: showOpenFileDialog(
                                         'add-project-segment-features',
                                         activeImageDirectory,
@@ -246,7 +246,7 @@ function generateMenuTemplate(): any {
                                 },
                                 {
                                     label: 'For project to single CSV',
-                                    enabled: imageLoaded && populationsSelected,
+                                    enabled: projectLoaded && imageLoaded && populationsSelected,
                                     click: showSaveFileIpcDialog(
                                         'export-project-populations-csv',
                                         activeImageDirectory,
@@ -316,7 +316,7 @@ function generateMenuTemplate(): any {
                             label: 'Segment intensities for active image set',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
-                                mainWindow.webContents.send('recalculate-segment-data')
+                                mainWindow.webContents.send('recalculate-segment-features-from-menu')
                             },
                         },
                     ],
@@ -639,6 +639,11 @@ ipcMain.on('set-project-directory', (event: Electron.Event, directory: string): 
 // Show an error dialog with the message passed in.
 ipcMain.on('mainWindow-show-error-dialog', (event: Electron.Event, message: string): void => {
     if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'error', message: message })
+})
+
+// Show an info dialog with the message passed in.
+ipcMain.on('mainWindow-show-info-dialog', (event: Electron.Event, message: string): void => {
+    if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'info', message: message })
 })
 
 // Show a 'remove image set' dialog and tell the main window to remove it if the user approves.

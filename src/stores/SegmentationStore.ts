@@ -125,7 +125,7 @@ export class SegmentationStore {
 
     private autoCalculateSegmentFeatures = (): void => {
         const projectStore = this.imageSetStore.projectStore
-        const notExporting = projectStore.numToExport == 0
+        const notExporting = projectStore.notificationStore.numToExport == 0
         // Only want to auto calculate if we're not exporting. Otherwise we want to
         if (notExporting) {
             const preferencesStore = this.imageSetStore.projectStore.preferencesStore

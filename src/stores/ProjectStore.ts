@@ -2,8 +2,9 @@ import { observable, action, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { SettingStore } from '../stores/SettingStore'
+import { SettingStore } from './SettingStore'
 import { PreferencesStore } from './PreferencesStore'
+import { NotificationStore } from './NotificationStore'
 import { ImageSetStore } from './ImageSetStore'
 import {
     exportMarkerIntensities,
@@ -17,7 +18,11 @@ import {
 } from '../lib/IO'
 import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
-import { SegmentFeatureImporterResult, importSegmentFeatureCSV } from '../workers/SegmentFeatureImporter'
+import {
+    SegmentFeatureImporterResult,
+    importSegmentFeatureCSV,
+    SegmentFeatureImporterError,
+} from '../workers/SegmentFeatureImporter'
 
 export class ProjectStore {
     public appVersion: string
@@ -33,23 +38,13 @@ export class ProjectStore {
 
     @observable.ref public settingStore: SettingStore
     @observable.ref public preferencesStore: PreferencesStore
+    @observable.ref public notificationStore: NotificationStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
     @observable public windowHeight: number | null
     // Whether or not the scatter plot is in the main window
     @observable public plotInMainWindow: boolean
-
-    // Message to be shown if there is an error.
-    // Setting this to a string will cause the string to be displayed in a dialog
-    // The render thread will set this back to null once displayed.
-    @observable public errorMessage: string | null
-
-    // Message to be shown if the user is being prompted to delete the active image set.
-    @observable public removeMessage: string | null
-
-    // Gets set to true when the user requests to clear segmentation so that we can ask to confirm.
-    @observable public clearSegmentationRequested: boolean
 
     // Gets set to true when segmentation features have already been calculated
     // So that we can ask the user if they want to recalculate
@@ -63,15 +58,10 @@ export class ProjectStore {
     // Used to clear old image sets to clean up memory.
     @observable public imageSetHistory: string[]
 
-    // Used to track progress when exporting FCS/Stats for whole project
-    // TODO: Is .ref necessary?
-    @observable.ref public numToExport: number
-    @observable.ref public numExported: number
-
-    // Used to turn on the loading modal for segment features
+    // The path that we're importing segment features from
     @observable public importingSegmentFeaturesPath: string | null
+    // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
-    @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
 
     public constructor(appVersion: string) {
         this.appVersion = appVersion
@@ -83,6 +73,7 @@ export class ProjectStore {
         this.preferencesStore = new PreferencesStore()
         // Initialize the setting store (for storing image display settings to transfer when switching)
         this.settingStore = new SettingStore(this)
+        this.notificationStore = new NotificationStore()
 
         this.plotInMainWindow = true
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
@@ -91,13 +82,11 @@ export class ProjectStore {
         this.nullImageSet = new ImageSetStore(this)
         this.activeImageSetStore = this.nullImageSet
 
-        this.clearSegmentationRequested = false
-        this.imageSetHistory = []
-        this.numToExport = 0
-        this.numExported = 0
+        // Keep track of importing segment features
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
-        this.checkImportingSegmentFeaturesClearDuplicates = false
+
+        this.imageSetHistory = []
         this.initializeImageSets()
     }
 
@@ -143,7 +132,9 @@ export class ProjectStore {
             this.initializeImageSetStores(paths)
             this.setActiveImageSet(this.imageSetPaths[0])
         } else {
-            this.errorMessage = 'Warning: No image set directories found in ' + path.basename(dirName) + '.'
+            this.notificationStore.setErrorMessage(
+                'Warning: No image set directories found in ' + path.basename(dirName) + '.',
+            )
         }
     }
 
@@ -230,14 +221,14 @@ export class ProjectStore {
 
     // Sets warnings on the active image set
     // Currently just raises an error if no images are found.
-    @action public setImageSetWarnings = (): void => {
+    public setImageSetWarnings = (): void => {
         if (this.activeImageSetPath != null) {
             const imageStore = this.activeImageSetStore.imageStore
             if (imageStore.imageData != null) {
                 if (imageStore.imageData.markerNames.length == 0) {
                     let msg = 'Warning: No tiffs found in ' + path.basename(this.activeImageSetPath) + '.'
                     msg += ' Do you wish to remove it from the list of image sets?'
-                    this.removeMessage = msg
+                    this.notificationStore.setRemoveMessage(msg)
                 }
             }
         }
@@ -263,10 +254,6 @@ export class ProjectStore {
             const previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
         }
-    }
-
-    @action public setClearSegmentationRequested = (value: boolean): void => {
-        this.clearSegmentationRequested = value
     }
 
     // Gets called when the user clicks the 'Clear Segmentation' button and approves.
@@ -302,15 +289,6 @@ export class ProjectStore {
         const segmentIds = segmentationStore.segmentsInRange(feature, min, max)
         if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
     }
-
-    @action public clearErrorMessage = (): void => {
-        this.errorMessage = null
-    }
-
-    @action public clearRemoveMessage = (): void => {
-        this.removeMessage = null
-    }
-
     @action public setWindowDimensions = (width: number, height: number): void => {
         this.windowWidth = width
         this.windowHeight = height
@@ -318,19 +296,6 @@ export class ProjectStore {
 
     @action public setPlotInMainWindow = (inWindow: boolean): void => {
         this.plotInMainWindow = inWindow
-    }
-
-    @action public setNumToExport = (value: number): void => {
-        this.numToExport = value
-    }
-
-    @action public incrementNumExported = (): void => {
-        this.numExported += 1
-        // If we've exported all files, mark done.
-        if (this.numExported >= this.numToExport) {
-            this.numToExport = 0
-            this.numExported = 0
-        }
     }
 
     // Export project level summary stats to fcs if fcs is true or csv if fcs is false.
@@ -344,7 +309,7 @@ export class ProjectStore {
         recaculateExistingFeatures: boolean,
     ): void => {
         // Setting num to export so we can have a loading bar.
-        this.setNumToExport(this.imageSetPaths.length)
+        this.notificationStore.setNumToExport(this.imageSetPaths.length)
         this.exportImageSetFeatures(
             this.imageSetPaths,
             dirName,
@@ -402,7 +367,7 @@ export class ProjectStore {
                                             }
                                         }
                                         // Mark this set of files as loaded for loading bar.
-                                        this.incrementNumExported()
+                                        this.notificationStore.incrementNumExported()
                                         this.clearImageSetData(curDir)
                                         // If there are more imageSets to process, recurse and process the next one.
                                         if (remainingImageSetPaths.length > 1) {
@@ -422,7 +387,7 @@ export class ProjectStore {
                     )
                 } else {
                     // Mark as success if we're not going to export it
-                    this.incrementNumExported()
+                    this.notificationStore.incrementNumExported()
                     this.clearImageSetData(curDir)
                     // If there are more imageSets to process, recurse and process the next one.
                     if (remainingImageSetPaths.length > 1) {
@@ -546,10 +511,6 @@ export class ProjectStore {
         writeToCSV(projectPopulationArray, filePath, null)
     }
 
-    @action setCheckImportingSegmentFeaturesClearDuplicates = (value: boolean): void => {
-        this.checkImportingSegmentFeaturesClearDuplicates = value
-    }
-
     @action setImportingSegmentFeaturesValues = (filePath: string | null, forProject: boolean | null): void => {
         // Set the importing features values
         this.importingSegmentFeaturesPath = filePath
@@ -560,7 +521,7 @@ export class ProjectStore {
             this.importSegmentFeatures(this.preferencesStore.clearDuplicateSegmentFeatures)
         } else if (filePath != null && forProject != null) {
             // Otherwise, ask the user if we should clear duplicates before importing
-            this.setCheckImportingSegmentFeaturesClearDuplicates(true)
+            this.notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(true)
         }
     }
 
@@ -578,10 +539,26 @@ export class ProjectStore {
 
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
+        const validImageSets = this.imageSetPaths.map((p) => path.basename(p))
         const imageSet = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
-        const onImportComplete = (result: SegmentFeatureImporterResult): void => {
-            if (result.error) {
-                this.errorMessage = result.error
+        const onImportComplete = (result: SegmentFeatureImporterResult | SegmentFeatureImporterError): void => {
+            if ('error' in result) {
+                this.notificationStore.setErrorMessage(result.error)
+            } else {
+                let message =
+                    'Successfully imported ' +
+                    result.importedFeatures +
+                    ' out of ' +
+                    result.totalFeatures +
+                    ' features.'
+                if (result.invalidFeatureNames) {
+                    message +=
+                        '\nCould not import some of the following features: ' + result.invalidFeatureNames.join(', ')
+                }
+                if (result.invalidImageSets) {
+                    message += '\nCould not find the following image sets: ' + result.invalidImageSets.join(', ')
+                }
+                this.notificationStore.setInfoMessage(message)
             }
             this.setImportingSegmentFeaturesValues(null, null)
             this.activeImageSetStore.segmentationStore.refreshAvailableFeatures()
@@ -589,12 +566,20 @@ export class ProjectStore {
         if (basePath && filePath) {
             // Launch a worker to import segment features from the CSV.
             importSegmentFeatureCSV(
-                { basePath: basePath, filePath: filePath, imageSet: imageSet, clearDuplicates: clearDuplicates },
+                {
+                    basePath: basePath,
+                    filePath: filePath,
+                    validImageSets: validImageSets,
+                    imageSet: imageSet,
+                    clearDuplicates: clearDuplicates,
+                },
                 onImportComplete,
             )
         } else {
             // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
-            this.errorMessage = 'Could not import segment features. Unable to find database path or file path.'
+            this.notificationStore.setErrorMessage(
+                'Could not import segment features. Unable to find database path or file path.',
+            )
             this.setImportingSegmentFeaturesValues(null, null)
         }
     }
@@ -618,8 +603,18 @@ export class ProjectStore {
     public recalculateSegmentFeatures = (recalculate: boolean, remember: boolean): void => {
         this.preferencesStore.setRecalculateSegmentFeatures(recalculate)
         this.preferencesStore.setRememberRecalculateSegmentFeatures(remember)
+        const segmentationStore = this.activeImageSetStore.segmentationStore
         // When calling calculate from this method, the user has already intervened so we don't need to check
         // We do need to pass along whether or not we're recalculating or using previously calculated data though.
-        this.activeImageSetStore.segmentationStore.calculateSegmentFeatures(false, recalculate)
+        segmentationStore.calculateSegmentFeatures(false, recalculate)
+    }
+
+    public calculateSegmentFeaturesFromMenu = (): void => {
+        const segmentationStore = this.activeImageSetStore.segmentationStore
+        segmentationStore.calculateSegmentFeatures(false, true)
+        when(
+            () => !segmentationStore.segmentFeaturesLoading,
+            () => this.notificationStore.setInfoMessage('Segment intensities have been successfully calculated.'),
+        )
     }
 }

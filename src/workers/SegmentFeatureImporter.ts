@@ -4,14 +4,24 @@ export interface SegmentFeatureImporterInput {
     basePath: string
     filePath: string
     clearDuplicates: boolean
+    validImageSets: string[]
     imageSet?: string
 }
 
 export interface SegmentFeatureImporterResult {
-    error?: string
+    importedFeatures: number
+    totalFeatures: number
+    invalidFeatureNames: string[]
+    invalidImageSets: string[]
 }
 
-export type OnSegmentFeatureImporterComplete = (data: SegmentFeatureImporterResult) => void
+export interface SegmentFeatureImporterError {
+    error: string
+}
+
+export type OnSegmentFeatureImporterComplete = (
+    data: SegmentFeatureImporterResult | SegmentFeatureImporterError,
+) => void
 
 class SegmentFeatureImporter {
     private worker: Worker
