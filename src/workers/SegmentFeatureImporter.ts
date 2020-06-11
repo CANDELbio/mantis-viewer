@@ -5,7 +5,7 @@ export interface SegmentFeatureImporterInput {
     filePath: string
     clearDuplicates: boolean
     validImageSets: string[]
-    imageSet?: string
+    imageSetName?: string
 }
 
 export interface SegmentFeatureImporterResult {

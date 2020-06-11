@@ -14,9 +14,14 @@ export class SegmentFeatureGenerator {
     private numFeatures: number
     private numFeaturesComplete: number
     // Callback function to call with the built ImageData once it has been loaded.
-    private onReady: () => void
+    private onReady: (imageSetName: string) => void
 
-    public constructor(basePath: string, imageSetName: string, recalculateFeatures: boolean, onReady: () => void) {
+    public constructor(
+        basePath: string,
+        imageSetName: string,
+        recalculateFeatures: boolean,
+        onReady: (imageSetName: string) => void,
+    ) {
         this.db = new Db(basePath)
         this.imageSetName = imageSetName
         this.recalculateFeatures = recalculateFeatures
@@ -28,7 +33,7 @@ export class SegmentFeatureGenerator {
     private checkIfComplete(): void {
         // If the number of markers loaded is equal to the total number of markers we are done!
         if (this.numFeaturesComplete == this.numFeatures) {
-            this.onReady()
+            this.onReady(this.imageSetName)
         }
     }
 

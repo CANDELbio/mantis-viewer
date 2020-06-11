@@ -43,15 +43,18 @@ export function writeToJSON(object: any, filename: string): void {
 }
 
 export function exportMarkerIntensities(filename: string, imageSetStore: ImageSetStore): void {
+    const projectStore = imageSetStore.projectStore
+    const imageSetName = imageSetStore.imageSetName()
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
-    const segmentationStore = imageSetStore.segmentationStore
-    const segmentationData = segmentationStore.segmentationData
     const populationStore = imageSetStore.populationStore
+    const segmentationStore = imageSetStore.segmentationStore
+    const segmentFeatureStore = projectStore.segmentFeatureStore
+    const segmentationData = segmentationStore.segmentationData
 
-    if (imageData != null && segmentationData != null) {
-        const features = segmentationStore.availableFeatures
-        const featureValues = segmentationStore.getValues(features)
+    if (imageSetName && imageData != null && segmentationData != null) {
+        const features = segmentFeatureStore.featuresAvailable(imageSetName)
+        const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const data = [] as string[][]
 
         // Generate the header
@@ -94,14 +97,16 @@ export function exportMarkerIntensities(filename: string, imageSetStore: ImageSe
 
 export function exportToFCS(filePath: string, imageSetStore: ImageSetStore, segmentIds?: number[]): void {
     const projectStore = imageSetStore.projectStore
+    const imageSetName = imageSetStore.imageSetName()
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
     const segmentationStore = imageSetStore.segmentationStore
+    const segmentFeatureStore = projectStore.segmentFeatureStore
     const segmentationData = segmentationStore.segmentationData
 
-    if (imageData != null && segmentationData != null) {
-        const features = segmentationStore.availableFeatures
-        const featureValues = segmentationStore.getValues(features)
+    if (imageSetName && imageData != null && segmentationData != null) {
+        const features = segmentFeatureStore.featuresAvailable(imageSetName)
+        const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const data = [] as number[][]
         // Iterate through the segments and calculate the intensity for each marker
         const indexMap = segmentationData.segmentIndexMap
@@ -192,7 +197,7 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
 // The third level is keyed on the segmentId
 export function parseSegmentDataCSV(
     filePath: string,
-    imageSet?: string,
+    imageSetName?: string,
 ): {
     data: Record<string, Record<string, Record<number, number>>>
     info: { totalFeatures: number; validFeatures: number; invalidFeatureNames: string[] }
@@ -208,10 +213,10 @@ export function parseSegmentDataCSV(
     if (header) {
         // If imageSet is included we'll use that, otherwise we get it from the 0 index column in the CSV
         // In this case we offset the other indexes by 1.
-        const indexOffset = imageSet ? 0 : 1
+        const indexOffset = imageSetName ? 0 : 1
         const features = header?.slice(1 + indexOffset)
         for (const row of records) {
-            const curImageSet = imageSet ? imageSet : row[0]
+            const curImageSet = imageSetName ? imageSetName : row[0]
             const curSegmentId = parseInt(row[0 + indexOffset])
             const curValues = row.slice(1 + indexOffset).map((v) => parseFloat(v))
             if (!(curImageSet in cellData)) cellData[curImageSet] = {}

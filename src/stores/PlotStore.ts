@@ -16,53 +16,63 @@ export class PlotStore {
 
     // Regenerates plot data when image store, population store, or plot store data has changed
     private autoGeneratePlotData = autorun(() => {
-        if (this.imageSetStore == this.imageSetStore.projectStore.activeImageSetStore) {
-            const imageStore = this.imageSetStore.imageStore
-            const segmentationStore = this.imageSetStore.segmentationStore
-            const populationStore = this.imageSetStore.populationStore
-            const settingStore = this.imageSetStore.projectStore.settingStore
+        const projectStore = this.imageSetStore.projectStore
+        if (this.imageSetStore == projectStore.activeImageSetStore) {
+            const imageSetName = this.imageSetStore.imageSetName()
+            if (imageSetName) {
+                const imageStore = this.imageSetStore.imageStore
+                const segmentationStore = this.imageSetStore.segmentationStore
+                const segmentFeatureStore = projectStore.segmentFeatureStore
+                const populationStore = this.imageSetStore.populationStore
+                const settingStore = this.imageSetStore.projectStore.settingStore
 
-            // Kind of hackey. Probably a better way to do this
-            const dataAvailable = settingStore.selectedPlotFeatures.every((m: string) => {
-                return m in segmentationStore.featureValues && m in segmentationStore.featureMinMaxes
-            })
+                // Kind of hackey. Probably a better way to do this
+                const dataAvailable = settingStore.selectedPlotFeatures.every((m: string) => {
+                    return (
+                        m in segmentFeatureStore.featureValues(imageSetName) &&
+                        m in segmentFeatureStore.featureMinMaxes(imageSetName)
+                    )
+                })
 
-            // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
-            const selectedPlotFeaturesInImageSet = settingStore.selectedPlotFeatures.every((m: string) => {
-                return segmentationStore.availableFeatures.includes(m)
-            })
+                // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
+                const selectedPlotFeaturesInImageSet = settingStore.selectedPlotFeatures.every((m: string) => {
+                    return segmentFeatureStore.featuresAvailable(imageSetName).includes(m)
+                })
 
-            if (imageStore && populationStore && dataAvailable && selectedPlotFeaturesInImageSet) {
-                const loadHistogram =
-                    settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
-                const loadScatter = settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
-                const loadContour = settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
-                const loadHeatmap = settingStore.plotType == 'heatmap'
-                if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
-                    if (
-                        segmentationStore.segmentationData != null &&
-                        !segmentationStore.segmentationData.errorMessage
-                    ) {
-                        const plotData = generatePlotData(
-                            settingStore.selectedPlotFeatures,
-                            segmentationStore.featureValues,
-                            segmentationStore.featureMinMaxes,
-                            segmentationStore.segmentationData,
-                            settingStore.plotStatistic,
-                            settingStore.plotType,
-                            settingStore.plotTransform,
-                            settingStore.transformCoefficient,
-                            settingStore.plotNormalization,
-                            populationStore.selectedPopulations,
-                            settingStore.plotDotSize,
-                        )
-                        if (plotData != null) this.setPlotData(plotData)
+                if (imageStore && populationStore && dataAvailable && selectedPlotFeaturesInImageSet) {
+                    const loadHistogram =
+                        settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
+                    const loadScatter =
+                        settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
+                    const loadContour =
+                        settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
+                    const loadHeatmap = settingStore.plotType == 'heatmap'
+                    if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
+                        if (
+                            segmentationStore.segmentationData != null &&
+                            !segmentationStore.segmentationData.errorMessage
+                        ) {
+                            const plotData = generatePlotData(
+                                settingStore.selectedPlotFeatures,
+                                segmentFeatureStore.featureValues(imageSetName),
+                                segmentFeatureStore.featureMinMaxes(imageSetName),
+                                segmentationStore.segmentationData,
+                                settingStore.plotStatistic,
+                                settingStore.plotType,
+                                settingStore.plotTransform,
+                                settingStore.transformCoefficient,
+                                settingStore.plotNormalization,
+                                populationStore.selectedPopulations,
+                                settingStore.plotDotSize,
+                            )
+                            if (plotData != null) this.setPlotData(plotData)
+                        }
+                    } else {
+                        this.clearPlotData()
                     }
                 } else {
                     this.clearPlotData()
                 }
-            } else {
-                this.clearPlotData()
             }
         }
     })

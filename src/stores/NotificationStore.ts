@@ -20,6 +20,10 @@ export class NotificationStore {
 
     @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
 
+    public constructor() {
+        this.initialize()
+    }
+
     @action public initialize = (): void => {
         this.clearSegmentationRequested = false
         this.numToExport = 0

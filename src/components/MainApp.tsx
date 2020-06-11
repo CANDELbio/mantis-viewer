@@ -128,6 +128,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const imageSetStore = this.props.projectStore.activeImageSetStore
         const imageStore = imageSetStore.imageStore
         const segmentationStore = imageSetStore.segmentationStore
+        const segmentFeatureStore = projectStore.segmentFeatureStore
         const populationStore = imageSetStore.populationStore
         const plotStore = imageSetStore.plotStore
         const settingStore = projectStore.settingStore
@@ -246,7 +247,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <div className="grey-card plot-controls">
                             <PlotControls
                                 windowWidth={projectStore.windowWidth}
-                                features={segmentationStore.availableFeatures}
+                                features={segmentFeatureStore.activeAvailableFeatures}
                                 selectedPlotFeatures={settingStore.selectedPlotFeatures}
                                 setSelectedPlotFeatures={settingStore.setSelectedPlotFeatures}
                                 selectedStatistic={settingStore.plotStatistic}
@@ -305,7 +306,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         const imageDataLoading = imageStore.imageDataLoading
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
-        const segmentFeaturesLoading = segmentationStore.segmentFeaturesLoading
+        const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
         const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
 
         const numExported = notificationStore.numExported

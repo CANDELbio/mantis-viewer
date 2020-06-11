@@ -58,10 +58,6 @@ export class ImageStore {
         this.imageDataLoading = false
     }
 
-    public imageSetName = (): string | void => {
-        if (this.selectedDirectory) return path.basename(this.selectedDirectory)
-    }
-
     @action public setImageDataLoading = (status: boolean): void => {
         this.imageDataLoading = status
     }

@@ -4,6 +4,8 @@ import { SegmentationStore } from './SegmentationStore'
 import { PlotStore } from './PlotStore'
 import { PopulationStore } from './PopulationStore'
 
+import * as path from 'path'
+
 export class ImageSetStore {
     public constructor(projectStore: ProjectStore) {
         this.projectStore = projectStore
@@ -18,4 +20,9 @@ export class ImageSetStore {
     public segmentationStore: SegmentationStore
     public plotStore: PlotStore
     public populationStore: PopulationStore
+
+    public imageSetName = (): string | void => {
+        const selectedImageDirectory = this.imageStore.selectedDirectory
+        if (selectedImageDirectory) return path.basename(selectedImageDirectory)
+    }
 }

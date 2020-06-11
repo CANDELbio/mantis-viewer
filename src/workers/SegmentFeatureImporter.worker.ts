@@ -14,12 +14,12 @@ function importSegmentFeaturesFromCSV(
     basePath: string,
     filePath: string,
     validImageSets: string[],
-    imageSet: string | undefined,
+    imageSetName: string | undefined,
     clearDuplicates: boolean,
 ): SegmentFeatureImporterResult {
     const db = new Db(basePath)
     const invalidImageSets: string[] = []
-    const parsed = parseSegmentDataCSV(filePath, imageSet)
+    const parsed = parseSegmentDataCSV(filePath, imageSetName)
     const segmentData = parsed.data
     const segmentInfo = parsed.info
     for (const imageSet of Object.keys(segmentData)) {
@@ -52,7 +52,7 @@ ctx.addEventListener(
                 input.basePath,
                 input.filePath,
                 input.validImageSets,
-                input.imageSet,
+                input.imageSetName,
                 input.clearDuplicates,
             )
         } catch (err) {

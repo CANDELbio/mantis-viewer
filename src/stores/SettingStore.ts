@@ -34,6 +34,7 @@ interface SettingStoreData {
     plotType: PlotType | null
     plotNormalization: PlotNormalization | null
     plotDotSize: number
+    plotAllImageSets: boolean
     segmentationFillAlpha: number | null
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
@@ -81,6 +82,7 @@ export class SettingStore {
     @observable public plotType: PlotType
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
+    @observable public plotAllImageSets: boolean
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -114,6 +116,7 @@ export class SettingStore {
         this.plotType = PlotTypeOptions[0].value as PlotType
         this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.plotDotSize = DefaultDotSize
+        this.plotAllImageSets = false
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -150,6 +153,10 @@ export class SettingStore {
 
     @action public setPlotDotSize = (size: number): void => {
         this.plotDotSize = size
+    }
+
+    @action public setPlotAllImageSets = (value: boolean): void => {
+        this.plotAllImageSets = value
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -275,6 +282,7 @@ export class SettingStore {
                 plotType: this.plotType,
                 plotNormalization: this.plotNormalization,
                 plotDotSize: this.plotDotSize,
+                plotAllImageSets: this.plotAllImageSets,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -310,6 +318,7 @@ export class SettingStore {
                     if (importingSettings.plotNormalization)
                         this.plotNormalization = importingSettings.plotNormalization
                     if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
+                    if (importingSettings.plotAllImageSets) this.plotAllImageSets = importingSettings.plotAllImageSets
                     if (importingSettings.segmentationFillAlpha)
                         this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                     if (importingSettings.segmentationOutlineAlpha)

@@ -23,6 +23,7 @@ import {
     importSegmentFeatureCSV,
     SegmentFeatureImporterError,
 } from '../workers/SegmentFeatureImporter'
+import { SegmentFeatureStore } from './SegmentFeatureStore'
 
 export class ProjectStore {
     public appVersion: string
@@ -36,6 +37,7 @@ export class ProjectStore {
 
     @observable.ref public activeImageSetStore: ImageSetStore
 
+    @observable.ref public segmentFeatureStore: SegmentFeatureStore
     @observable.ref public settingStore: SettingStore
     @observable.ref public preferencesStore: PreferencesStore
     @observable.ref public notificationStore: NotificationStore
@@ -76,11 +78,15 @@ export class ProjectStore {
         this.notificationStore = new NotificationStore()
 
         this.plotInMainWindow = true
+
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
         this.nullImageSet = new ImageSetStore(this)
         this.activeImageSetStore = this.nullImageSet
+
+        // Initialize the segment feature store (for storing segment/cell features and interacting with the DB)
+        this.segmentFeatureStore = new SegmentFeatureStore(this)
 
         // Keep track of importing segment features
         this.importingSegmentFeaturesPath = null
@@ -284,10 +290,12 @@ export class ProjectStore {
     @action public addPopulationFromRange = (min: number, max: number): void => {
         const settingStore = this.settingStore
         const populationStore = this.activeImageSetStore.populationStore
-        const segmentationStore = this.activeImageSetStore.segmentationStore
         const feature = settingStore.selectedPlotFeatures[0]
-        const segmentIds = segmentationStore.segmentsInRange(feature, min, max)
-        if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        if (activeImageSetName) {
+            const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, feature, min, max)
+            if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+        }
     }
     @action public setWindowDimensions = (width: number, height: number): void => {
         this.windowWidth = width
@@ -346,14 +354,17 @@ export class ProjectStore {
                         (): boolean => !segmentationStore.segmentationDataLoading,
                         (): void => {
                             if (calculateFeatures) {
-                                segmentationStore.calculateSegmentFeatures(false, recalculateExistingFeatures)
+                                this.segmentFeatureStore.calculateSegmentFeatures(
+                                    imageSetStore,
+                                    false,
+                                    recalculateExistingFeatures,
+                                )
                             }
-                            when(
-                                (): boolean => !segmentationStore.segmentFeaturesLoading,
-                                (): void => {
-                                    const selectedDirectory = imageStore.selectedDirectory
-                                    if (selectedDirectory) {
-                                        const imageSetName = path.basename(selectedDirectory)
+                            const imageSetName = imageSetStore.imageSetName()
+                            if (imageSetName) {
+                                when(
+                                    (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
+                                    (): void => {
                                         if (populations && fcs) {
                                             exportPopulationsToFCS(dirName, imageSetStore, imageSetName)
                                         } else {
@@ -380,9 +391,9 @@ export class ProjectStore {
                                                 recalculateExistingFeatures,
                                             )
                                         }
-                                    }
-                                },
-                            )
+                                    },
+                                )
+                            }
                         },
                     )
                 } else {
@@ -540,7 +551,7 @@ export class ProjectStore {
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
         const validImageSets = this.imageSetPaths.map((p) => path.basename(p))
-        const imageSet = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
+        const imageSetName = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
         const onImportComplete = (result: SegmentFeatureImporterResult | SegmentFeatureImporterError): void => {
             if ('error' in result) {
                 this.notificationStore.setErrorMessage(result.error)
@@ -561,7 +572,7 @@ export class ProjectStore {
                 this.notificationStore.setInfoMessage(message)
             }
             this.setImportingSegmentFeaturesValues(null, null)
-            this.activeImageSetStore.segmentationStore.refreshAvailableFeatures()
+            if (imageSetName) this.segmentFeatureStore.refreshAvailableFeatures(imageSetName)
         }
         if (basePath && filePath) {
             // Launch a worker to import segment features from the CSV.
@@ -570,7 +581,7 @@ export class ProjectStore {
                     basePath: basePath,
                     filePath: filePath,
                     validImageSets: validImageSets,
-                    imageSet: imageSet,
+                    imageSetName: imageSetName,
                     clearDuplicates: clearDuplicates,
                 },
                 onImportComplete,
@@ -592,7 +603,7 @@ export class ProjectStore {
         this.preferencesStore.setCalculateSegmentFeatures(calculate)
         this.preferencesStore.setRememberCalculateSegmentFeatures(remember)
         if (calculate) {
-            this.activeImageSetStore.segmentationStore.calculateSegmentFeaturesWithPreferences()
+            this.segmentFeatureStore.calculateSegmentFeaturesWithPreferences(this.activeImageSetStore)
         }
     }
 
@@ -603,18 +614,19 @@ export class ProjectStore {
     public recalculateSegmentFeatures = (recalculate: boolean, remember: boolean): void => {
         this.preferencesStore.setRecalculateSegmentFeatures(recalculate)
         this.preferencesStore.setRememberRecalculateSegmentFeatures(remember)
-        const segmentationStore = this.activeImageSetStore.segmentationStore
         // When calling calculate from this method, the user has already intervened so we don't need to check
         // We do need to pass along whether or not we're recalculating or using previously calculated data though.
-        segmentationStore.calculateSegmentFeatures(false, recalculate)
+        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, recalculate)
     }
 
     public calculateSegmentFeaturesFromMenu = (): void => {
-        const segmentationStore = this.activeImageSetStore.segmentationStore
-        segmentationStore.calculateSegmentFeatures(false, true)
-        when(
-            () => !segmentationStore.segmentFeaturesLoading,
-            () => this.notificationStore.setInfoMessage('Segment intensities have been successfully calculated.'),
-        )
+        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, true)
+        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        if (activeImageSetName) {
+            when(
+                () => !this.segmentFeatureStore.featuresLoading(activeImageSetName),
+                () => this.notificationStore.setInfoMessage('Segment intensities have been successfully calculated.'),
+            )
+        }
     }
 }
