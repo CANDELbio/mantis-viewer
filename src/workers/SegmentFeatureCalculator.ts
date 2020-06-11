@@ -1,6 +1,5 @@
 import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureCalculator.worker')
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { MinMax } from '../interfaces/ImageInterfaces'
 
 export interface SegmentFeatureCalculatorInput {
     jobId?: string
@@ -19,7 +18,6 @@ export interface SegmentFeatureCalculatorResult extends SegmentFeatureResult {
 export interface SegmentFeatureResult {
     statistic: PlotStatistic
     statisticMap: Record<string, number>
-    minMax: MinMax
     markerName: string
 }
 

@@ -174,17 +174,27 @@ export class SegmentFeatureStore {
                 refreshedValues[feature] = currentValues[feature]
             } else {
                 if (this.db) {
-                    refreshedValues[feature] = this.db.selectValues(imageSetName, feature)
+                    // If no values are returned, don't set them.
+                    // Added this because setFeatureStatistics was getting called immediately
+                    // when the active image set changed. At this point segment features
+                    // hadn't been generated yet, so no values were being returned.
+                    // Then these were being stored, so the plot was empty until the selected
+                    // features were cleared.
+                    // Feels a little hackey. Could be worth finding a more elegant solution later.
+                    const values = this.db.selectValues(imageSetName, feature)
+                    if (Object.keys(values).length > 0) refreshedValues[feature] = values
                 }
             }
             if (currentMinMaxes && feature in currentMinMaxes) {
                 refreshedMinMaxes[feature] = currentMinMaxes[feature]
             } else {
                 if (this.db) {
-                    refreshedMinMaxes[feature] = this.db.minMaxValues(imageSetName, feature)
+                    const minMaxes = this.db.minMaxValues(imageSetName, feature)
+                    if (Object.keys(minMaxes).length > 0) refreshedMinMaxes[feature] = minMaxes
                 }
             }
         }
+
         set(this.values, imageSetName, refreshedValues)
         set(this.minMaxes, imageSetName, refreshedMinMaxes)
     }

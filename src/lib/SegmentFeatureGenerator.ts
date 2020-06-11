@@ -46,7 +46,9 @@ export class SegmentFeatureGenerator {
         return markerName + ' ' + statistic.charAt(0).toUpperCase() + statistic.slice(1)
     }
 
-    // TODO: Move this to job now that db in worker threads is working.
+    // Don't move this to a worker thread.
+    // Parallel opening or writing to a SQLite database leads to corruption
+    // (I tried it...)
     private storeStatisticData(data: SegmentFeatureResult): void {
         const dataMap = data.statisticMap
         const feature = this.featureName(data.markerName, data.statistic)

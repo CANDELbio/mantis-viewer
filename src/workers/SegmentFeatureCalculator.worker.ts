@@ -25,11 +25,10 @@ function medianPixelIntensity(tiffData: Float32Array | Uint16Array | Uint8Array,
 }
 
 function generateStatisticMap(
-    marker: string,
     tiffData: Float32Array | Uint16Array | Uint8Array,
     segmentIndexMap: Record<number, number[]>,
     statistic: PlotStatistic,
-): { statisticMap: Record<string, number>; minMax: { min: number | null; max: number | null } } {
+): Record<string, number> {
     let min: number | null = null
     let max: number | null = null
     const statisticMap: Record<number, number> = {}
@@ -49,24 +48,18 @@ function generateStatisticMap(
             if (curIntensity > max) max = curIntensity
         }
     }
-    return { statisticMap: statisticMap, minMax: { min: min, max: max } }
+    return statisticMap
 }
 
 ctx.addEventListener(
     'message',
     (message) => {
         const data: SegmentFeatureCalculatorInput = message.data
-        const { statisticMap, minMax } = generateStatisticMap(
-            data.marker,
-            data.tiffData,
-            data.segmentIndexMap,
-            data.statistic,
-        )
+        const statisticMap = generateStatisticMap(data.tiffData, data.segmentIndexMap, data.statistic)
         ctx.postMessage({
             jobId: data.jobId,
             statistic: data.statistic,
             statisticMap: statisticMap,
-            minMax: minMax,
             markerName: data.marker,
         })
     },

@@ -25,54 +25,53 @@ export class PlotStore {
                 const segmentFeatureStore = projectStore.segmentFeatureStore
                 const populationStore = this.imageSetStore.populationStore
                 const settingStore = this.imageSetStore.projectStore.settingStore
+                const selectedPlotFeatures = settingStore.selectedPlotFeatures
 
-                // Kind of hackey. Probably a better way to do this
-                const dataAvailable = settingStore.selectedPlotFeatures.every((m: string) => {
-                    return (
-                        m in segmentFeatureStore.featureValues(imageSetName) &&
-                        m in segmentFeatureStore.featureMinMaxes(imageSetName)
-                    )
-                })
+                const featureValues = segmentFeatureStore.featureValues(imageSetName)
+                const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetName)
 
-                // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
-                const selectedPlotFeaturesInImageSet = settingStore.selectedPlotFeatures.every((m: string) => {
-                    return segmentFeatureStore.featuresAvailable(imageSetName).includes(m)
-                })
+                let clearPlotData = true
 
-                if (imageStore && populationStore && dataAvailable && selectedPlotFeaturesInImageSet) {
-                    const loadHistogram =
-                        settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
-                    const loadScatter =
-                        settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
-                    const loadContour =
-                        settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
-                    const loadHeatmap = settingStore.plotType == 'heatmap'
-                    if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
-                        if (
-                            segmentationStore.segmentationData != null &&
-                            !segmentationStore.segmentationData.errorMessage
-                        ) {
-                            const plotData = generatePlotData(
-                                settingStore.selectedPlotFeatures,
-                                segmentFeatureStore.featureValues(imageSetName),
-                                segmentFeatureStore.featureMinMaxes(imageSetName),
-                                segmentationStore.segmentationData,
-                                settingStore.plotStatistic,
-                                settingStore.plotType,
-                                settingStore.plotTransform,
-                                settingStore.transformCoefficient,
-                                settingStore.plotNormalization,
-                                populationStore.selectedPopulations,
-                                settingStore.plotDotSize,
-                            )
-                            if (plotData != null) this.setPlotData(plotData)
+                if (featureValues && featureMinMaxes) {
+                    // Since the selected plot markers are global, we need to check if they are actually in the image set before generating data.
+                    const selectedPlotFeaturesInImageSet = selectedPlotFeatures.every((m: string) => {
+                        return segmentFeatureStore.featuresAvailable(imageSetName).includes(m)
+                    })
+
+                    if (imageStore && populationStore && selectedPlotFeaturesInImageSet) {
+                        const loadHistogram =
+                            settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
+                        const loadScatter =
+                            settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
+                        const loadContour =
+                            settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
+                        const loadHeatmap = settingStore.plotType == 'heatmap'
+                        if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
+                            if (
+                                segmentationStore.segmentationData != null &&
+                                !segmentationStore.segmentationData.errorMessage
+                            ) {
+                                const plotData = generatePlotData(
+                                    settingStore.selectedPlotFeatures,
+                                    featureValues,
+                                    featureMinMaxes,
+                                    segmentationStore.segmentationData,
+                                    settingStore.plotStatistic,
+                                    settingStore.plotType,
+                                    settingStore.plotTransform,
+                                    settingStore.transformCoefficient,
+                                    settingStore.plotNormalization,
+                                    populationStore.selectedPopulations,
+                                    settingStore.plotDotSize,
+                                )
+                                if (plotData != null) this.setPlotData(plotData)
+                                clearPlotData = false
+                            }
                         }
-                    } else {
-                        this.clearPlotData()
                     }
-                } else {
-                    this.clearPlotData()
                 }
+
+                if (clearPlotData) this.clearPlotData()
             }
         }
     })
