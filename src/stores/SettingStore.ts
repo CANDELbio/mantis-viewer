@@ -35,6 +35,7 @@ interface SettingStoreData {
     plotNormalization: PlotNormalization | null
     plotDotSize: number
     plotAllImageSets: boolean
+    plotAllFeaturesGenerated: boolean
     segmentationFillAlpha: number | null
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
@@ -83,6 +84,7 @@ export class SettingStore {
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
     @observable public plotAllImageSets: boolean
+    @observable public plotAllFeaturesGenerated: boolean
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -157,6 +159,10 @@ export class SettingStore {
 
     @action public setPlotAllImageSets = (value: boolean): void => {
         this.plotAllImageSets = value
+    }
+
+    @action public setPlotAllFeaturesGenerated = (value: boolean): void => {
+        this.plotAllFeaturesGenerated = value
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -283,6 +289,7 @@ export class SettingStore {
                 plotNormalization: this.plotNormalization,
                 plotDotSize: this.plotDotSize,
                 plotAllImageSets: this.plotAllImageSets,
+                plotAllFeaturesGenerated: this.plotAllFeaturesGenerated,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -319,6 +326,8 @@ export class SettingStore {
                         this.plotNormalization = importingSettings.plotNormalization
                     if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
                     if (importingSettings.plotAllImageSets) this.plotAllImageSets = importingSettings.plotAllImageSets
+                    if (importingSettings.plotAllFeaturesGenerated)
+                        this.plotAllFeaturesGenerated = importingSettings.plotAllFeaturesGenerated
                     if (importingSettings.segmentationFillAlpha)
                         this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                     if (importingSettings.segmentationOutlineAlpha)

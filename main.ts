@@ -319,6 +319,13 @@ function generateMenuTemplate(): any {
                                 mainWindow.webContents.send('recalculate-segment-features-from-menu')
                             },
                         },
+                        {
+                            label: 'Segment intensities for project',
+                            enabled: imageLoaded && segmentationLoaded,
+                            click: (): void => {
+                                mainWindow.webContents.send('calculate-project-segment-features')
+                            },
+                        },
                     ],
                 },
                 {
@@ -679,7 +686,6 @@ ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            title: 'Question',
             message: 'Do you want Mantis to calculate mean and median segment intensities?',
             detail: 'If you select no you will not be able to generate plots until you have loaded your own features.',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
@@ -698,7 +704,6 @@ ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            title: 'Question',
             message:
                 'Segment intensities have been previously calculated for this image set. Do you want to use the previously calculated intensities?',
             detail: 'You can manually refresh segment intensities from the main menu at any time',
@@ -718,7 +723,6 @@ ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            title: 'Question',
             message: 'Do you wish to delete any existing features with overlapping names before importing?',
             detail: 'Choosing no can lead to duplicate data',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
@@ -731,6 +735,24 @@ ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
                     value.response == 0,
                     value.checkboxChecked,
                 )
+        })
+    }
+})
+
+ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            message: 'Do you wish to calculate segment intensities for all image sets for the plot?',
+            detail:
+                'If you select no you will not be able to view data for all image sets on the plot. If you change your mind you can manually calculate the intensities from the menu.',
+        }
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue): void => {
+            if (value.response == 0) {
+                if (mainWindow != null) mainWindow.webContents.send('calculate-project-segment-features')
+            }
         })
     }
 })
@@ -748,6 +770,7 @@ ipcMain.on(
         normalization: string,
         size: number,
         coefficient: number,
+        plotAllImageSets: boolean,
         plotData: any,
     ): void => {
         if (plotWindow != null)
@@ -761,6 +784,8 @@ ipcMain.on(
                 normalization,
                 size,
                 coefficient,
+                projectLoaded,
+                plotAllImageSets,
                 plotData,
             )
     },
@@ -805,6 +830,10 @@ ipcMain.on('plotWindow-add-population-from-range', (event: Electron.Event, min: 
 
 ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: number): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-plot-coefficient', coefficient)
+})
+
+ipcMain.on('plotWindow-set-plot-all-image-sets', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-all-image-sets', value)
 })
 
 // Functions to relay data from the mainWindow to the preferencesWindow

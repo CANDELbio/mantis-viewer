@@ -317,7 +317,7 @@ export class ProjectStore {
         recaculateExistingFeatures: boolean,
     ): void => {
         // Setting num to export so we can have a loading bar.
-        this.notificationStore.setNumToExport(this.imageSetPaths.length)
+        this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         this.exportImageSetFeatures(
             this.imageSetPaths,
             dirName,
@@ -378,7 +378,7 @@ export class ProjectStore {
                                             }
                                         }
                                         // Mark this set of files as loaded for loading bar.
-                                        this.notificationStore.incrementNumExported()
+                                        this.notificationStore.incrementNumCalculated()
                                         this.clearImageSetData(curDir)
                                         // If there are more imageSets to process, recurse and process the next one.
                                         if (remainingImageSetPaths.length > 1) {
@@ -398,7 +398,7 @@ export class ProjectStore {
                     )
                 } else {
                     // Mark as success if we're not going to export it
-                    this.notificationStore.incrementNumExported()
+                    this.notificationStore.incrementNumCalculated()
                     this.clearImageSetData(curDir)
                     // If there are more imageSets to process, recurse and process the next one.
                     if (remainingImageSetPaths.length > 1) {
@@ -628,5 +628,74 @@ export class ProjectStore {
                 () => this.notificationStore.setInfoMessage('Segment intensities have been successfully calculated.'),
             )
         }
+    }
+
+    public setPlotAllImageSets = (value: boolean): void => {
+        if (value && this.preferencesStore.calculateSegmentFeatures && !this.settingStore.plotAllFeaturesGenerated) {
+            this.notificationStore.setCheckCalculateAllFeaturesForPlot(value)
+        }
+        this.settingStore.setPlotAllImageSets(value)
+    }
+
+    public calculateAllSegmentFeatures = (): void => {
+        this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+        this.calculateImageSetFeatures(this.imageSetPaths)
+        when(
+            (): boolean => this.notificationStore.numToCalculate == 0,
+            (): void => this.settingStore.setPlotAllFeaturesGenerated(true),
+        )
+    }
+
+    // TODO: Some duplication here with exportImageSetFeatures. Should DRY it up.
+    private calculateImageSetFeatures = (remainingImageSetPaths: string[]): void => {
+        const curDir = remainingImageSetPaths[0]
+        this.loadImageStoreData(curDir)
+        const imageSetStore = this.imageSets[curDir]
+        const imageStore = imageSetStore.imageStore
+        const segmentationStore = imageSetStore.segmentationStore
+        const recalculateExistingFeatures = this.preferencesStore.recalculateSegmentFeatures
+        when(
+            (): boolean => !imageStore.imageDataLoading,
+            (): void => {
+                // If we don't have segmentation, then skip this one.
+                if (segmentationStore.selectedSegmentationFile) {
+                    // TODO: Check with Lacey what the desired behavior should be here
+                    // Maybe warn/ask the user if we should ca
+                    when(
+                        (): boolean => !segmentationStore.segmentationDataLoading,
+                        (): void => {
+                            this.segmentFeatureStore.calculateSegmentFeatures(
+                                imageSetStore,
+                                false,
+                                recalculateExistingFeatures,
+                            )
+                            const imageSetName = imageSetStore.imageSetName()
+                            if (imageSetName) {
+                                when(
+                                    (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
+                                    (): void => {
+                                        // Mark this set of files as loaded for loading bar.
+                                        this.notificationStore.incrementNumCalculated()
+                                        this.clearImageSetData(curDir)
+                                        // If there are more imageSets to process, recurse and process the next one.
+                                        if (remainingImageSetPaths.length > 1) {
+                                            this.calculateImageSetFeatures(remainingImageSetPaths.slice(1))
+                                        }
+                                    },
+                                )
+                            }
+                        },
+                    )
+                } else {
+                    // Mark as success if we're not going to export it
+                    this.notificationStore.incrementNumCalculated()
+                    this.clearImageSetData(curDir)
+                    // If there are more imageSets to process, recurse and process the next one.
+                    if (remainingImageSetPaths.length > 1) {
+                        this.calculateImageSetFeatures(remainingImageSetPaths.slice(1))
+                    }
+                }
+            },
+        )
     }
 }

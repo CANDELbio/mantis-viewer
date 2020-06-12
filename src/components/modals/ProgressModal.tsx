@@ -2,27 +2,27 @@ import * as React from 'react'
 import { observer } from 'mobx-react'
 import { Modal, ModalHeader, ModalBody, Progress } from 'reactstrap'
 
-export interface ExportModalProps {
-    numExported: number
-    numToExport: number
+export interface ProgressModalProps {
+    numCalculated: number
+    numToCalculate: number
 }
 
 @observer
-export class ExportModal extends React.Component<ExportModalProps, {}> {
-    public constructor(props: ExportModalProps) {
+export class ProgressModal extends React.Component<ProgressModalProps, {}> {
+    public constructor(props: ProgressModalProps) {
         super(props)
     }
 
     public render(): React.ReactNode {
         let modal = null
-        if (this.props.numToExport > 0) {
-            const exportProgress = (this.props.numExported / this.props.numToExport) * 100
+        if (this.props.numToCalculate > 0) {
+            const progress = (this.props.numCalculated / this.props.numToCalculate) * 100
             modal = (
                 <Modal isOpen={true}>
-                    <ModalHeader>Files exporting...</ModalHeader>
+                    <ModalHeader>Working...</ModalHeader>
                     <ModalBody>
                         <div style={{ textAlign: 'center' }}>
-                            <Progress value={exportProgress} />
+                            <Progress value={progress} />
                         </div>
                     </ModalBody>
                 </Modal>

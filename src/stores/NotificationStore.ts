@@ -15,10 +15,15 @@ export class NotificationStore {
     @observable public clearSegmentationRequested: boolean
 
     // Used to track progress when exporting FCS/Stats for whole project
-    @observable public numToExport: number
-    @observable public numExported: number
+    @observable public numToCalculate: number
+    @observable public numCalculated: number
 
+    // Flag to kick up a dialog to check with the user if we want to clear
+    // duplicates before importing segment features.
     @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
+    // Flag to kick up a dialog to check if the user wants to calculate all features
+    // for the plot. Used when toggling plot all image sets.
+    @observable public checkCalculateAllFeaturesForPlot: boolean
 
     public constructor() {
         this.initialize()
@@ -26,9 +31,10 @@ export class NotificationStore {
 
     @action public initialize = (): void => {
         this.clearSegmentationRequested = false
-        this.numToExport = 0
-        this.numExported = 0
+        this.numToCalculate = 0
+        this.numCalculated = 0
         this.checkImportingSegmentFeaturesClearDuplicates = false
+        this.checkCalculateAllFeaturesForPlot = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -60,20 +66,24 @@ export class NotificationStore {
         this.clearSegmentationRequested = value
     }
 
-    @action public setNumToExport = (value: number): void => {
-        this.numToExport = value
+    @action public setNumToCalculate = (value: number): void => {
+        this.numToCalculate = value
     }
 
-    @action public incrementNumExported = (): void => {
-        this.numExported += 1
+    @action public incrementNumCalculated = (): void => {
+        this.numCalculated += 1
         // If we've exported all files, mark done.
-        if (this.numExported >= this.numToExport) {
-            this.numToExport = 0
-            this.numExported = 0
+        if (this.numCalculated >= this.numToCalculate) {
+            this.numToCalculate = 0
+            this.numCalculated = 0
         }
     }
 
     @action setCheckImportingSegmentFeaturesClearDuplicates = (value: boolean): void => {
         this.checkImportingSegmentFeaturesClearDuplicates = value
+    }
+
+    @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {
+        this.checkCalculateAllFeaturesForPlot = value
     }
 }

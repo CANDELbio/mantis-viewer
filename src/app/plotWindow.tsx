@@ -19,6 +19,8 @@ let windowWidth: number | null
 let windowHeight: number | null
 let dotSize: number
 let transformCoefficient: number | null
+let projectLoaded: boolean | null
+let plotAllImageSets: boolean | null
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 const setSelectedPlotFeatures = (features: string[]): void => {
@@ -61,6 +63,10 @@ const setHoveredSegments = (segmentIds: number[]): void => {
     if (segmentIds.length != 0) ipcRenderer.send('plotWindow-set-hovered-segments', segmentIds)
 }
 
+const setPlotAllImageSets = (value: boolean): void => {
+    ipcRenderer.send('plotWindow-set-plot-all-image-sets', value)
+}
+
 function render(): void {
     if (
         featureNames &&
@@ -68,7 +74,9 @@ function render(): void {
         selectedStatistic &&
         selectedTransform &&
         selectedType &&
-        selectedNormalization
+        selectedNormalization &&
+        projectLoaded != null &&
+        plotAllImageSets != null
     ) {
         let plotHeight = null
         if (windowHeight != null) plotHeight = windowHeight - ExternalPlotHeightPadding
@@ -92,6 +100,9 @@ function render(): void {
                         setDotSize={setDotSize}
                         transformCoefficient={transformCoefficient}
                         setTransformCoefficient={setTransformCoefficient}
+                        projectLoaded={projectLoaded}
+                        plotAllImageSets={plotAllImageSets}
+                        setPlotAllImageSets={setPlotAllImageSets}
                     />
                 </div>
                 <Plot
@@ -122,6 +133,8 @@ ipcRenderer.on(
         normalization: string,
         size: number,
         coefficient: number,
+        project: boolean,
+        plotAll: boolean,
         data: any,
     ): void => {
         featureNames = features
@@ -132,6 +145,8 @@ ipcRenderer.on(
         selectedNormalization = normalization
         dotSize = size
         transformCoefficient = coefficient
+        projectLoaded = project
+        plotAllImageSets = plotAll
         plotData = data as PlotData
         render()
     },

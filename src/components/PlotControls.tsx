@@ -6,7 +6,7 @@ import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Input, Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
-import { Slider } from '@blueprintjs/core'
+import { Slider, Checkbox } from '@blueprintjs/core'
 
 import {
     SelectOption,
@@ -39,6 +39,10 @@ interface PlotControlsProps {
     setTransformCoefficient: (x: number) => void
     transformCoefficient: number | null
     setSelectedNormalization: (x: PlotNormalization) => void
+    projectLoaded: boolean
+    plotAllImageSets: boolean
+    setPlotAllImageSets: (x: boolean) => void
+    modalOpen?: boolean
     windowWidth: number | null
 }
 
@@ -56,6 +60,19 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
 
     public state = {
         popoverOpen: false,
+    }
+
+    // Use this special function to turn off the picker whenever the user starts scrolling on the parent table.
+    public static getDerivedStateFromProps(
+        props: PlotControlsProps,
+        state: PlotControlsState,
+    ): PlotControlsState | null {
+        if (props.modalOpen) {
+            return {
+                popoverOpen: false,
+            }
+        }
+        return state
     }
 
     private togglePopover = (): void => this.setState({ popoverOpen: !this.state.popoverOpen })
@@ -213,6 +230,19 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
+        const plotProjectControls = (
+            <div>
+                <Checkbox
+                    checked={this.props.plotAllImageSets}
+                    disabled={!this.props.projectLoaded}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        this.props.setPlotAllImageSets(e.target.checked)
+                    }
+                    label="Plot for whole project"
+                />
+            </div>
+        )
+
         const featureControls = (
             <Select
                 value={selectedFeatureSelectOptions}
@@ -255,6 +285,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                         {normalizationControls}
                         {coefficientControls}
                         {dotControls}
+                        {plotProjectControls}
                     </PopoverBody>
                 </Popover>
             </div>

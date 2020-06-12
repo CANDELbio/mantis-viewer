@@ -177,6 +177,10 @@ ipcRenderer.on('set-plot-coefficient', (event: Electron.Event, coefficient: numb
     projectStore.settingStore.setTransformCoefficient(coefficient)
 })
 
+ipcRenderer.on('set-plot-all-image-sets', (event: Electron.Event, value: boolean): void => {
+    projectStore.setPlotAllImageSets(value)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
     projectStore.activeImageSetStore.populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
 })
@@ -242,6 +246,10 @@ ipcRenderer.on('calculate-segment-features', (event: Electron.Event, calculate: 
     projectStore.continueCalculatingSegmentFeatures(calculate, remember)
 })
 
+ipcRenderer.on('calculate-project-segment-features', (): void => {
+    projectStore.calculateAllSegmentFeatures()
+})
+
 ipcRenderer.on(
     'recalculate-segment-features',
     (event: Electron.Event, recalculate: boolean, remember: boolean): void => {
@@ -260,7 +268,7 @@ Mousetrap.bind(['command+left', 'alt+left'], function (): void {
     if (
         !imageSetStore.imageStore.imageDataLoading &&
         !imageSetStore.segmentationStore.segmentationDataLoading &&
-        projectStore.notificationStore.numToExport == 0
+        projectStore.notificationStore.numToCalculate == 0
     ) {
         projectStore.setPreviousImageSet()
     }
@@ -271,7 +279,7 @@ Mousetrap.bind(['command+right', 'alt+right'], function (): void {
     if (
         !imageSetStore.imageStore.imageDataLoading &&
         !imageSetStore.segmentationStore.segmentationDataLoading &&
-        projectStore.notificationStore.numToExport == 0
+        projectStore.notificationStore.numToCalculate == 0
     ) {
         projectStore.setNextImageSet()
     }
@@ -280,13 +288,12 @@ Mousetrap.bind(['command+right', 'alt+right'], function (): void {
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {
     const imageSet = projectStore.activeImageSetStore
-    const imageStore = imageSet.imageStore
     const plotStore = imageSet.plotStore
     const settingStore = projectStore.settingStore
-    const markerNames = imageStore.imageData ? imageStore.imageData.markerNames : null
+    const featureNames = projectStore.segmentFeatureStore.activeAvailableFeatures
     ipcRenderer.send(
         'mainWindow-set-plot-data',
-        markerNames,
+        Mobx.toJS(featureNames),
         Mobx.toJS(settingStore.selectedPlotFeatures),
         settingStore.plotStatistic,
         settingStore.plotTransform,
@@ -294,6 +301,7 @@ Mobx.autorun((): void => {
         settingStore.plotNormalization,
         settingStore.plotDotSize,
         settingStore.transformCoefficient,
+        settingStore.plotAllImageSets,
         plotStore.plotData,
     )
 })
@@ -423,6 +431,14 @@ Mobx.autorun((): void => {
     if (notificationStore.checkImportingSegmentFeaturesClearDuplicates) {
         ipcRenderer.send('mainWindow-show-clear-segment-features-dialog')
         notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.checkCalculateAllFeaturesForPlot) {
+        ipcRenderer.send('mainWindow-show-calculate-features-for-plot-dialog')
+        notificationStore.setCheckCalculateAllFeaturesForPlot(false)
     }
 })
 

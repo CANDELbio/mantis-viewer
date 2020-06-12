@@ -23,7 +23,7 @@ import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './SelectedPopulations'
 import { WelcomeModal } from './modals/WelcomeModal'
-import { ExportModal } from './modals/ExportModal'
+import { ProgressModal } from './modals/ProgressModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { PlotControls } from './PlotControls'
@@ -142,6 +142,28 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let scatterPlot = null
         let imageControls = null
 
+        const fullWidth = { width: '100%' }
+        const fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
+        const paddingStyle = { paddingTop: '8px' }
+
+        const displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
+
+        const imageDataLoading = imageStore.imageDataLoading
+        const segmentationDataLoading = segmentationStore.segmentationDataLoading
+        const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
+        const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
+
+        const numExported = notificationStore.numCalculated
+        const numToExport = notificationStore.numToCalculate
+
+        const modalOpen =
+            displayWelcomeModal ||
+            imageDataLoading ||
+            segmentationDataLoading ||
+            segmentFeaturesLoading ||
+            segmentFeaturesImporting ||
+            numToExport > 0
+
         imageSetSelector = (
             <div className="grey-card">
                 <ImageSetSelector
@@ -247,6 +269,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <div className="grey-card plot-controls">
                             <PlotControls
                                 windowWidth={projectStore.windowWidth}
+                                modalOpen={modalOpen}
                                 features={segmentFeatureStore.activeAvailableFeatures}
                                 selectedPlotFeatures={settingStore.selectedPlotFeatures}
                                 setSelectedPlotFeatures={settingStore.setSelectedPlotFeatures}
@@ -262,6 +285,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setDotSize={settingStore.setPlotDotSize}
                                 transformCoefficient={settingStore.transformCoefficient}
                                 setTransformCoefficient={settingStore.setTransformCoefficient}
+                                projectLoaded={projectStore.imageSetPaths.length > 1}
+                                plotAllImageSets={settingStore.plotAllImageSets}
+                                setPlotAllImageSets={projectStore.setPlotAllImageSets}
                             />
                         </div>
                     )
@@ -298,20 +324,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             />
         )
 
-        const fullWidth = { width: '100%' }
-        const fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
-        const paddingStyle = { paddingTop: '8px' }
-
-        const displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
-
-        const imageDataLoading = imageStore.imageDataLoading
-        const segmentationDataLoading = segmentationStore.segmentationDataLoading
-        const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
-        const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
-
-        const numExported = notificationStore.numExported
-        const numToExport = notificationStore.numToExport
-
         return (
             <div>
                 <WelcomeModal displayModal={displayWelcomeModal} />
@@ -321,7 +333,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentFeaturesLoading={segmentFeaturesLoading}
                     segmentFeaturesImporting={segmentFeaturesImporting}
                 />
-                <ExportModal numExported={numExported} numToExport={numToExport} />
+                <ProgressModal numCalculated={numExported} numToCalculate={numToExport} />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
