@@ -5,7 +5,7 @@ import { calculateMean, calculateMedian } from '../../lib/StatsHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
 
-import { DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
+import { ActiveImageSetSelectionId } from '../../definitions/PlotDataDefinitions'
 
 function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
     const markerSums: number[] = new Array(intensities[0].length).fill(0)
@@ -74,7 +74,7 @@ function calculateHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
-    const selectionIds = buildSelectionIdArray(selectedPopulations)
+    const selectionIds = buildSelectionIdArray(false, selectedPopulations)
     const intensities = []
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
@@ -83,7 +83,7 @@ function calculateHeatmapData(
     for (const selectionId of selectionIds) {
         // If we have the default selection id use all segment ids, otherwise get segments for the current selection
         const selectedSegments =
-            selectionId == DefaultSelectionId
+            selectionId == ActiveImageSetSelectionId
                 ? segmentationData.segmentIds
                 : selectedRegionMap[selectionId].selectedSegments
         const featureIntensities = []
@@ -117,8 +117,9 @@ function calculateHeatmapData(
 }
 
 export function buildHeatmapData(
+    activeImageSet: string,
     features: string[],
-    featureValues: Record<string, Record<number, number>>,
+    featureValues: Record<string, Record<string, Record<number, number>>>,
     segmentationData: SegmentationData,
     plotStatistic: PlotStatistic,
     plotTransform: PlotTransform,
@@ -126,9 +127,10 @@ export function buildHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): PlotData {
+    const activeFeatureValues = featureValues[activeImageSet]
     const data = calculateHeatmapData(
         features,
-        featureValues,
+        activeFeatureValues,
         segmentationData,
         plotStatistic,
         plotTransform,

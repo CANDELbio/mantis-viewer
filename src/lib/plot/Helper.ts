@@ -1,10 +1,19 @@
 import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
 
-import { DefaultSelectionName, DefaultSelectionId } from '../../definitions/PlotDataDefinitions'
+import {
+    ActiveImageSetSelectionName,
+    ActiveImageSetSelectionId,
+    OtherImageSetsSelectionName,
+    OtherImageSetsSelectionId,
+} from '../../definitions/PlotDataDefinitions'
 import { PlotTransform } from '../../definitions/UIDefinitions'
 
-export function buildSelectionIdArray(selectedPopulations: SelectedPopulation[] | null): string[] {
-    const selectionIds = [DefaultSelectionId]
+export function buildSelectionIdArray(
+    plotAllImageSets: boolean,
+    selectedPopulations: SelectedPopulation[] | null,
+): string[] {
+    const selectionIds = [ActiveImageSetSelectionId]
+    if (plotAllImageSets) selectionIds.unshift(OtherImageSetsSelectionId)
     if (selectedPopulations != null) {
         const sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b: SelectedPopulation) => {
             return a.renderOrder > b.renderOrder ? 1 : -1
@@ -48,13 +57,13 @@ export function applyTransform(
     return result
 }
 
-export function getSelectionName(
-    selectionId: string,
-    selectedRegionMap: { [key: string]: SelectedPopulation },
-): string {
-    if (selectionId == DefaultSelectionId) {
-        return DefaultSelectionName
-    } else {
-        return selectedRegionMap[selectionId].name
+export function getSelectionName(selectionId: string, populationMap: { [key: string]: SelectedPopulation }): string {
+    switch (selectionId) {
+        case ActiveImageSetSelectionId:
+            return ActiveImageSetSelectionName
+        case OtherImageSetsSelectionId:
+            return OtherImageSetsSelectionName
+        default:
+            return populationMap[selectionId].name
     }
 }

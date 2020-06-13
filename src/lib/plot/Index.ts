@@ -7,9 +7,10 @@ import { PlotData } from '../../interfaces/DataInterfaces'
 
 // dotSize is optional and only used for Scatter.
 export function generatePlotData(
+    activeImageSetName: string,
     selectedFeatures: string[],
-    featureValues: Record<string, Record<number, number>>,
-    featureMinMaxes: Record<string, MinMax>,
+    featureValues: Record<string, Record<string, Record<number, number>>>,
+    featureMinMaxes: Record<string, Record<string, MinMax>>,
     segmentationData: SegmentationData,
     plotStatistic: PlotStatistic,
     plotType: PlotType,
@@ -27,10 +28,10 @@ export function generatePlotData(
         : null
     if (plotType == 'histogram' && selectedFeatures.length > 0) {
         plotData = buildHistogramData(
+            activeImageSetName,
             selectedFeatures.slice(0, 1),
             featureValues,
             featureMinMaxes,
-            segmentationData,
             plotTransform,
             transformCoefficient,
             filteredPopulations,
@@ -38,10 +39,10 @@ export function generatePlotData(
     } else if ((plotType == 'scatter' || plotType == 'contour') && selectedFeatures.length > 1) {
         plotData = buildScatterData(
             plotType,
+            activeImageSetName,
             selectedFeatures.slice(0, 2),
             featureValues,
             featureMinMaxes,
-            segmentationData,
             plotTransform,
             transformCoefficient,
             filteredPopulations,
@@ -49,6 +50,7 @@ export function generatePlotData(
         )
     } else if (plotType == 'heatmap') {
         plotData = buildHeatmapData(
+            activeImageSetName,
             selectedFeatures,
             featureValues,
             segmentationData,

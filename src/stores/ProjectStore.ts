@@ -262,6 +262,10 @@ export class ProjectStore {
         }
     }
 
+    public allImageSetNames = (): string[] => {
+        return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
+    }
+
     // Gets called when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = (): void => {
         this.settingStore.setSegmentationBasename(null)

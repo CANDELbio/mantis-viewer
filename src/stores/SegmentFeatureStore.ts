@@ -47,8 +47,14 @@ export class SegmentFeatureStore {
     // the feature statistics we have loaded from the database.
     private autoRefreshFeatureStatistics = autorun(() => {
         const features = this.projectStore.settingStore.selectedPlotFeatures
-        const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
-        if (activeImageSetName) this.setFeatureStatistics(activeImageSetName, features)
+        let imageSets: string[] = []
+        if (this.projectStore.settingStore.plotAllImageSets) {
+            imageSets = this.projectStore.allImageSetNames()
+        } else {
+            const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+            if (activeImageSetName) imageSets.push(activeImageSetName)
+        }
+        this.setFeatureStatistics(imageSets, features)
     })
 
     featuresLoading = computedFn(function getFeaturesLoading(this: SegmentFeatureStore, imageSetName: string): boolean {
@@ -92,26 +98,26 @@ export class SegmentFeatureStore {
 
     featureValues = computedFn(function getFeatureValues(
         this: SegmentFeatureStore,
-        imageSetName: string,
-    ): Record<string, Record<number, number>> {
-        const featureValues = get(this.values, imageSetName)
-        if (featureValues) {
-            return featureValues
-        } else {
-            return {}
+        imageSetNames: string[],
+    ): Record<string, Record<string, Record<number, number>>> {
+        const values: Record<string, Record<string, Record<number, number>>> = {}
+        for (const imageSet of imageSetNames) {
+            const curValues = get(this.values, imageSet)
+            if (curValues) values[imageSet] = curValues
         }
+        return values
     })
 
     featureMinMaxes = computedFn(function getFeatureMinMaxes(
         this: SegmentFeatureStore,
-        imageSetName: string,
-    ): Record<string, MinMax> {
-        const featureMinMaxes = get(this.minMaxes, imageSetName)
-        if (featureMinMaxes) {
-            return featureMinMaxes
-        } else {
-            return {}
+        imageSetNames: string[],
+    ): Record<string, Record<string, MinMax>> {
+        const minMaxes: Record<string, Record<string, MinMax>> = {}
+        for (const imageSet of imageSetNames) {
+            const curMinMaxes = get(this.minMaxes, imageSet)
+            if (curMinMaxes) minMaxes[imageSet] = curMinMaxes
         }
+        return minMaxes
     })
 
     @action public calculateSegmentFeatures = (
@@ -149,7 +155,7 @@ export class SegmentFeatureStore {
 
     @action private onSegmentFeaturesGenerated = (imageSetName: string): void => {
         this.refreshAvailableFeatures(imageSetName)
-        this.refreshFeatureStatistics(imageSetName)
+        this.refreshFeatureStatistics([imageSetName])
         this.setSegmentFeatureLoadingStatus(imageSetName, false)
     }
 
@@ -157,46 +163,52 @@ export class SegmentFeatureStore {
         if (this.db) set(this.availableFeatures, imageSetName, this.db.listFeatures(imageSetName))
     }
 
-    private refreshFeatureStatistics = (imageSetName: string): void => {
+    private refreshFeatureStatistics = (imageSetNames: string[]): void => {
         const features = this.projectStore.settingStore.selectedPlotFeatures
-        this.setFeatureStatistics(imageSetName, features)
+        this.setFeatureStatistics(imageSetNames, features)
     }
 
-    @action private setFeatureStatistics = (imageSetName: string, features: string[]): void => {
-        const refreshedValues: Record<string, Record<number, number>> = {}
-        const refreshedMinMaxes: Record<string, MinMax> = {}
+    // TODO: Should probably clear the
+    @action private setFeatureStatistics = (imageSetNames: string[], features: string[]): void => {
+        const refreshedValues: Record<string, Record<string, Record<number, number>>> = {}
+        const refreshedMinMaxes: Record<string, Record<string, MinMax>> = {}
+        // TODO: Not sure if better to cache the data for the image sets and features we have and only
+        // fetch the data we're missing, or to just fetch and replace it all.
+        for (const imageSetName of imageSetNames) {
+            refreshedValues[imageSetName] = {}
+            refreshedMinMaxes[imageSetName] = {}
 
-        const currentValues = this.values[imageSetName]
-        const currentMinMaxes = this.minMaxes[imageSetName]
-
-        for (const feature of features) {
-            if (currentValues && feature in currentValues) {
-                refreshedValues[feature] = currentValues[feature]
-            } else {
-                if (this.db) {
-                    // If no values are returned, don't set them.
-                    // Added this because setFeatureStatistics was getting called immediately
-                    // when the active image set changed. At this point segment features
-                    // hadn't been generated yet, so no values were being returned.
-                    // Then these were being stored, so the plot was empty until the selected
-                    // features were cleared.
-                    // Feels a little hackey. Could be worth finding a more elegant solution later.
-                    const values = this.db.selectValues(imageSetName, feature)
-                    if (Object.keys(values).length > 0) refreshedValues[feature] = values
+            const currentValues = this.values[imageSetName]
+            const currentMinMaxes = this.minMaxes[imageSetName]
+            for (const feature of features) {
+                if (currentValues && feature in currentValues) {
+                    refreshedValues[imageSetName][feature] = currentValues[feature]
+                } else {
+                    if (this.db) {
+                        // If no values are returned, don't set them.
+                        // Added this because setFeatureStatistics was getting called immediately
+                        // when the active image set changed. At this point segment features
+                        // hadn't been generated yet, so no values were being returned.
+                        // Then these were being stored, so the plot was empty until the selected
+                        // features were cleared.
+                        // Feels a little hackey. Could be worth finding a more elegant solution later.
+                        const values = this.db.selectValues(imageSetName, feature)
+                        if (Object.keys(values).length > 0) refreshedValues[imageSetName][feature] = values
+                    }
+                }
+                if (currentMinMaxes && feature in currentMinMaxes) {
+                    refreshedMinMaxes[imageSetName][feature] = currentMinMaxes[feature]
+                } else {
+                    if (this.db) {
+                        const minMaxes = this.db.minMaxValues(imageSetName, feature)
+                        if (Object.keys(minMaxes).length > 0) refreshedMinMaxes[imageSetName][feature] = minMaxes
+                    }
                 }
             }
-            if (currentMinMaxes && feature in currentMinMaxes) {
-                refreshedMinMaxes[feature] = currentMinMaxes[feature]
-            } else {
-                if (this.db) {
-                    const minMaxes = this.db.minMaxValues(imageSetName, feature)
-                    if (Object.keys(minMaxes).length > 0) refreshedMinMaxes[feature] = minMaxes
-                }
-            }
+
+            set(this.values, refreshedValues)
+            set(this.minMaxes, refreshedMinMaxes)
         }
-
-        set(this.values, imageSetName, refreshedValues)
-        set(this.minMaxes, imageSetName, refreshedMinMaxes)
     }
 
     @action private setSegmentFeatureLoadingStatus = (imageSetName: string, status: boolean): void => {

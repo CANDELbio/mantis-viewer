@@ -27,8 +27,10 @@ export class PlotStore {
                 const settingStore = this.imageSetStore.projectStore.settingStore
                 const selectedPlotFeatures = settingStore.selectedPlotFeatures
 
-                const featureValues = segmentFeatureStore.featureValues(imageSetName)
-                const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetName)
+                const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.allImageSetNames() : [imageSetName]
+
+                const featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
+                const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetsToPlot)
 
                 let clearPlotData = true
 
@@ -52,6 +54,7 @@ export class PlotStore {
                                 !segmentationStore.segmentationData.errorMessage
                             ) {
                                 const plotData = generatePlotData(
+                                    imageSetName,
                                     settingStore.selectedPlotFeatures,
                                     featureValues,
                                     featureMinMaxes,
