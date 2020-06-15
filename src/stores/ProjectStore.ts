@@ -311,14 +311,14 @@ export class ProjectStore {
     }
 
     // Export project level summary stats to fcs if fcs is true or csv if fcs is false.
-    // CSVs always contain population information. FCSs do not have anywhere to store this.
+    // CSVs always contain population information. FCS files do not have anywhere to store this.
     // If populations is true, exports one FCS file per population. Has no effect if fcs is false.
     private exportProjectFeatures = (
         dirName: string,
         fcs: boolean,
         populations: boolean,
         calculateFeatures: boolean,
-        recaculateExistingFeatures: boolean,
+        recalculateExistingFeatures: boolean,
     ): void => {
         // Setting num to export so we can have a loading bar.
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
@@ -328,7 +328,7 @@ export class ProjectStore {
             fcs,
             populations,
             calculateFeatures,
-            recaculateExistingFeatures,
+            recalculateExistingFeatures,
         )
     }
 
@@ -449,14 +449,14 @@ export class ProjectStore {
         this.exportProjectFeatures(dirName, true, populations, calculateFeatures, recalculateExistingFeatures)
     }
 
-    public exportActivePopulationsToJSON = (filepath: string): void => {
+    public exportActivePopulationsToJSON = (filePath: string): void => {
         const activePopulationStore = this.activeImageSetStore.populationStore
-        writeToJSON(activePopulationStore.selectedPopulations, filepath)
+        writeToJSON(activePopulationStore.selectedPopulations, filePath)
     }
 
-    public importActivePopulationsFromJSON = (filepath: string): void => {
+    public importActivePopulationsFromJSON = (filePath: string): void => {
         const activePopulationStore = this.activeImageSetStore.populationStore
-        const populations = parseActivePopulationsJSON(filepath)
+        const populations = parseActivePopulationsJSON(filePath)
         populations.map((population): void => {
             activePopulationStore.addSelectedPopulation(
                 population.selectedRegion,
@@ -635,8 +635,9 @@ export class ProjectStore {
     }
 
     public setPlotAllImageSets = (value: boolean): void => {
-        if (value && this.preferencesStore.calculateSegmentFeatures && !this.settingStore.plotAllFeaturesGenerated) {
+        if (value && this.preferencesStore.calculateSegmentFeatures && this.settingStore.plotCheckGenerateAllFeatures) {
             this.notificationStore.setCheckCalculateAllFeaturesForPlot(value)
+            this.settingStore.setPlotCheckGenerateAllFeatures(false)
         }
         this.settingStore.setPlotAllImageSets(value)
     }
@@ -644,10 +645,6 @@ export class ProjectStore {
     public calculateAllSegmentFeatures = (): void => {
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         this.calculateImageSetFeatures(this.imageSetPaths)
-        when(
-            (): boolean => this.notificationStore.numToCalculate == 0,
-            (): void => this.settingStore.setPlotAllFeaturesGenerated(true),
-        )
     }
 
     // TODO: Some duplication here with exportImageSetFeatures. Should DRY it up.
@@ -663,8 +660,6 @@ export class ProjectStore {
             (): void => {
                 // If we don't have segmentation, then skip this one.
                 if (segmentationStore.selectedSegmentationFile) {
-                    // TODO: Check with Lacey what the desired behavior should be here
-                    // Maybe warn/ask the user if we should ca
                     when(
                         (): boolean => !segmentationStore.segmentationDataLoading,
                         (): void => {

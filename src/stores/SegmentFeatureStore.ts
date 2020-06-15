@@ -18,8 +18,11 @@ export class SegmentFeatureStore {
 
     // A map of image set name to whether or not the features for that image set are loading
     @observable private loadingStatuses: Record<string, boolean>
+    // Map of {imageSetName: availableFeatures}
     @observable private availableFeatures: Record<string, string[]>
+    // Map of {imageSetName: {feature: {segmentId: segmentValue}}}
     @observable private values: Record<string, Record<string, Record<number, number>>>
+    // Map of {imageSetName: {feature: MinMax}}
     @observable private minMaxes: Record<string, Record<string, MinMax>>
 
     @action private initialize = (): void => {
@@ -47,14 +50,11 @@ export class SegmentFeatureStore {
     // the feature statistics we have loaded from the database.
     private autoRefreshFeatureStatistics = autorun(() => {
         const features = this.projectStore.settingStore.selectedPlotFeatures
-        let imageSets: string[] = []
-        if (this.projectStore.settingStore.plotAllImageSets) {
-            imageSets = this.projectStore.allImageSetNames()
-        } else {
-            const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
-            if (activeImageSetName) imageSets.push(activeImageSetName)
+        const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
+        // Only want to auto calculate if we're not loading multiple.
+        if (notLoadingMultiple) {
+            this.setFeatureStatisticsForSelectedImageSets(features)
         }
-        this.setFeatureStatistics(imageSets, features)
     })
 
     featuresLoading = computedFn(function getFeaturesLoading(this: SegmentFeatureStore, imageSetName: string): boolean {
@@ -155,7 +155,7 @@ export class SegmentFeatureStore {
 
     @action private onSegmentFeaturesGenerated = (imageSetName: string): void => {
         this.refreshAvailableFeatures(imageSetName)
-        this.refreshFeatureStatistics([imageSetName])
+        this.setStatisticsForSelectedFeatures()
         this.setSegmentFeatureLoadingStatus(imageSetName, false)
     }
 
@@ -163,49 +163,77 @@ export class SegmentFeatureStore {
         if (this.db) set(this.availableFeatures, imageSetName, this.db.listFeatures(imageSetName))
     }
 
-    private refreshFeatureStatistics = (imageSetNames: string[]): void => {
+    // Helper method that calls setFeatureStatisticsForSelectedImageSets with the selected features.
+    private setStatisticsForSelectedFeatures = (): void => {
         const features = this.projectStore.settingStore.selectedPlotFeatures
-        this.setFeatureStatistics(imageSetNames, features)
+        this.setFeatureStatisticsForSelectedImageSets(features)
     }
 
-    // TODO: Should probably clear the
+    // Helper method that calls setFeatureStatistics with the selected image sets.
+    private setFeatureStatisticsForSelectedImageSets = (features: string[]): void => {
+        let imageSets: string[] = []
+        if (this.projectStore.settingStore.plotAllImageSets) {
+            imageSets = this.projectStore.allImageSetNames()
+        } else {
+            const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+            if (activeImageSetName) imageSets.push(activeImageSetName)
+        }
+        this.setFeatureStatistics(imageSets, features)
+    }
+
     @action private setFeatureStatistics = (imageSetNames: string[], features: string[]): void => {
+        // TODO: Should we skip if exporting/currently loading for multiple image sets?
+
         const refreshedValues: Record<string, Record<string, Record<number, number>>> = {}
         const refreshedMinMaxes: Record<string, Record<string, MinMax>> = {}
-        // TODO: Not sure if better to cache the data for the image sets and features we have and only
-        // fetch the data we're missing, or to just fetch and replace it all.
-        for (const imageSetName of imageSetNames) {
-            refreshedValues[imageSetName] = {}
-            refreshedMinMaxes[imageSetName] = {}
 
-            const currentValues = this.values[imageSetName]
-            const currentMinMaxes = this.minMaxes[imageSetName]
-            for (const feature of features) {
+        for (const feature of features) {
+            const imageSetsMissingFeature = []
+            const imageSetsMissingMinMax = []
+
+            // First go through image sets and features being requested and check what's missing
+            // from our current values.
+            for (const imageSetName of imageSetNames) {
+                const currentValues = this.values[imageSetName]
+                const currentMinMaxes = this.minMaxes[imageSetName]
+
                 if (currentValues && feature in currentValues) {
+                    if (!(imageSetName in refreshedValues)) refreshedValues[imageSetName] = {}
                     refreshedValues[imageSetName][feature] = currentValues[feature]
                 } else {
-                    if (this.db) {
-                        // If no values are returned, don't set them.
-                        // Added this because setFeatureStatistics was getting called immediately
-                        // when the active image set changed. At this point segment features
-                        // hadn't been generated yet, so no values were being returned.
-                        // Then these were being stored, so the plot was empty until the selected
-                        // features were cleared.
-                        // Feels a little hackey. Could be worth finding a more elegant solution later.
-                        const values = this.db.selectValues(imageSetName, feature)
-                        if (Object.keys(values).length > 0) refreshedValues[imageSetName][feature] = values
-                    }
+                    imageSetsMissingFeature.push(imageSetName)
                 }
+
                 if (currentMinMaxes && feature in currentMinMaxes) {
+                    if (!(imageSetName in refreshedMinMaxes)) refreshedMinMaxes[imageSetName] = {}
                     refreshedMinMaxes[imageSetName][feature] = currentMinMaxes[feature]
                 } else {
-                    if (this.db) {
-                        const minMaxes = this.db.minMaxValues(imageSetName, feature)
-                        if (Object.keys(minMaxes).length > 0) refreshedMinMaxes[imageSetName][feature] = minMaxes
-                    }
+                    imageSetsMissingMinMax.push(imageSetName)
                 }
             }
 
+            // Next request what's missing in single queries
+            if (this.db) {
+                if (imageSetsMissingFeature.length > 0) {
+                    const values = this.db.selectValues(imageSetsMissingFeature, feature)
+                    for (const imageSetName of imageSetsMissingFeature) {
+                        if (imageSetName in values) {
+                            if (!(imageSetName in refreshedValues)) refreshedValues[imageSetName] = {}
+                            refreshedValues[imageSetName][feature] = values[imageSetName]
+                        }
+                    }
+                }
+                if (imageSetsMissingMinMax.length > 0) {
+                    const minMaxes = this.db.minMaxValues(imageSetsMissingMinMax, feature)
+                    for (const imageSetName of imageSetsMissingMinMax) {
+                        if (imageSetName in minMaxes) {
+                            if (!(imageSetName in refreshedMinMaxes)) refreshedMinMaxes[imageSetName] = {}
+                            refreshedMinMaxes[imageSetName][feature] = minMaxes[imageSetName]
+                        }
+                    }
+                }
+            }
+            // And then set the updated values and minMaxes on the store
             set(this.values, refreshedValues)
             set(this.minMaxes, refreshedMinMaxes)
         }
@@ -225,9 +253,9 @@ export class SegmentFeatureStore {
 
     public autoCalculateSegmentFeatures = (imageSetStore: ImageSetStore): void => {
         const projectStore = this.projectStore
-        const notExporting = projectStore.notificationStore.numToCalculate == 0
-        // Only want to auto calculate if we're not exporting.
-        if (notExporting) {
+        const notLoadingMultiple = projectStore.notificationStore.numToCalculate == 0
+        // Only want to auto calculate if we're not loading multiple.
+        if (notLoadingMultiple) {
             const preferencesStore = projectStore.preferencesStore
             const checkCalculate = !preferencesStore.rememberCalculateSegmentFeatures
             const calculate = preferencesStore.calculateSegmentFeatures
@@ -243,7 +271,8 @@ export class SegmentFeatureStore {
         const values: Record<string, Record<number, number>> = {}
         for (const feature of features) {
             if (this.db && imageSetName) {
-                values[feature] = this.db.selectValues(imageSetName, feature)
+                const imageSetValues = this.db.selectValues([imageSetName], feature)
+                values[feature] = imageSetValues[imageSetName]
             }
         }
         return values
@@ -253,7 +282,8 @@ export class SegmentFeatureStore {
         const segments = []
         let values: Record<number, number> = {}
         if (this.db) {
-            values = this.db.selectValues(imageSetName, feature)
+            const imageSetValues = this.db.selectValues([imageSetName], feature)
+            values = imageSetValues[imageSetName]
         }
         for (const segmentId in values) {
             const curValue = values[parseInt(segmentId)]

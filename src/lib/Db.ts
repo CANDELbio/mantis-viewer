@@ -62,16 +62,17 @@ export class Db {
         db.close()
     }
 
-    public selectValues(imageSet: string, feature: string): Record<number, number> {
-        const results: Record<number, number> = {}
+    public selectValues(imageSets: string[], feature: string): Record<string, Record<number, number>> {
+        const results: Record<string, Record<number, number>> = {}
         const db = this.getConnection()
-        const stmt = db.prepare(`SELECT segment_id, value
+        const stmt = db.prepare(`SELECT image_set, segment_id, value
                                  FROM features
-                                 WHERE image_set = ? AND
+                                 WHERE image_set IN ('${imageSets.join("', '")}') AND
                                  feature = ?`)
 
-        for (const row of stmt.iterate(imageSet, feature)) {
-            results[row.segment_id] = row.value
+        for (const row of stmt.iterate(feature)) {
+            if (!(row.image_set in results)) results[row.image_set] = {}
+            results[row.image_set][row.segment_id] = row.value
         }
 
         db.close()
@@ -111,14 +112,19 @@ export class Db {
         stmt.run(imageSet, feature)
     }
 
-    public minMaxValues(imageSet: string, feature: string): MinMax {
+    public minMaxValues(imageSets: string[], feature: string): Record<string, MinMax> {
+        const results: Record<string, MinMax> = {}
         const db = this.getConnection()
-        const stmt = db.prepare(`SELECT MIN(value) AS min, MAX(value) AS max
+        const stmt = db.prepare(`SELECT image_set, MIN(value) AS min, MAX(value) AS max
                                  FROM features
-                                 WHERE image_set = ? AND
-                                 feature = ?`)
-        const values = stmt.get(imageSet, feature)
-        return { min: values.min, max: values.max }
+                                 WHERE image_set IN ('${imageSets.join("', '")}') AND
+                                 feature = ?
+                                 GROUP BY image_set`)
+
+        for (const row of stmt.iterate(feature)) {
+            results[row.image_set] = { min: row.min, max: row.max }
+        }
+        return results
     }
 
     public minValue(imageSet: string, feature: string): number {

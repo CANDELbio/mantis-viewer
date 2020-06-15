@@ -126,7 +126,8 @@ function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
     return (): void => {
         dialog.showSaveDialog(dialogOptions).then((value: Electron.SaveDialogReturnValue): void => {
             const filename = value.filePath
-            if (mainWindow != null && filename != null) mainWindow.webContents.send(ipcMessageName, filename)
+            if (mainWindow != null && filename != null && filename != '')
+                mainWindow.webContents.send(ipcMessageName, filename)
         })
     }
 }

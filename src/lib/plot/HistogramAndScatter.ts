@@ -148,8 +148,10 @@ function configureTraceForHistogram(
     const maxes: number[] = []
     for (const imageSet in featureMinMaxes) {
         const minMax = featureMinMaxes[imageSet][feature]
-        mins.push(minMax.min)
-        maxes.push(minMax.max)
+        if (minMax) {
+            mins.push(minMax.min)
+            maxes.push(minMax.max)
+        }
     }
     const min = Math.min(...mins)
     const max = Math.max(...maxes)

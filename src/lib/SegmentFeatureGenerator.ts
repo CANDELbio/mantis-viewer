@@ -66,6 +66,8 @@ export class SegmentFeatureGenerator {
             this.markJobComplete()
         }
 
+        const featuresInDb = this.db.listFeatures(this.imageSetName)
+
         for (const marker in imageData.data) {
             this.numFeatures += 2
             const tiffData = imageData.data[marker]
@@ -73,13 +75,8 @@ export class SegmentFeatureGenerator {
             for (const s of ['mean', 'median']) {
                 const statistic = s as PlotStatistic
                 const feature = this.featureName(marker, statistic)
-                let curStatistics = {}
-                if (!this.recalculateFeatures) {
-                    // If we don't want to recalculate statistics, try to grab them from the DB
-                    curStatistics = this.db.selectValues(this.imageSetName, feature)
-                }
-                if (Object.keys(curStatistics).length == 0) {
-                    // If no statistics were found then submit a job to calculate them
+                if (this.recalculateFeatures || !featuresInDb.includes(feature)) {
+                    // If we always want to recalculate features or the current feature isn't in the database
                     submitJob(
                         {
                             basePath: this.db.basePath,

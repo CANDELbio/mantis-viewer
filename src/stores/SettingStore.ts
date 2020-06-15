@@ -35,7 +35,7 @@ interface SettingStoreData {
     plotNormalization: PlotNormalization | null
     plotDotSize: number
     plotAllImageSets: boolean
-    plotAllFeaturesGenerated: boolean
+    plotCheckGenerateAllFeatures: boolean
     segmentationFillAlpha: number | null
     segmentationOutlineAlpha: number | null
     segmentationCentroidsVisible: boolean | null
@@ -84,7 +84,7 @@ export class SettingStore {
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
     @observable public plotAllImageSets: boolean
-    @observable public plotAllFeaturesGenerated: boolean
+    @observable public plotCheckGenerateAllFeatures: boolean
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -119,6 +119,7 @@ export class SettingStore {
         this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.plotDotSize = DefaultDotSize
         this.plotAllImageSets = false
+        this.plotCheckGenerateAllFeatures = true
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -161,8 +162,8 @@ export class SettingStore {
         this.plotAllImageSets = value
     }
 
-    @action public setPlotAllFeaturesGenerated = (value: boolean): void => {
-        this.plotAllFeaturesGenerated = value
+    @action public setPlotCheckGenerateAllFeatures = (value: boolean): void => {
+        this.plotCheckGenerateAllFeatures = value
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -289,7 +290,7 @@ export class SettingStore {
                 plotNormalization: this.plotNormalization,
                 plotDotSize: this.plotDotSize,
                 plotAllImageSets: this.plotAllImageSets,
-                plotAllFeaturesGenerated: this.plotAllFeaturesGenerated,
+                plotCheckGenerateAllFeatures: this.plotCheckGenerateAllFeatures,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -325,17 +326,19 @@ export class SettingStore {
                     if (importingSettings.plotNormalization)
                         this.plotNormalization = importingSettings.plotNormalization
                     if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
-                    if (importingSettings.plotAllImageSets) this.plotAllImageSets = importingSettings.plotAllImageSets
-                    if (importingSettings.plotAllFeaturesGenerated)
-                        this.plotAllFeaturesGenerated = importingSettings.plotAllFeaturesGenerated
+                    if (importingSettings.plotAllImageSets != null)
+                        this.plotAllImageSets = importingSettings.plotAllImageSets
+                    if (importingSettings.plotCheckGenerateAllFeatures != null)
+                        this.plotCheckGenerateAllFeatures = importingSettings.plotCheckGenerateAllFeatures
                     if (importingSettings.segmentationFillAlpha)
                         this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                     if (importingSettings.segmentationOutlineAlpha)
                         this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
-                    if (importingSettings.segmentationCentroidsVisible)
+                    if (importingSettings.segmentationCentroidsVisible != null)
                         this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
-                    if (importingSettings.legendVisible) this.legendVisible = importingSettings.legendVisible
-                    if (importingSettings.zoomInsetVisible) this.zoomInsetVisible = importingSettings.zoomInsetVisible
+                    if (importingSettings.legendVisible != null) this.legendVisible = importingSettings.legendVisible
+                    if (importingSettings.zoomInsetVisible != null)
+                        this.zoomInsetVisible = importingSettings.zoomInsetVisible
                     if (importingSettings.transformCoefficient)
                         this.transformCoefficient = importingSettings.transformCoefficient
                 } catch (e) {

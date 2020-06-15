@@ -229,12 +229,12 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 />
             </div>
         )
-        const plotProjectControlsEnabled = this.props.selectedType != 'heatmap' && !this.props.projectLoaded
+        const plotProjectControlsEnabled = this.props.selectedType != 'heatmap' && this.props.projectLoaded
         const plotProjectControls = (
             <div>
                 <Checkbox
                     checked={this.props.plotAllImageSets}
-                    disabled={plotProjectControlsEnabled}
+                    disabled={!plotProjectControlsEnabled}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                         this.props.setPlotAllImageSets(e.target.checked)
                     }
