@@ -500,8 +500,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         this.setScaleFactors(imcData, maxRendererSize)
 
+        // Set the PIXI scale mode for crisp graphics
+        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+
         // Setting up the renderer
-        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight, { transparent: true })
+        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight, {
+            transparent: true,
+            roundPixels: true,
+        })
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners

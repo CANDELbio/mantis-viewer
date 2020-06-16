@@ -543,7 +543,6 @@ export class ProjectStore {
     public importSegmentFeatures = (clearDuplicates: boolean, remember?: boolean): void => {
         const basePath = this.settingStore.basePath
         const filePath = this.importingSegmentFeaturesPath
-        const forProject = this.importingSegmentFeaturesForProject
 
         if (remember != null) {
             // If this is being called from a context where we want to remember or forget the choice
@@ -555,7 +554,7 @@ export class ProjectStore {
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
         const validImageSets = this.imageSetPaths.map((p) => path.basename(p))
-        const imageSetName = !forProject && this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
+        const imageSetName = this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
         const onImportComplete = (result: SegmentFeatureImporterResult | SegmentFeatureImporterError): void => {
             if ('error' in result) {
                 this.notificationStore.setErrorMessage(result.error)
@@ -566,11 +565,11 @@ export class ProjectStore {
                     ' out of ' +
                     result.totalFeatures +
                     ' features.'
-                if (result.invalidFeatureNames) {
+                if (result.invalidFeatureNames.length > 0) {
                     message +=
                         '\nCould not import some of the following features: ' + result.invalidFeatureNames.join(', ')
                 }
-                if (result.invalidImageSets) {
+                if (result.invalidImageSets.length > 0) {
                     message += '\nCould not find the following image sets: ' + result.invalidImageSets.join(', ')
                 }
                 this.notificationStore.setInfoMessage(message)
