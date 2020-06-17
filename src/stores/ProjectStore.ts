@@ -543,6 +543,8 @@ export class ProjectStore {
     public importSegmentFeatures = (clearDuplicates: boolean, remember?: boolean): void => {
         const basePath = this.settingStore.basePath
         const filePath = this.importingSegmentFeaturesPath
+        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        const forProject = this.importingSegmentFeaturesForProject
 
         if (remember != null) {
             // If this is being called from a context where we want to remember or forget the choice
@@ -554,7 +556,9 @@ export class ProjectStore {
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
         const validImageSets = this.imageSetPaths.map((p) => path.basename(p))
-        const imageSetName = this.activeImageSetPath ? path.basename(this.activeImageSetPath) : undefined
+        // importingImageSetName should be undefined if we're plotting from the project
+        // If it's not undefined, this will override all of the image set names from the CSV.
+        const importingImageSetName = !forProject && activeImageSetName ? activeImageSetName : undefined
         const onImportComplete = (result: SegmentFeatureImporterResult | SegmentFeatureImporterError): void => {
             if ('error' in result) {
                 this.notificationStore.setErrorMessage(result.error)
@@ -575,7 +579,8 @@ export class ProjectStore {
                 this.notificationStore.setInfoMessage(message)
             }
             this.setImportingSegmentFeaturesValues(null, null)
-            if (imageSetName) this.segmentFeatureStore.refreshAvailableFeatures(imageSetName)
+            // Refresh the available features once import is done so the user can use them for plotting
+            if (activeImageSetName) this.segmentFeatureStore.refreshAvailableFeatures(activeImageSetName)
         }
         if (basePath && filePath) {
             // Launch a worker to import segment features from the CSV.
@@ -584,7 +589,7 @@ export class ProjectStore {
                     basePath: basePath,
                     filePath: filePath,
                     validImageSets: validImageSets,
-                    imageSetName: imageSetName,
+                    imageSetName: importingImageSetName,
                     clearDuplicates: clearDuplicates,
                 },
                 onImportComplete,

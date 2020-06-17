@@ -38,7 +38,6 @@ export class NotificationStore {
     }
 
     @action public setInfoMessage = (message: string): void => {
-        console.log('Setting info message to: ' + message)
         this.infoMessage = message
     }
 
