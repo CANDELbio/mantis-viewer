@@ -126,22 +126,26 @@ export function buildHeatmapData(
     transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
-): PlotData {
+): PlotData | null {
     const activeFeatureValues = featureValues[activeImageSet]
-    const data = calculateHeatmapData(
-        features,
-        activeFeatureValues,
-        segmentationData,
-        plotStatistic,
-        plotTransform,
-        transformCoefficient,
-        plotNormalization,
-        selectedPopulations,
-    )
-    const layout = {
-        title: 'Heatmap of Marker Intensity',
-        xaxis: { tickangle: 45, automargin: true },
-        yaxis: { tickangle: 45, automargin: true },
+    if (activeFeatureValues) {
+        const data = calculateHeatmapData(
+            features,
+            activeFeatureValues,
+            segmentationData,
+            plotStatistic,
+            plotTransform,
+            transformCoefficient,
+            plotNormalization,
+            selectedPopulations,
+        )
+        const layout = {
+            title: 'Heatmap of Marker Intensity',
+            xaxis: { tickangle: 45, automargin: true },
+            yaxis: { tickangle: 45, automargin: true },
+        }
+        return { features: features, data: data, layout: layout }
+    } else {
+        return null
     }
-    return { features: features, data: data, layout: layout }
 }

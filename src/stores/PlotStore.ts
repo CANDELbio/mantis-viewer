@@ -47,7 +47,8 @@ export class PlotStore {
                             settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
                         const loadContour =
                             settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
-                        const loadHeatmap = settingStore.plotType == 'heatmap'
+                        const loadHeatmap =
+                            settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'heatmap'
                         if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
                             if (
                                 segmentationStore.segmentationData != null &&
