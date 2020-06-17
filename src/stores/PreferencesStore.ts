@@ -165,7 +165,7 @@ export class PreferencesStore {
     }
 
     @action public setCalculateSegmentFeatures = (calculate: boolean): void => {
-        if (this.rememberCalculateSegmentFeatures) this.calculateSegmentFeatures = calculate
+        this.calculateSegmentFeatures = calculate
     }
 
     @action public setRememberRecalculateSegmentFeatures = (remember: boolean): void => {
@@ -174,7 +174,7 @@ export class PreferencesStore {
     }
 
     @action public setRecalculateSegmentFeatures = (recalculate: boolean): void => {
-        if (this.rememberRecalculateSegmentFeatures) this.recalculateSegmentFeatures = recalculate
+        this.recalculateSegmentFeatures = recalculate
     }
 
     @action public setRememberClearDuplicateSegmentFeatures = (remember: boolean): void => {
@@ -183,7 +183,7 @@ export class PreferencesStore {
     }
 
     @action public setClearDuplicateSegmentFeatures = (clear: boolean): void => {
-        if (this.rememberClearDuplicateSegmentFeatures) this.clearDuplicateSegmentFeatures = clear
+        this.clearDuplicateSegmentFeatures = clear
     }
 
     private saveToStore = autorun(() => {

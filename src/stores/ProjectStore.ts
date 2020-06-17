@@ -603,8 +603,8 @@ export class ProjectStore {
     }
 
     public continueCalculatingSegmentFeatures = (calculate: boolean, remember: boolean): void => {
-        this.preferencesStore.setCalculateSegmentFeatures(calculate)
         this.preferencesStore.setRememberCalculateSegmentFeatures(remember)
+        this.preferencesStore.setCalculateSegmentFeatures(calculate)
         if (calculate) {
             this.segmentFeatureStore.calculateSegmentFeaturesWithPreferences(this.activeImageSetStore)
         }
@@ -615,8 +615,8 @@ export class ProjectStore {
     }
 
     public recalculateSegmentFeatures = (recalculate: boolean, remember: boolean): void => {
-        this.preferencesStore.setRecalculateSegmentFeatures(recalculate)
         this.preferencesStore.setRememberRecalculateSegmentFeatures(remember)
+        this.preferencesStore.setRecalculateSegmentFeatures(recalculate)
         // When calling calculate from this method, the user has already intervened so we don't need to check
         // We do need to pass along whether or not we're recalculating or using previously calculated data though.
         this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, recalculate)
