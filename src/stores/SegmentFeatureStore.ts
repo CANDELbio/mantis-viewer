@@ -263,6 +263,11 @@ export class SegmentFeatureStore {
                 projectStore.setCheckCalculateSegmentFeatures(true)
             } else if (calculate) {
                 this.calculateSegmentFeaturesWithPreferences(imageSetStore)
+            } else {
+                // If we're not checking to calculate or calculating stuff
+                // then we need to refresh the selected features from the db
+                // otherwise the initial load of features won't happen
+                this.setStatisticsForSelectedFeatures()
             }
         }
     }
