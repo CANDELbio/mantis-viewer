@@ -52,14 +52,17 @@ function getPopulationIntensity(
 ): number {
     let result: number
 
-    const populationValues = segmentIds.map((value: number) => featureValues[value])
+    // In case some values are missing from the passed in feature values we filter them out
+    const populationValues = segmentIds.map((v: number) => featureValues[v]).filter((v: number) => v != undefined)
 
-    // Get the mean or median depending on what the user selected.
     if (plotStatistic == 'mean') {
         result = calculateMean(populationValues)
     } else {
         result = calculateMedian(populationValues)
     }
+
+    // If the result ends up undefined set it to 0 so we don't break the graph
+    if (result == undefined) result = 0
 
     return applyTransform(result, plotTransform, transformCoefficient)
 }
