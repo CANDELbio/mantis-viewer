@@ -43,9 +43,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
 
     private generateForm(): JSX.Element | null {
         let buttonText = 'Click to Select'
-        if (this.props.directory) {
-            buttonText = 'Selected: ' + path.basename(this.props.directory)
-        }
+        if (this.props.directory) buttonText = path.basename(this.props.directory)
         const imageSetOptions = generateSelectOptions(this.props.projectDirectories)
         const selectedImageSet = getSelectedOptions(this.props.imageSet, imageSetOptions)
         const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
@@ -56,9 +54,6 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
         const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
         return (
             <Grid>
-                <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={12}>Welcome to the file import wizard!</Col>
-                </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4}>Selected Project:</Col>
                     <Col xs={8}>

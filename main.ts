@@ -154,19 +154,19 @@ function generateMenuTemplate(): any {
             label: 'File',
             submenu: [
                 {
-                    label: 'Project Import Wizard',
-                    click: (): void => mainWindow.webContents.send('open-data-import-wizard'),
-                },
-                {
                     label: 'Open',
                     submenu: [
                         {
-                            label: 'Image Set',
-                            click: showOpenDirectoryDialogCallback(openImageSet),
+                            label: 'Project Import Wizard',
+                            click: (): void => mainWindow.webContents.send('open-data-import-wizard'),
                         },
                         {
-                            label: 'Project',
+                            label: 'Existing Project',
                             click: showOpenDirectoryDialogCallback(openProject),
+                        },
+                        {
+                            label: 'Image Set',
+                            click: showOpenDirectoryDialogCallback(openImageSet),
                         },
                     ],
                 },

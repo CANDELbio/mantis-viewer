@@ -22,8 +22,10 @@ export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
                         <ul>
                             <li>
                                 To start using the application click on the <b>mantis-viewer</b> menu in the top left{' '}
-                                and then click <b>Open</b>. From this menu you can select <b>Image Set</b> to load a{' '}
-                                single set of images or <b>Project</b> to load a folder containing multiple image sets.
+                                and then click <b>Open</b>. From this menu you can select <b>Project Import Wizard</b>{' '}
+                                to have Mantis guide you through loading a directory containing multiple image sets,{' '}
+                                <b> Existing Project</b> to load a previously imported project or <b>Image Set</b> to{' '}
+                                load a single set of images.
                             </li>
                             <li>
                                 You can select regions of interest on the image by holding <b>Alt</b> or{' '}
