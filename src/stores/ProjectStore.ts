@@ -141,9 +141,7 @@ export class ProjectStore {
             this.initializeImageSetStores(paths)
             this.setActiveImageSet(this.imageSetPaths[0])
         } else {
-            this.notificationStore.setErrorMessage(
-                'Warning: No image set directories found in ' + path.basename(dirName) + '.',
-            )
+            this.notificationStore.setErrorMessage('No image set directories found in ' + path.basename(dirName) + '.')
         }
     }
 

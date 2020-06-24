@@ -135,10 +135,18 @@ export class DataImportStore {
             when(
                 (): boolean => !activeImageStore.imageDataLoading,
                 (): void => {
-                    const imageStoreDirectory = activeImageStore.selectedDirectory
-                    if (imageStoreDirectory && this.imageSetSegmentationFile) {
-                        const segmentationPath = path.join(imageStoreDirectory, this.imageSetSegmentationFile)
-                        projectStore.setSegmentationBasename(segmentationPath)
+                    const segmentationFile = this.imageSetSegmentationFile
+                    const imageSetDirectory = activeImageStore.selectedDirectory
+                    if (imageSetDirectory && segmentationFile) {
+                        const segmentationPath = path.join(imageSetDirectory, segmentationFile)
+                        if (fs.existsSync(segmentationPath)) {
+                            projectStore.setSegmentationBasename(segmentationPath)
+                        } else {
+                            const imageSetName = path.basename(imageSetDirectory)
+                            const msg =
+                                'Unable to find segmentation file ' + segmentationFile + ' in image set ' + imageSetName
+                            projectStore.notificationStore.setErrorMessage(msg)
+                        }
                         when(
                             (): boolean => !activeSegmentationStore.segmentationDataLoading,
                             (): void => {
