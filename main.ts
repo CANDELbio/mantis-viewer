@@ -84,7 +84,7 @@ function openSegmentation(path: string): void {
     }
 }
 
-function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?: string): () => void {
+function showOpenDirectoryDialogCallback(callback: (value: string) => void, defaultPath?: string): () => void {
     const dialogOptions: Electron.OpenDialogOptions = { properties: ['openDirectory'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
     return (): void => {
@@ -97,7 +97,7 @@ function showOpenDirectoryDialog(callback: (value: string) => void, defaultPath?
     }
 }
 
-function showOpenFileDialog(
+function showOpenFileDialogCallback(
     action: string | ((value: string) => void),
     defaultPath?: string,
     fileType?: string,
@@ -154,15 +154,19 @@ function generateMenuTemplate(): any {
             label: 'File',
             submenu: [
                 {
+                    label: 'Project Import Wizard',
+                    click: (): void => mainWindow.webContents.send('open-data-import-wizard'),
+                },
+                {
                     label: 'Open',
                     submenu: [
                         {
                             label: 'Image Set',
-                            click: showOpenDirectoryDialog(openImageSet),
+                            click: showOpenDirectoryDialogCallback(openImageSet),
                         },
                         {
                             label: 'Project',
-                            click: showOpenDirectoryDialog(openProject),
+                            click: showOpenDirectoryDialogCallback(openProject),
                         },
                     ],
                 },
@@ -172,7 +176,7 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Segmentation',
                             enabled: imageLoaded,
-                            click: showOpenFileDialog(openSegmentation, activeImageDirectory),
+                            click: showOpenFileDialogCallback(openSegmentation, activeImageDirectory),
                         },
                         {
                             label: 'Populations',
@@ -180,17 +184,25 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For active image set from JSON',
                                     enabled: imageLoaded,
-                                    click: showOpenFileDialog('add-populations-json', activeImageDirectory, 'json'),
+                                    click: showOpenFileDialogCallback(
+                                        'add-populations-json',
+                                        activeImageDirectory,
+                                        'json',
+                                    ),
                                 },
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
-                                    click: showOpenFileDialog('add-populations-csv', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialogCallback(
+                                        'add-populations-csv',
+                                        activeImageDirectory,
+                                        'csv',
+                                    ),
                                 },
                                 {
                                     label: 'For project from single CSV',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenFileDialog(
+                                    click: showOpenFileDialogCallback(
                                         'add-project-populations-csv',
                                         activeImageDirectory,
                                         'csv',
@@ -205,12 +217,16 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For active image set from CSV',
                                     enabled: segmentationLoaded,
-                                    click: showOpenFileDialog('add-segment-features', activeImageDirectory, 'csv'),
+                                    click: showOpenFileDialogCallback(
+                                        'add-segment-features',
+                                        activeImageDirectory,
+                                        'csv',
+                                    ),
                                 },
                                 {
                                     label: 'For project from single CSV',
                                     enabled: projectLoaded && segmentationLoaded,
-                                    click: showOpenFileDialog(
+                                    click: showOpenFileDialogCallback(
                                         'add-project-segment-features',
                                         activeImageDirectory,
                                         'csv',
@@ -271,7 +287,7 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
+                                    click: showOpenDirectoryDialogCallback((dir: string): void => {
                                         askCalculateFeatures('export-project-segment-features', dir)
                                     }, projectDirectory),
                                 },
@@ -288,21 +304,21 @@ function generateMenuTemplate(): any {
                                 {
                                     label: 'For all segments in project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
+                                    click: showOpenDirectoryDialogCallback((dir: string): void => {
                                         askCalculateFeatures('export-project-segments-to-fcs', dir)
                                     }, projectDirectory),
                                 },
                                 {
                                     label: 'For all populations in active image set',
                                     enabled: imageLoaded && segmentationLoaded && populationsSelected,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
+                                    click: showOpenDirectoryDialogCallback((dir: string): void => {
                                         mainWindow.webContents.send('export-populations-fcs', dir)
                                     }, activeImageDirectory),
                                 },
                                 {
                                     label: 'For all populations in project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
-                                    click: showOpenDirectoryDialog((dir: string): void => {
+                                    click: showOpenDirectoryDialogCallback((dir: string): void => {
                                         askCalculateFeatures('export-project-populations-fcs', dir)
                                     }, projectDirectory),
                                 },
@@ -921,4 +937,10 @@ ipcMain.on('preferencesWindow-set-remember-clear', (event: Electron.Event, value
 
 ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
+})
+
+ipcMain.on('mainWindow-show-import-wizard-directory-picker', (): void => {
+    showOpenDirectoryDialogCallback((directory: string) => {
+        mainWindow.webContents.send('data-import-set-directory', directory)
+    })()
 })

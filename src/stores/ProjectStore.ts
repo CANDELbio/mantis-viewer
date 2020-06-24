@@ -24,6 +24,7 @@ import {
     SegmentFeatureImporterError,
 } from '../workers/SegmentFeatureImporter'
 import { SegmentFeatureStore } from './SegmentFeatureStore'
+import { DataImportStore } from './DataImportStore'
 
 export class ProjectStore {
     public appVersion: string
@@ -41,6 +42,7 @@ export class ProjectStore {
     @observable.ref public settingStore: SettingStore
     @observable.ref public preferencesStore: PreferencesStore
     @observable.ref public notificationStore: NotificationStore
+    @observable.ref public dataImportStore: DataImportStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -76,6 +78,7 @@ export class ProjectStore {
         // Initialize the setting store (for storing image display settings to transfer when switching)
         this.settingStore = new SettingStore(this)
         this.notificationStore = new NotificationStore()
+        this.dataImportStore = new DataImportStore(this)
 
         this.plotInMainWindow = true
 
@@ -279,15 +282,15 @@ export class ProjectStore {
         }
     }
 
-    @action public setSegmentationBasename = (fName: string): void => {
-        const dirname = path.dirname(fName)
-        const basename = path.basename(fName)
+    @action public setSegmentationBasename = (filePath: string): void => {
+        const dirname = path.dirname(filePath)
+        const basename = path.basename(filePath)
         if (dirname == this.activeImageSetPath) {
             this.settingStore.setSegmentationBasename(basename)
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
             // Could result in weird behavior when switching between image sets.
-            this.activeImageSetStore.segmentationStore.setSegmentationFile(fName)
+            this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
     }
 

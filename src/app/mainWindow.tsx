@@ -261,6 +261,14 @@ ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
     projectStore.calculateSegmentFeaturesFromMenu()
 })
 
+ipcRenderer.on('open-data-import-wizard', (): void => {
+    projectStore.dataImportStore.setModalOpen(true)
+})
+
+ipcRenderer.on('data-import-set-directory', (event: Electron.Event, directory: string): void => {
+    projectStore.dataImportStore.setDirectory(directory)
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 Mousetrap.bind(['command+left', 'alt+left'], function (): void {
@@ -439,6 +447,15 @@ Mobx.autorun((): void => {
     if (notificationStore.checkCalculateAllFeaturesForPlot) {
         ipcRenderer.send('mainWindow-show-calculate-features-for-plot-dialog')
         notificationStore.setCheckCalculateAllFeaturesForPlot(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    const dataImportStore = projectStore.dataImportStore
+    const showDirectoryPicker = dataImportStore.showDirectoryPicker
+    if (showDirectoryPicker) {
+        ipcRenderer.send('mainWindow-show-import-wizard-directory-picker')
+        dataImportStore.setShowDirectoryPicker(false)
     }
 })
 

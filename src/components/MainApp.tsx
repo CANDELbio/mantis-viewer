@@ -25,6 +25,7 @@ import { SelectedPopulations } from './SelectedPopulations'
 import { WelcomeModal } from './modals/WelcomeModal'
 import { ProgressModal } from './modals/ProgressModal'
 import { LoadingModal } from './modals/LoadingModal'
+import { DataImportModal } from './modals/DataImportModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { PlotControls } from './PlotControls'
 
@@ -133,6 +134,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const plotStore = imageSetStore.plotStore
         const settingStore = projectStore.settingStore
         const notificationStore = projectStore.notificationStore
+        const dataImportStore = projectStore.dataImportStore
 
         let imageViewer = null
         let imageMessage = null
@@ -146,23 +148,24 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
         const paddingStyle = { paddingTop: '8px' }
 
-        const displayWelcomeModal = imageStore.imageData == null && !imageStore.imageDataLoading
-
         const imageDataLoading = imageStore.imageDataLoading
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
         const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
         const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
 
+        const displayLoadingModal =
+            imageDataLoading || segmentationDataLoading || segmentFeaturesLoading || segmentFeaturesImporting
+
         const numExported = notificationStore.numCalculated
         const numToExport = notificationStore.numToCalculate
+        const displayProgressModal = numToExport > 0
 
-        const modalOpen =
-            displayWelcomeModal ||
-            imageDataLoading ||
-            segmentationDataLoading ||
-            segmentFeaturesLoading ||
-            segmentFeaturesImporting ||
-            numToExport > 0
+        const displayDataImportModal = dataImportStore.modalOpen && !(displayLoadingModal || displayProgressModal)
+
+        const displayWelcomeModal =
+            imageStore.imageData == null && !imageStore.imageDataLoading && !displayDataImportModal
+
+        const modalOpen = displayWelcomeModal || displayLoadingModal || displayProgressModal || displayDataImportModal
 
         imageSetSelector = (
             <div className="grey-card">
@@ -334,6 +337,22 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentFeaturesImporting={segmentFeaturesImporting}
                 />
                 <ProgressModal numCalculated={numExported} numToCalculate={numToExport} />
+                <DataImportModal
+                    open={displayDataImportModal}
+                    directory={dataImportStore.directory}
+                    openDirectoryPicker={(): void => dataImportStore.setShowDirectoryPicker(true)}
+                    closeModal={(): void => dataImportStore.setModalOpen(false)}
+                    readyToImport={dataImportStore.readyToImport}
+                    import={dataImportStore.import}
+                    projectDirectories={dataImportStore.projectDirectories}
+                    projectCsvs={dataImportStore.projectCsvs}
+                    setImageSet={dataImportStore.setImageSet}
+                    imageSet={dataImportStore.imageSet}
+                    imageSetTiffs={dataImportStore.imageSetTiffs}
+                    setSegmentation={dataImportStore.setImageSetSegmentationFile}
+                    setFeatures={dataImportStore.setProjectSegmentFeaturesFile}
+                    setPopulations={dataImportStore.setProjectPopulationFile}
+                />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">
                         <Col xs={2} sm={2} md={2} lg={2}>
