@@ -3,8 +3,7 @@ import { observer } from 'mobx-react'
 import { TextArea, RangeSlider, Slider, Checkbox } from '@blueprintjs/core'
 import Select from 'react-select'
 import { ChannelName, ImageChannels, ChannelColorNameMap } from '../definitions/UIDefinitions'
-import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
-import { SelectOption } from '../definitions/UIDefinitions'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 import { Input, Label } from 'reactstrap'
 
 export interface PreferencesProps {

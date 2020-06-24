@@ -9,7 +9,6 @@ import { Input, Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
 import { Slider, Checkbox } from '@blueprintjs/core'
 
 import {
-    SelectOption,
     PlotStatistic,
     PlotTransform,
     PlotType,
@@ -21,7 +20,7 @@ import {
     PlotMinDotSize,
     PlotMaxDotSize,
 } from '../definitions/UIDefinitions'
-import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
 interface PlotControlsProps {
     features: string[]

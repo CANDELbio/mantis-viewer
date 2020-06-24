@@ -1,4 +1,7 @@
-import { SelectOption } from '../definitions/UIDefinitions'
+export interface SelectOption {
+    label: string
+    value: string
+}
 
 export const SelectStyle = {
     option: (provided: React.CSSProperties): React.CSSProperties => ({
@@ -44,4 +47,15 @@ export function getSelectedOptions(values: string[] | string | null, options: Se
         })
     }
     return null
+}
+
+export function onSelectChange(callback: (value: string) => void): (value: SelectOption) => void {
+    return (selected: SelectOption): void => callback(selected.value)
+}
+
+export function onClearableSelectChange(callback: (value: string | null) => void): (value: SelectOption) => void {
+    return (selected: SelectOption): void => {
+        const value = selected ? selected.value : null
+        callback(value)
+    }
 }

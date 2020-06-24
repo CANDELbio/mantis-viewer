@@ -5,8 +5,15 @@ import Select from 'react-select'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Badge } from 'reactstrap'
-import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
-import { ChannelName, SelectOption, ChannelColorMap } from '../definitions/UIDefinitions'
+import {
+    SelectOption,
+    SelectStyle,
+    SelectTheme,
+    getSelectedOptions,
+    generateSelectOptions,
+    onClearableSelectChange,
+} from '../lib/SelectHelper'
+import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
 
 export interface ChannelControlsProps {
@@ -56,11 +63,6 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                 {icon}
             </a>
         )
-    }
-
-    private onMarkerChange = (x: SelectOption): void => {
-        const value = x ? x.value : null
-        this.props.setMarker(value)
     }
 
     // Convert channel domain to percentage before saving
@@ -118,7 +120,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
                         <Select
                             value={selectedValue}
                             options={filteredSelectOptions}
-                            onChange={this.onMarkerChange}
+                            onChange={onClearableSelectChange(this.props.setMarker)}
                             isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}

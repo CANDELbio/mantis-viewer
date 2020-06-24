@@ -1,8 +1,15 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
+import Select from 'react-select'
 import { Modal, ModalHeader, ModalBody, Button } from 'reactstrap'
-import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
+import {
+    SelectStyle,
+    SelectTheme,
+    getSelectedOptions,
+    generateSelectOptions,
+    onClearableSelectChange,
+} from '../../lib/SelectHelper'
 import path = require('path')
 
 export interface DataImportModalProps {
@@ -17,69 +24,107 @@ export interface DataImportModalProps {
     setImageSet: (imageSet: string | null) => void
     imageSet: string | null
     imageSetTiffs: string[]
+    imageSetCsvs: string[]
     setSegmentation: (file: string | null) => void
+    segmentation: string | null
     setFeatures: (file: string | null) => void
+    features: string | null
     setPopulations: (file: string | null) => void
+    population: string | null
 }
-
-interface DataImportModalState {
-    page: number
-}
-
-const minPage = 1
-const maxPage = 1
 
 @observer
-export class DataImportModal extends React.Component<DataImportModalProps, DataImportModalState> {
+export class DataImportModal extends React.Component<DataImportModalProps, {}> {
     public constructor(props: DataImportModalProps) {
         super(props)
     }
 
-    public state = {
-        page: 1,
-    }
+    private rowStyle = { marginBottom: '5px' }
 
-    private decrementPage = (): void => {
-        let curPage = this.state.page
-        if (curPage < minPage) {
-            curPage -= 1
-            this.setState({ page: curPage })
+    private generateForm(): JSX.Element | null {
+        let buttonText = 'Click to Select'
+        if (this.props.directory) {
+            buttonText = 'Selected: ' + path.basename(this.props.directory)
         }
-    }
-
-    private incrementPage = (): void => {
-        let curPage = this.state.page
-        if (curPage < minPage) {
-            curPage += 1
-            this.setState({ page: curPage })
-        }
-    }
-
-    private body(): JSX.Element | null {
-        let body = null
-        let selectedDirectory = null
-        if (this.props.directory)
-            selectedDirectory = (
-                <div>
-                    <br />
-                    Selected Directory:
-                    <br />
-                    {path.basename(this.props.directory)}
-                </div>
-            )
-        if (this.state.page == 1) {
-            body = (
-                <div>
-                    Welcome to the file import wizard!
-                    <Button type="button" size="sm" onClick={this.props.openDirectoryPicker}>
-                        Select a project directory...
-                    </Button>
-                    {selectedDirectory}
-                </div>
-            )
-        }
-
-        return body
+        const imageSetOptions = generateSelectOptions(this.props.projectDirectories)
+        const selectedImageSet = getSelectedOptions(this.props.imageSet, imageSetOptions)
+        const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
+        const selectedSegmentation = getSelectedOptions(this.props.segmentation, segmentationOptions)
+        const featureOptions = generateSelectOptions(this.props.projectCsvs)
+        const selectedFeature = getSelectedOptions(this.props.features, featureOptions)
+        const populationOptions = generateSelectOptions(this.props.projectCsvs)
+        const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
+        return (
+            <Grid>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={12}>Welcome to the file import wizard!</Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Selected Project:</Col>
+                    <Col xs={8}>
+                        <Button type="button" size="sm" onClick={this.props.openDirectoryPicker}>
+                            {buttonText}
+                        </Button>
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Selected Image Set:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedImageSet}
+                            options={imageSetOptions}
+                            onChange={onClearableSelectChange(this.props.setImageSet)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={this.props.projectDirectories.length == 0}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Selected Segmentation:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedSegmentation}
+                            options={segmentationOptions}
+                            onChange={onClearableSelectChange(this.props.setSegmentation)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.imageSet)}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Selected Segment Features:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedFeature}
+                            options={featureOptions}
+                            onChange={onClearableSelectChange(this.props.setFeatures)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.segmentation)}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Selected Populations:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedPopulation}
+                            options={populationOptions}
+                            onChange={onClearableSelectChange(this.props.setPopulations)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.segmentation)}
+                        />
+                    </Col>
+                </Row>
+            </Grid>
+        )
     }
 
     public render(): React.ReactNode {
@@ -92,28 +137,15 @@ export class DataImportModal extends React.Component<DataImportModalProps, DataI
                     <ModalBody>
                         <Grid>
                             <Row middle="xs" center="xs">
-                                <Col xs={2}>
-                                    <a href="#" onClick={this.decrementPage}>
-                                        <IoIosArrowBack size="1.5em" style={{ position: 'absolute' }} />
-                                    </a>
-                                </Col>
-                                <Col xs={8}>{this.body()}</Col>
-                                <Col xs={2} onClick={this.incrementPage}>
-                                    <a href="#">
-                                        <IoIosArrowForward size="1.5em" style={{ position: 'absolute' }} />
-                                    </a>
-                                </Col>
+                                <Col xs={12}>{this.generateForm()}</Col>
                             </Row>
                             <Row middle="xs" center="xs">
-                                <Col xs={5}>
+                                <Col xs={6}>
                                     <Button type="button" size="sm" onClick={this.props.closeModal}>
                                         Cancel
                                     </Button>
                                 </Col>
-                                <Col xs={2}>
-                                    {this.state.page}/{maxPage}
-                                </Col>
-                                <Col xs={5}>
+                                <Col xs={6}>
                                     <Button
                                         type="button"
                                         size="sm"

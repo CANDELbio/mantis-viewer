@@ -3,8 +3,13 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
-import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
-import { SelectOption } from '../definitions/UIDefinitions'
+import {
+    SelectStyle,
+    SelectTheme,
+    getSelectedOptions,
+    generateSelectOptions,
+    onSelectChange,
+} from '../lib/SelectHelper'
 import { basename } from 'path'
 
 export interface ImageSetSelectorProps {
@@ -19,10 +24,6 @@ export interface ImageSetSelectorProps {
 export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}> {
     public constructor(props: ImageSetSelectorProps) {
         super(props)
-    }
-
-    private onImageSetChange = (x: SelectOption): void => {
-        this.props.setSelectedImageSet(x.value)
     }
 
     public render(): React.ReactNode {
@@ -54,7 +55,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                         <Select
                             value={selectedValue}
                             options={imageSetOptions}
-                            onChange={this.onImageSetChange}
+                            onChange={onSelectChange(this.props.setSelectedImageSet)}
                             clearable={false}
                             styles={SelectStyle}
                             theme={SelectTheme}

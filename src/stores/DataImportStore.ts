@@ -15,6 +15,7 @@ export class DataImportStore {
 
     @observable public imageSet: string | null
     @observable public imageSetTiffs: string[]
+    @observable public imageSetCsvs: string[]
 
     @observable public projectPopulationFile: string | null
     @observable public projectSegmentFeaturesFile: string | null
@@ -34,6 +35,7 @@ export class DataImportStore {
         this.projectDirectories = []
         this.projectCsvs = []
         this.imageSetTiffs = []
+        this.imageSetCsvs = []
     }
 
     private autoSetSegmentationFile = autorun(() => {
@@ -73,15 +75,22 @@ export class DataImportStore {
             }
             this.projectDirectories = dirs
             this.projectCsvs = csvs
+            // Default the selected image set to the first directory in the project
+            if (this.projectDirectories.length > 0) this.setImageSet(this.projectDirectories[0])
         }
     }
 
     @action public setImageSet = (imageSet: string | null): void => {
         this.imageSet = imageSet
+        if (imageSet == null) {
+            this.setImageSetSegmentationFile(null)
+        }
+        this.updateImageSetFiles()
     }
 
-    @action public updateImageSetTiffs = (): void => {
+    @action public updateImageSetFiles = (): void => {
         const tiffs = []
+        const csvs = []
         if (this.directory && this.imageSet) {
             const imageSetPath = path.join(this.directory, this.imageSet)
             const entries = fs.readdirSync(imageSetPath, { withFileTypes: true })
@@ -89,10 +98,12 @@ export class DataImportStore {
                 if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
                     if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)
+                    if (lowerFileName.endsWith('csv')) csvs.push(entry.name)
                 }
             }
         }
         this.imageSetTiffs = tiffs
+        this.imageSetCsvs = csvs
     }
 
     @action public setProjectPopulationFile = (file: string | null): void => {
@@ -105,6 +116,10 @@ export class DataImportStore {
 
     @action public setImageSetSegmentationFile = (file: string | null): void => {
         this.imageSetSegmentationFile = file
+        if (file == null) {
+            this.setProjectPopulationFile(null)
+            this.setProjectSegmentFeaturesFile(null)
+        }
     }
 
     // Not sure if it's better to have this logic in here
@@ -120,19 +135,24 @@ export class DataImportStore {
             when(
                 (): boolean => !activeImageStore.imageDataLoading,
                 (): void => {
-                    if (this.directory && this.imageSetSegmentationFile) {
-                        const segmentationPath = path.join(this.directory, this.imageSetSegmentationFile)
+                    const imageStoreDirectory = activeImageStore.selectedDirectory
+                    if (imageStoreDirectory && this.imageSetSegmentationFile) {
+                        const segmentationPath = path.join(imageStoreDirectory, this.imageSetSegmentationFile)
                         projectStore.setSegmentationBasename(segmentationPath)
                         when(
                             (): boolean => !activeSegmentationStore.segmentationDataLoading,
                             (): void => {
-                                if (this.projectPopulationFile)
-                                    projectStore.importProjectPopulationsFromCSV(this.projectPopulationFile)
-                                if (this.projectSegmentFeaturesFile)
-                                    projectStore.setImportingSegmentFeaturesValues(
-                                        this.projectSegmentFeaturesFile,
-                                        true,
-                                    )
+                                if (this.directory) {
+                                    if (this.projectPopulationFile)
+                                        projectStore.importProjectPopulationsFromCSV(
+                                            path.join(this.directory, this.projectPopulationFile),
+                                        )
+                                    if (this.projectSegmentFeaturesFile)
+                                        projectStore.setImportingSegmentFeaturesValues(
+                                            path.join(this.directory, this.projectSegmentFeaturesFile),
+                                            true,
+                                        )
+                                }
                             },
                         )
                     }

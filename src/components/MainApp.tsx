@@ -349,8 +349,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setImageSet={dataImportStore.setImageSet}
                     imageSet={dataImportStore.imageSet}
                     imageSetTiffs={dataImportStore.imageSetTiffs}
+                    imageSetCsvs={dataImportStore.imageSetCsvs}
+                    segmentation={dataImportStore.imageSetSegmentationFile}
                     setSegmentation={dataImportStore.setImageSetSegmentationFile}
+                    features={dataImportStore.projectSegmentFeaturesFile}
                     setFeatures={dataImportStore.setProjectSegmentFeaturesFile}
+                    population={dataImportStore.projectPopulationFile}
                     setPopulations={dataImportStore.setProjectPopulationFile}
                 />
                 <Grid fluid={true} style={paddingStyle}>

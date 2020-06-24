@@ -33,11 +33,6 @@ export const ChannelColorMap: Record<ChannelName, number> = {
 export type D3BrushExtent = [[number, number], [number, number]]
 export type BrushEventHandler = (extent: D3BrushExtent) => void
 
-export interface SelectOption {
-    label: string
-    value: string
-}
-
 export const PlotStatisticOptions = [
     { label: 'Median', value: 'median' },
     { label: 'Mean', value: 'mean' },
