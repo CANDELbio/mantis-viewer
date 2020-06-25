@@ -34,7 +34,7 @@ function openImageSet(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
-                'Warning: Opening a new image set will close all open image sets. Are you sure you wish to do this?'
+                'You will lose any unsaved changes if you open a new image set. Are you sure you want to do this?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -52,7 +52,7 @@ function openProject(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
-                'Warning: Opening a new project will close all open image sets. Are you sure you wish to do this?'
+                'You will lose any unsaved changes if you open an existing project. Are you sure you want to do this?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -70,7 +70,7 @@ function openSegmentation(path: string): void {
     if (mainWindow != null) {
         if (segmentationLoaded) {
             const message =
-                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
+                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all image sets. Are you sure you want to do this?"
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -686,7 +686,7 @@ ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, messag
 ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
     if (mainWindow != null) {
         const message =
-            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you wish to do this?"
+            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you want to do this?"
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {
@@ -740,7 +740,7 @@ ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            message: 'Do you wish to delete any existing features with overlapping names before importing?',
+            message: 'Do you want to delete any existing features with overlapping names before importing?',
             detail: 'Choosing no can lead to duplicate data',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
@@ -762,7 +762,7 @@ ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            message: 'Do you wish to calculate segment intensities for all image sets for the plot?',
+            message: 'Do you want to calculate segment intensities for all image sets for the plot?',
             detail:
                 'If you select no you will not be able to view data for all image sets on the plot. If you change your mind you can manually calculate the intensities from the menu.',
         }
@@ -943,4 +943,15 @@ ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
     showOpenDirectoryDialogCallback((directory: string) => {
         mainWindow.webContents.send('project-import-set-directory', directory)
     })()
+})
+
+ipcMain.on('mainWindow-check-import-project', (): void => {
+    const message = 'You will lose any unsaved changes if you import a new project. Are you sure you want to do this?'
+    dialog
+        .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+        .then((value: Electron.MessageBoxReturnValue): void => {
+            if (value.response == 1) {
+                if (mainWindow != null) mainWindow.webContents.send('continue-project-import', path)
+            }
+        })
 })

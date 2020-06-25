@@ -134,7 +134,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const plotStore = imageSetStore.plotStore
         const settingStore = projectStore.settingStore
         const notificationStore = projectStore.notificationStore
-        const dataImportStore = projectStore.dataImportStore
+        const projectImportStore = projectStore.projectImportStore
 
         let imageViewer = null
         let imageMessage = null
@@ -160,12 +160,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const numToExport = notificationStore.numToCalculate
         const displayProgressModal = numToExport > 0
 
-        const displayDataImportModal = dataImportStore.modalOpen && !(displayLoadingModal || displayProgressModal)
+        const displayProjectImportModal = projectImportStore.modalOpen && !(displayLoadingModal || displayProgressModal)
 
         const displayWelcomeModal =
-            imageStore.imageData == null && !imageStore.imageDataLoading && !displayDataImportModal
+            imageStore.imageData == null && !imageStore.imageDataLoading && !displayProjectImportModal
 
-        const modalOpen = displayWelcomeModal || displayLoadingModal || displayProgressModal || displayDataImportModal
+        const modalOpen =
+            displayWelcomeModal || displayLoadingModal || displayProgressModal || displayProjectImportModal
 
         imageSetSelector = (
             <div className="grey-card">
@@ -338,27 +339,27 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
                 <ProgressModal numCalculated={numExported} numToCalculate={numToExport} />
                 <ProjectImportModal
-                    open={displayDataImportModal}
-                    directory={dataImportStore.directory}
-                    openDirectoryPicker={(): void => dataImportStore.setShowDirectoryPicker(true)}
-                    closeModal={(): void => dataImportStore.setModalOpen(false)}
-                    readyToImport={dataImportStore.readyToImport}
-                    import={dataImportStore.import}
-                    projectDirectories={dataImportStore.projectDirectories}
-                    projectCsvs={dataImportStore.projectCsvs}
-                    setImageSet={dataImportStore.setImageSet}
-                    imageSet={dataImportStore.imageSet}
-                    imageSetTiffs={dataImportStore.imageSetTiffs}
-                    imageSetCsvs={dataImportStore.imageSetCsvs}
-                    imageSetDirs={dataImportStore.imageSetDirs}
-                    imageSubdir={dataImportStore.imageSubdirectory}
-                    setImageSubdir={dataImportStore.setImageSubdirectory}
-                    segmentation={dataImportStore.imageSetSegmentationFile}
-                    setSegmentation={dataImportStore.setImageSetSegmentationFile}
-                    features={dataImportStore.projectSegmentFeaturesFile}
-                    setFeatures={dataImportStore.setProjectSegmentFeaturesFile}
-                    population={dataImportStore.projectPopulationFile}
-                    setPopulations={dataImportStore.setProjectPopulationFile}
+                    open={displayProjectImportModal}
+                    directory={projectImportStore.directory}
+                    openDirectoryPicker={(): void => projectImportStore.setShowDirectoryPicker(true)}
+                    closeModal={(): void => projectImportStore.setModalOpen(false)}
+                    readyToImport={projectImportStore.readyToImport}
+                    import={projectImportStore.import}
+                    projectDirectories={projectImportStore.projectDirectories}
+                    projectCsvs={projectImportStore.projectCsvs}
+                    setImageSet={projectImportStore.setImageSet}
+                    imageSet={projectImportStore.imageSet}
+                    imageSetTiffs={projectImportStore.imageSetTiffs}
+                    imageSetCsvs={projectImportStore.imageSetCsvs}
+                    imageSetDirs={projectImportStore.imageSetDirs}
+                    imageSubdir={projectImportStore.imageSubdirectory}
+                    setImageSubdir={projectImportStore.setImageSubdirectory}
+                    segmentation={projectImportStore.imageSetSegmentationFile}
+                    setSegmentation={projectImportStore.setImageSetSegmentationFile}
+                    features={projectImportStore.projectSegmentFeaturesFile}
+                    setFeatures={projectImportStore.setProjectSegmentFeaturesFile}
+                    population={projectImportStore.projectPopulationFile}
+                    setPopulations={projectImportStore.setProjectPopulationFile}
                 />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">

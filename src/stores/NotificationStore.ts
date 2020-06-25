@@ -25,6 +25,10 @@ export class NotificationStore {
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
 
+    // If we're importing a project and one is already open set this flag to true
+    // to check if the user wants to continue importing
+    @observable public checkImportProject: boolean
+
     public constructor() {
         this.initialize()
     }
@@ -35,6 +39,7 @@ export class NotificationStore {
         this.numCalculated = 0
         this.checkImportingSegmentFeaturesClearDuplicates = false
         this.checkCalculateAllFeaturesForPlot = false
+        this.checkImportProject = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -84,5 +89,9 @@ export class NotificationStore {
 
     @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {
         this.checkCalculateAllFeaturesForPlot = value
+    }
+
+    @action setCheckImportProject = (value: boolean): void => {
+        this.checkImportProject = value
     }
 }

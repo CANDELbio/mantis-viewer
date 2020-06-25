@@ -262,11 +262,15 @@ ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
 })
 
 ipcRenderer.on('open-project-import-modal', (): void => {
-    projectStore.dataImportStore.setModalOpen(true)
+    projectStore.projectImportStore.setModalOpen(true)
 })
 
 ipcRenderer.on('project-import-set-directory', (event: Electron.Event, directory: string): void => {
-    projectStore.dataImportStore.setDirectory(directory)
+    projectStore.projectImportStore.setDirectory(directory)
+})
+
+ipcRenderer.on('continue-project-import', (): void => {
+    projectStore.projectImportStore.continueImport()
 })
 
 // Keyboard shortcuts!
@@ -451,11 +455,19 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    const dataImportStore = projectStore.dataImportStore
+    const dataImportStore = projectStore.projectImportStore
     const showDirectoryPicker = dataImportStore.showDirectoryPicker
     if (showDirectoryPicker) {
         ipcRenderer.send('mainWindow-show-project-import-directory-picker')
         dataImportStore.setShowDirectoryPicker(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.checkImportProject) {
+        ipcRenderer.send('mainWindow-check-import-project')
+        notificationStore.setCheckImportProject(false)
     }
 })
 

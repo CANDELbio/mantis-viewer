@@ -140,7 +140,7 @@ export class SettingStore {
         this.importSettingsFromFile()
     }
 
-    @action setImageSubdirectory = (subDir: string): void => {
+    @action public setImageSubdirectory = (subDir: string): void => {
         this.imageSubdirectory = subDir
     }
 

@@ -38,11 +38,11 @@ export class ProjectStore {
 
     @observable.ref public activeImageSetStore: ImageSetStore
 
-    @observable.ref public segmentFeatureStore: SegmentFeatureStore
-    @observable.ref public settingStore: SettingStore
-    @observable.ref public preferencesStore: PreferencesStore
-    @observable.ref public notificationStore: NotificationStore
-    @observable.ref public dataImportStore: ProjectImportStore
+    public segmentFeatureStore: SegmentFeatureStore
+    public settingStore: SettingStore
+    public preferencesStore: PreferencesStore
+    public notificationStore: NotificationStore
+    public projectImportStore: ProjectImportStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -78,7 +78,7 @@ export class ProjectStore {
         // Initialize the setting store (for storing image display settings to transfer when switching)
         this.settingStore = new SettingStore(this)
         this.notificationStore = new NotificationStore()
-        this.dataImportStore = new ProjectImportStore(this)
+        this.projectImportStore = new ProjectImportStore(this)
 
         this.plotInMainWindow = true
 

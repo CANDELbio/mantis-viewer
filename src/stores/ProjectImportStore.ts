@@ -133,9 +133,18 @@ export class ProjectImportStore {
         this.imageSubdirectory = file
     }
 
+    public import = (): void => {
+        const projectStore = this.projectStore
+        if (projectStore.imageSetPaths.length > 0) {
+            projectStore.notificationStore.setCheckImportProject(true)
+        } else {
+            this.continueImport()
+        }
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
-    @action public import = (): void => {
+    @action public continueImport = (): void => {
         this.modalOpen = false
         if (this.directory) {
             const projectStore = this.projectStore
