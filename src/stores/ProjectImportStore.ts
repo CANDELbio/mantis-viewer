@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import path = require('path')
 import { ProjectStore } from './ProjectStore'
 
-export class DataImportStore {
+export class ProjectImportStore {
     private projectStore: ProjectStore
 
     @observable public modalOpen: boolean
