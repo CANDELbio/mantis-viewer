@@ -12,7 +12,7 @@ If you just want to use the application head to the [releases](https://github.co
 
 ## Develop and Run Locally
 
-To get up and running for the first time first clone the repository and install the dependencies. You may need to install the build dependencies for [canvas](https://www.npmjs.com/package/canvas) first.
+To get up and running for the first time first clone the repository and install the dependencies. You may need to install the build dependencies for [canvas](https://www.npmjs.com/package/canvas) first. If you're developing on Windows check out the `Generating Executables` section for some modifications you will have to make before you can install dependencies and build Mantis.
 
 ```shell
 npm install
@@ -39,16 +39,12 @@ npm run postinstall
 
 ## Generating executables
 
+### On Mac and Linux
+
 To generate executables you will first need to make sure all dependencies are installed
 
 ```shell
 npm install
-```
-
-If you are generating executables in a non-Windows environment you will need to install Wine. On Mac you can accomplish this with [Homebrew](https://brew.sh/).
-
-```shell
-brew install wine
 ```
 
 Once this is done, you can build the application and then package it for distribution.
@@ -58,7 +54,31 @@ npm run build
 npm run dist
 ```
 
-When this completes, you should have executables built for Mac, Windows, and Linux in the `dist` directory.
+When this completes, you should have executables built for Mac and Linux in the `dist` directory.
+
+### On Windows
+
+To generate executables you will first need to make sure all dependencies are installed. You will need to delete the file `package-lock.json` first because the checked in version specifies some Linux/Mac specific package versions.
+
+You will also need to edit the file `package.json` and change the postinstall script from `"electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release ."` to `"electron-builder install-app-deps"`. Long term we plant to provide a fix for this.
+
+Now we can actually install the packages.
+
+```shell
+rm package-lock.json
+npm install
+```
+
+Once the packages have installed and built we will need manually do what the removed `cp -rf node_modules/better-sqlite3/build/Release .` does. Navigate to the folder at `./node_modules/better-sqlite3/build` and copy the `Release` folder to the project root. I'm not sure why you need to do this, but Web Workers look for built native modules in the project root instead of in the `node_module` directory for some reason.
+
+Once you've done this you can build the application and then package it for distribution.
+
+```shell
+npm run build
+npm run dist-win
+```
+
+When this completes, you should have executables built for Windows in the `dist` directory.
 
 ## Technologies
 
