@@ -18,7 +18,7 @@ export class PlotStore {
     private autoGeneratePlotData = autorun(() => {
         const projectStore = this.imageSetStore.projectStore
         if (this.imageSetStore == projectStore.activeImageSetStore) {
-            const imageSetName = this.imageSetStore.imageSetName()
+            const imageSetName = this.imageSetStore.name
             if (imageSetName) {
                 const imageStore = this.imageSetStore.imageStore
                 const segmentationStore = this.imageSetStore.segmentationStore

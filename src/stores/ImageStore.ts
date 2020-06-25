@@ -21,7 +21,7 @@ export class ImageStore {
 
     @observable public imageExportFilename: string | null
 
-    @observable public selectedDirectory: string | null
+    @observable private selectedDirectory: string | null
 
     @observable public currentSelection: {
         x: [number, number]

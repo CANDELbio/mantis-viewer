@@ -16,10 +16,12 @@ export class DataImportStore {
     @observable public imageSet: string | null
     @observable public imageSetTiffs: string[]
     @observable public imageSetCsvs: string[]
+    @observable public imageSetDirs: string[]
 
     @observable public projectPopulationFile: string | null
     @observable public projectSegmentFeaturesFile: string | null
     @observable public imageSetSegmentationFile: string | null
+    @observable public imageSubdirectory: string | null
 
     @observable public readyToImport: boolean
 
@@ -36,6 +38,7 @@ export class DataImportStore {
         this.projectCsvs = []
         this.imageSetTiffs = []
         this.imageSetCsvs = []
+        this.imageSetDirs = []
     }
 
     private autoSetSegmentationFile = autorun(() => {
@@ -91,11 +94,14 @@ export class DataImportStore {
     @action public updateImageSetFiles = (): void => {
         const tiffs = []
         const csvs = []
+        const dirs = []
         if (this.directory && this.imageSet) {
             const imageSetPath = path.join(this.directory, this.imageSet)
             const entries = fs.readdirSync(imageSetPath, { withFileTypes: true })
             for (const entry of entries) {
-                if (entry.isFile()) {
+                if (entry.isDirectory()) {
+                    dirs.push(entry.name)
+                } else if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
                     if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)
                     if (lowerFileName.endsWith('csv')) csvs.push(entry.name)
@@ -104,6 +110,7 @@ export class DataImportStore {
         }
         this.imageSetTiffs = tiffs
         this.imageSetCsvs = csvs
+        this.imageSetDirs = dirs
     }
 
     @action public setProjectPopulationFile = (file: string | null): void => {
@@ -122,12 +129,18 @@ export class DataImportStore {
         }
     }
 
+    @action public setImageSubdirectory = (file: string | null): void => {
+        this.imageSubdirectory = file
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public import = (): void => {
         this.modalOpen = false
         if (this.directory) {
             const projectStore = this.projectStore
+            if (this.imageSubdirectory) projectStore.settingStore.setImageSubdirectory(this.imageSubdirectory)
+
             projectStore.openProject(this.directory)
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore
@@ -136,15 +149,17 @@ export class DataImportStore {
                 (): boolean => !activeImageStore.imageDataLoading,
                 (): void => {
                     const segmentationFile = this.imageSetSegmentationFile
-                    const imageSetDirectory = activeImageStore.selectedDirectory
-                    if (imageSetDirectory && segmentationFile) {
-                        const segmentationPath = path.join(imageSetDirectory, segmentationFile)
+                    const activeImageSetName = projectStore.activeImageSetPath
+                    if (activeImageSetName && segmentationFile) {
+                        const segmentationPath = path.join(activeImageSetName, segmentationFile)
                         if (fs.existsSync(segmentationPath)) {
                             projectStore.setSegmentationBasename(segmentationPath)
                         } else {
-                            const imageSetName = path.basename(imageSetDirectory)
                             const msg =
-                                'Unable to find segmentation file ' + segmentationFile + ' in image set ' + imageSetName
+                                'Unable to find segmentation file ' +
+                                segmentationFile +
+                                ' in image set ' +
+                                activeImageSetName
                             projectStore.notificationStore.setErrorMessage(msg)
                         }
                         when(

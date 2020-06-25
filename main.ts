@@ -157,8 +157,8 @@ function generateMenuTemplate(): any {
                     label: 'Open',
                     submenu: [
                         {
-                            label: 'Project Import Wizard',
-                            click: (): void => mainWindow.webContents.send('open-data-import-wizard'),
+                            label: 'Import New Project',
+                            click: (): void => mainWindow.webContents.send('open-project-import-modal'),
                         },
                         {
                             label: 'Existing Project',
@@ -939,8 +939,8 @@ ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean
     if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
 })
 
-ipcMain.on('mainWindow-show-import-wizard-directory-picker', (): void => {
+ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
     showOpenDirectoryDialogCallback((directory: string) => {
-        mainWindow.webContents.send('data-import-set-directory', directory)
+        mainWindow.webContents.send('project-import-set-directory', directory)
     })()
 })

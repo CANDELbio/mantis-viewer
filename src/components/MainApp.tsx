@@ -25,7 +25,7 @@ import { SelectedPopulations } from './SelectedPopulations'
 import { WelcomeModal } from './modals/WelcomeModal'
 import { ProgressModal } from './modals/ProgressModal'
 import { LoadingModal } from './modals/LoadingModal'
-import { DataImportModal } from './modals/DataImportModal'
+import { ProjectImportModal } from './modals/ProjectImportModal'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { PlotControls } from './PlotControls'
 
@@ -337,7 +337,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentFeaturesImporting={segmentFeaturesImporting}
                 />
                 <ProgressModal numCalculated={numExported} numToCalculate={numToExport} />
-                <DataImportModal
+                <ProjectImportModal
                     open={displayDataImportModal}
                     directory={dataImportStore.directory}
                     openDirectoryPicker={(): void => dataImportStore.setShowDirectoryPicker(true)}
@@ -350,6 +350,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     imageSet={dataImportStore.imageSet}
                     imageSetTiffs={dataImportStore.imageSetTiffs}
                     imageSetCsvs={dataImportStore.imageSetCsvs}
+                    imageSetDirs={dataImportStore.imageSetDirs}
+                    imageSubdir={dataImportStore.imageSubdirectory}
+                    setImageSubdir={dataImportStore.setImageSubdirectory}
                     segmentation={dataImportStore.imageSetSegmentationFile}
                     setSegmentation={dataImportStore.setImageSetSegmentationFile}
                     features={dataImportStore.projectSegmentFeaturesFile}

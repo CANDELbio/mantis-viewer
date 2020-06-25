@@ -21,20 +21,18 @@ export class SegmentationStore {
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
     private autoSetSegmentationFile = autorun(() => {
         const imageStore = this.imageSetStore.imageStore
+        const imageSetDirectory = this.imageSetStore.directory
         const imageData = imageStore.imageData
         const settingStore = this.imageSetStore.projectStore.settingStore
         const segmentationBasename = settingStore.segmentationBasename
 
         // Check if there is a file to load and if image data has loaded (so we know width and height for text segmentation)
-        if (segmentationBasename && imageData) {
-            const destinationPath = imageStore.selectedDirectory
-            if (destinationPath) {
-                const segmentationFile = path.join(destinationPath, segmentationBasename)
-                // If the segmentation file exists and it's not equal to the current file, clear segmentation data and set to the new.
-                if (fs.existsSync(segmentationFile) && this.selectedSegmentationFile != segmentationFile) {
-                    this.clearSegmentationData()
-                    this.setSegmentationFile(segmentationFile)
-                }
+        if (segmentationBasename && imageData && imageSetDirectory) {
+            const segmentationFile = path.join(imageSetDirectory, segmentationBasename)
+            // If the segmentation file exists and it's not equal to the current file, clear segmentation data and set to the new.
+            if (fs.existsSync(segmentationFile) && this.selectedSegmentationFile != segmentationFile) {
+                this.clearSegmentationData()
+                this.setSegmentationFile(segmentationFile)
             }
         }
     })

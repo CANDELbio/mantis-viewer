@@ -44,7 +44,7 @@ export function writeToJSON(object: any, filename: string): void {
 
 export function exportMarkerIntensities(filename: string, imageSetStore: ImageSetStore): void {
     const projectStore = imageSetStore.projectStore
-    const imageSetName = imageSetStore.imageSetName()
+    const imageSetName = imageSetStore.name
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
     const populationStore = imageSetStore.populationStore
@@ -97,7 +97,7 @@ export function exportMarkerIntensities(filename: string, imageSetStore: ImageSe
 
 export function exportToFCS(filePath: string, imageSetStore: ImageSetStore, segmentIds?: number[]): void {
     const projectStore = imageSetStore.projectStore
-    const imageSetName = imageSetStore.imageSetName()
+    const imageSetName = imageSetStore.name
     const imageStore = imageSetStore.imageStore
     const imageData = imageStore.imageData
     const segmentationStore = imageSetStore.segmentationStore

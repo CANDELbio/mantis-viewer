@@ -42,7 +42,7 @@ export class SegmentFeatureStore {
     }
 
     private autoRefreshAvailableFeatures = autorun(() => {
-        const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
     })
 
@@ -67,7 +67,7 @@ export class SegmentFeatureStore {
     })
 
     @computed get activeFeaturesLoading(): boolean {
-        const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName) {
             return this.featuresLoading(activeImageSetName)
         } else {
@@ -88,7 +88,7 @@ export class SegmentFeatureStore {
     })
 
     @computed get activeAvailableFeatures(): string[] {
-        const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName) {
             return this.featuresAvailable(activeImageSetName)
         } else {
@@ -125,7 +125,7 @@ export class SegmentFeatureStore {
         checkRecalculate: boolean,
         recalculateFeatures: boolean,
     ): void => {
-        const imageSetName = imageSetStore.imageSetName()
+        const imageSetName = imageSetStore.name
         const imageStore = imageSetStore.imageStore
         const segmentationStore = imageSetStore.segmentationStore
         const imageData = imageStore.imageData
@@ -175,7 +175,7 @@ export class SegmentFeatureStore {
         if (this.projectStore.settingStore.plotAllImageSets) {
             imageSets = this.projectStore.allImageSetNames()
         } else {
-            const activeImageSetName = this.projectStore.activeImageSetStore.imageSetName()
+            const activeImageSetName = this.projectStore.activeImageSetStore.name
             if (activeImageSetName) imageSets.push(activeImageSetName)
         }
         this.setFeatureStatistics(imageSets, features)

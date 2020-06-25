@@ -24,6 +24,7 @@ import {
 import { ProjectStore } from './ProjectStore'
 
 interface SettingStoreData {
+    imageSubdirectory: string | null
     channelMarker: Record<ChannelName, string | null> | null
     channelDomainPercentage: Record<ChannelName, [number, number]> | null
     channelVisibility: Record<ChannelName, boolean> | null
@@ -54,7 +55,8 @@ export class SettingStore {
 
     // Storing the base path of the image set or project path for saving/loading settings from a file.
     @observable public basePath: string | null
-
+    // Storing the subdirectory name where images are stored in an ImageSet. Blank if not used.
+    @observable public imageSubdirectory: string | null
     // Image settings below
     // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
@@ -136,6 +138,10 @@ export class SettingStore {
     @action public setBasePath = (path: string): void => {
         this.basePath = path
         this.importSettingsFromFile()
+    }
+
+    @action setImageSubdirectory = (subDir: string): void => {
+        this.imageSubdirectory = subDir
     }
 
     @action public setPlotStatistic = (statistic: PlotStatistic): void => {
@@ -279,6 +285,7 @@ export class SettingStore {
     private exportSettings = autorun(() => {
         if (this.basePath != null) {
             const exporting: SettingStoreData = {
+                imageSubdirectory: this.imageSubdirectory,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
@@ -311,6 +318,8 @@ export class SettingStore {
             if (fs.existsSync(filename)) {
                 try {
                     const importingSettings: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
+                    if (importingSettings.imageSubdirectory)
+                        this.imageSubdirectory = importingSettings.imageSubdirectory
                     if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                     if (importingSettings.channelVisibility)
                         this.channelVisibility = importingSettings.channelVisibility

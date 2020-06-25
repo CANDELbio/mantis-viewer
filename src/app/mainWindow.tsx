@@ -261,11 +261,11 @@ ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
     projectStore.calculateSegmentFeaturesFromMenu()
 })
 
-ipcRenderer.on('open-data-import-wizard', (): void => {
+ipcRenderer.on('open-project-import-modal', (): void => {
     projectStore.dataImportStore.setModalOpen(true)
 })
 
-ipcRenderer.on('data-import-set-directory', (event: Electron.Event, directory: string): void => {
+ipcRenderer.on('project-import-set-directory', (event: Electron.Event, directory: string): void => {
     projectStore.dataImportStore.setDirectory(directory)
 })
 
@@ -454,7 +454,7 @@ Mobx.autorun((): void => {
     const dataImportStore = projectStore.dataImportStore
     const showDirectoryPicker = dataImportStore.showDirectoryPicker
     if (showDirectoryPicker) {
-        ipcRenderer.send('mainWindow-show-import-wizard-directory-picker')
+        ipcRenderer.send('mainWindow-show-project-import-directory-picker')
         dataImportStore.setShowDirectoryPicker(false)
     }
 })

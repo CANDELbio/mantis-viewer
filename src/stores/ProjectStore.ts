@@ -24,7 +24,7 @@ import {
     SegmentFeatureImporterError,
 } from '../workers/SegmentFeatureImporter'
 import { SegmentFeatureStore } from './SegmentFeatureStore'
-import { DataImportStore } from './DataImportStore'
+import { ProjectImportStore } from './ProjectImportStore'
 
 export class ProjectStore {
     public appVersion: string
@@ -42,7 +42,7 @@ export class ProjectStore {
     @observable.ref public settingStore: SettingStore
     @observable.ref public preferencesStore: PreferencesStore
     @observable.ref public notificationStore: NotificationStore
-    @observable.ref public dataImportStore: DataImportStore
+    @observable.ref public dataImportStore: ProjectImportStore
 
     // The width and height of the main window.
     @observable public windowWidth: number | null
@@ -78,14 +78,14 @@ export class ProjectStore {
         // Initialize the setting store (for storing image display settings to transfer when switching)
         this.settingStore = new SettingStore(this)
         this.notificationStore = new NotificationStore()
-        this.dataImportStore = new DataImportStore(this)
+        this.dataImportStore = new ProjectImportStore(this)
 
         this.plotInMainWindow = true
 
         // First ones never get used, but here so that we don't have to use a bunch of null checks.
         // These will never be null once an image is loaded.
         // Maybe better way to accomplish this?
-        this.nullImageSet = new ImageSetStore(this)
+        this.nullImageSet = new ImageSetStore(this, '')
         this.activeImageSetStore = this.nullImageSet
 
         // Initialize the segment feature store (for storing segment/cell features and interacting with the DB)
@@ -114,7 +114,7 @@ export class ProjectStore {
     @action public initializeImageSetStores = (imageSetPaths: string[]): void => {
         this.imageSetPaths = imageSetPaths
         for (const dirName of imageSetPaths) {
-            this.imageSets[dirName] = new ImageSetStore(this)
+            this.imageSets[dirName] = new ImageSetStore(this, dirName)
         }
     }
 
@@ -161,20 +161,6 @@ export class ProjectStore {
         }
     }
 
-    @action public loadImageStoreData = (dirName: string): void => {
-        const imageStore = this.imageSets[dirName].imageStore
-        if (imageStore.imageData == null) {
-            // Select the directory for image data
-            imageStore.selectDirectory(dirName)
-
-            // Set defaults once image data has loaded
-            when(
-                (): boolean => !imageStore.imageDataLoading,
-                (): void => this.settingStore.setDefaultImageSetSettings(imageStore),
-            )
-        }
-    }
-
     @action private setActiveStores = (dirName: string): void => {
         this.lastActiveImageSetPath = this.activeImageSetPath
         this.activeImageSetPath = dirName
@@ -187,7 +173,7 @@ export class ProjectStore {
         if (imageSetStore) {
             const imageStore = imageSetStore.imageStore
             const segmentationStore = imageSetStore.segmentationStore
-            const selectedDirectory = imageStore.selectedDirectory
+            const selectedDirectory = imageSetStore.directory
             if (selectedDirectory && !this.imageSetHistory.includes(selectedDirectory)) {
                 imageStore.clearImageData()
                 segmentationStore.clearSegmentationData()
@@ -209,7 +195,7 @@ export class ProjectStore {
     }
 
     @action public setActiveImageSet = (dirName: string): void => {
-        this.loadImageStoreData(dirName)
+        this.imageSets[dirName].loadImageStoreData()
         this.cleanImageSetHistory(dirName)
 
         // If the dirName isn't in the image set paths (i.e. adding a single folder), then add it.
@@ -296,7 +282,7 @@ export class ProjectStore {
         const settingStore = this.settingStore
         const populationStore = this.activeImageSetStore.populationStore
         const feature = settingStore.selectedPlotFeatures[0]
-        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.activeImageSetStore.name
         if (activeImageSetName) {
             const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, feature, min, max)
             if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
@@ -344,7 +330,7 @@ export class ProjectStore {
         recalculateExistingFeatures: boolean,
     ): void => {
         const curDir = remainingImageSetPaths[0]
-        this.loadImageStoreData(curDir)
+        this.imageSets[dirName].loadImageStoreData()
         const imageSetStore = this.imageSets[curDir]
         const imageStore = imageSetStore.imageStore
         const segmentationStore = imageSetStore.segmentationStore
@@ -365,7 +351,7 @@ export class ProjectStore {
                                     recalculateExistingFeatures,
                                 )
                             }
-                            const imageSetName = imageSetStore.imageSetName()
+                            const imageSetName = imageSetStore.name
                             if (imageSetName) {
                                 when(
                                     (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
@@ -551,7 +537,7 @@ export class ProjectStore {
     public importSegmentFeatures = (clearDuplicates: boolean, remember?: boolean): void => {
         const basePath = this.settingStore.basePath
         const filePath = this.importingSegmentFeaturesPath
-        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.activeImageSetStore.name
         const forProject = this.importingSegmentFeaturesForProject
 
         if (remember != null) {
@@ -637,7 +623,7 @@ export class ProjectStore {
 
     public calculateSegmentFeaturesFromMenu = (): void => {
         this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, true)
-        const activeImageSetName = this.activeImageSetStore.imageSetName()
+        const activeImageSetName = this.activeImageSetStore.name
         if (activeImageSetName) {
             when(
                 () => !this.segmentFeatureStore.featuresLoading(activeImageSetName),
@@ -662,7 +648,7 @@ export class ProjectStore {
     // TODO: Some duplication here with exportImageSetFeatures. Should DRY it up.
     private calculateImageSetFeatures = (remainingImageSetPaths: string[]): void => {
         const curDir = remainingImageSetPaths[0]
-        this.loadImageStoreData(curDir)
+        this.imageSets[curDir].loadImageStoreData()
         const imageSetStore = this.imageSets[curDir]
         const imageStore = imageSetStore.imageStore
         const segmentationStore = imageSetStore.segmentationStore
@@ -680,7 +666,7 @@ export class ProjectStore {
                                 false,
                                 recalculateExistingFeatures,
                             )
-                            const imageSetName = imageSetStore.imageSetName()
+                            const imageSetName = imageSetStore.name
                             if (imageSetName) {
                                 when(
                                     (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),

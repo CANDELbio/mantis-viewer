@@ -12,7 +12,7 @@ import {
 } from '../../lib/SelectHelper'
 import path = require('path')
 
-export interface DataImportModalProps {
+export interface ProjectImportModalProps {
     open: boolean
     directory: string | null
     openDirectoryPicker: () => void
@@ -25,6 +25,9 @@ export interface DataImportModalProps {
     imageSet: string | null
     imageSetTiffs: string[]
     imageSetCsvs: string[]
+    imageSetDirs: string[]
+    imageSubdir: string | null
+    setImageSubdir: (file: string | null) => void
     setSegmentation: (file: string | null) => void
     segmentation: string | null
     setFeatures: (file: string | null) => void
@@ -34,8 +37,8 @@ export interface DataImportModalProps {
 }
 
 @observer
-export class DataImportModal extends React.Component<DataImportModalProps, {}> {
-    public constructor(props: DataImportModalProps) {
+export class ProjectImportModal extends React.Component<ProjectImportModalProps, {}> {
+    public constructor(props: ProjectImportModalProps) {
         super(props)
     }
 
@@ -46,6 +49,8 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
         if (this.props.directory) buttonText = path.basename(this.props.directory)
         const imageSetOptions = generateSelectOptions(this.props.projectDirectories)
         const selectedImageSet = getSelectedOptions(this.props.imageSet, imageSetOptions)
+        const imageDirectoryOptions = generateSelectOptions(this.props.imageSetDirs)
+        const selectedImageSubdir = getSelectedOptions(this.props.imageSubdir, imageDirectoryOptions)
         const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
         const selectedSegmentation = getSelectedOptions(this.props.segmentation, segmentationOptions)
         const featureOptions = generateSelectOptions(this.props.projectCsvs)
@@ -55,7 +60,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
         return (
             <Grid>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Selected Project:</Col>
+                    <Col xs={4}>Project Directory:</Col>
                     <Col xs={8}>
                         <Button type="button" size="sm" onClick={this.props.openDirectoryPicker}>
                             {buttonText}
@@ -63,7 +68,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Selected Image Set:</Col>
+                    <Col xs={4}>Representative Image Set:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedImageSet}
@@ -77,7 +82,21 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Selected Segmentation:</Col>
+                    <Col xs={4}>Image Subdirectory:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedImageSubdir}
+                            options={imageDirectoryOptions}
+                            onChange={onClearableSelectChange(this.props.setImageSubdir)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={this.props.imageSetDirs.length == 0}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Segmentation File:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedSegmentation}
@@ -91,7 +110,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Selected Segment Features:</Col>
+                    <Col xs={4}>Segment Features File:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedFeature}
@@ -105,7 +124,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Selected Populations:</Col>
+                    <Col xs={4}>Populations File:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedPopulation}
@@ -128,7 +147,7 @@ export class DataImportModal extends React.Component<DataImportModalProps, {}> {
         if (this.props.open) {
             modal = (
                 <Modal isOpen={true}>
-                    <ModalHeader>Project Import Wizard</ModalHeader>
+                    <ModalHeader>Import New Project</ModalHeader>
                     <ModalBody>
                         <Grid>
                             <Row middle="xs" center="xs">
