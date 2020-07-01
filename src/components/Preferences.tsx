@@ -9,6 +9,8 @@ import { Input, Label } from 'reactstrap'
 export interface PreferencesProps {
     maxImageSetsInMemory: number
     setMaxImageSetsInMemory: (max: number) => void
+    blurPixels: boolean
+    setBlurPixels: (value: boolean) => void
     defaultSegmentationBasename: string | null
     setDefaultSegmentation: (basename: string) => void
     defaultChannelMarkers: Record<ChannelName, string[]>
@@ -130,6 +132,15 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     onChange={this.onMaxImageSetsInMemoryChange}
                     onRelease={this.props.setMaxImageSetsInMemory}
                 />
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.blurPixels}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setBlurPixels(e.target.checked)
+                        }
+                        label="Blur Pixels (Restart required to take effect)"
+                    />
+                </Label>
                 <Label>Default Segmentation Filename</Label>
                 <Input
                     value={this.props.defaultSegmentationBasename ? this.props.defaultSegmentationBasename : ''}

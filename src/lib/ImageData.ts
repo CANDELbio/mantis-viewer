@@ -53,13 +53,13 @@ export class ImageData {
         }
     }
 
-    private async loadImageWorkerResults(imageData: ImageDataWorkerResult): Promise<void> {
+    private async loadImageWorkerResults(imageData: ImageDataWorkerResult, blurPixels: boolean): Promise<void> {
         const markerName = imageData.markerName
         this.width = imageData.width
         this.height = imageData.height
         if (imageData.scaled) this.scaled = imageData.scaled
         this.data[markerName] = imageData.data
-        this.sprites[markerName] = imageBitmapToSprite(imageData.bitmap)
+        this.sprites[markerName] = imageBitmapToSprite(imageData.bitmap, blurPixels)
         this.minmax[markerName] = imageData.minmax
 
         // If the tiff that was just read contained multiple images, increase the number of markers we expect
@@ -68,7 +68,7 @@ export class ImageData {
         if (!imageData.input.imageNumber || imageData.input.imageNumber == 0) {
             this.numMarkers += numImages - 1
             for (let i = 1; i < numImages; ++i) {
-                this.loadImageInWorker(imageData.input.filepath, imageData.input.useExtInMarkerName, i)
+                this.loadImageInWorker(imageData.input.filepath, imageData.input.useExtInMarkerName, blurPixels, i)
             }
         }
         this.fileLoadComplete()
@@ -83,6 +83,7 @@ export class ImageData {
 
     private async loadImageWorkerResultsCallback(
         imageData: ImageDataWorkerResult | ImageDataWorkerError,
+        blurPixels: boolean,
     ): Promise<void> {
         if ('error' in imageData) {
             this.loadImageWorkerResultsError(imageData)
@@ -99,7 +100,7 @@ export class ImageData {
                 error: 'Data already loaded for marker.',
             })
         } else {
-            this.loadImageWorkerResults(imageData)
+            this.loadImageWorkerResults(imageData, blurPixels)
         }
     }
 
@@ -112,9 +113,14 @@ export class ImageData {
         }
     }
 
-    private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber?: number): void {
+    private loadImageInWorker(
+        filepath: string,
+        useExtInMarkerName: boolean,
+        blurPixels: boolean,
+        imageNumber?: number,
+    ): void {
         const onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
-            this.loadImageWorkerResultsCallback(data)
+            this.loadImageWorkerResultsCallback(data, blurPixels)
         }
         submitImageDataJob(
             { useExtInMarkerName: useExtInMarkerName, filepath: filepath, imageNumber: imageNumber },
@@ -123,7 +129,7 @@ export class ImageData {
     }
 
     // Loads a folder in the background using ImageDataWorkers
-    public loadFolder(dirName: string, onReady: (imageData: ImageData) => void): void {
+    public loadFolder(dirName: string, blurPixels: boolean, onReady: (imageData: ImageData) => void): void {
         this.onReady = onReady
 
         const files = fs.readdirSync(dirName)
@@ -145,7 +151,7 @@ export class ImageData {
             const useExtInMarkerName = baseNames.length !== new Set(baseNames).size
 
             tiffs.forEach((f) => {
-                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName)
+                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName, blurPixels)
             })
         }
     }

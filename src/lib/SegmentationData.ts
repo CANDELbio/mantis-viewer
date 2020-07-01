@@ -60,7 +60,7 @@ export class SegmentationData {
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
-        this.segmentFillSprite = imageBitmapToSprite(fData.fillBitmap)
+        this.segmentFillSprite = imageBitmapToSprite(fData.fillBitmap, false)
         this.onReady(this)
     }
 

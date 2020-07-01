@@ -53,7 +53,7 @@ export interface ImageProps {
 export class ImageViewer extends React.Component<ImageProps, {}> {
     private el: HTMLDivElement | null = null
 
-    private renderer: PIXI.WebGLRenderer
+    private renderer: PIXI.Renderer
     private rootContainer: PIXI.Container
     private stage: PIXI.Container
 
@@ -500,13 +500,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         this.setScaleFactors(imcData, maxRendererSize)
 
-        // Set the PIXI scale mode for crisp graphics
-        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-
         // Setting up the renderer
-        this.renderer = new PIXI.WebGLRenderer(this.rendererWidth, this.rendererHeight, {
+        this.renderer = new PIXI.Renderer({
+            width: this.rendererWidth,
+            height: this.rendererHeight,
             transparent: true,
-            roundPixels: true,
         })
         this.el.appendChild(this.renderer.view)
 
@@ -779,6 +777,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.resizeRendererForExport(exportWidth, exportHeight, exportScale, exportScale)
 
         // Get the source canvas that we are exporting from pixi
+        // Need to use ts-ignore for this for some reason it expects an input
+        // with the v5 ts types
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         const sourceCanvas = this.renderer.extract.canvas()
 
         // Return the size of the renderer to its original size

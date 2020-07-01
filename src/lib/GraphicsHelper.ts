@@ -5,7 +5,7 @@ import { ImageData } from './ImageData'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 
-export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {
+export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const offScreen = document.createElement('canvas')
 
     offScreen.width = bitmap.width
@@ -13,7 +13,10 @@ export function imageBitmapToSprite(bitmap: ImageBitmap): PIXI.Sprite {
 
     const ctx = offScreen.getContext('2d')
     if (ctx) ctx.drawImage(bitmap, 0, 0)
-    return new PIXI.Sprite(PIXI.Texture.fromCanvas(offScreen))
+    const spriteOptions = blurPixels ? undefined : { scaleMode: PIXI.SCALE_MODES.NEAREST }
+    const sprite = PIXI.Sprite.from(offScreen, spriteOptions)
+    if (!blurPixels) sprite.roundPixels = false
+    return sprite
 }
 
 // Draws a cross in the following order centered at X and Y
@@ -186,7 +189,7 @@ export function generateBrightnessFilterUniforms(
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): PIXI.UniformDataMap<Record<string, any>> | null {
+): Record<string, any> | null {
     const curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
@@ -201,26 +204,11 @@ export function generateBrightnessFilterUniforms(
             const m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
 
             return {
-                m: {
-                    type: 'f',
-                    value: m,
-                },
-                b: {
-                    type: 'f',
-                    value: b,
-                },
-                red: {
-                    type: 'b',
-                    value: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
-                },
-                green: {
-                    type: 'b',
-                    value: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
-                },
-                blue: {
-                    type: 'b',
-                    value: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
-                },
+                m: m,
+                b: b,
+                red: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
+                green: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
+                blue: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
             }
         }
     }
@@ -248,8 +236,9 @@ function drawHollowRectangle(
 
     graphics.beginFill(color)
     graphics.drawPolygon([x1, y1, x2, y1, x2, y2, x1, y2])
+    graphics.beginHole()
     graphics.drawPolygon([hx1, hy1, hx2, hy1, hx2, hy2, hx1, hy2])
-    graphics.addHole()
+    graphics.endHole()
     graphics.endFill()
 }
 

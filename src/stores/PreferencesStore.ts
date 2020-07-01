@@ -14,6 +14,8 @@ export class PreferencesStore {
 
     @observable public maxImageSetsInMemory: number
 
+    @observable public blurPixels: boolean
+
     @observable public defaultSegmentationBasename: string | null
 
     @observable public defaultChannelMarkers: Record<ChannelName, string[]>
@@ -41,6 +43,7 @@ export class PreferencesStore {
     ]
 
     private initialize(): void {
+        this.blurPixels = false
         this.maxImageSetsInMemory = 3
         this.defaultChannelMarkers = {
             rChannel: ['catenin', 'CD8', 'CD4', 'CD20', 'CD68'],
@@ -79,6 +82,10 @@ export class PreferencesStore {
 
     @action public setMaxImageSetsInMemory(max: number): void {
         this.maxImageSetsInMemory = max
+    }
+
+    @action public setBlurPixels(value: boolean): void {
+        this.blurPixels = value
     }
 
     @action public setDefaultChannelMarkers(channel: ChannelName, markers: string[]): void {
@@ -189,6 +196,7 @@ export class PreferencesStore {
     private saveToStore = autorun(() => {
         const store = this.store
         store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
+        store.set('blurPixels', this.blurPixels)
         store.set('defaultChannelMarkers', this.defaultChannelMarkers)
         store.set('defaultChannelDomains', this.defaultChannelDomains)
         store.set('useAnyMarkerIfNoMatch', this.useAnyMarkerIfNoMatch)
@@ -209,6 +217,8 @@ export class PreferencesStore {
         const store = this.store
         const maxImageSetsInMemory = store.get('maxImageSetsInMemory')
         if (maxImageSetsInMemory) this.maxImageSetsInMemory = maxImageSetsInMemory
+        const blurPixels = store.get('blurPixels')
+        if (blurPixels) this.blurPixels = blurPixels
         const defaultChannelMarkers = store.get('defaultChannelMarkers')
         if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers
         const defaultChannelDomains = store.get('defaultChannelDomains')

@@ -102,6 +102,10 @@ ipcRenderer.on('set-max-image-sets', (event: Electron.Event, max: number): void 
     projectStore.preferencesStore.setMaxImageSetsInMemory(max)
 })
 
+ipcRenderer.on('set-blur-pixels', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setBlurPixels(value)
+})
+
 ipcRenderer.on('set-default-segmentation', (event: Electron.Event, segmentation: string): void => {
     projectStore.preferencesStore.setDefaultSegmentationBasename(segmentation)
 })
@@ -324,6 +328,7 @@ Mobx.autorun((): void => {
     ipcRenderer.send(
         'mainWindow-set-preferences',
         preferencesStore.maxImageSetsInMemory,
+        preferencesStore.blurPixels,
         preferencesStore.defaultSegmentationBasename,
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),

@@ -5,6 +5,7 @@ import { ChannelName } from '../definitions/UIDefinitions'
 import { Preferences } from '../components/Preferences'
 
 let maxImageSetsInMemory: number
+let blurPixels: boolean
 let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
@@ -18,6 +19,10 @@ let clearDuplicateSegmentFeatures: boolean
 
 const setMaxImageSetsInMemory = (max: number): void => {
     ipcRenderer.send('preferencesWindow-set-max-image-sets', max)
+}
+
+const setBlurPixels = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-blur-pixels', value)
 }
 
 const setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
@@ -66,6 +71,8 @@ function render(): void {
             <Preferences
                 maxImageSetsInMemory={maxImageSetsInMemory}
                 setMaxImageSetsInMemory={setMaxImageSetsInMemory}
+                blurPixels={blurPixels}
+                setBlurPixels={setBlurPixels}
                 defaultSegmentationBasename={defaultSegmentation}
                 setDefaultSegmentation={setDefaultSegmentation}
                 defaultChannelMarkers={defaultChannelMarkers}
@@ -97,6 +104,7 @@ ipcRenderer.on(
     (
         event: Electron.Event,
         maxImageSets: number,
+        blur: boolean,
         segmentation: string | null,
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
@@ -109,6 +117,7 @@ ipcRenderer.on(
         clear: boolean,
     ): void => {
         maxImageSetsInMemory = maxImageSets
+        blurPixels = blur
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
