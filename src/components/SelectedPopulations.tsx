@@ -190,8 +190,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             >
                                 <textarea
                                     defaultValue={rowPopulation.selectedSegments.join(', ')}
-                                    readOnly={rowPopulation.selectedRegion ? true : false}
-                                    disabled={rowPopulation.selectedRegion ? true : false}
+                                    readOnly={rowPopulation.regionOutline ? true : false}
+                                    disabled={rowPopulation.regionOutline ? true : false}
                                     onBlur={this.onChangeSelectedSegments}
                                     style={{ overflow: 'auto' }}
                                 />

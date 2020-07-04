@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
@@ -35,18 +34,18 @@ function getPixelColor(segmentId: number, colors: RGBColorCollection): { r: numb
 function drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uint8ClampedArray): void {
     // Tiff data is an array with one index per pixel whereas canvasas have four indexes per pixel (r, g, b, a)
     // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
-    const canvasasIndex = pixel << 2
+    const canvasIndex = pixel << 2
     if (segmentId === 0) {
-        canvasData[canvasasIndex] = 0
-        canvasData[canvasasIndex + 1] = 0
-        canvasData[canvasasIndex + 2] = 0
-        canvasData[canvasasIndex + 3] = 0
+        canvasData[canvasIndex] = 0
+        canvasData[canvasIndex + 1] = 0
+        canvasData[canvasIndex + 2] = 0
+        canvasData[canvasIndex + 3] = 0
     } else {
         const color = getPixelColor(segmentId, colors)
-        canvasData[canvasasIndex] = color['r']
-        canvasData[canvasasIndex + 1] = color['g']
-        canvasData[canvasasIndex + 2] = color['b']
-        canvasData[canvasasIndex + 3] = 255
+        canvasData[canvasIndex] = color['r']
+        canvasData[canvasIndex + 1] = color['g']
+        canvasData[canvasIndex + 2] = color['b']
+        canvasData[canvasIndex + 3] = 255
     }
 }
 
@@ -65,7 +64,6 @@ async function generateFillBitmap(
     width: number,
     height: number,
 ): Promise<ImageBitmap> {
-    // @ts-ignore
     const offScreen = new OffscreenCanvas(width, height)
 
     // Hash to store the segmentID to randomly generated color mapping
@@ -73,7 +71,6 @@ async function generateFillBitmap(
 
     const ctx = offScreen.getContext('2d')
     if (ctx) {
-        //@ts-ignore
         const imageData = ctx.getImageData(0, 0, offScreen.width, offScreen.height)
         const canvasData = imageData.data
 
@@ -82,7 +79,6 @@ async function generateFillBitmap(
         for (let i = 0; i < v.length; ++i) {
             drawPixel(v[i], colors, i, canvasData)
         }
-        //@ts-ignore
         ctx.putImageData(imageData, 0, 0)
     }
 

@@ -2,13 +2,19 @@ import { observable, action } from 'mobx'
 import * as shortId from 'shortid'
 import * as _ from 'underscore'
 
+import { ImageSetStore } from './ImageSetStore'
 import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { randomHexColor } from '../lib/ColorHelper'
+import { drawSelectedRegion, findSegmentsInSelection } from '../lib/GraphicsHelper'
+import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
 
 export class PopulationStore {
-    public constructor() {
+    public constructor(imageSetStore: ImageSetStore) {
+        this.imageSetStore = imageSetStore
         this.initialize()
     }
+
+    private imageSetStore: ImageSetStore
     // An array of the regions selected.
     @observable.ref public selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
@@ -39,24 +45,44 @@ export class PopulationStore {
     // Can pass in a namePrefix or null to just use the default ROI name. Prefix gets stuck in front of the ROI name.
     // If name is passed in, it overrides namePrefix/default ROI name.
     @action public addSelectedPopulation = (
-        selectedRegion: number[] | null,
+        regionOutline: number[] | null,
         selectedSegments: number[],
         namePrefix: string | null,
         name?: string | null,
         color?: number | null,
     ): SelectedPopulation => {
         const order = this.getRenderOrder()
-        const newRegion = {
+        const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
             renderOrder: order,
-            selectedRegion: selectedRegion,
+            regionOutline: regionOutline,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(order, namePrefix),
             color: color ? color : randomHexColor(),
+            regionGraphics: null,
+            segmentGraphics: null,
             visible: true,
         }
-        this.selectedPopulations = this.selectedPopulations.concat([newRegion])
-        return newRegion
+        this.refreshGraphics(newPopulation)
+        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
+        return newPopulation
+    }
+
+    private refreshGraphics = (population: SelectedPopulation): SelectedPopulation => {
+        const imageData = this.imageSetStore.imageStore.imageData
+        const segmentationData = this.imageSetStore.segmentationStore.segmentationData
+        const regionOutline = population.regionOutline
+        if (imageData && segmentationData && regionOutline) {
+            const color = population.color
+            population.regionGraphics = drawSelectedRegion(regionOutline, color, 1)
+            population.selectedSegments = findSegmentsInSelection(population.regionGraphics, segmentationData)
+            population.segmentGraphics = segmentationData.segmentOutlineGraphics(
+                color,
+                SelectedSegmentOutlineWidth,
+                population.selectedSegments,
+            )
+        }
+        return population
     }
 
     @action public addEmptyPopulation = (): void => {
@@ -72,7 +98,7 @@ export class PopulationStore {
     @action public deletePopulationsNotSelectedOnImage = (): void => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.filter(
-                (region): boolean | null => region.selectedRegion && region.selectedRegion.length > 0,
+                (region): boolean | null => region.regionOutline && region.regionOutline.length > 0,
             )
         }
     }
@@ -102,27 +128,32 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
-                if (region.id == id) {
-                    region.color = color
-                    return region
-                } else {
-                    return region
-                }
-            })
+            this.selectedPopulations = this.selectedPopulations.slice().map(
+                (population): SelectedPopulation => {
+                    if (population.id == id) {
+                        population.color = color
+                        this.refreshGraphics(population)
+                        return population
+                    } else {
+                        return population
+                    }
+                },
+            )
         }
     }
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
-                if (region.id == id) {
-                    region.visible = visible
-                    return region
-                } else {
-                    return region
-                }
-            })
+            this.selectedPopulations = this.selectedPopulations.slice().map(
+                (region): SelectedPopulation => {
+                    if (region.id == id) {
+                        region.visible = visible
+                        return region
+                    } else {
+                        return region
+                    }
+                },
+            )
         }
     }
 

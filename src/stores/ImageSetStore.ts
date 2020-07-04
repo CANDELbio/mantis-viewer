@@ -13,7 +13,7 @@ export class ImageSetStore {
         this.imageStore = new ImageStore(this)
         this.plotStore = new PlotStore(this)
         this.segmentationStore = new SegmentationStore(this)
-        this.populationStore = new PopulationStore()
+        this.populationStore = new PopulationStore(this)
         this.directory = directory
         this.name = path.basename(directory)
     }

@@ -26,7 +26,6 @@ import { WelcomeModal } from './modals/WelcomeModal'
 import { ProgressModal } from './modals/ProgressModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { PlotControls } from './PlotControls'
 
 export interface MainAppProps {
@@ -82,14 +81,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
     }
 
-    private addSelectionFromImage = (selectedRegion: number[], segmentIds: number[], color: number): void => {
+    private addSelectionFromImage = (regionOutline: number[], segmentIds: number[], color: number): void => {
         const populationStore = this.props.projectStore.activeImageSetStore.populationStore
-        populationStore.addSelectedPopulation(selectedRegion, segmentIds, ImageSelectionPrefix, null, color)
-    }
-
-    private updateSelectionsFromImage = (selected: SelectedPopulation[]): void => {
-        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
-        populationStore.setSelectedPopulations(selected)
+        populationStore.addSelectedPopulation(regionOutline, segmentIds, ImageSelectionPrefix, null, color)
     }
 
     private getChannelMin(s: ChannelName): number {
@@ -252,7 +246,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     scale={imageStore.scale}
                     setPositionAndScale={imageStore.setPositionAndScale}
                     addSelectedRegion={this.addSelectionFromImage}
-                    updateSelectedRegions={this.updateSelectionsFromImage}
                     selectedRegions={populationStore.selectedPopulations}
                     highlightedRegions={populationStore.highlightedPopulations}
                     highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}

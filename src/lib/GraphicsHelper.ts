@@ -4,17 +4,18 @@ import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
+import { hexToRGB } from './ColorHelper'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
-    const offScreen = document.createElement('canvas')
+    const canvas = document.createElement('canvas')
 
-    offScreen.width = bitmap.width
-    offScreen.height = bitmap.height
+    canvas.width = bitmap.width
+    canvas.height = bitmap.height
 
-    const ctx = offScreen.getContext('2d')
+    const ctx = canvas.getContext('2d')
     if (ctx) ctx.drawImage(bitmap, 0, 0)
     const spriteOptions = blurPixels ? undefined : { scaleMode: PIXI.SCALE_MODES.NEAREST }
-    const sprite = PIXI.Sprite.from(offScreen, spriteOptions)
+    const sprite = PIXI.Sprite.from(canvas, spriteOptions)
     if (!blurPixels) sprite.roundPixels = false
     return sprite
 }
@@ -84,7 +85,7 @@ export function drawSelectedRegion(selection: number[], color: number, alpha: nu
 
 // Returns an array of segmentIds whose centroids collide with the selection in selectionGraphics
 export function findSegmentsInSelection(
-    selectionGraphics: PIXI.Graphics,
+    selectionGraphics: PIXI.Graphics | PIXI.Sprite,
     segmentationData: SegmentationData | null,
 ): number[] {
     const selectedSegments: number[] = []

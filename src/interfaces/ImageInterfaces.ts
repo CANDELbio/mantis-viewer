@@ -7,9 +7,11 @@ export interface SelectedPopulation {
     id: string
     renderOrder: number
     // The coordinates of the selected region. In PIXI polygon format [x1, y1, x2, y2, ...]
-    selectedRegion: number[] | null
+    regionOutline: number[] | null
     // The IDs of the selected segments
     selectedSegments: number[]
+    regionGraphics: PIXI.Graphics | PIXI.Sprite | null
+    segmentGraphics: PIXI.Graphics | null
     name: string
     color: number
     visible: boolean

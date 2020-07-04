@@ -446,7 +446,7 @@ export class ProjectStore {
         const populations = parseActivePopulationsJSON(filePath)
         populations.map((population): void => {
             activePopulationStore.addSelectedPopulation(
-                population.selectedRegion,
+                population.regionOutline,
                 population.selectedSegments,
                 null,
                 population.name,
