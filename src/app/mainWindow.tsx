@@ -8,7 +8,7 @@ import * as Mousetrap from 'mousetrap'
 
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
-import { GraphSelectionPrefix, ChannelName } from '../definitions/UIDefinitions'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 Mobx.configure({ enforceActions: 'always' })
 
@@ -31,14 +31,6 @@ ipcRenderer.on(
 
 ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: string): void => {
     projectStore.setSegmentationBasename(filePath)
-})
-
-ipcRenderer.on('add-populations-json', (event: Electron.Event, filePath: string): void => {
-    projectStore.importActivePopulationsFromJSON(filePath)
-})
-
-ipcRenderer.on('export-populations-json', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActivePopulationsToJSON(filePath)
 })
 
 ipcRenderer.on('add-populations-csv', (event: Electron.Event, filePath: string): void => {
@@ -186,7 +178,7 @@ ipcRenderer.on('set-plot-all-image-sets', (event: Electron.Event, value: boolean
 })
 
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
-    projectStore.activeImageSetStore.populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+    projectStore.activeImageSetStore.populationStore.createPopulationFromSegments(segmentIds)
 })
 
 ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: number[]): void => {

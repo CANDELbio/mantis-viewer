@@ -12,8 +12,6 @@ import {
     MainPlotHeightPadding,
     ChannelControlsCombinedHeight,
     ImageChannels,
-    GraphSelectionPrefix,
-    ImageSelectionPrefix,
     SelectedPopulationsTableHeight,
 } from '../definitions/UIDefinitions'
 import { ChannelControls } from './ChannelControls'
@@ -75,16 +73,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
     private handleRegionsClick = (): void => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
-
-    private addSelectionFromGraph = (segmentIds: number[]): void => {
-        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
-        if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
-    }
-
-    private addSelectionFromImage = (regionOutline: number[], segmentIds: number[], color: number): void => {
-        const populationStore = this.props.projectStore.activeImageSetStore.populationStore
-        populationStore.addSelectedPopulation(regionOutline, segmentIds, ImageSelectionPrefix, null, color)
-    }
 
     private getChannelMin(s: ChannelName): number {
         const settingStore = this.props.projectStore.settingStore
@@ -245,7 +233,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     position={imageStore.position}
                     scale={imageStore.scale}
                     setPositionAndScale={imageStore.setPositionAndScale}
-                    addSelectedRegion={this.addSelectionFromImage}
+                    addSelectedRegion={populationStore.createPopulationFromPixels}
                     selectedRegions={populationStore.selectedPopulations}
                     highlightedRegions={populationStore.highlightedPopulations}
                     highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
@@ -293,7 +281,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             <Plot
                                 windowWidth={projectStore.windowWidth}
                                 selectedType={settingStore.plotType}
-                                setSelectedSegments={this.addSelectionFromGraph}
+                                setSelectedSegments={populationStore.createPopulationFromSegments}
                                 setSelectedRange={projectStore.addPopulationFromRange}
                                 setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                                 plotData={plotStore.plotData}
@@ -315,7 +303,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 deletePopulation={populationStore.deleteSelectedPopulation}
                 setAllVisibility={populationStore.setAllSelectedPopulationVisibility}
                 highlightPopulation={populationStore.highlightSelectedPopulation}
-                unhighlightPopulation={populationStore.unhighlightSelectedPopulation}
+                unhighlightPopulation={populationStore.unHighlightSelectedPopulation}
                 addEmptyPopulation={populationStore.addEmptyPopulation}
                 segmentationDataLoaded={segmentationStore.segmentationData != null}
             />

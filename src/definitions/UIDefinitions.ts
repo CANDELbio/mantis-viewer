@@ -86,10 +86,6 @@ export const PlotMinDotSize = 1
 export const DefaultDotSize = 2
 export const PlotMaxDotSize = 10
 
-// Prefixes for new populations selected from graph or image.
-export const GraphSelectionPrefix = 'Graph'
-export const ImageSelectionPrefix = 'Image'
-
 export const ImageSettingsFilename = '.mantisImageSettings'
 export const DbFilename = '.mantisDb'
 

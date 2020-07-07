@@ -8,7 +8,7 @@ import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
 import { hexToString } from '../lib/ColorHelper'
 
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../stores/PopulationStore'
 import { SelectedPopulationsTableHeight } from '../definitions/UIDefinitions'
 
 interface SelectedProps {
@@ -190,8 +190,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             >
                                 <textarea
                                     defaultValue={rowPopulation.selectedSegments.join(', ')}
-                                    readOnly={rowPopulation.regionOutline ? true : false}
-                                    disabled={rowPopulation.regionOutline ? true : false}
+                                    readOnly={rowPopulation.pixelIndexes ? true : false}
+                                    disabled={rowPopulation.pixelIndexes ? true : false}
                                     onBlur={this.onChangeSelectedSegments}
                                     style={{ overflow: 'auto' }}
                                 />

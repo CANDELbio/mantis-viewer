@@ -353,3 +353,61 @@ export function drawLegend(
         }
     }
 }
+
+// Expects an array from a PIXI pixel extract that has four entries per pixel (r, g, b, a) with flipped Y indexes.
+// Turns this into an array of pixel indexes of the pixels that have non-zero alpha values.
+// Uses min and max x and y values to constrain the region where it's looking for non-zero alpha values.
+export function RGBAtoPixelIndexes(
+    RGBAValues: Uint8Array | Uint8ClampedArray,
+    width: number,
+    height: number,
+    minX: number,
+    maxX: number,
+    minY: number,
+    maxY: number,
+): number[] {
+    const indexes: Set<number> = new Set()
+    for (let y = minY; y <= maxY; y++) {
+        // PIXI Pixel extract flips the Y values, so we need to flip them back here.
+        const flippedY = height - y - 1
+        for (let x = minX; x <= maxX; x++) {
+            const flippedIndex = flippedY * width + x
+            const RGBAIndex = flippedIndex << 2
+            // If the alpha is set for this pixel then add the non-flipped pixel index.
+            if (RGBAValues[RGBAIndex + 3] > 0) {
+                const pixelIndex = y * width + x
+                indexes.add(pixelIndex)
+            }
+        }
+    }
+    return Array.from(indexes)
+}
+
+// Generates a sprite of width and height with the pixels at the passed in indexes set to hexColor and 100% alpha.
+export function pixelIndexesToSprite(indexes: number[], width: number, height: number, hexColor: number): PIXI.Sprite {
+    const color = hexToRGB(hexColor)
+    const canvas = document.createElement('canvas')
+
+    canvas.width = width
+    canvas.height = height
+
+    const ctx = canvas.getContext('2d')
+
+    if (ctx) {
+        const imageData = ctx.getImageData(0, 0, width, height)
+        const canvasData = imageData.data
+
+        for (const pixelIndex of indexes) {
+            // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
+            const canvasIndex = pixelIndex << 2
+            canvasData[canvasIndex] = color['r']
+            canvasData[canvasIndex + 1] = color['g']
+            canvasData[canvasIndex + 2] = color['b']
+            canvasData[canvasIndex + 3] = 255
+        }
+        ctx.putImageData(imageData, 0, 0)
+    }
+
+    const sprite = PIXI.Sprite.from(canvas)
+    return sprite
+}

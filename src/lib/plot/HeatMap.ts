@@ -1,6 +1,6 @@
 import { SegmentationData } from '../SegmentationData'
 import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
 import { calculateMean, calculateMedian } from '../../lib/StatsHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'

@@ -182,15 +182,6 @@ function generateMenuTemplate(): any {
                             label: 'Populations',
                             submenu: [
                                 {
-                                    label: 'For active image set from JSON',
-                                    enabled: imageLoaded,
-                                    click: showOpenFileDialogCallback(
-                                        'add-populations-json',
-                                        activeImageDirectory,
-                                        'json',
-                                    ),
-                                },
-                                {
                                     label: 'For active image set from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
@@ -247,15 +238,6 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Populations',
                             submenu: [
-                                {
-                                    label: 'For active image set to JSON',
-                                    enabled: imageLoaded && populationsSelected,
-                                    click: showSaveFileIpcDialog(
-                                        'export-populations-json',
-                                        activeImageDirectory,
-                                        'json',
-                                    ),
-                                },
                                 {
                                     label: 'For active image set to CSV',
                                     enabled: imageLoaded && populationsSelected,

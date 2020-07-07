@@ -23,7 +23,7 @@ import {
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
 import { randomHexColor } from '../lib/ColorHelper'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export interface ImageProps {
     imageData: ImageData
@@ -38,7 +38,7 @@ export interface ImageProps {
     scale: { x: number; y: number } | null
     setPositionAndScale: (position: { x: number; y: number }, scale: { x: number; y: number }) => void
     selectedRegions: SelectedPopulation[] | null
-    addSelectedRegion: (regionOutline: number[] | null, selectedSegments: number[], color: number) => void
+    addSelectedRegion: (pixelIndexes: number[], color: number) => void
     highlightedRegions: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
@@ -94,6 +94,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         segmentOutlineGraphics: PIXI.Graphics | null
         selectedSegments: number[]
         selectionColor: number
+        minX: number | null
+        maxX: number | null
+        minY: number | null
+        maxY: number | null
     }
 
     // If the renderer is full screened or not
@@ -153,16 +157,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
 
         this.minScale = 1.0
-
-        this.panState = { active: false }
-        this.selectState = {
-            active: false,
-            selection: [],
-            selectionGraphics: null,
-            segmentOutlineGraphics: null,
-            selectedSegments: [],
-            selectionColor: 0,
-        }
+        this.initializeSelectState()
+        this.initializePanState()
         this.fullScreen = false
     }
 
@@ -180,14 +176,29 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private initializeSelectState = (): void => {
+        this.selectState = {
+            active: false,
+            selection: [],
+            selectionGraphics: null,
+            segmentOutlineGraphics: null,
+            selectedSegments: [],
+            selectionColor: 0,
+            minX: null,
+            maxX: null,
+            minY: null,
+            maxY: null,
+        }
+    }
+
+    private initializePanState = (): void => {
+        this.panState = { active: false }
+    }
+
     private onExportComplete = (): void => this.props.onExportComplete()
 
-    private addSelectedRegionToStore = (
-        regionOutline: number[] | null,
-        selectedSegments: number[],
-        color: number,
-    ): void => {
-        this.props.addSelectedRegion(regionOutline, selectedSegments, color)
+    private addSelectedRegionToStore = (pixelIndexes: number[], color: number): void => {
+        this.props.addSelectedRegion(pixelIndexes, color)
     }
 
     private syncPositionAndScale = (): void => {
@@ -334,10 +345,17 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         el.addEventListener('mouseout', this.panMouseOutHandler)
     }
 
-    private addPositionToSelection(selection: number[]): void {
+    private addPositionToSelection(state: {
+        selection: number[]
+        minX: number | null
+        maxX: number | null
+        minY: number | null
+        maxY: number | null
+    }): void {
         const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-        let xPosition = position.x
-        let yPosition = position.y
+        // Round here so that we don't have issues using the min and max values in RGBAtoPixelIndexes
+        let xPosition = Math.round(position.x)
+        let yPosition = Math.round(position.y)
 
         // If the user is trying to select outside of the top or left edges, stop them
         if (xPosition < 0) xPosition = 0
@@ -347,12 +365,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const maxY = this.imageData.height
 
         // If the user is trying to select outside of the bottom or right edges, stop them
-
         if (xPosition > maxX) xPosition = maxX
         if (yPosition > maxY) yPosition = maxY
 
-        selection.push(xPosition)
-        selection.push(yPosition)
+        if (state.minX == null || state.minX > xPosition) state.minX = xPosition
+        if (state.maxX == null || state.maxX < xPosition) state.maxX = xPosition
+        if (state.minY == null || state.minY > yPosition) state.minY = yPosition
+        if (state.maxY == null || state.maxY < yPosition) state.maxY = yPosition
+
+        state.selection.push(xPosition)
+        state.selection.push(yPosition)
     }
 
     // On mousedown, if alt is pressed set selecting to true and start adding positions to the selection
@@ -363,7 +385,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (altPressed || metaPressed) {
             state.active = true
             state.selectionColor = randomHexColor()
-            this.addPositionToSelection(state.selection)
+            this.addPositionToSelection(state)
         }
     }
 
@@ -372,7 +394,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private selectMouseMoveHandler = (): void => {
         const state = this.selectState
         if (state.active) {
-            this.addPositionToSelection(state.selection)
+            this.addPositionToSelection(state)
 
             GraphicsHelper.cleanUpStage(this.stage, state.selectionGraphics, state.segmentOutlineGraphics)
 
@@ -401,17 +423,58 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private getSelectionPixelIndexes = (): number[] => {
+        const state = this.selectState
+        let pixelIndexes: number[] = []
+        if (state.selectionGraphics && state.minX && state.maxX && state.minY && state.maxY) {
+            // Keep track of the starting X and Y positions and X and Y scale to reset at the end
+            const initialXPosition = this.stage.position.x
+            const initialYPosition = this.stage.position.y
+            const initialXScale = this.stage.scale.x
+            const initialYScale = this.stage.scale.y
+
+            // Reset the stage X and Y position
+            this.stage.position.x = 0
+            this.stage.position.y = 0
+
+            // Zoom out the renderer and resize to be the same size as the image width and height
+            this.resizeRendererForExport(this.imageData.width, this.imageData.height, 1, 1)
+
+            // Clear all children, add back the current selection, and then re-render so we can export
+            this.stage.removeChildren()
+            this.stage.addChild(state.selectionGraphics)
+            this.renderer.render(this.rootContainer)
+
+            // Get the pixels for the current selection in RGBA format and convert to pixel locations
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const rawPixels = this.renderer.extract.pixels()
+            pixelIndexes = GraphicsHelper.RGBAtoPixelIndexes(
+                rawPixels,
+                this.imageData.width,
+                this.imageData.height,
+                state.minX,
+                state.maxX,
+                state.minY,
+                state.maxY,
+            )
+
+            // Reset and resize the renderer to the original settings
+            this.stage.position.x = initialXPosition
+            this.stage.position.y = initialYPosition
+            this.resizeRendererForExport(this.rendererWidth, this.rendererHeight, initialXScale, initialYScale)
+        }
+        return pixelIndexes
+    }
+
     // If the mouse is released stop selecting
     private selectMouseUpHandler = (): void => {
         const state = this.selectState
         if (state.active && state.selectionGraphics && state.segmentOutlineGraphics) {
-            this.addSelectedRegionToStore(state.selection, state.selectedSegments, state.selectionColor)
+            const pixelsIndexes = this.getSelectionPixelIndexes()
+            this.addSelectedRegionToStore(pixelsIndexes, state.selectionColor)
             // Clear the temp storage now that we've stored the selection.
-            state.selectionGraphics = null
-            state.segmentOutlineGraphics = null
-            state.active = false
-            state.selection = []
-            state.selectionColor = 0
+            this.initializeSelectState()
         }
     }
 

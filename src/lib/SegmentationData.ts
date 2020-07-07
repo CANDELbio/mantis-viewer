@@ -44,6 +44,19 @@ export class SegmentationData {
         return drawOutlines(outlines, color, width)
     }
 
+    public segmentsInRegion(regionPixelIndexes: number[]): number[] {
+        const segments: number[] = []
+        const centroidMap = this.centroidMap
+        const indexSet: Set<number> = new Set(regionPixelIndexes)
+        for (const segmentIdStr in centroidMap) {
+            const segmentId = parseInt(segmentIdStr)
+            const centroidLocation = centroidMap[segmentIdStr]
+            const centroidIndex = centroidLocation.y * this.width + centroidLocation.x
+            if (indexSet.has(centroidIndex)) segments.push(segmentId)
+        }
+        return segments
+    }
+
     private async loadFileError(fError: { error: string }): Promise<void> {
         const err = 'Error loading segmentation data: ' + fError.error
         console.log(err)

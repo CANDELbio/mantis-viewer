@@ -3,10 +3,26 @@ import * as shortId from 'shortid'
 import * as _ from 'underscore'
 
 import { ImageSetStore } from './ImageSetStore'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 import { randomHexColor } from '../lib/ColorHelper'
-import { drawSelectedRegion, findSegmentsInSelection } from '../lib/GraphicsHelper'
+import { pixelIndexesToSprite } from '../lib/GraphicsHelper'
 import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
+
+// Prefixes for new populations selected from graph or image.
+const GraphPopulationNamePrefix = 'Graph'
+const ImagePopulationNamePrefix = 'Image'
+
+export interface SelectedPopulation {
+    id: string
+    renderOrder: number
+    pixelIndexes: number[] | null
+    // The IDs of the selected segments
+    selectedSegments: number[]
+    regionGraphics: PIXI.Graphics | PIXI.Sprite | null
+    segmentGraphics: PIXI.Graphics | null
+    name: string
+    color: number
+    visible: boolean
+}
 
 export class PopulationStore {
     public constructor(imageSetStore: ImageSetStore) {
@@ -42,22 +58,14 @@ export class PopulationStore {
         return 1
     }
 
-    // Can pass in a namePrefix or null to just use the default ROI name. Prefix gets stuck in front of the ROI name.
-    // If name is passed in, it overrides namePrefix/default ROI name.
-    @action public addSelectedPopulation = (
-        regionOutline: number[] | null,
-        selectedSegments: number[],
-        namePrefix: string | null,
-        name?: string | null,
-        color?: number | null,
-    ): SelectedPopulation => {
+    @action public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
             renderOrder: order,
-            regionOutline: regionOutline,
-            selectedSegments: selectedSegments,
-            name: name ? name : this.newROIName(order, namePrefix),
+            pixelIndexes: regionPixelIndexes,
+            selectedSegments: [],
+            name: name ? name : this.newROIName(order, ImagePopulationNamePrefix),
             color: color ? color : randomHexColor(),
             regionGraphics: null,
             segmentGraphics: null,
@@ -65,17 +73,32 @@ export class PopulationStore {
         }
         this.refreshGraphics(newPopulation)
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
-        return newPopulation
+    }
+
+    @action public createPopulationFromSegments = (selectedSegments: number[], name?: string): void => {
+        const order = this.getRenderOrder()
+        const newPopulation: SelectedPopulation = {
+            id: shortId.generate(),
+            renderOrder: order,
+            pixelIndexes: null,
+            selectedSegments: selectedSegments,
+            name: name ? name : this.newROIName(order, GraphPopulationNamePrefix),
+            color: randomHexColor(),
+            regionGraphics: null,
+            segmentGraphics: null,
+            visible: true,
+        }
+        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
     }
 
     private refreshGraphics = (population: SelectedPopulation): SelectedPopulation => {
         const imageData = this.imageSetStore.imageStore.imageData
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
-        const regionOutline = population.regionOutline
-        if (imageData && segmentationData && regionOutline) {
+        const pixelIndexes = population.pixelIndexes
+        if (imageData && segmentationData && pixelIndexes) {
             const color = population.color
-            population.regionGraphics = drawSelectedRegion(regionOutline, color, 1)
-            population.selectedSegments = findSegmentsInSelection(population.regionGraphics, segmentationData)
+            population.regionGraphics = pixelIndexesToSprite(pixelIndexes, imageData.width, imageData.height, color)
+            population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
             population.segmentGraphics = segmentationData.segmentOutlineGraphics(
                 color,
                 SelectedSegmentOutlineWidth,
@@ -86,7 +109,19 @@ export class PopulationStore {
     }
 
     @action public addEmptyPopulation = (): void => {
-        this.addSelectedPopulation(null, [], 'Empty')
+        const order = this.getRenderOrder()
+        const newPopulation: SelectedPopulation = {
+            id: shortId.generate(),
+            renderOrder: order,
+            pixelIndexes: null,
+            selectedSegments: [],
+            name: name ? name : this.newROIName(order, 'Empty'),
+            color: randomHexColor(),
+            regionGraphics: null,
+            segmentGraphics: null,
+            visible: true,
+        }
+        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
     }
 
     @action public deleteSelectedPopulation = (id: string): void => {
@@ -98,7 +133,7 @@ export class PopulationStore {
     @action public deletePopulationsNotSelectedOnImage = (): void => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.filter(
-                (region): boolean | null => region.regionOutline && region.regionOutline.length > 0,
+                (region): boolean | null => region.pixelIndexes && region.pixelIndexes.length > 0,
             )
         }
     }
@@ -107,7 +142,7 @@ export class PopulationStore {
         this.highlightedPopulations = this.highlightedPopulations.concat([id])
     }
 
-    @action public unhighlightSelectedPopulation = (id: string): void => {
+    @action public unHighlightSelectedPopulation = (id: string): void => {
         this.highlightedPopulations = this.highlightedPopulations.filter((regionId): boolean => regionId != id)
     }
 

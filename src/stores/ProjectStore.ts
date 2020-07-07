@@ -12,11 +12,8 @@ import {
     exportPopulationsToFCS,
     parseActivePopulationCSV,
     parseProjectPopulationCSV,
-    parseActivePopulationsJSON,
-    writeToJSON,
     writeToCSV,
 } from '../lib/IO'
-import { GraphSelectionPrefix } from '../definitions/UIDefinitions'
 
 import {
     SegmentFeatureImporterResult,
@@ -285,7 +282,7 @@ export class ProjectStore {
         const activeImageSetName = this.activeImageSetStore.name
         if (activeImageSetName) {
             const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, feature, min, max)
-            if (segmentIds.length > 0) populationStore.addSelectedPopulation(null, segmentIds, GraphSelectionPrefix)
+            if (segmentIds.length > 0) populationStore.createPopulationFromSegments(segmentIds)
         }
     }
     @action public setWindowDimensions = (width: number, height: number): void => {
@@ -436,37 +433,15 @@ export class ProjectStore {
         this.exportProjectFeatures(dirName, true, populations, calculateFeatures, recalculateExistingFeatures)
     }
 
-    public exportActivePopulationsToJSON = (filePath: string): void => {
-        const activePopulationStore = this.activeImageSetStore.populationStore
-        writeToJSON(activePopulationStore.selectedPopulations, filePath)
-    }
-
-    public importActivePopulationsFromJSON = (filePath: string): void => {
-        const activePopulationStore = this.activeImageSetStore.populationStore
-        const populations = parseActivePopulationsJSON(filePath)
-        populations.map((population): void => {
-            activePopulationStore.addSelectedPopulation(
-                population.regionOutline,
-                population.selectedSegments,
-                null,
-                population.name,
-                population.color,
-            )
-        })
-    }
-
     public importActivePopulationsFromCSV = (filePath: string): void => {
         const populations = parseActivePopulationCSV(filePath)
         for (const populationName in populations) {
             when(
                 (): boolean => this.notificationStore.numToCalculate > 0,
                 (): void => {
-                    this.activeImageSetStore.populationStore.addSelectedPopulation(
-                        null,
+                    this.activeImageSetStore.populationStore.createPopulationFromSegments(
                         populations[populationName],
-                        null,
                         populationName,
-                        null,
                     )
                     this.notificationStore.incrementNumCalculated()
                 },
@@ -485,12 +460,9 @@ export class ProjectStore {
                 if (imageSet) {
                     const populationStore = imageSet.populationStore
                     for (const populationName in imageSetPopulations) {
-                        populationStore.addSelectedPopulation(
-                            null,
+                        populationStore.createPopulationFromSegments(
                             imageSetPopulations[populationName],
-                            null,
                             populationName,
-                            null,
                         )
                     }
                 }

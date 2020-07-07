@@ -1,4 +1,4 @@
-import { SelectedPopulation } from '../../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
 
 import {
     ActiveImageSetSelectionName,

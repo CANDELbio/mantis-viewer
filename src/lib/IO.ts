@@ -5,7 +5,6 @@ import * as parseCSV from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
-import { SelectedPopulation } from '../interfaces/ImageInterfaces'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -26,19 +25,6 @@ export function writeToCSV(data: string[][], filename: string, headerCols: strin
                 console.log(err)
             }
         })
-    })
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function writeToJSON(object: any, filename: string): void {
-    const exportingString = JSON.stringify(object)
-
-    // Write data to file
-    fs.writeFile(filename, exportingString, 'utf8', function (err): void {
-        if (err) {
-            console.log('An error occurred while exporting to JSON:')
-            console.log(err)
-        }
     })
 }
 
@@ -141,11 +127,6 @@ export function exportPopulationsToFCS(dirName: string, imageSetStore: ImageSetS
             exportToFCS(filePath, imageSetStore, population.selectedSegments)
         }
     }
-}
-
-export function parseActivePopulationsJSON(filename: string): SelectedPopulation[] {
-    const importingContent = JSON.parse(fs.readFileSync(filename, 'utf8'))
-    return importingContent
 }
 
 export function parseActivePopulationCSV(filename: string): Record<string, number[]> {

@@ -1,7 +1,8 @@
 import * as Plotly from 'plotly.js'
 
 import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
-import { SelectedPopulation, MinMax } from '../../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
+import { MinMax } from '../../interfaces/ImageInterfaces'
 import { hexToRGB } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
