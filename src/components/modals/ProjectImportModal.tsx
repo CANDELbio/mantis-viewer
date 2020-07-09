@@ -30,6 +30,8 @@ export interface ProjectImportModalProps {
     setImageSubdir: (file: string | null) => void
     setSegmentation: (file: string | null) => void
     segmentation: string | null
+    setRegion: (file: string | null) => void
+    region: string | null
     setFeatures: (file: string | null) => void
     features: string | null
     setPopulations: (file: string | null) => void
@@ -51,6 +53,8 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const selectedImageSet = getSelectedOptions(this.props.imageSet, imageSetOptions)
         const imageDirectoryOptions = generateSelectOptions(this.props.imageSetDirs)
         const selectedImageSubdir = getSelectedOptions(this.props.imageSubdir, imageDirectoryOptions)
+        const regionOptions = generateSelectOptions(this.props.imageSetTiffs)
+        const selectedRegion = getSelectedOptions(this.props.region, regionOptions)
         const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
         const selectedSegmentation = getSelectedOptions(this.props.segmentation, segmentationOptions)
         const featureOptions = generateSelectOptions(this.props.projectCsvs)
@@ -92,6 +96,20 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={this.props.imageSetDirs.length == 0}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Region File:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedRegion}
+                            options={regionOptions}
+                            onChange={onClearableSelectChange(this.props.setRegion)}
+                            clearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.imageSet)}
                         />
                     </Col>
                 </Row>

@@ -41,6 +41,10 @@ ipcRenderer.on('add-project-populations-csv', (event: Electron.Event, filePath: 
     projectStore.importProjectPopulationsFromCSV(filePath)
 })
 
+ipcRenderer.on('add-region-tiff', (event: Electron.Event, filePath: string): void => {
+    projectStore.importRegionTiff(filePath)
+})
+
 ipcRenderer.on('export-populations-csv', (event: Electron.Event, filePath: string): void => {
     projectStore.exportActivePopulationsToCSV(filePath)
 })

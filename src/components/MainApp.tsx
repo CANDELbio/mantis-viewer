@@ -335,6 +335,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     imageSetDirs={projectImportStore.imageSetDirs}
                     imageSubdir={projectImportStore.imageSubdirectory}
                     setImageSubdir={projectImportStore.setImageSubdirectory}
+                    region={projectImportStore.imageSetRegionFile}
+                    setRegion={projectImportStore.setImageSetRegionFile}
                     segmentation={projectImportStore.imageSetSegmentationFile}
                     setSegmentation={projectImportStore.setImageSetSegmentationFile}
                     features={projectImportStore.projectSegmentFeaturesFile}

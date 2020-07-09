@@ -21,6 +21,7 @@ export class ProjectImportStore {
     @observable public projectPopulationFile: string | null
     @observable public projectSegmentFeaturesFile: string | null
     @observable public imageSetSegmentationFile: string | null
+    @observable public imageSetRegionFile: string | null
     @observable public imageSubdirectory: string | null
 
     @observable public readyToImport: boolean
@@ -129,6 +130,10 @@ export class ProjectImportStore {
         }
     }
 
+    @action setImageSetRegionFile = (file: string | null): void => {
+        this.imageSetRegionFile = file
+    }
+
     @action public setImageSubdirectory = (file: string | null): void => {
         this.imageSubdirectory = file
     }
@@ -175,6 +180,20 @@ export class ProjectImportStore {
                             (): boolean => !activeSegmentationStore.segmentationDataLoading,
                             (): void => {
                                 if (this.directory) {
+                                    const regionFile = this.imageSetRegionFile
+                                    if (regionFile) {
+                                        const regionPath = path.join(activeImageSetName, regionFile)
+                                        if (fs.existsSync(segmentationPath)) {
+                                            projectStore.importRegionTiff(regionPath)
+                                        } else {
+                                            const msg =
+                                                'Unable to find region file ' +
+                                                regionFile +
+                                                ' in image set ' +
+                                                activeImageSetName
+                                            projectStore.notificationStore.setErrorMessage(msg)
+                                        }
+                                    }
                                     if (this.projectPopulationFile)
                                         projectStore.importProjectPopulationsFromCSV(
                                             path.join(this.directory, this.projectPopulationFile),

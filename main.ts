@@ -99,12 +99,13 @@ function showOpenDirectoryDialogCallback(callback: (value: string) => void, defa
 
 function showOpenFileDialogCallback(
     action: string | ((value: string) => void),
+    name: string,
     defaultPath?: string,
-    fileType?: string,
+    fileType?: string[],
 ): () => void {
     const dialogOptions: Electron.OpenDialogOptions = { properties: ['openFile'] }
     if (defaultPath != undefined) dialogOptions.defaultPath = defaultPath
-    if (fileType != undefined) dialogOptions.filters = [{ name: fileType, extensions: [fileType] }]
+    if (fileType != undefined) dialogOptions.filters = [{ name: name, extensions: fileType }]
     return (): void => {
         dialog.showOpenDialog(dialogOptions).then((value: Electron.OpenDialogReturnValue): void => {
             const filePaths = value.filePaths
@@ -176,7 +177,22 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Segmentation',
                             enabled: imageLoaded,
-                            click: showOpenFileDialogCallback(openSegmentation, activeImageDirectory),
+                            click: showOpenFileDialogCallback(
+                                openSegmentation,
+                                'Select Segmentation File',
+                                activeImageDirectory,
+                                ['tif', 'tiff', 'csv'],
+                            ),
+                        },
+                        {
+                            label: 'Regions',
+                            enabled: imageLoaded,
+                            click: showOpenFileDialogCallback(
+                                'add-region-tiff',
+                                'Select Region File',
+                                activeImageDirectory,
+                                ['tif', 'tiff'],
+                            ),
                         },
                         {
                             label: 'Populations',
@@ -186,8 +202,9 @@ function generateMenuTemplate(): any {
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-populations-csv',
+                                        'Select Population CSV',
                                         activeImageDirectory,
-                                        'csv',
+                                        ['csv'],
                                     ),
                                 },
                                 {
@@ -195,8 +212,9 @@ function generateMenuTemplate(): any {
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-project-populations-csv',
+                                        'Select Population CSV',
                                         activeImageDirectory,
-                                        'csv',
+                                        ['csv'],
                                     ),
                                 },
                             ],
@@ -210,8 +228,9 @@ function generateMenuTemplate(): any {
                                     enabled: segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-segment-features',
+                                        'Select Segment Feature CSV',
                                         activeImageDirectory,
-                                        'csv',
+                                        ['csv'],
                                     ),
                                 },
                                 {
@@ -219,8 +238,9 @@ function generateMenuTemplate(): any {
                                     enabled: projectLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-project-segment-features',
+                                        'Select Segment Feature CSV',
                                         activeImageDirectory,
-                                        'csv',
+                                        ['csv'],
                                     ),
                                 },
                             ],

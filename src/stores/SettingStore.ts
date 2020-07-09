@@ -29,6 +29,7 @@ interface SettingStoreData {
     channelDomainPercentage: Record<ChannelName, [number, number]> | null
     channelVisibility: Record<ChannelName, boolean> | null
     segmentationBasename: string | null
+    regionsBasename: string | null
     selectedPlotFeatures: string[] | null
     plotStatistic: PlotStatistic | null
     plotTransform: PlotTransform | null
@@ -66,6 +67,8 @@ export class SettingStore {
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
+    // Region file basename when a region file is selected for teh whole project
+    @observable public regionsBasename: string | null
     // Whether or not the legend is visible on the image
     @observable public legendVisible: boolean
     // Whether or not the zoom inset is visible on the image
@@ -112,6 +115,7 @@ export class SettingStore {
         }
 
         this.segmentationBasename = null
+        this.regionsBasename = null
 
         this.selectedPlotFeatures = []
 
@@ -232,6 +236,10 @@ export class SettingStore {
         this.segmentationBasename = basename
     }
 
+    @action public setRegionsBasename = (basename: string | null): void => {
+        this.regionsBasename = basename
+    }
+
     @action public setSelectedPlotFeatures = (features: string[]): void => {
         this.selectedPlotFeatures = features
     }
@@ -290,6 +298,7 @@ export class SettingStore {
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
                 segmentationBasename: this.segmentationBasename,
+                regionsBasename: this.regionsBasename,
                 selectedPlotFeatures: toJS(this.selectedPlotFeatures),
                 plotStatistic: this.plotStatistic,
                 plotTransform: this.plotTransform,
@@ -327,6 +336,7 @@ export class SettingStore {
                         this.channelDomainPercentage = importingSettings.channelDomainPercentage
                     if (importingSettings.segmentationBasename)
                         this.segmentationBasename = importingSettings.segmentationBasename
+                    if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
                     if (importingSettings.selectedPlotFeatures)
                         this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
                     if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic

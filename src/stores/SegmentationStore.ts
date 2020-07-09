@@ -19,6 +19,7 @@ export class SegmentationStore {
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
+    // Might want to only have this run of this is the active image set.
     private autoSetSegmentationFile = autorun(() => {
         const imageStore = this.imageSetStore.imageStore
         const imageSetDirectory = this.imageSetStore.directory

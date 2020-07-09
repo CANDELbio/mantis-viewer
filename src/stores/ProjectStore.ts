@@ -275,6 +275,16 @@ export class ProjectStore {
         }
     }
 
+    @action public importRegionTiff = (filePath: string): void => {
+        const dirname = path.dirname(filePath)
+        const basename = path.basename(filePath)
+        if (dirname == this.activeImageSetPath) {
+            this.settingStore.setRegionsBasename(basename)
+        } else {
+            this.activeImageSetStore.populationStore.importRegionsFromTiff(filePath)
+        }
+    }
+
     @action public addPopulationFromRange = (min: number, max: number): void => {
         const settingStore = this.settingStore
         const populationStore = this.activeImageSetStore.populationStore
