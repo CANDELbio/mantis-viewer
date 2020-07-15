@@ -11,6 +11,8 @@ import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
 
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
+import { TiffWriter } from '../lib/TiffWriter'
+
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'
 const ImagePopulationNamePrefix = 'Image'
@@ -308,6 +310,25 @@ export class PopulationStore {
                 { filePath: filePath, width: imageData.width, height: imageData.height },
                 this.onRegionImportComplete,
             )
+        }
+    }
+
+    public exportToTiff = (filePath: string): void => {
+        const imageData = this.imageSetStore.imageStore.imageData
+        if (imageData) {
+            const width = imageData.width
+            const height = imageData.height
+            const length = width * height
+            const populationData = new Uint8ClampedArray(length)
+            this.selectedPopulations.forEach((population: SelectedPopulation, idx: number): void => {
+                if (population.pixelIndexes) {
+                    for (const pixel of population.pixelIndexes) {
+                        populationData[pixel] = idx + 1
+                    }
+                }
+            })
+            // TODO: Maybe raise error if more than 255 populations?
+            TiffWriter.arrayToFile(populationData, width, height, filePath)
         }
     }
 }

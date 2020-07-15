@@ -480,6 +480,11 @@ export class ProjectStore {
         }
     }
 
+    public exportActivePopulationsToTIFF = (filePath: string): void => {
+        const activePopulationStore = this.activeImageSetStore.populationStore
+        activePopulationStore.exportToTiff(filePath)
+    }
+
     public exportActivePopulationsToCSV = (filePath: string): void => {
         const activePopulationArray = this.activeImageSetStore.populationStore.getSelectedPopulationsAsArray()
         writeToCSV(activePopulationArray, filePath, null)

@@ -185,7 +185,7 @@ function generateMenuTemplate(): any {
                             ),
                         },
                         {
-                            label: 'Regions',
+                            label: 'Regions from TIFF',
                             enabled: imageLoaded,
                             click: showOpenFileDialogCallback(
                                 'add-region-tiff',
@@ -254,6 +254,11 @@ function generateMenuTemplate(): any {
                             label: 'Image and layers to PNG',
                             enabled: imageLoaded,
                             click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
+                        },
+                        {
+                            label: 'Regions to TIFF',
+                            enabled: imageLoaded && populationsSelected,
+                            click: showSaveFileIpcDialog('export-populations-tiff', activeImageDirectory, 'tiff'),
                         },
                         {
                             label: 'Populations',
