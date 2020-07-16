@@ -593,6 +593,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         centroidsVisible: boolean,
     ): void {
         if (segmentationData) {
+            this.segmentationData = segmentationData
             // Add segmentation cells
             if (segmentationData.fillSprite) {
                 segmentationData.fillSprite.alpha = segmentationFillAlpha
@@ -644,9 +645,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Generates and adds segments highlighted/moused over on the graph.
-    private loadHighlightedSegmentGraphics(segmentationData: SegmentationData, highlightedSegments: number[]): void {
-        if (highlightedSegments.length > 0) {
-            const graphics = segmentationData.generateOutlineGraphics(
+    private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
+        if (this.segmentationData && highlightedSegments.length > 0) {
+            const graphics = this.segmentationData.generateOutlineGraphics(
                 HighlightedSegmentOutlineColor,
                 SelectedSegmentOutlineWidth,
                 highlightedSegments,
@@ -781,6 +782,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Save the base64 encoded string to file.
             fs.writeFileSync(exportPath, exportingData, 'base64')
         }
+        this.onExportComplete()
     }
 
     private calculateMaxRendererSize(
@@ -841,6 +843,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.resizeGraphics(imcData, maxRendererSize)
         }
 
+        // Clear the stage in preparation for rendering.
         this.stage.removeChildren()
 
         // For each channel setting the brightness and color filters
@@ -860,9 +863,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Load selected region graphics
         this.loadSelectedRegionGraphics(this.stage, selectedRegions, highlightedRegions)
 
-        if (segmentationData != null) {
-            this.loadHighlightedSegmentGraphics(segmentationData, highlightedSegmentsFromGraph)
-        }
+        // Load graphics for any highlighted
+        this.loadHighlightedSegmentGraphics(highlightedSegmentsFromGraph)
 
         // Create the legend for which markers are being displayed
         this.loadLegendGraphics(legendVisible, imcData, channelMarker)
@@ -870,11 +872,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.zoomInsetVisible = zoomInsetVisible
         this.loadZoomInsetGraphics()
 
+        // Render everything
         this.renderer.render(this.rootContainer)
 
+        // Export the renderer if exportPath is set
         if (exportPath) {
             this.exportRenderer(exportPath)
-            this.onExportComplete()
         }
     }
 
