@@ -33,6 +33,12 @@ export class Db {
                 value REAL NOT NULL
             )`,
         ).run()
+        db.prepare(
+            `CREATE TABLE IF NOT EXISTS settings (
+                setting TEXT NOT NULL UNIQUE,
+                value TEXT NOT NULL
+            )`,
+        ).run()
         db.close()
     }
 
@@ -153,5 +159,42 @@ export class Db {
                                  FROM features`)
         const values = stmt.get()
         return values.count
+    }
+
+    public upsertSettings(settings: Record<string, string | object | number | boolean | undefined | null>): void {
+        const db = this.getConnection()
+        const insert = db.prepare(`
+            INSERT INTO settings(setting,value) VALUES(@setting,@value)
+            ON CONFLICT(setting) DO UPDATE SET value=excluded.value;`)
+        const insertMany = db.transaction((settings) => {
+            for (const setting of settings) insert.run(setting)
+        })
+        const values: Array<{ setting: string; value: string }> = []
+        for (const setting in settings) {
+            const value = settings[setting]
+            if (value != null || value != undefined) {
+                const dbValue = { setting: setting, value: JSON.stringify(value) }
+                values.push(dbValue)
+            }
+        }
+        insertMany(values)
+        db.close()
+    }
+
+    public getSettings(): Record<string, string | object | number | boolean> {
+        const results: Record<string, string | object | number | boolean> = {}
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT setting, value
+                                 FROM settings`)
+        for (const row of stmt.iterate()) {
+            results[row.setting] = JSON.parse(row.value)
+        }
+        return results
+    }
+
+    public numSettings(): number {
+        const db = this.getConnection()
+        const stmt = db.prepare('SELECT COUNT(*) as count FROM settings')
+        return stmt.get().count
     }
 }

@@ -73,3 +73,22 @@ test('deleteFeatures', () => {
     db.deleteFeatures(imageSet2, feature)
     expect(db.numFeatures()).toEqual(0)
 })
+
+test('upsertSettings', () => {
+    db.upsertSettings({ hello: 'world' })
+    expect(db.numSettings()).toEqual(1)
+    db.upsertSettings({ hello: 'goodbye' })
+    db.upsertSettings({ test: 123 })
+    db.upsertSettings({ float: 3.14 })
+    db.upsertSettings({ value: { foo: 'bar' } })
+    expect(db.numSettings()).toEqual(4)
+})
+
+test('getSettings', () => {
+    expect(db.getSettings()).toEqual({
+        hello: 'goodbye',
+        test: 123,
+        float: 3.14,
+        value: { foo: 'bar' },
+    })
+})

@@ -1,8 +1,7 @@
 import { observable, action, autorun, toJS } from 'mobx'
-import * as path from 'path'
-import * as fs from 'fs'
 
 import { ImageStore } from '../stores/ImageStore'
+import { Db } from '../lib/Db'
 
 import {
     ImageChannels,
@@ -11,7 +10,6 @@ import {
     PlotStatistic,
     PlotTransform,
     PlotType,
-    ImageSettingsFilename,
     DefaultDotSize,
     DefaultSegmentOutlineAlpha,
     DefaultSegmentFillAlpha,
@@ -23,27 +21,27 @@ import {
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
 
-interface SettingStoreData {
-    imageSubdirectory: string | null
-    channelMarker: Record<ChannelName, string | null> | null
-    channelDomainPercentage: Record<ChannelName, [number, number]> | null
-    channelVisibility: Record<ChannelName, boolean> | null
-    segmentationBasename: string | null
-    regionsBasename: string | null
-    selectedPlotFeatures: string[] | null
-    plotStatistic: PlotStatistic | null
-    plotTransform: PlotTransform | null
-    plotType: PlotType | null
-    plotNormalization: PlotNormalization | null
-    plotDotSize: number
-    plotAllImageSets: boolean
-    plotCheckGenerateAllFeatures: boolean
-    segmentationFillAlpha: number | null
-    segmentationOutlineAlpha: number | null
-    segmentationCentroidsVisible: boolean | null
-    legendVisible: boolean | null
-    zoomInsetVisible: boolean | null
-    transformCoefficient: number | null
+type SettingStoreData = {
+    imageSubdirectory?: string | null
+    channelMarker?: Record<ChannelName, string | null> | null
+    channelDomainPercentage?: Record<ChannelName, [number, number]> | null
+    channelVisibility?: Record<ChannelName, boolean> | null
+    segmentationBasename?: string | null
+    regionsBasename?: string | null
+    selectedPlotFeatures?: string[] | null
+    plotStatistic?: PlotStatistic | null
+    plotTransform?: PlotTransform | null
+    plotType?: PlotType | null
+    plotNormalization?: PlotNormalization | null
+    plotDotSize?: number
+    plotAllImageSets?: boolean
+    plotCheckGenerateAllFeatures?: boolean
+    segmentationFillAlpha?: number | null
+    segmentationOutlineAlpha?: number | null
+    segmentationCentroidsVisible?: boolean | null
+    legendVisible?: boolean | null
+    zoomInsetVisible?: boolean | null
+    transformCoefficient?: number | null
 }
 
 export class SettingStore {
@@ -53,6 +51,7 @@ export class SettingStore {
     }
 
     private projectStore: ProjectStore
+    @observable private db: Db | null
 
     // Storing the base path of the image set or project path for saving/loading settings from a file.
     @observable public basePath: string | null
@@ -141,7 +140,8 @@ export class SettingStore {
 
     @action public setBasePath = (path: string): void => {
         this.basePath = path
-        this.importSettingsFromFile()
+        this.db = new Db(path)
+        this.importSettingsFromDb()
     }
 
     @action public setImageSubdirectory = (subDir: string): void => {
@@ -291,7 +291,7 @@ export class SettingStore {
     }
 
     private exportSettings = autorun(() => {
-        if (this.basePath != null) {
+        if (this.db != null) {
             const exporting: SettingStoreData = {
                 imageSubdirectory: this.imageSubdirectory,
                 channelMarker: this.channelMarker,
@@ -314,56 +314,47 @@ export class SettingStore {
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
-            const exportingString = JSON.stringify(exporting)
-            const filename = path.join(this.basePath, ImageSettingsFilename)
-            // Write data to file
-            fs.writeFileSync(filename, exportingString, 'utf8')
+            this.db.upsertSettings(exporting)
         }
     })
 
-    private importSettingsFromFile = (): void => {
-        if (this.basePath != null) {
-            const filename = path.join(this.basePath, ImageSettingsFilename)
-            if (fs.existsSync(filename)) {
-                try {
-                    const importingSettings: SettingStoreData = JSON.parse(fs.readFileSync(filename, 'utf8'))
-                    if (importingSettings.imageSubdirectory)
-                        this.imageSubdirectory = importingSettings.imageSubdirectory
-                    if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
-                    if (importingSettings.channelVisibility)
-                        this.channelVisibility = importingSettings.channelVisibility
-                    if (importingSettings.channelDomainPercentage)
-                        this.channelDomainPercentage = importingSettings.channelDomainPercentage
-                    if (importingSettings.segmentationBasename)
-                        this.segmentationBasename = importingSettings.segmentationBasename
-                    if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
-                    if (importingSettings.selectedPlotFeatures)
-                        this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
-                    if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic
-                    if (importingSettings.plotTransform) this.plotTransform = importingSettings.plotTransform
-                    if (importingSettings.plotType) this.plotType = importingSettings.plotType
-                    if (importingSettings.plotNormalization)
-                        this.plotNormalization = importingSettings.plotNormalization
-                    if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
-                    if (importingSettings.plotAllImageSets != null)
-                        this.plotAllImageSets = importingSettings.plotAllImageSets
-                    if (importingSettings.plotCheckGenerateAllFeatures != null)
-                        this.plotCheckGenerateAllFeatures = importingSettings.plotCheckGenerateAllFeatures
-                    if (importingSettings.segmentationFillAlpha)
-                        this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
-                    if (importingSettings.segmentationOutlineAlpha)
-                        this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
-                    if (importingSettings.segmentationCentroidsVisible != null)
-                        this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
-                    if (importingSettings.legendVisible != null) this.legendVisible = importingSettings.legendVisible
-                    if (importingSettings.zoomInsetVisible != null)
-                        this.zoomInsetVisible = importingSettings.zoomInsetVisible
-                    if (importingSettings.transformCoefficient)
-                        this.transformCoefficient = importingSettings.transformCoefficient
-                } catch (e) {
-                    console.log('Error importing settings file:')
-                    console.log(e)
-                }
+    private importSettingsFromDb = (): void => {
+        if (this.db != null) {
+            try {
+                const importingSettings: SettingStoreData = this.db.getSettings()
+                if (importingSettings.imageSubdirectory) this.imageSubdirectory = importingSettings.imageSubdirectory
+                if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
+                if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
+                if (importingSettings.channelDomainPercentage)
+                    this.channelDomainPercentage = importingSettings.channelDomainPercentage
+                if (importingSettings.segmentationBasename)
+                    this.segmentationBasename = importingSettings.segmentationBasename
+                if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
+                if (importingSettings.selectedPlotFeatures)
+                    this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
+                if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic
+                if (importingSettings.plotTransform) this.plotTransform = importingSettings.plotTransform
+                if (importingSettings.plotType) this.plotType = importingSettings.plotType
+                if (importingSettings.plotNormalization) this.plotNormalization = importingSettings.plotNormalization
+                if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
+                if (importingSettings.plotAllImageSets != null)
+                    this.plotAllImageSets = importingSettings.plotAllImageSets
+                if (importingSettings.plotCheckGenerateAllFeatures != null)
+                    this.plotCheckGenerateAllFeatures = importingSettings.plotCheckGenerateAllFeatures
+                if (importingSettings.segmentationFillAlpha)
+                    this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
+                if (importingSettings.segmentationOutlineAlpha)
+                    this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
+                if (importingSettings.segmentationCentroidsVisible != null)
+                    this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
+                if (importingSettings.legendVisible != null) this.legendVisible = importingSettings.legendVisible
+                if (importingSettings.zoomInsetVisible != null)
+                    this.zoomInsetVisible = importingSettings.zoomInsetVisible
+                if (importingSettings.transformCoefficient)
+                    this.transformCoefficient = importingSettings.transformCoefficient
+            } catch (e) {
+                console.log('Error importing settings from db:')
+                console.log(e)
             }
         }
     }

@@ -86,7 +86,6 @@ export const PlotMinDotSize = 1
 export const DefaultDotSize = 2
 export const PlotMaxDotSize = 10
 
-export const ImageSettingsFilename = '.mantisImageSettings'
 export const DbFilename = '.mantisDb'
 
 // TODO: Need to test on a big monitor
