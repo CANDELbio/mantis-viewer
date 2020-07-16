@@ -136,7 +136,7 @@ export class PopulationStore {
             population.regionGraphics = pixelIndexesToSprite(pixelIndexes, imageData.width, imageData.height, color)
             if (segmentationData) {
                 population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
-                population.segmentGraphics = segmentationData.segmentOutlineGraphics(
+                population.segmentGraphics = segmentationData.generateOutlineGraphics(
                     color,
                     SelectedSegmentOutlineWidth,
                     population.selectedSegments,

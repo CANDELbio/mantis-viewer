@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js'
 import { imageBitmapToSprite } from './GraphicsHelper'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from '../lib/GraphicsHelper'
+import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
+import { drawCentroids } from '../lib/GraphicsHelper'
 import {
     SegmentationDataWorkerResult,
     SegmentationDataWorkerInput,
@@ -24,14 +26,16 @@ export class SegmentationData {
     // Mapping of segmentId to the pixel that represents the centroid
     public centroidMap: Record<number, PixelLocation>
     // PIXI Sprite of random colored fills for the segments
-    public segmentFillSprite: PIXI.Sprite
+    public fillSprite: PIXI.Sprite
+    public outlineGraphics: PIXI.Graphics
+    public centroidGraphics: PIXI.Graphics
 
     public errorMessage: string | null
 
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
-    public segmentOutlineGraphics(color: number, width: number, segments?: number[]): PIXI.Graphics {
+    public generateOutlineGraphics(color: number, width: number, segments?: number[]): PIXI.Graphics {
         const outlines = []
         for (const segment in this.segmentOutlineMap) {
             const segmentId = Number(segment)
@@ -73,7 +77,9 @@ export class SegmentationData {
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
-        this.segmentFillSprite = imageBitmapToSprite(fData.fillBitmap, false)
+        this.fillSprite = imageBitmapToSprite(fData.fillBitmap, false)
+        this.outlineGraphics = this.generateOutlineGraphics(SegmentOutlineColor, SegmentOutlineWidth)
+        this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)
         this.onReady(this)
     }
 
