@@ -265,8 +265,8 @@ ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
     projectStore.calculateSegmentFeaturesFromMenu()
 })
 
-ipcRenderer.on('open-project-import-modal', (): void => {
-    projectStore.projectImportStore.setModalOpen(true)
+ipcRenderer.on('set-project-import-modal-visibility', (event: Electron.Event, visibility: boolean): void => {
+    projectStore.projectImportStore.setModalOpen(visibility)
 })
 
 ipcRenderer.on('project-import-set-directory', (event: Electron.Event, directory: string): void => {

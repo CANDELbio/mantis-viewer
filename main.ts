@@ -5,8 +5,12 @@ import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer'
 
 import * as _ from 'underscore'
+import * as path from 'path'
+import * as fs from 'fs'
 
-import path = require('path')
+// TODO: Should try to import from UIDefinitions, but generates unwanted .js and .js.map files
+const DbFilename = '.mantisDb'
+
 import url = require('url')
 const openAboutWindow = require('about-window').default
 const contextMenu = require('electron-context-menu').default
@@ -149,6 +153,12 @@ function askCalculateFeatures(channel: string, dir: string): void {
     }
 }
 
+// Checks if the directory is an existing project by checking if a Mantis DB has been created
+function isExistingProject(dir: string): boolean {
+    const dbFile = path.join(dir, DbFilename)
+    return fs.existsSync(dbFile)
+}
+
 function generateMenuTemplate(): any {
     return [
         {
@@ -158,8 +168,8 @@ function generateMenuTemplate(): any {
                     label: 'Open',
                     submenu: [
                         {
-                            label: 'Import New Project',
-                            click: (): void => mainWindow.webContents.send('open-project-import-modal'),
+                            label: 'New Project',
+                            click: (): void => mainWindow.webContents.send('set-project-import-modal-visibility', true),
                         },
                         {
                             label: 'Existing Project',
@@ -954,7 +964,20 @@ ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean
 
 ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
     showOpenDirectoryDialogCallback((directory: string) => {
-        mainWindow.webContents.send('project-import-set-directory', directory)
+        if (isExistingProject(directory)) {
+            mainWindow.webContents.send('set-project-import-modal-visibility', false)
+            const message =
+                'The selected directory contains an existing Mantis project. Do you want to open it as an existing project?'
+            dialog
+                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .then((value: Electron.MessageBoxReturnValue): void => {
+                    if (value.response == 1) {
+                        if (mainWindow != null) mainWindow.webContents.send('open-project', directory)
+                    }
+                })
+        } else {
+            mainWindow.webContents.send('project-import-set-directory', directory)
+        }
     })()
 })
 
@@ -964,7 +987,7 @@ ipcMain.on('mainWindow-check-import-project', (): void => {
         .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
         .then((value: Electron.MessageBoxReturnValue): void => {
             if (value.response == 1) {
-                if (mainWindow != null) mainWindow.webContents.send('continue-project-import', path)
+                if (mainWindow != null) mainWindow.webContents.send('continue-project-import')
             }
         })
 })
