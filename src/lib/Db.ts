@@ -4,6 +4,7 @@ import * as path from 'path'
 
 import { DbFilename } from '../definitions/UIDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export class Db {
     public basePath: string
@@ -37,6 +38,13 @@ export class Db {
             `CREATE TABLE IF NOT EXISTS settings (
                 setting TEXT NOT NULL UNIQUE,
                 value TEXT NOT NULL
+            )`,
+        ).run()
+        db.prepare(
+            `CREATE TABLE IF NOT EXISTS selections (
+                id TEXT NOT NULL UNIQUE,
+                image_set TEXT NOT NULL,
+                selection_json TEXT NOT NULL
             )`,
         ).run()
         db.close()
@@ -195,6 +203,51 @@ export class Db {
     public numSettings(): number {
         const db = this.getConnection()
         const stmt = db.prepare('SELECT COUNT(*) as count FROM settings')
+        return stmt.get().count
+    }
+
+    public upsertSelections(imageSet: string, selections: SelectedPopulation[]): void {
+        const db = this.getConnection()
+        const insert = db.prepare(`
+            INSERT INTO selections(id,image_set,selection_json) VALUES(@id,@set,@json)
+            ON CONFLICT(id) DO UPDATE SET selection_json=excluded.selection_json, image_set=excluded.image_set;`)
+        const insertMany = db.transaction((selections) => {
+            for (const selection of selections) insert.run(selection)
+        })
+        const values: Array<{ id: string; set: string; json: string }> = []
+        for (const selection of selections) {
+            // Making a duplicate so we drop the graphics objects and don't stringify them.
+            const savingSelection: SelectedPopulation = {
+                id: selection.id,
+                renderOrder: selection.renderOrder,
+                name: selection.name,
+                color: selection.color,
+                visible: selection.visible,
+                pixelIndexes: selection.pixelIndexes,
+                selectedSegments: selection.selectedSegments,
+            }
+            const dbValue = { id: imageSet + selection.id, set: imageSet, json: JSON.stringify(savingSelection) }
+            values.push(dbValue)
+        }
+        insertMany(values)
+        db.close()
+    }
+
+    public getSelections(imageSet: string): SelectedPopulation[] {
+        const results: SelectedPopulation[] = []
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT selection_json
+                                 FROM selections
+                                 WHERE image_set = ?`)
+        for (const row of stmt.iterate(imageSet)) {
+            results.push(JSON.parse(row.selection_json))
+        }
+        return results
+    }
+
+    public numSelections(): number {
+        const db = this.getConnection()
+        const stmt = db.prepare('SELECT COUNT(*) as count FROM selections')
         return stmt.get().count
     }
 }

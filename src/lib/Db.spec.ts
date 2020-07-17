@@ -92,3 +92,44 @@ test('getSettings', () => {
         value: { foo: 'bar' },
     })
 })
+
+const selection1 = {
+    id: '123abc',
+    renderOrder: 1,
+    selectedSegments: [1, 2, 3],
+    name: 'Selection1',
+    color: 123,
+    visible: true,
+}
+
+const selection2 = {
+    id: '345def',
+    renderOrder: 2,
+    selectedSegments: [4, 5, 6],
+    name: 'Selection2',
+    color: 321,
+    visible: false,
+}
+
+const updatedSelection1 = {
+    id: '123abc',
+    renderOrder: 1,
+    selectedSegments: [1, 2, 3, 4],
+    name: 'Selection1Updated',
+    color: 123,
+    visible: true,
+}
+
+test('upsertSelections', () => {
+    db.upsertSelections(imageSet1, [selection1])
+    expect(db.numSelections()).toEqual(1)
+    db.upsertSelections(imageSet1, [updatedSelection1, selection2])
+    expect(db.numSelections()).toEqual(2)
+    db.upsertSelections(imageSet2, [selection1])
+    expect(db.numSelections()).toEqual(3)
+})
+
+test('getSelections', () => {
+    expect(db.getSelections(imageSet1)).toEqual([updatedSelection1, selection2])
+    expect(db.getSelections(imageSet2)).toEqual([selection1])
+})

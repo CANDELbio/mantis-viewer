@@ -9,13 +9,13 @@ import * as path from 'path'
 
 export class ImageSetStore {
     public constructor(projectStore: ProjectStore, directory: string) {
+        this.directory = directory
+        this.name = path.basename(directory)
         this.projectStore = projectStore
         this.imageStore = new ImageStore(this)
         this.plotStore = new PlotStore(this)
         this.segmentationStore = new SegmentationStore(this)
         this.populationStore = new PopulationStore(this)
-        this.directory = directory
-        this.name = path.basename(directory)
     }
 
     public projectStore: ProjectStore

@@ -8,6 +8,7 @@ import { ImageSetStore } from './ImageSetStore'
 import { randomHexColor } from '../lib/ColorHelper'
 import { pixelIndexesToSprite } from '../lib/GraphicsHelper'
 import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
+import { Db } from '../lib/Db'
 
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
@@ -21,14 +22,14 @@ const ImportedPopulationNamePrefix = 'Imported'
 export interface SelectedPopulation {
     id: string
     renderOrder: number
-    pixelIndexes: number[] | null
-    // The IDs of the selected segments
-    selectedSegments: number[]
-    regionGraphics: PIXI.Graphics | PIXI.Sprite | null
-    segmentGraphics: PIXI.Graphics | null
     name: string
     color: number
     visible: boolean
+    pixelIndexes?: number[]
+    // The IDs of the selected segments
+    selectedSegments: number[]
+    regionGraphics?: PIXI.Graphics | PIXI.Sprite
+    segmentGraphics?: PIXI.Graphics
 }
 
 export class PopulationStore {
@@ -39,6 +40,7 @@ export class PopulationStore {
 
     private imageSetStore: ImageSetStore
     private selectedRegionsFile: string | null
+    @observable.ref db: Db | null
     // An array of the regions selected.
     @observable.ref public selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
@@ -47,6 +49,13 @@ export class PopulationStore {
     @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
+        const imageSetName = this.imageSetStore.name
+        const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
+        if (projectBasePath) {
+            this.db = new Db(projectBasePath)
+            this.selectedPopulations = this.db.getSelections(imageSetName)
+            this.refreshAllGraphics()
+        }
     }
 
     // Automatically imports a region tiff file if it's set on the setting store.
@@ -77,6 +86,14 @@ export class PopulationStore {
         this.refreshAllGraphics()
     })
 
+    // Automatically saves populations to the db when they change
+    private autoSavePopulations = autorun(() => {
+        if (this.db) {
+            const imageSetName = this.imageSetStore.name
+            this.db.upsertSelections(imageSetName, this.selectedPopulations)
+        }
+    })
+
     private newROIName(renderOrder: number, namePrefix: string | null): string {
         const name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
         return name + renderOrder.toString()
@@ -103,8 +120,6 @@ export class PopulationStore {
             selectedSegments: [],
             name: name ? name : this.newROIName(order, ImagePopulationNamePrefix),
             color: color ? color : randomHexColor(),
-            regionGraphics: null,
-            segmentGraphics: null,
             visible: true,
         }
         this.refreshGraphics(newPopulation)
@@ -116,12 +131,9 @@ export class PopulationStore {
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
             renderOrder: order,
-            pixelIndexes: null,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(order, GraphPopulationNamePrefix),
             color: randomHexColor(),
-            regionGraphics: null,
-            segmentGraphics: null,
             visible: true,
         }
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
@@ -143,7 +155,7 @@ export class PopulationStore {
                 )
             } else {
                 population.selectedSegments = []
-                population.segmentGraphics = null
+                delete population.segmentGraphics
             }
         }
         return population
@@ -162,27 +174,24 @@ export class PopulationStore {
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
             renderOrder: order,
-            pixelIndexes: null,
             selectedSegments: [],
             name: name ? name : this.newROIName(order, 'Empty'),
             color: randomHexColor(),
-            regionGraphics: null,
-            segmentGraphics: null,
             visible: true,
         }
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
     }
 
     @action public deleteSelectedPopulation = (id: string): void => {
-        if (this.selectedPopulations != null) {
+        if (this.selectedPopulations) {
             this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)
         }
     }
 
     @action public deletePopulationsNotSelectedOnImage = (): void => {
-        if (this.selectedPopulations != null) {
+        if (this.selectedPopulations) {
             this.selectedPopulations = this.selectedPopulations.filter(
-                (region): boolean | null => region.pixelIndexes && region.pixelIndexes.length > 0,
+                (population): boolean | undefined => population.pixelIndexes && population.pixelIndexes.length > 0,
             )
         }
     }
@@ -196,7 +205,7 @@ export class PopulationStore {
     }
 
     @action public updateSelectedPopulationName = (id: string, newName: string): void => {
-        if (this.selectedPopulations != null) {
+        if (this.selectedPopulations) {
             // Work around to trigger selectedPopulations change
             // TODO: Try replacing selectedPopulations with non ref and use Mobx toJS to send values to plot window.
             this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
@@ -273,6 +282,19 @@ export class PopulationStore {
         return asArray
     }
 
+    private regionPresent = (pixelIndexes: number[]): boolean => {
+        for (const population of this.selectedPopulations) {
+            const curIndexes = population.pixelIndexes
+            if (curIndexes && curIndexes.length == pixelIndexes.length) {
+                for (let i = 0; i < curIndexes.length; i++) {
+                    if (curIndexes[i] != pixelIndexes[i]) break
+                    if (i == curIndexes.length - 1) return true
+                }
+            }
+        }
+        return false
+    }
+
     @action private onRegionImportComplete = (result: RegionDataImporterResult | RegionDataImporterError): void => {
         if ('error' in result) {
             this.imageSetStore.projectStore.notificationStore.setErrorMessage(result.error)
@@ -282,23 +304,30 @@ export class PopulationStore {
             let order = this.getRenderOrder()
             for (const regionIdStr in newRegionMap) {
                 const regionId = parseInt(regionIdStr)
-                const newPopulation = {
-                    id: shortId.generate(),
-                    renderOrder: order,
-                    pixelIndexes: newRegionMap[regionId],
-                    selectedSegments: [],
-                    name: this.newROIName(regionId, ImportedPopulationNamePrefix),
-                    color: randomHexColor(),
-                    regionGraphics: null,
-                    segmentGraphics: null,
-                    visible: true,
+                const regionPixels = newRegionMap[regionId]
+                // If a region is already selected with the same pixels then don't add this one.
+                // We do this because once regions are loaded from a tiff we save them to the db
+                // On app reload we reload the saved regions from the db and then also try to reload
+                // the regions from a tiff, and we don't want duplicate regions.
+                // This seems to be fast and feels simpler than adding an extra db table/field to keep
+                // track of the image sets that we've loaded regions from tiffs for.
+                if (!this.regionPresent(regionPixels)) {
+                    const newPopulation = {
+                        id: shortId.generate(),
+                        renderOrder: order,
+                        pixelIndexes: regionPixels,
+                        selectedSegments: [],
+                        name: this.newROIName(regionId, ImportedPopulationNamePrefix),
+                        color: randomHexColor(),
+                        visible: true,
+                    }
+                    this.refreshGraphics(newPopulation)
+                    newPopulations.push(newPopulation)
+                    order += 1
                 }
-                this.refreshGraphics(newPopulation)
-                newPopulations.push(newPopulation)
-                order += 1
             }
             this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
-            // TODO: Not sure we'll want or need to keep this around long term once we save things to the db
+            // Save the name of the tiff we loaded regions from so we don't try to load again.
             this.selectedRegionsFile = path.basename(result.filePath)
         }
     }
@@ -327,7 +356,8 @@ export class PopulationStore {
                     }
                 }
             })
-            // TODO: Maybe raise error if more than 255 populations?
+            // TODO: arrayToFile creates an 8 bit tiff.
+            // We should raise an error if there are more than 255 populations.
             TiffWriter.arrayToFile(populationData, width, height, filePath)
         }
     }
