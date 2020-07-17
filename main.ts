@@ -34,6 +34,12 @@ let projectLoaded = false
 let segmentationLoaded = false
 let populationsSelected = false
 
+// Checks if the directory is an existing project by checking if a Mantis DB has been created
+function isExistingProject(dir: string): boolean {
+    const dbFile = path.join(dir, DbFilename)
+    return fs.existsSync(dbFile)
+}
+
 function openImageSet(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
@@ -52,25 +58,40 @@ function openImageSet(path: string): void {
     }
 }
 
-function openProject(path: string): void {
+function openProject(dir: string): void {
     if (mainWindow != null) {
-        if (imageLoaded || projectLoaded) {
+        if (isExistingProject(dir)) {
+            if (imageLoaded || projectLoaded) {
+                const message =
+                    'You will lose any unsaved changes if you open an existing project. Are you sure you want to do this?'
+                dialog
+                    .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                    .then((value: Electron.MessageBoxReturnValue): void => {
+                        if (value.response == 1) {
+                            if (mainWindow != null) mainWindow.webContents.send('open-project', dir)
+                        }
+                    })
+            } else {
+                mainWindow.webContents.send('open-project', dir)
+            }
+        } else {
             const message =
-                'You will lose any unsaved changes if you open an existing project. Are you sure you want to do this?'
+                'No existing project found in the selected directory. Do you want to open it as a new project?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
-                        if (mainWindow != null) mainWindow.webContents.send('open-project', path)
+                        if (mainWindow != null) {
+                            mainWindow.webContents.send('set-project-import-modal-visibility', true)
+                            mainWindow.webContents.send('project-import-set-directory', dir)
+                        }
                     }
                 })
-        } else {
-            mainWindow.webContents.send('open-project', path)
         }
     }
 }
 
-function openSegmentation(path: string): void {
+function openSegmentation(dir: string): void {
     if (mainWindow != null) {
         if (segmentationLoaded) {
             const message =
@@ -79,11 +100,11 @@ function openSegmentation(path: string): void {
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
-                        if (mainWindow != null) mainWindow.webContents.send('open-segmentation-file', path)
+                        if (mainWindow != null) mainWindow.webContents.send('open-segmentation-file', dir)
                     }
                 })
         } else {
-            mainWindow.webContents.send('open-segmentation-file', path)
+            mainWindow.webContents.send('open-segmentation-file', dir)
         }
     }
 }
@@ -151,12 +172,6 @@ function askCalculateFeatures(channel: string, dir: string): void {
             if (mainWindow != null) mainWindow.webContents.send(channel, dir, value.response == 0)
         })
     }
-}
-
-// Checks if the directory is an existing project by checking if a Mantis DB has been created
-function isExistingProject(dir: string): boolean {
-    const dbFile = path.join(dir, DbFilename)
-    return fs.existsSync(dbFile)
 }
 
 function generateMenuTemplate(): any {
