@@ -92,6 +92,8 @@ export class SettingStore {
 
     @action public initialize = (): void => {
         this.basePath = null
+        this.db = null
+        this.imageSubdirectory = null
 
         this.channelMarker = {
             rChannel: null,

@@ -31,7 +31,7 @@ export class ProjectImportStore {
         this.initialize()
     }
 
-    @action public initialize = (): void => {
+    @action private initialize = (): void => {
         this.modalOpen = false
         this.showDirectoryPicker = false
         this.readyToImport = false
@@ -55,8 +55,17 @@ export class ProjectImportStore {
         this.modalOpen = open
     }
 
+    @action private clearFileSelections = (): void => {
+        this.projectPopulationFile = null
+        this.projectSegmentFeaturesFile = null
+        this.imageSetSegmentationFile = null
+        this.imageSetRegionFile = null
+        this.imageSubdirectory = null
+    }
+
     @action public setDirectory = (directory: string | null): void => {
         this.directory = directory
+        this.clearFileSelections()
         this.updateProjectDirectoriesAndFiles()
     }
 
@@ -153,9 +162,7 @@ export class ProjectImportStore {
         this.modalOpen = false
         if (this.directory) {
             const projectStore = this.projectStore
-            if (this.imageSubdirectory) projectStore.settingStore.setImageSubdirectory(this.imageSubdirectory)
-
-            projectStore.openProject(this.directory)
+            projectStore.openProject(this.directory, this.imageSubdirectory)
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore
             const activeSegmentationStore = activeImageSet.segmentationStore

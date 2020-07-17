@@ -123,7 +123,7 @@ export class ProjectStore {
         this.setActiveImageSet(dirName)
     }
 
-    @action public openProject = (dirName: string): void => {
+    @action public openProject = (dirName: string, imageSubdirectory?: string | null): void => {
         const files = fs.readdirSync(dirName)
         const paths = []
         for (const file of files) {
@@ -134,6 +134,8 @@ export class ProjectStore {
             // Clear out old image sets
             this.initializeImageSets()
             this.settingStore.setBasePath(dirName)
+            if (imageSubdirectory) this.settingStore.setImageSubdirectory(imageSubdirectory)
+
             this.projectPath = dirName
             this.initializeImageSetStores(paths)
             this.setActiveImageSet(this.imageSetPaths[0])
