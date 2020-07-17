@@ -133,3 +133,9 @@ test('getSelections', () => {
     expect(db.getSelections(imageSet1)).toEqual([updatedSelection1, selection2])
     expect(db.getSelections(imageSet2)).toEqual([selection1])
 })
+
+test('deleteSelection', () => {
+    db.deleteSelection(imageSet1, updatedSelection1.id)
+    expect(db.numSelections()).toEqual(2)
+    expect(db.getSelections(imageSet1)).toEqual([selection2])
+})

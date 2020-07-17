@@ -136,6 +136,7 @@ export class PopulationStore {
             color: randomHexColor(),
             visible: true,
         }
+        this.refreshGraphics(newPopulation)
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
     }
 
@@ -143,18 +144,30 @@ export class PopulationStore {
         const imageData = this.imageSetStore.imageStore.imageData
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
         const pixelIndexes = population.pixelIndexes
-        if (imageData && pixelIndexes) {
+        if (imageData) {
             const color = population.color
-            population.regionGraphics = pixelIndexesToSprite(pixelIndexes, imageData.width, imageData.height, color)
+            // If this selection has pixel indexes (i.e. a region selected on the image)
+            // Then we want to refresh the region graphics
+            if (pixelIndexes) {
+                population.regionGraphics = pixelIndexesToSprite(pixelIndexes, imageData.width, imageData.height, color)
+                if (segmentationData) {
+                    // If segmentation data is loaded use the region to find the segments selected
+                    population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
+                } else {
+                    // Otherwise clear the segments selected
+                    population.selectedSegments = []
+                }
+            }
             if (segmentationData) {
-                population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
+                // If segmentation data is present then refresh the outline graphics for the segments in this selection
+                // Separate from the above region selected block for selections/populations loaded from csv
                 population.segmentGraphics = segmentationData.generateOutlineGraphics(
                     color,
                     SelectedSegmentOutlineWidth,
                     population.selectedSegments,
                 )
             } else {
-                population.selectedSegments = []
+                // If there isn't segmentation data present then delete the segment graphics for this selection.
                 delete population.segmentGraphics
             }
         }
@@ -185,14 +198,30 @@ export class PopulationStore {
     @action public deleteSelectedPopulation = (id: string): void => {
         if (this.selectedPopulations) {
             this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)
+            if (this.db) {
+                const imageSetName = this.imageSetStore.name
+                this.db.deleteSelection(imageSetName, id)
+            }
         }
     }
 
     @action public deletePopulationsNotSelectedOnImage = (): void => {
         if (this.selectedPopulations) {
-            this.selectedPopulations = this.selectedPopulations.filter(
-                (population): boolean | undefined => population.pixelIndexes && population.pixelIndexes.length > 0,
-            )
+            const deleting: string[] = []
+            this.selectedPopulations = this.selectedPopulations.filter((population): boolean => {
+                if (population.pixelIndexes && population.pixelIndexes.length > 0) {
+                    return true
+                } else {
+                    deleting.push(population.id)
+                    return false
+                }
+            })
+            if (this.db) {
+                const imageSetName = this.imageSetStore.name
+                for (const id of deleting) {
+                    this.db.deleteSelection(imageSetName, id)
+                }
+            }
         }
     }
 
@@ -311,6 +340,7 @@ export class PopulationStore {
                 // the regions from a tiff, and we don't want duplicate regions.
                 // This seems to be fast and feels simpler than adding an extra db table/field to keep
                 // track of the image sets that we've loaded regions from tiffs for.
+                // TODO: Might get weird if user deletes regions loaded from tiff and then they get reloaded.
                 if (!this.regionPresent(regionPixels)) {
                     const newPopulation = {
                         id: shortId.generate(),

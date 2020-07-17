@@ -245,6 +245,13 @@ export class Db {
         return results
     }
 
+    public deleteSelection(imageSet: string, id: string): void {
+        const db = this.getConnection()
+        const stmt = db.prepare(`DELETE FROM selections
+                                 WHERE id = ?`)
+        stmt.run(imageSet + id)
+    }
+
     public numSelections(): number {
         const db = this.getConnection()
         const stmt = db.prepare('SELECT COUNT(*) as count FROM selections')
