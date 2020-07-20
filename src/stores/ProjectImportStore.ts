@@ -2,6 +2,7 @@ import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import path = require('path')
 import { ProjectStore } from './ProjectStore'
+import { DbFilename } from '../definitions/UIDefinitions'
 
 export class ProjectImportStore {
     private projectStore: ProjectStore
@@ -156,12 +157,21 @@ export class ProjectImportStore {
         }
     }
 
+    private eraseDbIfExists = (): void => {
+        if (this.directory) {
+            const dbPath = path.join(this.directory, DbFilename)
+            if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath)
+        }
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public continueImport = (): void => {
         this.modalOpen = false
         if (this.directory) {
             const projectStore = this.projectStore
+            // If we're importing through the project import wizard then this should be a new project or the user has agreed to reinitialize.
+            this.eraseDbIfExists()
             projectStore.openProject(this.directory, this.imageSubdirectory)
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore

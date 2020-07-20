@@ -980,14 +980,25 @@ ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean
 ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
     showOpenDirectoryDialogCallback((directory: string) => {
         if (isExistingProject(directory)) {
-            mainWindow.webContents.send('set-project-import-modal-visibility', false)
             const message =
-                'The selected directory contains an existing Mantis project. Do you want to open it as an existing project?'
+                'The selected directory contains an existing Mantis project. Do you want to reinitialize it or open it as an existing project?'
+            const detail =
+                'If you choose to reinitialize any populations and features in the existing project will be lost.'
             dialog
-                .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+                .showMessageBox(mainWindow, {
+                    type: 'warning',
+                    message: message,
+                    detail: detail,
+                    buttons: ['Reinitialize', 'Open As Existing'],
+                })
                 .then((value: Electron.MessageBoxReturnValue): void => {
                     if (value.response == 1) {
-                        if (mainWindow != null) mainWindow.webContents.send('open-project', directory)
+                        if (mainWindow != null) {
+                            mainWindow.webContents.send('set-project-import-modal-visibility', false)
+                            mainWindow.webContents.send('open-project', directory)
+                        }
+                    } else {
+                        if (mainWindow != null) mainWindow.webContents.send('project-import-set-directory', directory)
                     }
                 })
         } else {
