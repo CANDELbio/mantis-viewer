@@ -7,6 +7,7 @@ export interface LoadingModalProps {
     segmentationDataLoading: boolean
     segmentFeaturesLoading: boolean
     segmentFeaturesImporting: boolean
+    selectionsLoading: boolean
 }
 
 @observer
@@ -21,12 +22,14 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
             this.props.imageDataLoading ||
             this.props.segmentationDataLoading ||
             this.props.segmentFeaturesLoading ||
-            this.props.segmentFeaturesImporting
+            this.props.segmentFeaturesImporting ||
+            this.props.selectionsLoading
         ) {
             let modalText = 'Image data is loading...'
             if (this.props.segmentationDataLoading) modalText = 'Segmentation data is loading...'
             if (this.props.segmentFeaturesLoading) modalText = 'Segment intensities are being calculated...'
             if (this.props.segmentFeaturesImporting) modalText = 'Segment features are importing...'
+            if (this.props.selectionsLoading) modalText = 'Selections features are importing...'
             modal = (
                 <Modal isOpen={true}>
                     <ModalHeader>{modalText}</ModalHeader>

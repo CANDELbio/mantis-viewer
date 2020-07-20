@@ -34,6 +34,7 @@ export class ProjectImportStore {
 
     @action private initialize = (): void => {
         this.modalOpen = false
+        this.directory = null
         this.showDirectoryPicker = false
         this.readyToImport = false
         this.projectDirectories = []
@@ -41,6 +42,7 @@ export class ProjectImportStore {
         this.imageSetTiffs = []
         this.imageSetCsvs = []
         this.imageSetDirs = []
+        this.clearFileSelections()
     }
 
     private autoSetSegmentationFile = autorun(() => {
@@ -221,8 +223,13 @@ export class ProjectImportStore {
                                             true,
                                         )
                                 }
+                                // Reinitialize when we're done loading if we have segmentation data to load
+                                this.initialize()
                             },
                         )
+                    } else {
+                        // Reinitialize when we're done loading if we have don't segmentation data to load
+                        this.initialize()
                     }
                 },
             )

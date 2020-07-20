@@ -134,9 +134,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
         const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
         const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
+        const selectionsLoading = populationStore.selectionsLoading
 
         const displayLoadingModal =
-            imageDataLoading || segmentationDataLoading || segmentFeaturesLoading || segmentFeaturesImporting
+            imageDataLoading ||
+            segmentationDataLoading ||
+            segmentFeaturesLoading ||
+            segmentFeaturesImporting ||
+            selectionsLoading
 
         const numExported = notificationStore.numCalculated
         const numToExport = notificationStore.numToCalculate
@@ -317,6 +322,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentationDataLoading={segmentationDataLoading}
                     segmentFeaturesLoading={segmentFeaturesLoading}
                     segmentFeaturesImporting={segmentFeaturesImporting}
+                    selectionsLoading={selectionsLoading}
                 />
                 <ProgressModal numCalculated={numExported} numToCalculate={numToExport} />
                 <ProjectImportModal

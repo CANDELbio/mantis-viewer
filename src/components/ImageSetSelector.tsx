@@ -56,7 +56,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                             value={selectedValue}
                             options={imageSetOptions}
                             onChange={onSelectChange(this.props.setSelectedImageSet)}
-                            clearable={false}
+                            isClearable={false}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={this.props.imageSets.length == 0}

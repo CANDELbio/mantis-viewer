@@ -41,6 +41,7 @@ export class PopulationStore {
     private imageSetStore: ImageSetStore
     private selectedRegionsFile: string | null
     @observable.ref db: Db | null
+    @observable.ref selectionsLoading: boolean
     // An array of the regions selected.
     @observable.ref public selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
@@ -49,6 +50,7 @@ export class PopulationStore {
     @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
+        this.selectionsLoading = false
         const imageSetName = this.imageSetStore.name
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         if (projectBasePath) {
@@ -358,13 +360,15 @@ export class PopulationStore {
             }
             this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
             // Save the name of the tiff we loaded regions from so we don't try to load again.
+            this.selectionsLoading = false
             this.selectedRegionsFile = path.basename(result.filePath)
         }
     }
 
-    public importRegionsFromTiff = (filePath: string): void => {
+    @action public importRegionsFromTiff = (filePath: string): void => {
         const imageData = this.imageSetStore.imageStore.imageData
         if (imageData) {
+            this.selectionsLoading = true
             importRegionTiff(
                 { filePath: filePath, width: imageData.width, height: imageData.height },
                 this.onRegionImportComplete,

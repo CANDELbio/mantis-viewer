@@ -208,7 +208,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     value={selectedValue}
                     options={channelOptions}
                     onChange={this.onSelectedChannelChange}
-                    clearable={false}
+                    isClearable={false}
                     styles={SelectStyle}
                     theme={SelectTheme}
                 />

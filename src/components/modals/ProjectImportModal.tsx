@@ -78,7 +78,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedImageSet}
                             options={imageSetOptions}
                             onChange={onClearableSelectChange(this.props.setImageSet)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={this.props.projectDirectories.length == 0}
@@ -92,7 +92,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedImageSubdir}
                             options={imageDirectoryOptions}
                             onChange={onClearableSelectChange(this.props.setImageSubdir)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={this.props.imageSetDirs.length == 0}
@@ -106,7 +106,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedRegion}
                             options={regionOptions}
                             onChange={onClearableSelectChange(this.props.setRegion)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={!Boolean(this.props.imageSet)}
@@ -120,7 +120,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedSegmentation}
                             options={segmentationOptions}
                             onChange={onClearableSelectChange(this.props.setSegmentation)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={!Boolean(this.props.imageSet)}
@@ -134,7 +134,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedFeature}
                             options={featureOptions}
                             onChange={onClearableSelectChange(this.props.setFeatures)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={!Boolean(this.props.segmentation)}
@@ -148,7 +148,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                             value={selectedPopulation}
                             options={populationOptions}
                             onChange={onClearableSelectChange(this.props.setPopulations)}
-                            clearable={true}
+                            isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
                             isDisabled={!Boolean(this.props.segmentation)}
