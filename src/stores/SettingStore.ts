@@ -36,6 +36,8 @@ type SettingStoreData = {
     plotDotSize?: number
     plotAllImageSets?: boolean
     plotCheckGenerateAllFeatures?: boolean
+    plotDownsample?: boolean
+    plotDownsamplePercentage?: number
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
@@ -89,6 +91,8 @@ export class SettingStore {
     @observable public plotDotSize: number
     @observable public plotAllImageSets: boolean
     @observable public plotCheckGenerateAllFeatures: boolean
+    @observable public plotDownsample: boolean
+    @observable public plotDownsamplePercentage: number
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -127,6 +131,8 @@ export class SettingStore {
         this.plotDotSize = DefaultDotSize
         this.plotAllImageSets = false
         this.plotCheckGenerateAllFeatures = true
+        this.plotDownsample = false
+        this.plotDownsamplePercentage = 0
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -172,6 +178,14 @@ export class SettingStore {
 
     @action public setPlotAllImageSets = (value: boolean): void => {
         this.plotAllImageSets = value
+    }
+
+    @action public setPlotDownsample = (value: boolean): void => {
+        this.plotDownsample = value
+    }
+
+    @action public setPlotDownsamplePercentage = (value: number): void => {
+        this.plotDownsamplePercentage = value
     }
 
     @action public setPlotCheckGenerateAllFeatures = (value: boolean): void => {
@@ -309,6 +323,8 @@ export class SettingStore {
                 plotDotSize: this.plotDotSize,
                 plotAllImageSets: this.plotAllImageSets,
                 plotCheckGenerateAllFeatures: this.plotCheckGenerateAllFeatures,
+                plotDownsample: this.plotDownsample,
+                plotDownsamplePercentage: this.plotDownsamplePercentage,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -343,6 +359,9 @@ export class SettingStore {
                     this.plotAllImageSets = importingSettings.plotAllImageSets
                 if (importingSettings.plotCheckGenerateAllFeatures != null)
                     this.plotCheckGenerateAllFeatures = importingSettings.plotCheckGenerateAllFeatures
+                if (importingSettings.plotDownsample) this.plotDownsample = importingSettings.plotDownsample
+                if (importingSettings.plotDownsamplePercentage)
+                    this.plotDownsamplePercentage = importingSettings.plotDownsamplePercentage
                 if (importingSettings.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)

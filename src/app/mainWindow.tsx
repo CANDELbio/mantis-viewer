@@ -185,6 +185,14 @@ ipcRenderer.on('set-plot-all-image-sets', (event: Electron.Event, value: boolean
     projectStore.setPlotAllImageSets(value)
 })
 
+ipcRenderer.on('set-plot-downsample', (event: Electron.Event, value: boolean): void => {
+    projectStore.settingStore.setPlotDownsample(value)
+})
+
+ipcRenderer.on('set-set-plot-downsample-percentage', (event: Electron.Event, value: number): void => {
+    projectStore.settingStore.setPlotDownsamplePercentage(value)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
     projectStore.activeImageSetStore.populationStore.createPopulationFromSegments(segmentIds)
 })
@@ -318,6 +326,8 @@ Mobx.autorun((): void => {
         settingStore.plotDotSize,
         settingStore.transformCoefficient,
         settingStore.plotAllImageSets,
+        settingStore.plotDownsample,
+        settingStore.plotDownsamplePercentage,
         plotStore.plotData,
     )
 })

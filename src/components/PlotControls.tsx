@@ -5,7 +5,7 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Input, Button, Popover, PopoverHeader, PopoverBody } from 'reactstrap'
+import { Input, Button, Popover, PopoverHeader, PopoverBody, Label } from 'reactstrap'
 import { Slider, Checkbox } from '@blueprintjs/core'
 
 import {
@@ -41,6 +41,10 @@ interface PlotControlsProps {
     projectLoaded: boolean
     plotAllImageSets: boolean
     setPlotAllImageSets: (x: boolean) => void
+    downsample: boolean
+    setDownsample: (x: boolean) => void
+    downsamplePercentage: number
+    setDownsamplePercentage: (x: number) => void
     modalOpen?: boolean
     windowWidth: number | null
 }
@@ -242,6 +246,34 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
+        const downsampleControls = (
+            <div>
+                <Checkbox
+                    checked={this.props.downsample}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        this.props.setDownsample(e.target.checked)
+                    }
+                    label="Downsample"
+                />
+            </div>
+        )
+
+        const downsamplePercentageControls = (
+            <div>
+                Downsample Percentage
+                <Slider
+                    min={0}
+                    max={100}
+                    value={this.props.downsamplePercentage}
+                    labelStepSize={20}
+                    labelPrecision={0}
+                    stepSize={1}
+                    onChange={this.props.setDownsamplePercentage}
+                    disabled={!this.props.downsample}
+                />
+            </div>
+        )
+
         const featureControls = (
             <Select
                 value={selectedFeatureSelectOptions}
@@ -284,6 +316,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                         {normalizationControls}
                         {coefficientControls}
                         {dotControls}
+                        {downsampleControls}
+                        {downsamplePercentageControls}
                         {plotProjectControls}
                     </PopoverBody>
                 </Popover>
