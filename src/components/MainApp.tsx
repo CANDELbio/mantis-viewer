@@ -280,8 +280,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setPlotAllImageSets={projectStore.setPlotAllImageSets}
                                 downsample={settingStore.plotDownsample}
                                 setDownsample={settingStore.setPlotDownsample}
-                                downsamplePercentage={settingStore.plotDownsamplePercentage}
-                                setDownsamplePercentage={settingStore.setPlotDownsamplePercentage}
+                                downsampleRatio={settingStore.plotDownsampleRatio}
+                                setDownsampleRatio={settingStore.setPlotDownsampleRatio}
                             />
                         </div>
                     )

@@ -22,7 +22,7 @@ let transformCoefficient: number | null
 let projectLoaded: boolean | null
 let plotAllImageSets: boolean | null
 let downsample: boolean
-let downsamplePercentage: number
+let downsampleRatio: number
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 const setSelectedPlotFeatures = (features: string[]): void => {
@@ -73,8 +73,8 @@ const setDownsample = (value: boolean): void => {
     ipcRenderer.send('plotWindow-set-plot-downsample', value)
 }
 
-const setDownsamplePercentage = (value: number): void => {
-    ipcRenderer.send('plotWindow-set-plot-downsample-percentage', value)
+const setDownsampleRatio = (value: number): void => {
+    ipcRenderer.send('plotWindow-set-plot-downsample-ratio', value)
 }
 
 function render(): void {
@@ -115,8 +115,8 @@ function render(): void {
                         setPlotAllImageSets={setPlotAllImageSets}
                         downsample={downsample}
                         setDownsample={setDownsample}
-                        downsamplePercentage={downsamplePercentage}
-                        setDownsamplePercentage={setDownsamplePercentage}
+                        downsampleRatio={downsampleRatio}
+                        setDownsampleRatio={setDownsampleRatio}
                     />
                 </div>
                 <Plot
@@ -150,7 +150,7 @@ ipcRenderer.on(
         project: boolean,
         plotAll: boolean,
         plotDownsample: boolean,
-        plotDownsamplePercentage: number,
+        plotDownsampleRatio: number,
         data: any,
     ): void => {
         featureNames = features
@@ -164,7 +164,7 @@ ipcRenderer.on(
         projectLoaded = project
         plotAllImageSets = plotAll
         downsample = plotDownsample
-        downsamplePercentage = plotDownsamplePercentage
+        downsampleRatio = plotDownsampleRatio
         plotData = data as PlotData
         render()
     },

@@ -29,7 +29,9 @@ export class PlotStore {
 
                 const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.allImageSetNames() : [imageSetName]
 
-                const featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
+                let featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
+                if (settingStore.plotDownsample)
+                    featureValues = this.downsampleFeatureValues(settingStore.plotDownsampleRatio, featureValues)
                 const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetsToPlot)
 
                 let clearPlotData = true
@@ -79,6 +81,29 @@ export class PlotStore {
             }
         }
     })
+
+    private downsampleFeatureValues = (
+        downsampleRatio: number,
+        values: Record<string, Record<string, Record<number, number>>>,
+    ): Record<string, Record<string, Record<number, number>>> => {
+        const downsampledValues: Record<string, Record<string, Record<number, number>>> = {}
+        for (const curImageSet of Object.keys(values)) {
+            downsampledValues[curImageSet] = {}
+            const curImageSetValues = values[curImageSet]
+            for (const curMarker of Object.keys(curImageSetValues)) {
+                downsampledValues[curImageSet][curMarker] = {}
+                const curMarkerValues = curImageSetValues[curMarker]
+                const curSegmentIds = Object.keys(curMarkerValues)
+                curSegmentIds.forEach((segmentIdStr: string, index: number) => {
+                    if (index % downsampleRatio == 0) {
+                        const segmentId = parseInt(segmentIdStr)
+                        downsampledValues[curImageSet][curMarker][segmentId] = curMarkerValues[segmentId]
+                    }
+                })
+            }
+        }
+        return downsampledValues
+    }
 
     @action public initialize = (): void => {
         this.segmentsHoveredOnPlot = []

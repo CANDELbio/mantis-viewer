@@ -189,8 +189,8 @@ ipcRenderer.on('set-plot-downsample', (event: Electron.Event, value: boolean): v
     projectStore.settingStore.setPlotDownsample(value)
 })
 
-ipcRenderer.on('set-set-plot-downsample-percentage', (event: Electron.Event, value: number): void => {
-    projectStore.settingStore.setPlotDownsamplePercentage(value)
+ipcRenderer.on('set-set-plot-downsample-ratio', (event: Electron.Event, value: number): void => {
+    projectStore.settingStore.setPlotDownsampleRatio(value)
 })
 
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
@@ -327,7 +327,7 @@ Mobx.autorun((): void => {
         settingStore.transformCoefficient,
         settingStore.plotAllImageSets,
         settingStore.plotDownsample,
-        settingStore.plotDownsamplePercentage,
+        settingStore.plotDownsampleRatio,
         plotStore.plotData,
     )
 })

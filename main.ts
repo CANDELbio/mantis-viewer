@@ -821,7 +821,7 @@ ipcMain.on(
         coefficient: number,
         plotAllImageSets: boolean,
         downsample: boolean,
-        downsamplePercentage: number,
+        downsampleRatio: number,
         plotData: any,
     ): void => {
         if (plotWindow != null)
@@ -838,7 +838,7 @@ ipcMain.on(
                 projectLoaded,
                 plotAllImageSets,
                 downsample,
-                downsamplePercentage,
+                downsampleRatio,
                 plotData,
             )
     },
@@ -893,8 +893,8 @@ ipcMain.on('plotWindow-set-plot-downsample', (event: Electron.Event, value: bool
     if (mainWindow != null) mainWindow.webContents.send('set-plot-downsample', value)
 })
 
-ipcMain.on('plotWindow-set-plot-downsample-percentage', (event: Electron.Event, value: number): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-set-plot-downsample-percentage', value)
+ipcMain.on('plotWindow-set-plot-downsample-ratio', (event: Electron.Event, value: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-set-plot-downsample-ratio', value)
 })
 
 // Functions to relay data from the mainWindow to the preferencesWindow

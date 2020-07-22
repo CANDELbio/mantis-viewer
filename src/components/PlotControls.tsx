@@ -5,8 +5,9 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Input, Button, Popover, PopoverHeader, PopoverBody, Label } from 'reactstrap'
+import { Input, Button, Popover, PopoverBody } from 'reactstrap'
 import { Slider, Checkbox } from '@blueprintjs/core'
+import { IoMdSettings } from 'react-icons/io'
 
 import {
     PlotStatistic,
@@ -43,8 +44,8 @@ interface PlotControlsProps {
     setPlotAllImageSets: (x: boolean) => void
     downsample: boolean
     setDownsample: (x: boolean) => void
-    downsamplePercentage: number
-    setDownsamplePercentage: (x: number) => void
+    downsampleRatio: number
+    setDownsampleRatio: (x: number) => void
     modalOpen?: boolean
     windowWidth: number | null
 }
@@ -107,6 +108,10 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
 
     private onCoefficientSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
         this.props.setTransformCoefficient(event.target.valueAsNumber)
+    }
+
+    private onRatioSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        this.props.setDownsampleRatio(event.target.valueAsNumber)
     }
 
     public render(): React.ReactNode {
@@ -258,18 +263,15 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        const downsamplePercentageControls = (
+        const downsampleRatioControls = (
             <div>
-                Downsample Percentage
-                <Slider
-                    min={0}
-                    max={100}
-                    value={this.props.downsamplePercentage}
-                    labelStepSize={20}
-                    labelPrecision={0}
-                    stepSize={1}
-                    onChange={this.props.setDownsamplePercentage}
+                Downsample Ratio
+                <Input
+                    value={this.props.downsampleRatio ? this.props.downsampleRatio : ''}
                     disabled={!this.props.downsample}
+                    onChange={this.onRatioSelect}
+                    type="number"
+                    className="space-bottom"
                 />
             </div>
         )
@@ -290,13 +292,13 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             <div>
                 <Grid fluid={true}>
                     <Row between="xs">
-                        <Col xs={10} sm={10} md={10} lg={10}>
+                        <Col xs={11} sm={11} md={11} lg={11}>
                             {featureControls}
                         </Col>
-                        <Col xs={2} sm={2} md={2} lg={2}>
-                            <Button id="controls" type="button" size="sm" className="vertical-center">
-                                Controls
-                            </Button>
+                        <Col xs={1} sm={1} md={1} lg={1}>
+                            <a href="#">
+                                <IoMdSettings size="1.5em" className="vertical-center" id="controls" />
+                            </a>
                         </Col>
                     </Row>
                 </Grid>
@@ -306,9 +308,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     trigger="legacy"
                     target="controls"
                     toggle={this.togglePopover}
-                    style={{ width: '180px' }}
+                    style={{ width: '250px' }}
                 >
-                    <PopoverHeader>Plot Controls</PopoverHeader>
                     <PopoverBody>
                         {plotType}
                         {statisticControls}
@@ -317,7 +318,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                         {coefficientControls}
                         {dotControls}
                         {downsampleControls}
-                        {downsamplePercentageControls}
+                        {downsampleRatioControls}
                         {plotProjectControls}
                     </PopoverBody>
                 </Popover>
