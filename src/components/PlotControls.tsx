@@ -5,7 +5,7 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Input, Button, Popover, PopoverBody } from 'reactstrap'
+import { Input, Popover, PopoverBody } from 'reactstrap'
 import { Slider, Checkbox } from '@blueprintjs/core'
 import { IoMdSettings } from 'react-icons/io'
 
