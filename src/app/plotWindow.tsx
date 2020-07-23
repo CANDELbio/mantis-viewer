@@ -22,7 +22,7 @@ let transformCoefficient: number | null
 let projectLoaded: boolean | null
 let plotAllImageSets: boolean | null
 let downsample: boolean
-let downsampleRatio: number
+let downsamplePercent: number
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 const setSelectedPlotFeatures = (features: string[]): void => {
@@ -73,8 +73,8 @@ const setDownsample = (value: boolean): void => {
     ipcRenderer.send('plotWindow-set-plot-downsample', value)
 }
 
-const setDownsampleRatio = (value: number): void => {
-    ipcRenderer.send('plotWindow-set-plot-downsample-ratio', value)
+const setDownsamplePercent = (value: number): void => {
+    ipcRenderer.send('plotWindow-set-plot-downsample-percent', value)
 }
 
 function render(): void {
@@ -115,8 +115,8 @@ function render(): void {
                         setPlotAllImageSets={setPlotAllImageSets}
                         downsample={downsample}
                         setDownsample={setDownsample}
-                        downsampleRatio={downsampleRatio}
-                        setDownsampleRatio={setDownsampleRatio}
+                        downsamplePercent={downsamplePercent}
+                        setDownsamplePercent={setDownsamplePercent}
                     />
                 </div>
                 <Plot
@@ -127,6 +127,7 @@ function render(): void {
                     setSelectedRange={addPopulationFromRange}
                     plotData={plotData}
                     maxPlotHeight={plotHeight}
+                    downsample={downsample}
                 />
             </div>,
             document.getElementById('plot'),
@@ -150,7 +151,7 @@ ipcRenderer.on(
         project: boolean,
         plotAll: boolean,
         plotDownsample: boolean,
-        plotDownsampleRatio: number,
+        plotDownsamplePercent: number,
         data: any,
     ): void => {
         featureNames = features
@@ -164,7 +165,7 @@ ipcRenderer.on(
         projectLoaded = project
         plotAllImageSets = plotAll
         downsample = plotDownsample
-        downsampleRatio = plotDownsampleRatio
+        downsamplePercent = plotDownsamplePercent
         plotData = data as PlotData
         render()
     },

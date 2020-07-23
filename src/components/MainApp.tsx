@@ -280,8 +280,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setPlotAllImageSets={projectStore.setPlotAllImageSets}
                                 downsample={settingStore.plotDownsample}
                                 setDownsample={settingStore.setPlotDownsample}
-                                downsampleRatio={settingStore.plotDownsampleRatio}
-                                setDownsampleRatio={settingStore.setPlotDownsampleRatio}
+                                downsamplePercent={settingStore.plotDownsamplePercent}
+                                setDownsamplePercent={settingStore.setPlotDownsamplePercent}
                             />
                         </div>
                     )
@@ -295,6 +295,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                                 plotData={plotStore.plotData}
                                 maxPlotHeight={maxPlotHeight}
+                                downsample={settingStore.plotDownsample}
                             />
                         </div>
                     )

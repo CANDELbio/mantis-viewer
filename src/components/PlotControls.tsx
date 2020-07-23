@@ -5,9 +5,10 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Input, Popover, PopoverBody } from 'reactstrap'
+import { Popover, PopoverBody } from 'reactstrap'
 import { Slider, Checkbox } from '@blueprintjs/core'
 import { IoMdSettings } from 'react-icons/io'
+import * as NumericInput from 'react-numeric-input'
 
 import {
     PlotStatistic,
@@ -44,8 +45,8 @@ interface PlotControlsProps {
     setPlotAllImageSets: (x: boolean) => void
     downsample: boolean
     setDownsample: (x: boolean) => void
-    downsampleRatio: number
-    setDownsampleRatio: (x: number) => void
+    downsamplePercent: number
+    setDownsamplePercent: (x: number) => void
     modalOpen?: boolean
     windowWidth: number | null
 }
@@ -106,12 +107,8 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
         if (x != null) this.props.setSelectedNormalization(x.value as PlotNormalization)
     }
 
-    private onCoefficientSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        this.props.setTransformCoefficient(event.target.valueAsNumber)
-    }
-
     private onRatioSelect = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        this.props.setDownsampleRatio(event.target.valueAsNumber)
+        this.props.setDownsamplePercent(event.target.valueAsNumber)
     }
 
     public render(): React.ReactNode {
@@ -196,14 +193,15 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
         )
 
         const coefficientControls = (
-            <div>
+            <div className="space-bottom">
                 Transform Coefficient
-                <Input
-                    value={this.props.transformCoefficient ? this.props.transformCoefficient : ''}
+                <NumericInput
+                    step={4}
+                    precision={2}
+                    value={this.props.transformCoefficient ? this.props.transformCoefficient : undefined}
+                    onChange={this.props.setTransformCoefficient}
                     disabled={this.props.selectedTransform == 'none'}
-                    onChange={this.onCoefficientSelect}
-                    type="number"
-                    className="space-bottom"
+                    className="form-control"
                 />
             </div>
         )
@@ -263,15 +261,18 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        const downsampleRatioControls = (
-            <div>
-                Downsample Ratio
-                <Input
-                    value={this.props.downsampleRatio ? this.props.downsampleRatio : ''}
+        const downsamplePercentControls = (
+            <div className="space-bottom">
+                Downsample Percent
+                <NumericInput
+                    step={0.1}
+                    precision={4}
+                    min={0}
+                    max={1}
+                    value={this.props.downsamplePercent}
+                    onChange={this.props.setDownsamplePercent}
                     disabled={!this.props.downsample}
-                    onChange={this.onRatioSelect}
-                    type="number"
-                    className="space-bottom"
+                    className="form-control"
                 />
             </div>
         )
@@ -318,7 +319,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                         {coefficientControls}
                         {dotControls}
                         {downsampleControls}
-                        {downsampleRatioControls}
+                        {downsamplePercentControls}
                         {plotProjectControls}
                     </PopoverBody>
                 </Popover>

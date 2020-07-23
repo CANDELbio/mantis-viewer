@@ -206,3 +206,10 @@ textarea:disabled {
     top: 50%;
     transform: translateY(-50%);
 }
+
+.react-numeric-input input {
+    font-size: 1rem !important;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    padding: 0.375rem 0.75rem;
+}

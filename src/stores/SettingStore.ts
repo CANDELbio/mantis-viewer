@@ -36,8 +36,9 @@ type SettingStoreData = {
     plotDotSize?: number
     plotAllImageSets?: boolean
     plotCheckGenerateAllFeatures?: boolean
+    plotCollapseAllImageSets?: boolean
     plotDownsample?: boolean
-    plotDownsampleRatio?: number
+    plotDownsamplePercent?: number
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
@@ -90,9 +91,10 @@ export class SettingStore {
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
     @observable public plotAllImageSets: boolean
+    @observable public plotCollapseAllImageSets: boolean
     @observable public plotCheckGenerateAllFeatures: boolean
     @observable public plotDownsample: boolean
-    @observable public plotDownsampleRatio: number
+    @observable public plotDownsamplePercent: number
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -130,9 +132,10 @@ export class SettingStore {
         this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.plotDotSize = DefaultDotSize
         this.plotAllImageSets = false
+        this.plotCollapseAllImageSets = true
         this.plotCheckGenerateAllFeatures = true
         this.plotDownsample = false
-        this.plotDownsampleRatio = 1
+        this.plotDownsamplePercent = 0
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -180,16 +183,16 @@ export class SettingStore {
         this.plotAllImageSets = value
     }
 
+    @action public setPlotCollapseAllImageSets = (value: boolean): void => {
+        this.plotCollapseAllImageSets = value
+    }
+
     @action public setPlotDownsample = (value: boolean): void => {
         this.plotDownsample = value
     }
 
-    @action public setPlotDownsampleRatio = (value: number): void => {
-        if (value < 1) {
-            this.plotDownsampleRatio = 1
-        } else {
-            this.plotDownsampleRatio = value
-        }
+    @action public setPlotDownsamplePercent = (value: number): void => {
+        this.plotDownsamplePercent = value
     }
 
     @action public setPlotCheckGenerateAllFeatures = (value: boolean): void => {
@@ -326,9 +329,10 @@ export class SettingStore {
                 plotNormalization: this.plotNormalization,
                 plotDotSize: this.plotDotSize,
                 plotAllImageSets: this.plotAllImageSets,
+                plotCollapseAllImageSets: this.plotCollapseAllImageSets,
                 plotCheckGenerateAllFeatures: this.plotCheckGenerateAllFeatures,
                 plotDownsample: this.plotDownsample,
-                plotDownsampleRatio: this.plotDownsampleRatio,
+                plotDownsamplePercent: this.plotDownsamplePercent,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -361,11 +365,13 @@ export class SettingStore {
                 if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
                 if (importingSettings.plotAllImageSets != null)
                     this.plotAllImageSets = importingSettings.plotAllImageSets
+                if (importingSettings.plotCollapseAllImageSets != null)
+                    this.plotCollapseAllImageSets = importingSettings.plotCollapseAllImageSets
                 if (importingSettings.plotCheckGenerateAllFeatures != null)
                     this.plotCheckGenerateAllFeatures = importingSettings.plotCheckGenerateAllFeatures
                 if (importingSettings.plotDownsample) this.plotDownsample = importingSettings.plotDownsample
-                if (importingSettings.plotDownsampleRatio)
-                    this.plotDownsampleRatio = importingSettings.plotDownsampleRatio
+                if (importingSettings.plotDownsamplePercent)
+                    this.plotDownsamplePercent = importingSettings.plotDownsamplePercent
                 if (importingSettings.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)

@@ -2,6 +2,7 @@ import { observable, action, autorun } from 'mobx'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { generatePlotData } from '../lib/plot/Index'
 import { ImageSetStore } from './ImageSetStore'
+import * as _ from 'underscore'
 
 export class PlotStore {
     public constructor(imageSetStore: ImageSetStore) {
@@ -30,8 +31,8 @@ export class PlotStore {
                 const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.allImageSetNames() : [imageSetName]
 
                 let featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
-                if (settingStore.plotDownsample)
-                    featureValues = this.downsampleFeatureValues(settingStore.plotDownsampleRatio, featureValues)
+                if (settingStore.plotDownsample && settingStore.plotDownsamplePercent > 0)
+                    featureValues = this.downsampleFeatureValues(settingStore.plotDownsamplePercent, featureValues)
                 const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetsToPlot)
 
                 let clearPlotData = true
@@ -83,7 +84,7 @@ export class PlotStore {
     })
 
     private downsampleFeatureValues = (
-        downsampleRatio: number,
+        downsamplePercent: number,
         values: Record<string, Record<string, Record<number, number>>>,
     ): Record<string, Record<string, Record<number, number>>> => {
         const downsampledValues: Record<string, Record<string, Record<number, number>>> = {}
@@ -94,11 +95,11 @@ export class PlotStore {
                 downsampledValues[curImageSet][curMarker] = {}
                 const curMarkerValues = curImageSetValues[curMarker]
                 const curSegmentIds = Object.keys(curMarkerValues)
-                curSegmentIds.forEach((segmentIdStr: string, index: number) => {
-                    if (index % downsampleRatio == 0) {
-                        const segmentId = parseInt(segmentIdStr)
-                        downsampledValues[curImageSet][curMarker][segmentId] = curMarkerValues[segmentId]
-                    }
+                const numSegmentsToSample = Math.round(curSegmentIds.length * (1 - downsamplePercent))
+                const downsampledSegmentIds = _.sample(curSegmentIds, numSegmentsToSample)
+                downsampledSegmentIds.forEach((segmentIdStr: string) => {
+                    const segmentId = parseInt(segmentIdStr)
+                    downsampledValues[curImageSet][curMarker][segmentId] = curMarkerValues[segmentId]
                 })
             }
         }
