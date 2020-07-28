@@ -3,9 +3,7 @@ import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitio
 import { SelectedPopulation } from '../../stores/PopulationStore'
 import { calculateMean, calculateMedian } from '../../lib/StatsHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
-import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
-
-import { ActiveImageSetSelectionId } from '../../definitions/PlotDataDefinitions'
+import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
 
 function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
     const markerSums: number[] = new Array(intensities[0].length).fill(0)
@@ -68,6 +66,7 @@ function getPopulationIntensity(
 }
 
 function calculateHeatmapData(
+    activeImageSet: string,
     features: string[],
     featureValues: Record<string, Record<number, number>>,
     segmentationData: SegmentationData,
@@ -77,7 +76,7 @@ function calculateHeatmapData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
 ): Partial<Plotly.PlotData>[] {
-    const selectionIds = buildSelectionIdArray(false, selectedPopulations)
+    const selectionIds = buildTraceIdArray(activeImageSet, false, [activeImageSet], selectedPopulations)
     const intensities = []
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
@@ -86,7 +85,7 @@ function calculateHeatmapData(
     for (const selectionId of selectionIds) {
         // If we have the default selection id use all segment ids, otherwise get segments for the current selection
         const selectedSegments =
-            selectionId == ActiveImageSetSelectionId
+            selectionId == activeImageSet
                 ? segmentationData.segmentIds
                 : selectedRegionMap[selectionId].selectedSegments
         const featureIntensities = []
@@ -111,7 +110,7 @@ function calculateHeatmapData(
         z: normalizeHeatmapIntensities(intensities, plotNormalization),
         x: features,
         y: selectionIds.map((selectionId: string) => {
-            return getSelectionName(selectionId, selectedRegionMap)
+            return getTraceName(selectionId, selectedRegionMap, activeImageSet, true)
         }),
         type: 'heatmap',
     })
@@ -133,6 +132,7 @@ export function buildHeatmapData(
     const activeFeatureValues = featureValues[activeImageSet]
     if (activeFeatureValues) {
         const data = calculateHeatmapData(
+            activeImageSet,
             features,
             activeFeatureValues,
             segmentationData,

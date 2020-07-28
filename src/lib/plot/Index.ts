@@ -9,6 +9,7 @@ import { PlotData } from '../../interfaces/DataInterfaces'
 // dotSize is optional and only used for Scatter.
 export function generatePlotData(
     activeImageSetName: string,
+    collapseAllImageSets: boolean,
     selectedFeatures: string[],
     featureValues: Record<string, Record<string, Record<number, number>>>,
     featureMinMaxes: Record<string, Record<string, MinMax>>,
@@ -30,6 +31,7 @@ export function generatePlotData(
     if (plotType == 'histogram' && selectedFeatures.length > 0) {
         plotData = buildHistogramData(
             activeImageSetName,
+            collapseAllImageSets,
             selectedFeatures.slice(0, 1),
             featureValues,
             featureMinMaxes,
@@ -41,6 +43,7 @@ export function generatePlotData(
         plotData = buildScatterData(
             plotType,
             activeImageSetName,
+            collapseAllImageSets,
             selectedFeatures.slice(0, 2),
             featureValues,
             featureMinMaxes,

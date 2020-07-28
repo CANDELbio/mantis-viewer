@@ -59,6 +59,7 @@ export class PlotStore {
                             ) {
                                 const plotData = generatePlotData(
                                     imageSetName,
+                                    settingStore.plotCollapseAllImageSets,
                                     settingStore.selectedPlotFeatures,
                                     featureValues,
                                     featureMinMaxes,
@@ -95,7 +96,7 @@ export class PlotStore {
                 downsampledValues[curImageSet][curMarker] = {}
                 const curMarkerValues = curImageSetValues[curMarker]
                 const curSegmentIds = Object.keys(curMarkerValues)
-                const numSegmentsToSample = Math.round(curSegmentIds.length * (1 - downsamplePercent))
+                const numSegmentsToSample = Math.round(curSegmentIds.length * downsamplePercent)
                 const downsampledSegmentIds = _.sample(curSegmentIds, numSegmentsToSample)
                 downsampledSegmentIds.forEach((segmentIdStr: string) => {
                     const segmentId = parseInt(segmentIdStr)

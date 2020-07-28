@@ -185,6 +185,10 @@ ipcRenderer.on('set-plot-all-image-sets', (event: Electron.Event, value: boolean
     projectStore.setPlotAllImageSets(value)
 })
 
+ipcRenderer.on('set-collapse-all-image-sets', (event: Electron.Event, value: boolean): void => {
+    projectStore.settingStore.setPlotCollapseAllImageSets(value)
+})
+
 ipcRenderer.on('set-plot-downsample', (event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setPlotDownsample(value)
 })
@@ -326,6 +330,7 @@ Mobx.autorun((): void => {
         settingStore.plotDotSize,
         settingStore.transformCoefficient,
         settingStore.plotAllImageSets,
+        settingStore.plotCollapseAllImageSets,
         settingStore.plotDownsample,
         settingStore.plotDownsamplePercent,
         plotStore.plotData,

@@ -3,19 +3,18 @@ import * as Plotly from 'plotly.js'
 import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../stores/PopulationStore'
 import { MinMax } from '../../interfaces/ImageInterfaces'
-import { hexToRGB } from '../ColorHelper'
+import { hexToRGB, randomHexColor } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
-import { buildSelectionIdArray, buildSelectedPopulationMap, applyTransform, getSelectionName } from './Helper'
+import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
 
 import {
-    ActiveImageSetSelectionId,
-    ActiveImageSetSelectionColor,
-    OtherImageSetsSelectionId,
-    OtherImageSetsSelectionColor,
+    ActiveImageSetTraceColor,
+    OtherImageSetsTraceColor,
     NumHistogramBins,
+    OtherImageSetsTraceName,
 } from '../../definitions/PlotDataDefinitions'
 
-// Builds a map of segment id to an array of the populations of interest ids it belongs to.
+// Builds a map of segment id to an array of selection/population ids it belongs to.
 function buildSegmentToPopulationMap(selectedRegion: SelectedPopulation[] | null): { [key: number]: string[] } {
     const map: { [key: number]: string[] } = {}
     if (selectedRegion != null) {
@@ -39,17 +38,23 @@ function hexToPlotlyRGB(hex: number): string {
     return 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'
 }
 
-function getSelectionColor(selectionId: string, selectedRegionMap: { [key: string]: SelectedPopulation }): string {
+function getTraceColor(
+    traceId: string,
+    selectedRegionMap: { [key: string]: SelectedPopulation },
+    activeImageSet: string,
+    collapseAllImageSets: boolean,
+): string {
     let color: number
-    switch (selectionId) {
-        case ActiveImageSetSelectionId:
-            color = ActiveImageSetSelectionColor
-            break
-        case OtherImageSetsSelectionId:
-            color = OtherImageSetsSelectionColor
-            break
-        default:
-            color = selectedRegionMap[selectionId].color
+    if (traceId in selectedRegionMap) {
+        color = selectedRegionMap[traceId].color
+    } else if (traceId == activeImageSet) {
+        color = ActiveImageSetTraceColor
+    } else if (!collapseAllImageSets) {
+        // Get a random color for image sets that haven't been collapsed
+        // TODO: Should we store these somewhere so that they're persisted?
+        color = randomHexColor()
+    } else {
+        color = OtherImageSetsTraceColor
     }
     return hexToPlotlyRGB(color)
 }
@@ -62,8 +67,17 @@ function newPlotDatum(numValues: number): { values: number[][]; text: string[] }
     return { values: values, text: [] }
 }
 
+function initialTraces(currentImageSet: string, activeImageSet: string, collapseAllImageSets: boolean): string[] {
+    if (!collapseAllImageSets || currentImageSet == activeImageSet) {
+        return [currentImageSet]
+    } else {
+        return [OtherImageSetsTraceName]
+    }
+}
+
 function calculateRawPlotData(
     activeImageSet: string,
+    collapseAllImageSets: boolean,
     features: string[],
     featureValues: Record<string, Record<string, Record<number, number>>>,
     plotTransform: PlotTransform,
@@ -103,11 +117,11 @@ function calculateRawPlotData(
                     // Generate a list of all of the populations that this segment is in.
                     // Start with ActiveImageSetSelectionId if we're on the active image set and
                     // OtherImageSetsSelectionId if we're not
-                    let selections = onActiveImageSet ? [ActiveImageSetSelectionId] : [OtherImageSetsSelectionId]
+                    let traces = initialTraces(imageSetName, activeImageSet, collapseAllImageSets)
 
                     // Only check if the segment is in a population if we're on the active image set
                     if (onActiveImageSet && segment in populationMap) {
-                        selections = selections.concat(populationMap[segment])
+                        traces = traces.concat(populationMap[segment])
                     }
 
                     // Calculate the mean or median intensity of the pixels in the segment
@@ -121,14 +135,14 @@ function calculateRawPlotData(
                     // Being able to select points on the plot relies on the text being formatted
                     // as a space delimited string with the last element being the segment id
                     // Not ideal, but plotly (or maybe plotly-ts) doesn't support custom data.
-                    for (const selectionId of selections) {
-                        if (!(selectionId in plotData)) plotData[selectionId] = newPlotDatum(features.length)
+                    for (const traceId of traces) {
+                        if (!(traceId in plotData)) plotData[traceId] = newPlotDatum(features.length)
                         let datumName = 'Segment ' + segment
                         if (!onActiveImageSet) datumName = imageSetName + ' ' + datumName
-                        plotData[selectionId].text.push(datumName)
+                        plotData[traceId].text.push(datumName)
                         for (const i in values) {
                             const v = values[i]
-                            plotData[selectionId].values[i].push(v)
+                            plotData[traceId].values[i].push(v)
                         }
                     }
                 }
@@ -168,6 +182,7 @@ function configureTraceForHistogram(
 
 export function calculatePlotData(
     activeImageSet: string,
+    collapseAllImageSets: boolean,
     features: string[],
     featureValues: Record<string, Record<string, Record<number, number>>>,
     featureMinMaxes: Record<string, Record<string, MinMax>>,
@@ -179,6 +194,7 @@ export function calculatePlotData(
 ): Partial<Plotly.PlotData>[] {
     const rawPlotData = calculateRawPlotData(
         activeImageSet,
+        collapseAllImageSets,
         features,
         featureValues,
         plotTransform,
@@ -189,33 +205,37 @@ export function calculatePlotData(
     const plotData = Array<Plotly.Data>()
 
     // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
-    const plotAllImageSets = Object.keys(featureValues).length > 1
-    const sortedSelectionIds = buildSelectionIdArray(plotAllImageSets, selectedPopulations)
+    const sortedTraceIds = buildTraceIdArray(
+        activeImageSet,
+        collapseAllImageSets,
+        Object.keys(featureValues),
+        selectedPopulations,
+    )
 
     // Builds a map of selected region ids to their regions.
     // We use this to get the names and colors to use for graphing.
     const selectedRegionMap = buildSelectedPopulationMap(selectedPopulations)
 
     // Converting from the plotData map to an array of the format that can be passed to Plotly.
-    for (const selectionId of sortedSelectionIds) {
-        const selectionData = rawPlotData[selectionId]
-        if (selectionData) {
-            const numSelectionValues = selectionData.values.length
+    for (const traceId of sortedTraceIds) {
+        const traceData = rawPlotData[traceId]
+        if (traceData) {
+            const numTraceValues = traceData.values.length
 
             let plotlyType: Plotly.PlotData['type'] = 'histogram'
             if (plotType == 'scatter') plotlyType = 'scattergl'
             if (plotType == 'contour') plotlyType = 'scatter'
 
             let trace: Partial<Plotly.Data> = {
-                x: selectionData.values[0],
-                y: numSelectionValues > 1 ? selectionData.values[1] : undefined,
+                x: traceData.values[0],
+                y: numTraceValues > 1 ? traceData.values[1] : undefined,
                 mode: 'markers',
                 type: plotlyType,
-                text: plotType == 'scatter' || plotType == 'contour' ? selectionData.text : undefined,
-                name: getSelectionName(selectionId, selectedRegionMap),
+                text: plotType == 'scatter' || plotType == 'contour' ? traceData.text : undefined,
+                name: getTraceName(traceId, selectedRegionMap, activeImageSet, collapseAllImageSets),
                 marker: {
                     size: dotSize ? dotSize : DefaultDotSize,
-                    color: getSelectionColor(selectionId, selectedRegionMap),
+                    color: getTraceColor(traceId, selectedRegionMap, activeImageSet, collapseAllImageSets),
                 },
             }
 
@@ -228,7 +248,7 @@ export function calculatePlotData(
     }
 
     if (plotType == 'contour') {
-        const allData = rawPlotData[ActiveImageSetSelectionId]
+        const allData = rawPlotData[activeImageSet]
         const contourTrace: Partial<Plotly.Data> = {
             x: allData.values[0],
             y: allData.values[1],
@@ -252,6 +272,7 @@ export function calculatePlotData(
 
 export function buildHistogramData(
     activeImageSet: string,
+    collapseAllImageSets: boolean,
     features: string[],
     featureValues: Record<string, Record<string, Record<number, number>>>,
     featureMinMaxes: Record<string, Record<string, MinMax>>,
@@ -261,6 +282,7 @@ export function buildHistogramData(
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
+        collapseAllImageSets,
         features,
         featureValues,
         featureMinMaxes,
@@ -280,6 +302,7 @@ export function buildHistogramData(
 export function buildScatterData(
     plotType: PlotType,
     activeImageSet: string,
+    collapseAllImageSets: boolean,
     features: string[],
     featureValues: Record<string, Record<string, Record<number, number>>>,
     featureMinMaxes: Record<string, Record<string, MinMax>>,
@@ -290,6 +313,7 @@ export function buildScatterData(
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
+        collapseAllImageSets,
         features,
         featureValues,
         featureMinMaxes,

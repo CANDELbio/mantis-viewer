@@ -21,6 +21,7 @@ let dotSize: number
 let transformCoefficient: number | null
 let projectLoaded: boolean | null
 let plotAllImageSets: boolean | null
+let collapseAllImageSets: boolean | null
 let downsample: boolean
 let downsamplePercent: number
 
@@ -69,6 +70,10 @@ const setPlotAllImageSets = (value: boolean): void => {
     ipcRenderer.send('plotWindow-set-plot-all-image-sets', value)
 }
 
+const setCollapseAllImageSets = (value: boolean): void => {
+    ipcRenderer.send('plotWindow-set-collapse-all-image-sets', value)
+}
+
 const setDownsample = (value: boolean): void => {
     ipcRenderer.send('plotWindow-set-plot-downsample', value)
 }
@@ -86,7 +91,8 @@ function render(): void {
         selectedType &&
         selectedNormalization &&
         projectLoaded != null &&
-        plotAllImageSets != null
+        plotAllImageSets != null &&
+        collapseAllImageSets != null
     ) {
         let plotHeight = null
         if (windowHeight != null) plotHeight = windowHeight - ExternalPlotHeightPadding
@@ -113,6 +119,8 @@ function render(): void {
                         projectLoaded={projectLoaded}
                         plotAllImageSets={plotAllImageSets}
                         setPlotAllImageSets={setPlotAllImageSets}
+                        collapseAllImageSets={collapseAllImageSets}
+                        setCollapseAllImageSets={setCollapseAllImageSets}
                         downsample={downsample}
                         setDownsample={setDownsample}
                         downsamplePercent={downsamplePercent}
@@ -150,6 +158,7 @@ ipcRenderer.on(
         coefficient: number,
         project: boolean,
         plotAll: boolean,
+        collapseAll: boolean,
         plotDownsample: boolean,
         plotDownsamplePercent: number,
         data: any,
@@ -164,6 +173,7 @@ ipcRenderer.on(
         transformCoefficient = coefficient
         projectLoaded = project
         plotAllImageSets = plotAll
+        collapseAllImageSets = collapseAll
         downsample = plotDownsample
         downsamplePercent = plotDownsamplePercent
         plotData = data as PlotData

@@ -278,6 +278,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 projectLoaded={projectStore.imageSetPaths.length > 1}
                                 plotAllImageSets={settingStore.plotAllImageSets}
                                 setPlotAllImageSets={projectStore.setPlotAllImageSets}
+                                collapseAllImageSets={settingStore.plotCollapseAllImageSets}
+                                setCollapseAllImageSets={settingStore.setPlotCollapseAllImageSets}
                                 downsample={settingStore.plotDownsample}
                                 setDownsample={settingStore.setPlotDownsample}
                                 downsamplePercent={settingStore.plotDownsamplePercent}

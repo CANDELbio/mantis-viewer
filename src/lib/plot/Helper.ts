@@ -1,28 +1,32 @@
 import { SelectedPopulation } from '../../stores/PopulationStore'
 
-import {
-    ActiveImageSetSelectionName,
-    ActiveImageSetSelectionId,
-    OtherImageSetsSelectionName,
-    OtherImageSetsSelectionId,
-} from '../../definitions/PlotDataDefinitions'
+import { ActiveImageSetTraceName, OtherImageSetsTraceName } from '../../definitions/PlotDataDefinitions'
 import { PlotTransform } from '../../definitions/UIDefinitions'
 
-export function buildSelectionIdArray(
-    plotAllImageSets: boolean,
+// Builds an array of trace IDs and names for render order
+// The first item in the array gets rendered first (and on the bottom) of the plot.
+export function buildTraceIdArray(
+    activeImageSet: string,
+    collapseAllImageSets: boolean,
+    imageSetNames: string[],
     selectedPopulations: SelectedPopulation[] | null,
 ): string[] {
-    const selectionIds = [ActiveImageSetSelectionId]
-    if (plotAllImageSets) selectionIds.unshift(OtherImageSetsSelectionId)
+    let traceIds: string[] = []
+    // First start with other image sets
+    traceIds = traceIds.concat(imageSetNames.filter((name: string) => name != activeImageSet))
+    if (collapseAllImageSets) traceIds.push(OtherImageSetsTraceName)
+    // Then the active image set
+    traceIds.push(activeImageSet)
+    // Then selected populations in their render order
     if (selectedPopulations != null) {
         const sortedRegions = selectedPopulations.sort((a: SelectedPopulation, b: SelectedPopulation) => {
             return a.renderOrder > b.renderOrder ? 1 : -1
         })
         sortedRegions.map((value: SelectedPopulation) => {
-            selectionIds.push(value.id)
+            traceIds.push(value.id)
         })
     }
-    return selectionIds
+    return traceIds
 }
 
 // Builds a map of populationId to the population it belongs to.
@@ -57,13 +61,19 @@ export function applyTransform(
     return result
 }
 
-export function getSelectionName(selectionId: string, populationMap: { [key: string]: SelectedPopulation }): string {
-    switch (selectionId) {
-        case ActiveImageSetSelectionId:
-            return ActiveImageSetSelectionName
-        case OtherImageSetsSelectionId:
-            return OtherImageSetsSelectionName
-        default:
-            return populationMap[selectionId].name
+export function getTraceName(
+    traceId: string,
+    populationMap: { [key: string]: SelectedPopulation },
+    activeImageSet: string,
+    collapseImageSets: boolean,
+): string {
+    if (traceId in populationMap) {
+        return populationMap[traceId].name
+    } else if (traceId == activeImageSet) {
+        return ActiveImageSetTraceName
+    } else if (collapseImageSets) {
+        return OtherImageSetsTraceName
+    } else {
+        return traceId
     }
 }

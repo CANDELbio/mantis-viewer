@@ -6,7 +6,7 @@ import * as Plotly from 'plotly.js'
 import { SizeMe } from 'react-sizeme'
 
 import { PlotData } from '../interfaces/DataInterfaces'
-import { ActiveImageSetSelectionName } from '../definitions/PlotDataDefinitions'
+import { ActiveImageSetTraceName } from '../definitions/PlotDataDefinitions'
 import { PlotType } from '../definitions/UIDefinitions'
 
 interface PlotProps {
@@ -62,7 +62,7 @@ export class Plot extends React.Component<PlotProps, {}> {
                     // Check if the region name for the point is the default selection name
                     // Sometimes plotly returns incorrect selected points if there are multiple selections
                     // and the point being hovered/highlighted isn't in some of those selections.
-                    if (pointRegionName == ActiveImageSetSelectionName) {
+                    if (pointRegionName == ActiveImageSetTraceName) {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                         // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
                         const pointText = point.text

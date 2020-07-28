@@ -43,6 +43,8 @@ interface PlotControlsProps {
     projectLoaded: boolean
     plotAllImageSets: boolean
     setPlotAllImageSets: (x: boolean) => void
+    collapseAllImageSets: boolean
+    setCollapseAllImageSets: (x: boolean) => void
     downsample: boolean
     setDownsample: (x: boolean) => void
     downsamplePercent: number
@@ -244,7 +246,20 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                         this.props.setPlotAllImageSets(e.target.checked)
                     }
-                    label="Plot for whole project"
+                    label="Plot all image sets"
+                />
+            </div>
+        )
+
+        const collapseControls = (
+            <div>
+                <Checkbox
+                    checked={this.props.collapseAllImageSets}
+                    disabled={!this.props.plotAllImageSets}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        this.props.setCollapseAllImageSets(e.target.checked)
+                    }
+                    label="Collapse non-active image sets"
                 />
             </div>
         )
@@ -256,14 +271,14 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                         this.props.setDownsample(e.target.checked)
                     }
-                    label="Downsample"
+                    label="Downsample segments"
                 />
             </div>
         )
 
         const downsamplePercentControls = (
             <div className="space-bottom">
-                Downsample Percent
+                Fraction of Segments Plotted
                 <NumericInput
                     step={0.1}
                     precision={4}
@@ -318,9 +333,10 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                         {normalizationControls}
                         {coefficientControls}
                         {dotControls}
+                        {plotProjectControls}
+                        {collapseControls}
                         {downsampleControls}
                         {downsamplePercentControls}
-                        {plotProjectControls}
                     </PopoverBody>
                 </Popover>
             </div>

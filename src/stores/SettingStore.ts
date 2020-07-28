@@ -135,7 +135,7 @@ export class SettingStore {
         this.plotCollapseAllImageSets = true
         this.plotCheckGenerateAllFeatures = true
         this.plotDownsample = false
-        this.plotDownsamplePercent = 0
+        this.plotDownsamplePercent = 1
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -192,7 +192,13 @@ export class SettingStore {
     }
 
     @action public setPlotDownsamplePercent = (value: number): void => {
-        this.plotDownsamplePercent = value
+        if (value > 1) {
+            this.plotDownsamplePercent = 1
+        } else if (value < 0) {
+            this.plotDownsamplePercent = 0
+        } else {
+            this.plotDownsamplePercent = value
+        }
     }
 
     @action public setPlotCheckGenerateAllFeatures = (value: boolean): void => {

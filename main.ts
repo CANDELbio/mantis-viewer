@@ -820,6 +820,7 @@ ipcMain.on(
         size: number,
         coefficient: number,
         plotAllImageSets: boolean,
+        collapseAllImageSets: boolean,
         downsample: boolean,
         downsamplePercent: number,
         plotData: any,
@@ -837,6 +838,7 @@ ipcMain.on(
                 coefficient,
                 projectLoaded,
                 plotAllImageSets,
+                collapseAllImageSets,
                 downsample,
                 downsamplePercent,
                 plotData,
@@ -887,6 +889,10 @@ ipcMain.on('plotWindow-set-coefficient', (event: Electron.Event, coefficient: nu
 
 ipcMain.on('plotWindow-set-plot-all-image-sets', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-plot-all-image-sets', value)
+})
+
+ipcMain.on('plotWindow-set-collapse-all-image-sets', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-collapse-all-image-sets', value)
 })
 
 ipcMain.on('plotWindow-set-plot-downsample', (event: Electron.Event, value: boolean): void => {
