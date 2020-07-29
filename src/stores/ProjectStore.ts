@@ -339,17 +339,16 @@ export class ProjectStore {
         recalculateExistingFeatures: boolean,
     ): void => {
         const curDir = remainingImageSetPaths[0]
-        this.imageSets[dirName].loadImageStoreData()
         const imageSetStore = this.imageSets[curDir]
+        imageSetStore.loadImageStoreData()
         const imageStore = imageSetStore.imageStore
         const segmentationStore = imageSetStore.segmentationStore
         when(
             (): boolean => !imageStore.imageDataLoading,
             (): void => {
                 // If we don't have segmentation, then skip this one.
+                // TODO: Should we notify the user that some were skipped due to missing segmentation?
                 if (segmentationStore.selectedSegmentationFile) {
-                    // TODO: Check with Lacey what the desired behavior should be here
-                    // Maybe warn/ask the user if we should ca
                     when(
                         (): boolean => !segmentationStore.segmentationDataLoading,
                         (): void => {
