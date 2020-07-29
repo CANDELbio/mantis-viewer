@@ -55,6 +55,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private imageData: ImageData
 
+    private channelMarker: Record<ChannelName, string | null>
+
     // Color filters to use so that the sprites display as the desired color
     private channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
 
@@ -148,6 +150,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             mChannel: magentaFilter,
             yChannel: yellowFilter,
             kChannel: blackFilter,
+        }
+
+        this.channelMarker = {
+            rChannel: null,
+            gChannel: null,
+            bChannel: null,
+            cChannel: null,
+            mChannel: null,
+            yChannel: null,
+            kChannel: null,
         }
 
         this.minScale = 1.0
@@ -413,6 +425,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.stage.addChild(state.segmentOutlineGraphics)
             }
 
+            // Re-draw the legend and zoom inset graphics in case the user is selecting a region under the legend or zoom inset
+            // Otherwise the region and segments render over the legend and zoom inset
+            this.loadLegendGraphics()
+            this.loadZoomInsetGraphics()
+
             this.renderer.render(this.rootContainer)
         }
     }
@@ -504,7 +521,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Resizes the WebGL Renderer and sets the new scale factors accordingly.
     // TODO: Should we update the x,y position and zoom/scale of the stage relative to the resize amount?
     // If so, use this to get started: let resizeFactor = windowWidth / this.rendererWidth
-    private resizeGraphics(imcData: ImageData, maxRendererSize: { width: number | null; height: number | null }): void {
+    private resizeGraphics(maxRendererSize: { width: number | null; height: number | null }): void {
+        const imcData = this.imageData
         if (maxRendererSize.width && maxRendererSize.height)
             this.maxRendererSize = { width: maxRendererSize.width, height: maxRendererSize.height }
         this.setScaleFactors(imcData, maxRendererSize)
@@ -560,12 +578,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.addFullscreen(this.el)
     }
 
-    private loadChannelGraphics(
-        curChannel: ChannelName,
-        imcData: ImageData,
-        channelMarker: Record<ChannelName, string | null>,
-        channelDomain: Record<ChannelName, [number, number]>,
-    ): void {
+    private loadChannelGraphics(curChannel: ChannelName, channelDomain: Record<ChannelName, [number, number]>): void {
+        const imcData = this.imageData
+        const channelMarker = this.channelMarker
         const filterCode = GraphicsHelper.generateBrightnessFilterCode()
         const curMarker = channelMarker[curChannel]
         if (curMarker != null) {
@@ -669,14 +684,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.addChild(graphics)
     }
 
-    private loadLegendGraphics(
-        legendVisible: boolean,
-        imcData: ImageData,
-        channelMarker: Record<ChannelName, string | null>,
-    ): void {
-        this.legendVisible = legendVisible
+    private loadLegendGraphics(): void {
+        const legendVisible = this.legendVisible
+        const imcData = this.imageData
         if (legendVisible) {
-            GraphicsHelper.drawLegend(this.legendGraphics, imcData, channelMarker)
+            GraphicsHelper.drawLegend(this.legendGraphics, imcData, this.channelMarker)
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
             // Clear out the legend graphics so they don't get redrawn when zooming.
@@ -828,7 +840,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // We want to resize graphics and reset zoom if imcData has changed
         if (this.imageData != imcData) {
             this.imageData = imcData
-            this.resizeGraphics(imcData, maxRendererSize)
+            this.resizeGraphics(maxRendererSize)
             this.resetZoom()
         }
 
@@ -840,16 +852,17 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.maxRendererSize.width != maxRendererSize.width ||
             this.maxRendererSize.height != maxRendererSize.height
         ) {
-            this.resizeGraphics(imcData, maxRendererSize)
+            this.resizeGraphics(maxRendererSize)
         }
 
         // Clear the stage in preparation for rendering.
         this.stage.removeChildren()
 
+        this.channelMarker = channelMarker
         // For each channel setting the brightness and color filters
         for (const s of ImageChannels) {
             const curChannel = s as ChannelName
-            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, imcData, channelMarker, channelDomain)
+            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, channelDomain)
         }
 
         //Load segmentation graphics
@@ -867,7 +880,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.loadHighlightedSegmentGraphics(highlightedSegmentsFromGraph)
 
         // Create the legend for which markers are being displayed
-        this.loadLegendGraphics(legendVisible, imcData, channelMarker)
+        this.legendVisible = legendVisible
+        this.loadLegendGraphics()
         // Update whether or not the zoom inset is visible and then re-render it
         this.zoomInsetVisible = zoomInsetVisible
         this.loadZoomInsetGraphics()
