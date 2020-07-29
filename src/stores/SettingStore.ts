@@ -2,6 +2,7 @@ import { observable, action, autorun, toJS } from 'mobx'
 
 import { ImageStore } from '../stores/ImageStore'
 import { Db } from '../lib/Db'
+import { randomHexColor } from '../lib/ColorHelper'
 
 import {
     ImageChannels,
@@ -39,6 +40,7 @@ type SettingStoreData = {
     plotCollapseAllImageSets?: boolean
     plotDownsample?: boolean
     plotDownsamplePercent?: number
+    plotImageSetColors?: Record<string, number>
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
@@ -95,6 +97,7 @@ export class SettingStore {
     @observable public plotCheckGenerateAllFeatures: boolean
     @observable public plotDownsample: boolean
     @observable public plotDownsamplePercent: number
+    @observable public plotImageSetColors: Record<string, number>
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -136,6 +139,7 @@ export class SettingStore {
         this.plotCheckGenerateAllFeatures = true
         this.plotDownsample = false
         this.plotDownsamplePercent = 1
+        this.plotImageSetColors = {}
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -150,10 +154,26 @@ export class SettingStore {
     }
 
     @action public setBasePath = (path: string): void => {
+        this.initialize()
         this.basePath = path
         this.db = new Db(path)
         this.importSettingsFromDb()
     }
+
+    private initializePlotImageSetColors = autorun(() => {
+        const imageSetNames = this.projectStore.allImageSetNames
+        if (imageSetNames.length > 0) {
+            const imageSetColors: Record<string, number> = {}
+            for (const imageSet of imageSetNames) {
+                if (imageSet in this.plotImageSetColors) {
+                    imageSetColors[imageSet] = this.plotImageSetColors[imageSet]
+                } else {
+                    imageSetColors[imageSet] = randomHexColor()
+                }
+            }
+            this.setPlotImageSetColors(imageSetColors)
+        }
+    })
 
     @action public setImageSubdirectory = (subDir: string): void => {
         this.imageSubdirectory = subDir
@@ -203,6 +223,10 @@ export class SettingStore {
 
     @action public setPlotCheckGenerateAllFeatures = (value: boolean): void => {
         this.plotCheckGenerateAllFeatures = value
+    }
+
+    @action public setPlotImageSetColors = (imageSetColors: Record<string, number>): void => {
+        this.plotImageSetColors = imageSetColors
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -339,6 +363,7 @@ export class SettingStore {
                 plotCheckGenerateAllFeatures: this.plotCheckGenerateAllFeatures,
                 plotDownsample: this.plotDownsample,
                 plotDownsamplePercent: this.plotDownsamplePercent,
+                plotImageSetColors: this.plotImageSetColors,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -378,6 +403,7 @@ export class SettingStore {
                 if (importingSettings.plotDownsample) this.plotDownsample = importingSettings.plotDownsample
                 if (importingSettings.plotDownsamplePercent)
                     this.plotDownsamplePercent = importingSettings.plotDownsamplePercent
+                if (importingSettings.plotImageSetColors) this.plotImageSetColors = importingSettings.plotImageSetColors
                 if (importingSettings.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)

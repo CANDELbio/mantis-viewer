@@ -1,4 +1,4 @@
-import { observable, action, when } from 'mobx'
+import { observable, action, when, computed } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -63,6 +63,10 @@ export class ProjectStore {
     @observable public importingSegmentFeaturesPath: string | null
     // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
+
+    @computed public get allImageSetNames(): string[] {
+        return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
+    }
 
     public constructor(appVersion: string) {
         this.appVersion = appVersion
@@ -246,10 +250,6 @@ export class ProjectStore {
             const previousImageSetIndex = activeImageSetIndex == imageSetPaths.length - 1 ? 0 : activeImageSetIndex + 1
             this.setActiveImageSet(imageSetPaths[previousImageSetIndex])
         }
-    }
-
-    public allImageSetNames = (): string[] => {
-        return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
     }
 
     // Gets called when the user clicks the 'Clear Segmentation' button and approves.

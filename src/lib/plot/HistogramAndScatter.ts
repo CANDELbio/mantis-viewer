@@ -3,7 +3,7 @@ import * as Plotly from 'plotly.js'
 import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../stores/PopulationStore'
 import { MinMax } from '../../interfaces/ImageInterfaces'
-import { hexToRGB, randomHexColor } from '../ColorHelper'
+import { hexToRGB } from '../ColorHelper'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
 
@@ -42,17 +42,17 @@ function getTraceColor(
     traceId: string,
     selectedRegionMap: { [key: string]: SelectedPopulation },
     activeImageSet: string,
-    collapseAllImageSets: boolean,
+    colorMap: Record<string, number>,
 ): string {
     let color: number
     if (traceId in selectedRegionMap) {
         color = selectedRegionMap[traceId].color
     } else if (traceId == activeImageSet) {
         color = ActiveImageSetTraceColor
-    } else if (!collapseAllImageSets) {
+    } else if (traceId in colorMap) {
         // Get a random color for image sets that haven't been collapsed
         // TODO: Should we store these somewhere so that they're persisted?
-        color = randomHexColor()
+        color = colorMap[traceId]
     } else {
         color = OtherImageSetsTraceColor
     }
@@ -190,6 +190,7 @@ export function calculatePlotData(
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
+    colorMap: Record<string, number>,
     dotSize?: number,
 ): Partial<Plotly.PlotData>[] {
     const rawPlotData = calculateRawPlotData(
@@ -235,7 +236,7 @@ export function calculatePlotData(
                 name: getTraceName(traceId, selectedRegionMap, activeImageSet, collapseAllImageSets),
                 marker: {
                     size: dotSize ? dotSize : DefaultDotSize,
-                    color: getTraceColor(traceId, selectedRegionMap, activeImageSet, collapseAllImageSets),
+                    color: getTraceColor(traceId, selectedRegionMap, activeImageSet, colorMap),
                 },
             }
 
@@ -279,6 +280,7 @@ export function buildHistogramData(
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
+    colorMap: Record<string, number>,
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
@@ -290,6 +292,7 @@ export function buildHistogramData(
         plotTransform,
         transformCoefficient,
         selectedPopulations,
+        colorMap,
     )
     const layout: Partial<Plotly.Layout> = {
         title: features[0],
@@ -309,6 +312,7 @@ export function buildScatterData(
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
+    colorMap: Record<string, number>,
     dotSize?: number,
 ): PlotData {
     const data = calculatePlotData(
@@ -321,6 +325,7 @@ export function buildScatterData(
         plotTransform,
         transformCoefficient,
         selectedPopulations,
+        colorMap,
         dotSize,
     )
     let xAxis: Partial<Plotly.LayoutAxis> = { title: features[0], automargin: true }

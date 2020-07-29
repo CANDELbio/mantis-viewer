@@ -173,7 +173,7 @@ export class SegmentFeatureStore {
     private setFeatureStatisticsForSelectedImageSets = (features: string[]): void => {
         let imageSets: string[] = []
         if (this.projectStore.settingStore.plotAllImageSets) {
-            imageSets = this.projectStore.allImageSetNames()
+            imageSets = this.projectStore.allImageSetNames
         } else {
             const activeImageSetName = this.projectStore.activeImageSetStore.name
             if (activeImageSetName) imageSets.push(activeImageSetName)

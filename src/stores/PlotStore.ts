@@ -28,7 +28,7 @@ export class PlotStore {
                 const settingStore = this.imageSetStore.projectStore.settingStore
                 const selectedPlotFeatures = settingStore.selectedPlotFeatures
 
-                const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.allImageSetNames() : [imageSetName]
+                const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.allImageSetNames : [imageSetName]
 
                 let featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
                 if (settingStore.plotDownsample && settingStore.plotDownsamplePercent > 0)
@@ -70,6 +70,7 @@ export class PlotStore {
                                     settingStore.transformCoefficient,
                                     settingStore.plotNormalization,
                                     populationStore.selectedPopulations,
+                                    settingStore.plotImageSetColors,
                                     settingStore.plotDotSize,
                                 )
                                 if (plotData != null) this.setPlotData(plotData)
