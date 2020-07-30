@@ -29,6 +29,7 @@ type SettingStoreData = {
     channelVisibility?: Record<ChannelName, boolean> | null
     segmentationBasename?: string | null
     regionsBasename?: string | null
+    regionsFilesLoaded?: string[] | null
     selectedPlotFeatures?: string[] | null
     plotStatistic?: PlotStatistic | null
     plotTransform?: PlotTransform | null
@@ -73,6 +74,7 @@ export class SettingStore {
     @observable public segmentationBasename: string | null
     // Region file basename when a region file is selected for teh whole project
     @observable public regionsBasename: string | null
+    @observable public regionsFilesLoaded: string[]
     // Whether or not the legend is visible on the image
     @observable public legendVisible: boolean
     // Whether or not the zoom inset is visible on the image
@@ -126,6 +128,7 @@ export class SettingStore {
 
         this.segmentationBasename = null
         this.regionsBasename = null
+        this.regionsFilesLoaded = []
 
         this.selectedPlotFeatures = []
 
@@ -291,6 +294,11 @@ export class SettingStore {
 
     @action public setRegionsBasename = (basename: string | null): void => {
         this.regionsBasename = basename
+        this.regionsFilesLoaded = []
+    }
+
+    @action public addToRegionFilesLoaded = (imageSet: string): void => {
+        this.regionsFilesLoaded = this.regionsFilesLoaded.concat([imageSet])
     }
 
     @action public setSelectedPlotFeatures = (features: string[]): void => {
@@ -352,6 +360,7 @@ export class SettingStore {
                 channelDomainPercentage: this.channelDomainPercentage,
                 segmentationBasename: this.segmentationBasename,
                 regionsBasename: this.regionsBasename,
+                regionsFilesLoaded: toJS(this.regionsFilesLoaded),
                 selectedPlotFeatures: toJS(this.selectedPlotFeatures),
                 plotStatistic: this.plotStatistic,
                 plotTransform: this.plotTransform,
@@ -371,7 +380,12 @@ export class SettingStore {
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
-            this.db.upsertSettings(exporting)
+            try {
+                this.db.upsertSettings(exporting)
+            } catch (e) {
+                console.log('Error exporting settings to db:')
+                console.log(e)
+            }
         }
     })
 
@@ -387,6 +401,7 @@ export class SettingStore {
                 if (importingSettings.segmentationBasename)
                     this.segmentationBasename = importingSettings.segmentationBasename
                 if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
+                if (importingSettings.regionsFilesLoaded) this.regionsFilesLoaded = importingSettings.regionsFilesLoaded
                 if (importingSettings.selectedPlotFeatures)
                     this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
                 if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic

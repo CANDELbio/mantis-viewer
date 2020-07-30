@@ -39,7 +39,6 @@ export class PopulationStore {
     }
 
     private imageSetStore: ImageSetStore
-    private selectedRegionsFile: string | null
     @observable.ref db: Db | null
     @observable.ref selectionsLoading: boolean
     // An array of the regions selected.
@@ -63,10 +62,12 @@ export class PopulationStore {
     // Automatically imports a region tiff file if it's set on the setting store.
     // TODO: Might want to only have this run of this is the active image set.
     private autoImportRegions = autorun(() => {
-        const imageSetDirectory = this.imageSetStore.directory
-        const segmentationStore = this.imageSetStore.segmentationStore
+        const imageSetStore = this.imageSetStore
+        const imageSetDirectory = imageSetStore.directory
+        const imageSetName = imageSetStore.name
+        const segmentationStore = imageSetStore.segmentationStore
         const segmentationData = segmentationStore.segmentationData
-        const settingStore = this.imageSetStore.projectStore.settingStore
+        const settingStore = imageSetStore.projectStore.settingStore
         const regionsBasename = settingStore.regionsBasename
 
         // Check if segmentation data has loaded
@@ -74,7 +75,7 @@ export class PopulationStore {
             // If the regions basename is set in settings then import regions from that tiff if we haven't already
             const regionsFile = path.join(imageSetDirectory, regionsBasename)
             // If the file exists and we haven't already imported from it, import it.
-            if (fs.existsSync(regionsFile) && this.selectedRegionsFile != regionsFile) {
+            if (fs.existsSync(regionsFile) && !settingStore.regionsFilesLoaded.includes(imageSetName)) {
                 this.importRegionsFromTiff(regionsFile)
             }
         }
@@ -326,6 +327,14 @@ export class PopulationStore {
         return false
     }
 
+    @action private markRegionsLoaded = (): void => {
+        this.selectionsLoading = false
+        const imageSetStore = this.imageSetStore
+        const imageSetName = imageSetStore.name
+        const settingStore = imageSetStore.projectStore.settingStore
+        settingStore.addToRegionFilesLoaded(imageSetName)
+    }
+
     @action private onRegionImportComplete = (result: RegionDataImporterResult | RegionDataImporterError): void => {
         if ('error' in result) {
             this.imageSetStore.projectStore.notificationStore.setErrorMessage(result.error)
@@ -360,8 +369,7 @@ export class PopulationStore {
             }
             this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
             // Save the name of the tiff we loaded regions from so we don't try to load again.
-            this.selectionsLoading = false
-            this.selectedRegionsFile = path.basename(result.filePath)
+            this.markRegionsLoaded()
         }
     }
 
