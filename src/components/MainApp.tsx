@@ -336,7 +336,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     open={displayProjectImportModal}
                     directory={projectImportStore.directory}
                     openDirectoryPicker={(): void => projectImportStore.setShowDirectoryPicker(true)}
-                    closeModal={(): void => projectImportStore.setModalOpen(false)}
+                    closeModal={projectImportStore.cancelImport}
                     readyToImport={projectImportStore.readyToImport}
                     import={projectImportStore.import}
                     projectDirectories={projectImportStore.projectDirectories}
@@ -353,9 +353,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentation={projectImportStore.imageSetSegmentationFile}
                     setSegmentation={projectImportStore.setImageSetSegmentationFile}
                     features={projectImportStore.projectSegmentFeaturesFile}
+                    numFeatures={projectImportStore.numFeaturesInFeaturesFile}
+                    numImageSetsWithFeatures={projectImportStore.numImageSetsInFeaturesFile}
+                    featuresError={projectImportStore.featuresFileError}
                     setFeatures={projectImportStore.setProjectSegmentFeaturesFile}
                     population={projectImportStore.projectPopulationFile}
                     setPopulations={projectImportStore.setProjectPopulationFile}
+                    numPopulations={projectImportStore.numPopulationsInPopulationsFile}
+                    numImageSetsWithPopulations={projectImportStore.numImageSetsInPopulationFile}
+                    populationError={projectImportStore.featuresFileError}
                 />
                 <Grid fluid={true} style={paddingStyle}>
                     <Row between="xs">

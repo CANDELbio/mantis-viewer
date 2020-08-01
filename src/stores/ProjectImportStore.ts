@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import path = require('path')
 import { ProjectStore } from './ProjectStore'
 import { DbFilename } from '../definitions/UIDefinitions'
+import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
 
 export class ProjectImportStore {
     private projectStore: ProjectStore
@@ -20,7 +21,13 @@ export class ProjectImportStore {
     @observable public imageSetDirs: string[]
 
     @observable public projectPopulationFile: string | null
+    @observable public numImageSetsInPopulationFile: number | null
+    @observable public numPopulationsInPopulationsFile: number | null
+    @observable public populationsFileError: boolean
     @observable public projectSegmentFeaturesFile: string | null
+    @observable public numImageSetsInFeaturesFile: number | null
+    @observable public numFeaturesInFeaturesFile: number | null
+    @observable public featuresFileError: boolean
     @observable public imageSetSegmentationFile: string | null
     @observable public imageSetRegionFile: string | null
     @observable public imageSubdirectory: string | null
@@ -37,19 +44,29 @@ export class ProjectImportStore {
         this.directory = null
         this.showDirectoryPicker = false
         this.readyToImport = false
+        this.populationsFileError = false
+        this.featuresFileError = false
         this.projectDirectories = []
         this.projectCsvs = []
-        this.imageSetTiffs = []
-        this.imageSetCsvs = []
-        this.imageSetDirs = []
         this.clearFileSelections()
     }
 
-    private autoSetSegmentationFile = autorun(() => {
-        const ready = this.directory != null && this.imageSetTiffs.length > 0
+    private autoSetReadyToImport = autorun(() => {
+        const ready =
+            this.directory != null &&
+            this.imageSetTiffs.length > 0 &&
+            !this.featuresFileError &&
+            !this.populationsFileError
         this.setReadyToImport(ready)
     })
 
+    private autoUpdateProjectPopulationStats = autorun(() => {
+        this.updateProjectPopulationFileStats(this.directory, this.projectPopulationFile)
+    })
+
+    private autoUpdateProjectSegmentFeatureStats = autorun(() => {
+        this.updateProjectSegmentFeatureStats(this.directory, this.projectSegmentFeaturesFile)
+    })
     @action setReadyToImport = (value: boolean): void => {
         this.readyToImport = value
     }
@@ -58,7 +75,13 @@ export class ProjectImportStore {
         this.modalOpen = open
     }
 
+    @action public cancelImport = (): void => {
+        this.modalOpen = false
+        this.setDirectory(null)
+    }
+
     @action private clearFileSelections = (): void => {
+        this.setImageSet(null)
         this.projectPopulationFile = null
         this.projectSegmentFeaturesFile = null
         this.imageSetSegmentationFile = null
@@ -89,11 +112,11 @@ export class ProjectImportStore {
                     if (lowerFileName.endsWith('csv')) csvs.push(entry.name)
                 }
             }
-            this.projectDirectories = dirs
-            this.projectCsvs = csvs
-            // Default the selected image set to the first directory in the project
-            if (this.projectDirectories.length > 0) this.setImageSet(this.projectDirectories[0])
         }
+        this.projectDirectories = dirs
+        this.projectCsvs = csvs
+        // Default the selected image set to the first directory in the project
+        if (this.projectDirectories.length > 0) this.setImageSet(this.projectDirectories[0])
     }
 
     @action public setImageSet = (imageSet: string | null): void => {
@@ -130,8 +153,75 @@ export class ProjectImportStore {
         this.projectPopulationFile = file
     }
 
+    @action public updateProjectSegmentFeatureStats = (
+        directory: string | null,
+        projectPopulationFile: string | null,
+    ): void => {
+        if (directory && projectPopulationFile) {
+            try {
+                const filePath = path.join(directory, projectPopulationFile)
+                const parsed = parseSegmentDataCSV(filePath)
+                const features = parsed.data
+                const imageSets: Set<string> = new Set()
+                const featureNames: Set<string> = new Set()
+                for (const curImageSet of Object.keys(features)) {
+                    imageSets.add(curImageSet)
+                    const curFeatures = features[curImageSet]
+                    for (const curFeature of Object.keys(curFeatures)) {
+                        featureNames.add(curFeature)
+                    }
+                }
+                this.numImageSetsInFeaturesFile = imageSets.size
+                this.numFeaturesInFeaturesFile = featureNames.size
+            } catch (e) {
+                console.log('Error parsing project features file:')
+                console.log(e)
+                this.numImageSetsInFeaturesFile = null
+                this.numFeaturesInFeaturesFile = null
+                this.featuresFileError = true
+            }
+        } else {
+            this.numImageSetsInFeaturesFile = null
+            this.numFeaturesInFeaturesFile = null
+            this.featuresFileError = false
+        }
+    }
+
     @action public setProjectSegmentFeaturesFile = (file: string | null): void => {
         this.projectSegmentFeaturesFile = file
+    }
+
+    @action public updateProjectPopulationFileStats = (
+        directory: string | null,
+        projectFeatureFile: string | null,
+    ): void => {
+        if (directory && projectFeatureFile) {
+            try {
+                const filePath = path.join(directory, projectFeatureFile)
+                const populations = parseProjectPopulationCSV(filePath)
+                const imageSets: Set<string> = new Set()
+                const populationNames: Set<string> = new Set()
+                for (const curImageSet of Object.keys(populations)) {
+                    imageSets.add(curImageSet)
+                    const curPopulations = populations[curImageSet]
+                    for (const curPopulation of Object.keys(curPopulations)) {
+                        populationNames.add(curPopulation)
+                    }
+                }
+                this.numImageSetsInPopulationFile = imageSets.size
+                this.numPopulationsInPopulationsFile = populationNames.size
+            } catch (e) {
+                console.log('Error parsing project population file:')
+                console.log(e)
+                this.numImageSetsInPopulationFile = null
+                this.numPopulationsInPopulationsFile = null
+                this.populationsFileError = true
+            }
+        } else {
+            this.numImageSetsInPopulationFile = null
+            this.numPopulationsInPopulationsFile = null
+            this.populationsFileError = false
+        }
     }
 
     @action public setImageSetSegmentationFile = (file: string | null): void => {

@@ -34,8 +34,14 @@ export interface ProjectImportModalProps {
     region: string | null
     setFeatures: (file: string | null) => void
     features: string | null
+    numFeatures: number | null
+    numImageSetsWithFeatures: number | null
+    featuresError: boolean
     setPopulations: (file: string | null) => void
     population: string | null
+    numPopulations: number | null
+    numImageSetsWithPopulations: number | null
+    populationError: boolean
 }
 
 @observer
@@ -47,9 +53,12 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
     private rowStyle = { marginBottom: '5px' }
 
     private generateForm(): JSX.Element | null {
+        const directory = this.props.directory
+        const projectDirectories = this.props.projectDirectories
         let buttonText = 'Click to Select'
-        if (this.props.directory) buttonText = path.basename(this.props.directory)
-        const imageSetOptions = generateSelectOptions(this.props.projectDirectories)
+
+        if (directory) buttonText = path.basename(directory)
+        const imageSetOptions = generateSelectOptions(projectDirectories)
         const selectedImageSet = getSelectedOptions(this.props.imageSet, imageSetOptions)
         const imageDirectoryOptions = generateSelectOptions(this.props.imageSetDirs)
         const selectedImageSubdir = getSelectedOptions(this.props.imageSubdir, imageDirectoryOptions)
@@ -61,6 +70,54 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const selectedFeature = getSelectedOptions(this.props.features, featureOptions)
         const populationOptions = generateSelectOptions(this.props.projectCsvs)
         const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
+
+        let projectStats = null
+        if (directory) {
+            projectStats = (
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4} />
+                    <Col xs={8}>Directory has {projectDirectories.length} image sets</Col>
+                </Row>
+            )
+        }
+
+        const numFeatures = this.props.numFeatures
+        const numImageSetsWithFeatures = this.props.numImageSetsWithFeatures
+        let featureStatsBody = null
+        let featureStats = null
+        if (this.props.featuresError) {
+            featureStatsBody = 'Error parsing segment features file'
+        } else if (numFeatures && numImageSetsWithFeatures) {
+            featureStatsBody = `File has ${numFeatures} features across ${numImageSetsWithFeatures} image sets`
+        }
+
+        if (featureStatsBody)
+            featureStats = (
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4} />
+                    <Col xs={8}>{featureStatsBody}</Col>
+                </Row>
+            )
+
+        const numPopulations = this.props.numPopulations
+        const numImageSetsWithPopulations = this.props.numImageSetsWithPopulations
+        let populationStatsBody = null
+        let populationStats = null
+        if (this.props.populationError) {
+            populationStatsBody = 'Error parsing populations file'
+        } else if (numPopulations && numImageSetsWithPopulations) {
+            populationStatsBody = `File has ${numPopulations} populations across ${numImageSetsWithPopulations} image sets`
+        }
+
+        if (populationStatsBody) {
+            populationStats = (
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4} />
+                    <Col xs={8}>{populationStatsBody}</Col>
+                </Row>
+            )
+        }
+
         return (
             <Grid>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
@@ -71,6 +128,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                         </Button>
                     </Col>
                 </Row>
+                {projectStats}
                 <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4}>Representative Image Set:</Col>
                     <Col xs={8}>
@@ -141,6 +199,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                         />
                     </Col>
                 </Row>
+                {featureStats}
                 <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4}>Populations File:</Col>
                     <Col xs={8}>
@@ -155,6 +214,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                         />
                     </Col>
                 </Row>
+                {populationStats}
             </Grid>
         )
     }

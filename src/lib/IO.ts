@@ -148,6 +148,9 @@ export function parseActivePopulationCSV(filename: string): Record<string, numbe
     return populations
 }
 
+// Returns a map of populations parsed from CSV
+// The first map is image set to populations
+// The second map is population name to segment ids.
 export function parseProjectPopulationCSV(filename: string): Record<string, Record<string, number[]>> {
     const input = fs.readFileSync(filename, 'utf8')
 
