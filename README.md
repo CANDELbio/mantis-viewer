@@ -62,14 +62,13 @@ To generate executables you will first need to make sure all dependencies are in
 
 You will also need to edit the file `package.json` and change the postinstall script from `"electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release ."` to `"electron-builder install-app-deps"`. Long term we plant to provide a fix for this.
 
-Now we can actually install the packages.
+Now we can actually install the packages. Navigate to the project directory on the command line and run the following commands.
 
 ```shell
 rm package-lock.json
 npm install
+xcopy .\node_modules\better-sqlite3\build\Release .\Release\ /E/H
 ```
-
-Once the packages have installed and built we will need manually do what the removed `cp -rf node_modules/better-sqlite3/build/Release .` does. Navigate to the folder at `./node_modules/better-sqlite3/build` and copy the `Release` folder to the project root. I'm not sure why you need to do this, but Web Workers look for built native modules in the project root instead of in the `node_module` directory for some reason.
 
 Once you've done this you can build the application and then package it for distribution.
 
