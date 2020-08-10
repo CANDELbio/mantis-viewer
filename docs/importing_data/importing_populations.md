@@ -2,7 +2,7 @@
 layout: default
 title: Importing Populations
 parent: Importing Data
-nav_order: 2
+nav_order: 3
 ---
 
 ## Importing Populations from CSV

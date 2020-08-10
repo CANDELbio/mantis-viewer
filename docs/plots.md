@@ -7,7 +7,7 @@ permalink: /plots/
 
 ## Overview
 
-Mantis Viewer can generate plots of any [segment features]({{ site.baseurl }}{% link docs/segment_features.md %}) that have been calculated or imported. [Segmentation data]({{ site.baseurl }}{% link docs/segmentation.md %}) must be loaded and [segment features]({{ site.baseurl }}{% link docs/segment_features.md %}) must be present for Mantis to generate plots. The following animation gives a brief overview of generating and interacting with plots in Mantis. See below for more detailed instructions.
+Mantis Viewer can generate plots of any [segment features]({{ site.baseurl }}{% link docs/segment_features.md %}) that have been calculated or imported. [Segmentation data]({{ site.baseurl }}{% link docs/segmentation/segmentation.md %}) must be loaded and [segment features]({{ site.baseurl }}{% link docs/segment_features.md %}) must be present for Mantis to generate plots. The following animation gives a brief overview of generating and interacting with plots in Mantis. See below for more detailed instructions.
 
 <video width="320" autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/assets/videos/plot.mp4" type="video/mp4">
