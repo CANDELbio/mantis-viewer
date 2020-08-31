@@ -1,7 +1,4 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
 layout: home
 nav_order: 1
 title: Introduction
@@ -45,6 +42,14 @@ You can use the form below if you'd like to join our mailing list and be notifie
 </div>
 <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='FNAME';ftypes[1]='text';fnames[2]='LNAME';ftypes[2]='text';fnames[3]='ADDRESS';ftypes[3]='address';fnames[4]='PHONE';ftypes[4]='phone';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
 <!--End mc_embed_signup-->
+
+## Cite Us
+
+Please cite Mantis Viewer using the following citation:
+
+Robert Schiemann, Lacey Kitch, Pier Federico Gherardini, Robin Kageyama, & Mike Travers. Mantis Viewer. Zenodo. http://doi.org/10.5281/zenodo.4009579
+
+You may also cite the specific version of Mantis that you used instead if you wish. You can get citations for specific versions on the [Mantis Viewer Zenodo Page](https://zenodo.org/record/4009580#.X01fytNKh-W)
 
 ## License, Bugs, and Contributing
 
