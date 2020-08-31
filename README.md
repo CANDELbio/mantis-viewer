@@ -83,6 +83,14 @@ When this completes, you should have executables built for Windows in the `dist`
 
 Mantis Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
 
+## Cite Us
+
+Please cite Mantis Viewer using the following citation:
+
+Robert Schiemann, Lacey Kitch, Pier Federico Gherardini, Robin Kageyama, & Mike Travers. Mantis Viewer. Zenodo. http://doi.org/10.5281/zenodo.4009579
+
+You may also cite the specific version of Mantis that you used instead if you wish. You can get citations for specific versions on the [Mantis Viewer Zenodo Page](https://zenodo.org/record/4009580#.X01fytNKh-W)
+
 ## License
 
 Mantis Viewer is distributed under a GPLv3 license.
