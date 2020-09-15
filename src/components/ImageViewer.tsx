@@ -635,25 +635,27 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     ): void {
         if (selectedRegions) {
             for (const selectedRegion of selectedRegions) {
-                const regionId = selectedRegion.id
-                // Set the alpha correctly for regions that need to be highlighted
-                let regionAlpha = SelectedRegionAlpha
-                let outlineAlpha = SelectedSegmentOutlineAlpha
-                if (highlightedRegions.indexOf(regionId) > -1) {
-                    regionAlpha = HighlightedSelectedRegionAlpha
-                    outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
-                }
+                if (selectedRegion.visible) {
+                    const regionId = selectedRegion.id
+                    // Set the alpha correctly for regions that need to be highlighted
+                    let regionAlpha = SelectedRegionAlpha
+                    let outlineAlpha = SelectedSegmentOutlineAlpha
+                    if (highlightedRegions.indexOf(regionId) > -1) {
+                        regionAlpha = HighlightedSelectedRegionAlpha
+                        outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
+                    }
 
-                const regionGraphics = selectedRegion.regionGraphics
-                if (regionGraphics != null) {
-                    regionGraphics.alpha = regionAlpha
-                    stage.addChild(regionGraphics)
-                }
+                    const regionGraphics = selectedRegion.regionGraphics
+                    if (regionGraphics != null) {
+                        regionGraphics.alpha = regionAlpha
+                        stage.addChild(regionGraphics)
+                    }
 
-                const outlineGraphics = selectedRegion.segmentGraphics
-                if (outlineGraphics != null) {
-                    outlineGraphics.alpha = outlineAlpha
-                    stage.addChild(outlineGraphics)
+                    const outlineGraphics = selectedRegion.segmentGraphics
+                    if (outlineGraphics != null) {
+                        outlineGraphics.alpha = outlineAlpha
+                        stage.addChild(outlineGraphics)
+                    }
                 }
             }
         }

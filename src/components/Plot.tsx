@@ -108,7 +108,9 @@ export class Plot extends React.Component<PlotProps, {}> {
                 layoutWithSize.width = width
                 layoutWithSize.height = height
             }
-            if (this.props.downsample) config['modeBarButtonsToRemove'] = ['lasso2d']
+            if (this.props.selectedType == 'histogram') config['modeBarButtonsToRemove'] = ['lasso2d']
+            if (this.props.selectedType == 'heatmap' || this.props.downsample)
+                config['modeBarButtonsToRemove'] = ['lasso2d', 'select2d']
             this.container = await Plotly.react(el, this.props.plotData.data, layoutWithSize, config)
             // Resize the plot to fit the container
             // Might need to remove. Seems that if this fires too much can cause weirdness with WebGL contexts.
