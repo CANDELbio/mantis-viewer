@@ -49,6 +49,6 @@ You can select populations in the plot to view on the image or in other plots by
 
 ![Plot Populations](../assets/images/plot_select_populations.png)
 
-Lasso select is disabled when plot data is downsampled due to technical limitations with the plotting library.
+Selecting populations is disabled when plot data is downsampled due to technical limitations with the plotting library.
 
 You can read more about populations on the [populations page]({{ site.baseurl }}{% link docs/populations.md %})

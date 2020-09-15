@@ -29,7 +29,7 @@ See below for detailed instructions on how to select populations in Mantis.
 
 You can select a region on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. Once a region is selected on the image, Mantis will automatically create a population with all of the segments contained in the region.
 
-You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Lasso select is disabled when plot data is downsampled due to technical limitations with the plotting library.
+You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Selecting populations is disabled when plot data is downsampled due to technical limitations with the plotting library.
 
 ![Plot Populations](../assets/images/plot_select_populations.png)
 
