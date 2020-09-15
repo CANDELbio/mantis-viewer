@@ -140,7 +140,7 @@ export class ProjectImportStore {
                 } else if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
                     if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)
-                    if (lowerFileName.endsWith('csv')) csvs.push(entry.name)
+                    if (lowerFileName.endsWith('csv') || lowerFileName.endsWith('txt')) csvs.push(entry.name)
                 }
             }
         }
