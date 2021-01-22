@@ -18,6 +18,9 @@ const contextMenu = require('electron-context-menu').default
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const isDev = require('electron-is-dev')
 
+app.commandLine.appendSwitch('--disable-gpu-process-crash-limit')
+app.disableDomainBlockingFor3DAPIs()
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null
@@ -528,7 +531,12 @@ function createMainWindow(): void {
         width: 1540,
         height: 860,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true },
+        webPreferences: {
+            experimentalFeatures: true,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: true,
+            enableRemoteModule: true,
+        },
     })
     setMenu()
 
