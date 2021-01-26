@@ -28,7 +28,7 @@ export interface SelectedPopulation {
     pixelIndexes?: number[]
     // The IDs of the selected segments
     selectedSegments: number[]
-    regionGraphics?: PIXI.Graphics | PIXI.Sprite
+    regionGraphics?: PIXI.Sprite
     segmentGraphics?: PIXI.Graphics
 }
 
@@ -121,7 +121,7 @@ export class PopulationStore {
             renderOrder: order,
             pixelIndexes: regionPixelIndexes,
             selectedSegments: [],
-            name: name ? name : this.newROIName(order, ImagePopulationNamePrefix),
+            name: this.newROIName(order, ImagePopulationNamePrefix),
             color: color ? color : randomHexColor(),
             visible: true,
         }
@@ -191,7 +191,7 @@ export class PopulationStore {
             id: shortId.generate(),
             renderOrder: order,
             selectedSegments: [],
-            name: name ? name : this.newROIName(order, 'Empty'),
+            name: this.newROIName(order, 'Empty'),
             color: randomHexColor(),
             visible: true,
         }

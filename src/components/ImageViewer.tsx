@@ -23,7 +23,7 @@ import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 
 export interface ImageProps {
-    imageData: ImageData
+    imageData: ImageData | null
     segmentationData: SegmentationData | null
     segmentationFillAlpha: number
     segmentationOutlineAlpha: number
@@ -53,7 +53,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private rootContainer: PIXI.Container
     private stage: PIXI.Container
 
-    private imageData: ImageData
+    private imageData: ImageData | null
 
     private channelMarker: Record<ChannelName, string | null>
 
@@ -64,7 +64,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private rendererWidth: number
     private rendererHeight: number
     // The maximum size the stage can be set to
-    private maxRendererSize: { width: number; height: number }
+    private maxRendererSize: { width: number; height: number } | null
 
     // The minimum scale for zooming. Based on the fixed width/image width
     private minScale: number
@@ -182,7 +182,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
+    private clearSelectState = (): void => {
+        const curSelectState = this.selectState
+        if (curSelectState) {
+            if (curSelectState.selectionGraphics) curSelectState.selectionGraphics.destroy()
+            if (curSelectState.segmentOutlineGraphics) curSelectState.segmentOutlineGraphics.destroy()
+        }
+    }
+
     private initializeSelectState = (): void => {
+        this.clearSelectState()
         this.selectState = {
             active: false,
             selection: [],
@@ -216,19 +225,21 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Checks to make sure that we haven't panned past the bounds of the stage.
     private checkSetStageBounds(): void {
-        // Calculate where the coordinates of the bottom right corner are in relation to the current window/stage size and the scale of the image.
-        const minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
-        const minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
+        if (this.imageData) {
+            // Calculate where the coordinates of the bottom right corner are in relation to the current window/stage size and the scale of the image.
+            const minX = this.rendererWidth - this.imageData.width * this.stage.scale.x
+            const minY = this.rendererHeight - this.imageData.height * this.stage.scale.y
 
-        // Not able to scroll past the bottom right corner
-        if (this.stage.position.x < minX) this.stage.position.x = minX
-        if (this.stage.position.y < minY) this.stage.position.y = minY
+            // Not able to scroll past the bottom right corner
+            if (this.stage.position.x < minX) this.stage.position.x = minX
+            if (this.stage.position.y < minY) this.stage.position.y = minY
 
-        // Not able to scroll past top left corner
-        // Do this check second, because sometimes when we're fully zoomed out we're actually past
-        // the bottom right corner
-        if (this.stage.position.x > 0) this.stage.position.x = 0
-        if (this.stage.position.y > 0) this.stage.position.y = 0
+            // Not able to scroll past top left corner
+            // Do this check second, because sometimes when we're fully zoomed out we're actually past
+            // the bottom right corner
+            if (this.stage.position.x > 0) this.stage.position.x = 0
+            if (this.stage.position.y > 0) this.stage.position.y = 0
+        }
     }
 
     private checkSetMinScale(): boolean {
@@ -243,10 +254,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Checks if an x y coordinate is within the image bounds
     private positionInBounds(position: { x: number; y: number }): boolean {
-        const maxX = this.imageData.width
-        const maxY = this.imageData.height
-        if (position.x < 0 || position.y < 0 || position.x > maxX || position.y > maxY) return false
-        return true
+        if (this.imageData) {
+            const maxX = this.imageData.width
+            const maxY = this.imageData.height
+            if (position.x < 0 || position.y < 0 || position.x > maxX || position.y > maxY) return false
+            return true
+        }
+        return false
     }
 
     private zoom(isZoomIn: boolean): void {
@@ -358,29 +372,31 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         minY: number | null
         maxY: number | null
     }): void {
-        const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
-        // Round here so that we don't have issues using the min and max values in RGBAtoPixelIndexes
-        let xPosition = Math.round(position.x)
-        let yPosition = Math.round(position.y)
+        if (this.imageData) {
+            const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            // Round here so that we don't have issues using the min and max values in RGBAtoPixelIndexes
+            let xPosition = Math.round(position.x)
+            let yPosition = Math.round(position.y)
 
-        // If the user is trying to select outside of the top or left edges, stop them
-        if (xPosition < 0) xPosition = 0
-        if (yPosition < 0) yPosition = 0
+            // If the user is trying to select outside of the top or left edges, stop them
+            if (xPosition < 0) xPosition = 0
+            if (yPosition < 0) yPosition = 0
 
-        const maxX = this.imageData.width
-        const maxY = this.imageData.height
+            const maxX = this.imageData.width
+            const maxY = this.imageData.height
 
-        // If the user is trying to select outside of the bottom or right edges, stop them
-        if (xPosition > maxX) xPosition = maxX
-        if (yPosition > maxY) yPosition = maxY
+            // If the user is trying to select outside of the bottom or right edges, stop them
+            if (xPosition > maxX) xPosition = maxX
+            if (yPosition > maxY) yPosition = maxY
 
-        if (state.minX == null || state.minX > xPosition) state.minX = xPosition
-        if (state.maxX == null || state.maxX < xPosition) state.maxX = xPosition
-        if (state.minY == null || state.minY > yPosition) state.minY = yPosition
-        if (state.maxY == null || state.maxY < yPosition) state.maxY = yPosition
+            if (state.minX == null || state.minX > xPosition) state.minX = xPosition
+            if (state.maxX == null || state.maxX < xPosition) state.maxX = xPosition
+            if (state.minY == null || state.minY > yPosition) state.minY = yPosition
+            if (state.maxY == null || state.maxY < yPosition) state.maxY = yPosition
 
-        state.selection.push(xPosition)
-        state.selection.push(yPosition)
+            state.selection.push(xPosition)
+            state.selection.push(yPosition)
+        }
     }
 
     // On mousedown, if alt is pressed set selecting to true and start adding positions to the selection
@@ -437,7 +453,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private getSelectionPixelIndexes = (): number[] => {
         const state = this.selectState
         let pixelIndexes: number[] = []
-        if (state.selectionGraphics && state.minX && state.maxX && state.minY && state.maxY) {
+        if (this.imageData && state.selectionGraphics && state.minX && state.maxX && state.minY && state.maxY) {
             // Keep track of the starting X and Y positions and X and Y scale to reset at the end
             const initialXPosition = this.stage.position.x
             const initialYPosition = this.stage.position.y
@@ -503,10 +519,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private setScaleFactors(
-        imcData: ImageData,
+        imcData: ImageData | null,
         maxRendererSize: { width: number | null; height: number | null },
     ): void {
-        if (maxRendererSize.width != null && maxRendererSize.height != null) {
+        if (imcData && maxRendererSize.width != null && maxRendererSize.height != null) {
             this.rendererWidth = maxRendererSize.width
             this.rendererHeight = maxRendererSize.height
             // Scale the scale (i.e. zoom) to be the same for the new renderer size
@@ -556,7 +572,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private initializeGraphics(
-        imcData: ImageData,
+        imcData: ImageData | null,
         maxRendererSize: { width: number | null; height: number | null },
     ): void {
         if (this.el == null) return
@@ -580,22 +596,24 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private loadChannelGraphics(curChannel: ChannelName, channelDomain: Record<ChannelName, [number, number]>): void {
         const imcData = this.imageData
-        const channelMarker = this.channelMarker
-        const filterCode = GraphicsHelper.generateBrightnessFilterCode()
-        const curMarker = channelMarker[curChannel]
-        if (curMarker != null) {
-            const sprite = imcData.sprites[curMarker]
-            const uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
-                curChannel,
-                imcData,
-                channelMarker,
-                channelDomain,
-            )
-            if (sprite && uniforms) {
-                const brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
-                // Delete sprite filters so they get cleared from memory before adding new ones
-                sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
-                this.stage.addChild(sprite)
+        if (imcData) {
+            const channelMarker = this.channelMarker
+            const filterCode = GraphicsHelper.generateBrightnessFilterCode()
+            const curMarker = channelMarker[curChannel]
+            if (curMarker != null) {
+                const sprite = imcData.sprites[curMarker]
+                const uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
+                    curChannel,
+                    imcData,
+                    channelMarker,
+                    channelDomain,
+                )
+                if (sprite && uniforms) {
+                    const brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
+                    // Delete sprite filters so they get cleared from memory before adding new ones
+                    sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                    this.stage.addChild(sprite)
+                }
             }
         }
     }
@@ -689,7 +707,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private loadLegendGraphics(): void {
         const legendVisible = this.legendVisible
         const imcData = this.imageData
-        if (legendVisible) {
+        if (imcData && legendVisible) {
             GraphicsHelper.drawLegend(this.legendGraphics, imcData, this.channelMarker)
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -702,15 +720,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private loadZoomInsetGraphics(scaleRatio = 1): void {
         // Adjust minScale by scaleRatio so that we don't show the zoom inset when we shouldn't
         const minScale = this.minScale * scaleRatio
-        if (this.zoomInsetVisible && (this.stage.scale.x > minScale || this.stage.scale.y > minScale)) {
+        const imcData = this.imageData
+        if (imcData && this.zoomInsetVisible && (this.stage.scale.x > minScale || this.stage.scale.y > minScale)) {
             // In case the image is taller than it is wide, we want to calculate how much of the renderer is visible
             // So that we can draw the zoom inset in the upper right corner of what is visible
             // Use this.render.width instead of rendererWidth for the case when we're exporting the image
-            const visibleRendererWidth = Math.min(this.imageData.width * this.stage.scale.y, this.renderer.width)
+            const visibleRendererWidth = Math.min(imcData.width * this.stage.scale.y, this.renderer.width)
             GraphicsHelper.drawZoomInset(
                 this.zoomInsetGraphics,
-                this.imageData.width,
-                this.imageData.height,
+                imcData.width,
+                imcData.height,
                 visibleRendererWidth,
                 this.renderer.height,
                 this.stage.width,
@@ -752,51 +771,53 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private exportRenderer(exportPath: string): void {
-        const initialXScale = this.stage.scale.x
-        const initialYScale = this.stage.scale.y
+        if (this.imageData) {
+            const initialXScale = this.stage.scale.x
+            const initialYScale = this.stage.scale.y
 
-        // The visible portion of the renderer changes as the user resizes, and is most likely
-        // not proportional to the aspect ratio of the original image.
-        // So we calculate the exportScale and exportWidth and exportHeight by calculating the ratio
-        // of the longest dimension to its corresponding dimension on the renderer
-        let exportScale = (this.imageData.width / this.rendererWidth) * initialXScale
-        let exportWidth = this.imageData.width
-        let exportHeight = this.rendererHeight * (this.imageData.width / this.rendererWidth)
-        if (this.imageData.height > this.imageData.width) {
-            exportScale = (this.imageData.height / this.rendererHeight) * initialYScale
-            exportHeight = this.imageData.height
-            exportWidth = this.rendererWidth * (this.imageData.height / this.rendererHeight)
+            // The visible portion of the renderer changes as the user resizes, and is most likely
+            // not proportional to the aspect ratio of the original image.
+            // So we calculate the exportScale and exportWidth and exportHeight by calculating the ratio
+            // of the longest dimension to its corresponding dimension on the renderer
+            let exportScale = (this.imageData.width / this.rendererWidth) * initialXScale
+            let exportWidth = this.imageData.width
+            let exportHeight = this.rendererHeight * (this.imageData.width / this.rendererWidth)
+            if (this.imageData.height > this.imageData.width) {
+                exportScale = (this.imageData.height / this.rendererHeight) * initialYScale
+                exportHeight = this.imageData.height
+                exportWidth = this.rendererWidth * (this.imageData.height / this.rendererHeight)
+            }
+            // We want the export size to be the same ratio as the renderer if zoomed in, but
+            // when fully zoomed out, the visible portion of the renderer has the same dimensions as the image
+            // as the user zooms in the dimensions change to gradually fill the space.
+            // The below calculations are to size the export appropriately depending on how zoomed in we are.
+            exportWidth = Math.min(exportWidth, this.imageData.width * exportScale)
+            exportHeight = Math.min(exportHeight, this.imageData.height * exportScale)
+
+            this.resizeRendererForExport(exportWidth, exportHeight, exportScale, exportScale)
+
+            // Get the source canvas that we are exporting from pixi
+            // Need to use ts-ignore for this for some reason it expects an input
+            // with the v5 ts types
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const sourceCanvas = this.renderer.extract.canvas()
+
+            // Return the size of the renderer to its original size
+            this.resizeRendererForExport(this.rendererWidth, this.rendererHeight, initialXScale, initialYScale)
+
+            // Save the export to a file
+            const sourceContext = sourceCanvas.getContext('2d')
+            if (sourceContext) {
+                // Convert to a base64 encoded png
+                const exportingImage = sourceCanvas.toDataURL('image/png')
+                // Replace the header so that we just have the base64 encoded string
+                const exportingData = exportingImage.replace(/^data:image\/png;base64,/, '')
+                // Save the base64 encoded string to file.
+                fs.writeFileSync(exportPath, exportingData, 'base64')
+            }
+            this.onExportComplete()
         }
-        // We want the export size to be the same ratio as the renderer if zoomed in, but
-        // when fully zoomed out, the visible portion of the renderer has the same dimensions as the image
-        // as the user zooms in the dimensions change to gradually fill the space.
-        // The below calculations are to size the export appropriately depending on how zoomed in we are.
-        exportWidth = Math.min(exportWidth, this.imageData.width * exportScale)
-        exportHeight = Math.min(exportHeight, this.imageData.height * exportScale)
-
-        this.resizeRendererForExport(exportWidth, exportHeight, exportScale, exportScale)
-
-        // Get the source canvas that we are exporting from pixi
-        // Need to use ts-ignore for this for some reason it expects an input
-        // with the v5 ts types
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
-        const sourceCanvas = this.renderer.extract.canvas()
-
-        // Return the size of the renderer to its original size
-        this.resizeRendererForExport(this.rendererWidth, this.rendererHeight, initialXScale, initialYScale)
-
-        // Save the export to a file
-        const sourceContext = sourceCanvas.getContext('2d')
-        if (sourceContext) {
-            // Convert to a base64 encoded png
-            const exportingImage = sourceCanvas.toDataURL('image/png')
-            // Replace the header so that we just have the base64 encoded string
-            const exportingData = exportingImage.replace(/^data:image\/png;base64,/, '')
-            // Save the base64 encoded string to file.
-            fs.writeFileSync(exportPath, exportingData, 'base64')
-        }
-        this.onExportComplete()
     }
 
     private calculateMaxRendererSize(
@@ -811,7 +832,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private renderImage(
         el: HTMLDivElement | null,
-        imcData: ImageData,
+        imcData: ImageData | null,
         position: { x: number; y: number } | null,
         scale: { x: number; y: number } | null,
         channelMarker: Record<ChannelName, string | null>,
@@ -851,6 +872,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if (
+            !this.maxRendererSize ||
             this.maxRendererSize.width != maxRendererSize.width ||
             this.maxRendererSize.height != maxRendererSize.height
         ) {

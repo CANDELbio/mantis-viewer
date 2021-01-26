@@ -117,7 +117,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const notificationStore = projectStore.notificationStore
         const projectImportStore = projectStore.projectImportStore
 
-        let imageViewer = null
         let imageMessage = null
         let imageSetSelector = null
         let channelControls = null
@@ -153,6 +152,40 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageStore.imageData == null && !imageStore.imageDataLoading && !displayProjectImportModal
 
         const modalOpen = displayWelcomeModal || displayLoadingModal || displayProjectImportModal
+
+        let windowHeight = projectStore.windowHeight
+        if (imageStore.imageData && imageStore.imageData.scaled) {
+            imageMessage = (
+                <div style={{ position: 'relative', textAlign: 'center' }}>
+                    This image has been downsampled to fit in memory.
+                </div>
+            )
+            if (windowHeight) windowHeight -= 20
+        }
+        const imageViewer = (
+            <ImageViewer
+                imageData={imageStore.imageData}
+                segmentationData={segmentationStore.segmentationData}
+                segmentationFillAlpha={settingStore.segmentationFillAlpha}
+                segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
+                segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
+                channelDomain={imageStore.channelDomain}
+                channelVisibility={settingStore.channelVisibility}
+                channelMarker={settingStore.channelMarker}
+                position={imageStore.position}
+                scale={imageStore.scale}
+                setPositionAndScale={imageStore.setPositionAndScale}
+                addSelectedRegion={populationStore.createPopulationFromPixels}
+                selectedRegions={populationStore.selectedPopulations}
+                highlightedRegions={populationStore.highlightedPopulations}
+                highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                exportPath={imageStore.imageExportFilename}
+                onExportComplete={imageStore.clearImageExportFilePath}
+                legendVisible={settingStore.legendVisible}
+                zoomInsetVisible={settingStore.zoomInsetVisible}
+                windowHeight={windowHeight}
+            />
+        )
 
         imageSetSelector = (
             <div className="grey-card">
@@ -215,39 +248,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 </div>
             )
 
-            let windowHeight = projectStore.windowHeight
-            if (imageStore.imageData.scaled) {
-                imageMessage = (
-                    <div style={{ position: 'relative', textAlign: 'center' }}>
-                        This image has been downsampled to fit in memory.
-                    </div>
-                )
-                if (windowHeight) windowHeight -= 20
-            }
-            imageViewer = (
-                <ImageViewer
-                    imageData={imageStore.imageData}
-                    segmentationData={segmentationStore.segmentationData}
-                    segmentationFillAlpha={settingStore.segmentationFillAlpha}
-                    segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
-                    segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
-                    channelDomain={imageStore.channelDomain}
-                    channelVisibility={settingStore.channelVisibility}
-                    channelMarker={settingStore.channelMarker}
-                    position={imageStore.position}
-                    scale={imageStore.scale}
-                    setPositionAndScale={imageStore.setPositionAndScale}
-                    addSelectedRegion={populationStore.createPopulationFromPixels}
-                    selectedRegions={populationStore.selectedPopulations}
-                    highlightedRegions={populationStore.highlightedPopulations}
-                    highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
-                    exportPath={imageStore.imageExportFilename}
-                    onExportComplete={imageStore.clearImageExportFilePath}
-                    legendVisible={settingStore.legendVisible}
-                    zoomInsetVisible={settingStore.zoomInsetVisible}
-                    windowHeight={windowHeight}
-                />
-            )
             if (segmentationStore.segmentationData != null) {
                 if (projectStore.plotInMainWindow) {
                     let maxPlotHeight = null
