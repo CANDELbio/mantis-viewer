@@ -72,6 +72,7 @@ export class ImageStore {
     }
 
     @action public clearImageData = (): void => {
+        this.imageData?.destroyGraphics()
         this.imageData = null
     }
 

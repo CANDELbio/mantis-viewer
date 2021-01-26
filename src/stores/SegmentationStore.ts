@@ -63,6 +63,7 @@ export class SegmentationStore {
     // Used in clearSegmentationData
     // And when cleaning up memory in the projectStore.
     @action public deleteSegmentationData = (): void => {
+        this.segmentationData?.destroyGraphics()
         this.segmentationData = null
     }
 

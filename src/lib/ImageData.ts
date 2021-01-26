@@ -107,8 +107,9 @@ export class ImageData {
     public removeMarker(markerName: string): void {
         if (markerName in this.data) {
             this.numMarkers -= 1
-            delete this.data[markerName]
+            this.sprites[markerName]?.destroy()
             delete this.sprites[markerName]
+            delete this.data[markerName]
             delete this.minmax[markerName]
         }
     }
@@ -154,5 +155,11 @@ export class ImageData {
                 this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName, blurPixels)
             })
         }
+    }
+
+    public destroyGraphics(): void {
+        this.markerNames.forEach((marker: string) => {
+            this.removeMarker(marker)
+        })
     }
 }

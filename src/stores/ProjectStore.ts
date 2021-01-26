@@ -152,6 +152,7 @@ export class ProjectStore {
         if (this.activeImageSetPath != null) {
             // Clear the active image set
             this.imageSetPaths = this.imageSetPaths.filter((p: string): boolean => p != this.activeImageSetPath)
+            this.clearImageSetData(this.activeImageSetPath)
             delete this.imageSets[this.activeImageSetPath]
             this.activeImageSetPath = null
             if (this.lastActiveImageSetPath != null) {

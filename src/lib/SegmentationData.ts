@@ -107,4 +107,10 @@ export class SegmentationData {
     ): void {
         this.loadInWorker({ filepath: fName, width: width, height: height }, onReady)
     }
+
+    public destroyGraphics(): void {
+        this.fillSprite.destroy()
+        this.outlineGraphics.destroy()
+        this.centroidGraphics.destroy()
+    }
 }

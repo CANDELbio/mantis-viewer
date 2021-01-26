@@ -171,6 +171,7 @@ export class PopulationStore {
                 )
             } else {
                 // If there isn't segmentation data present then delete the segment graphics for this selection.
+                population.segmentGraphics?.destroy()
                 delete population.segmentGraphics
             }
         }
