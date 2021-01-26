@@ -107,7 +107,7 @@ export class ImageData {
     public removeMarker(markerName: string): void {
         if (markerName in this.data) {
             this.numMarkers -= 1
-            this.sprites[markerName]?.destroy()
+            this.sprites[markerName]?.destroy({ children: true, texture: true, baseTexture: true })
             delete this.sprites[markerName]
             delete this.data[markerName]
             delete this.minmax[markerName]

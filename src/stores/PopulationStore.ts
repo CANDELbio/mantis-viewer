@@ -149,6 +149,10 @@ export class PopulationStore {
         const pixelIndexes = population.pixelIndexes
         if (imageData) {
             const color = population.color
+            // Clear out the old graphics.
+            const destroyOptions = { children: true, texture: true, baseTexture: true }
+            population.segmentGraphics?.destroy(destroyOptions)
+            population.regionGraphics?.destroy(destroyOptions)
             // If this selection has pixel indexes (i.e. a region selected on the image)
             // Then we want to refresh the region graphics
             if (pixelIndexes) {
@@ -171,7 +175,6 @@ export class PopulationStore {
                 )
             } else {
                 // If there isn't segmentation data present then delete the segment graphics for this selection.
-                population.segmentGraphics?.destroy()
                 delete population.segmentGraphics
             }
         }

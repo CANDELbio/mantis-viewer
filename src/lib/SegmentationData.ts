@@ -109,8 +109,9 @@ export class SegmentationData {
     }
 
     public destroyGraphics(): void {
-        this.fillSprite.destroy()
-        this.outlineGraphics.destroy()
-        this.centroidGraphics.destroy()
+        const destroyOptions = { children: true, texture: true, baseTexture: true }
+        this.fillSprite.destroy(destroyOptions)
+        this.outlineGraphics.destroy(destroyOptions)
+        this.centroidGraphics.destroy(destroyOptions)
     }
 }

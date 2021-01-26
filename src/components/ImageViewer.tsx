@@ -99,19 +99,29 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // If the renderer is full screened or not
     private fullScreen: boolean
 
-    public constructor(props: ImageProps) {
-        super(props)
-
+    private initializePIXIGlobals() {
         // Need a root container to hold the stage so that we can call updateTransform on the stage.
+
+        this.rootContainer?.destroy()
         this.rootContainer = new PIXI.Container()
+
+        this.stage?.destroy()
         this.stage = new PIXI.Container()
         this.stage.interactive = true
         this.rootContainer.addChild(this.stage)
 
+        const destroyOptions = { children: true, texture: true, baseTexture: true }
+        this.legendGraphics?.destroy(destroyOptions)
         this.legendGraphics = new PIXI.Graphics()
-        this.legendVisible = false
-
+        this.zoomInsetGraphics?.destroy(destroyOptions)
         this.zoomInsetGraphics = new PIXI.Graphics()
+    }
+
+    public constructor(props: ImageProps) {
+        super(props)
+
+        this.initializePIXIGlobals()
+        this.legendVisible = false
         this.zoomInsetVisible = true
 
         const redFilter = new PIXI.filters.ColorMatrixFilter()
@@ -168,25 +178,41 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.fullScreen = false
     }
 
-    public componentWillUnmount = (): void => {
-        document.removeEventListener('fullscreenchange', this.handleFullscreenChange)
-        if (this.el) {
-            this.el.removeEventListener('wheel', this.zoomHandler)
-            this.el.removeEventListener('mousedown', this.panMouseDownHandler)
-            this.el.removeEventListener('mousemove', this.panMouseMoveHandler)
-            this.el.removeEventListener('mouseup', this.panMouseUpHandler)
-            this.el.removeEventListener('mouseout', this.panMouseOutHandler)
-            this.el.removeEventListener('mousedown', this.selectMouseDownHandler)
-            this.el.removeEventListener('mousemove', this.selectMouseMoveHandler)
-            this.el.removeEventListener('mouseup', this.selectMouseUpHandler)
+    private removeWebGLContextLostListener = (el: HTMLDivElement): void => {
+        if (el) {
+            const canvases = el.getElementsByTagName('canvas')
+            if (canvases.length === 1) {
+                canvases[0].removeEventListener('webglcontextlost', this.handleWebGlContextLost)
+            }
         }
+    }
+
+    private clearEventListeners = (): void => {
+        document.removeEventListener('fullscreenchange', this.handleFullscreenChange)
+        const el = this.el
+        if (el) {
+            el.removeEventListener('wheel', this.zoomHandler)
+            el.removeEventListener('mousedown', this.panMouseDownHandler)
+            el.removeEventListener('mousemove', this.panMouseMoveHandler)
+            el.removeEventListener('mouseup', this.panMouseUpHandler)
+            el.removeEventListener('mouseout', this.panMouseOutHandler)
+            el.removeEventListener('mousedown', this.selectMouseDownHandler)
+            el.removeEventListener('mousemove', this.selectMouseMoveHandler)
+            el.removeEventListener('mouseup', this.selectMouseUpHandler)
+            this.removeWebGLContextLostListener(el)
+        }
+    }
+
+    public componentWillUnmount = (): void => {
+        this.clearEventListeners()
     }
 
     private clearSelectState = (): void => {
         const curSelectState = this.selectState
         if (curSelectState) {
-            if (curSelectState.selectionGraphics) curSelectState.selectionGraphics.destroy()
-            if (curSelectState.segmentOutlineGraphics) curSelectState.segmentOutlineGraphics.destroy()
+            const destroyOptions = { children: true, texture: true, baseTexture: true }
+            if (curSelectState.selectionGraphics) curSelectState.selectionGraphics.destroy(destroyOptions)
+            if (curSelectState.segmentOutlineGraphics) curSelectState.segmentOutlineGraphics.destroy(destroyOptions)
         }
     }
 
@@ -571,6 +597,39 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         document.addEventListener('fullscreenchange', this.handleFullscreenChange)
     }
 
+    private handleWebGlContextLost = (): void => {
+        console.log('Recovering from WebGL context lost.')
+        this.clearEventListeners()
+        const el = this.el
+        if (el) {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild)
+            }
+        }
+        this.initializePIXIGlobals()
+        this.forceUpdate()
+    }
+
+    private addWebGLContextLostListener(el: HTMLDivElement): void {
+        if (el) {
+            const canvases = el.getElementsByTagName('canvas')
+            if (canvases.length === 1) {
+                const canvas = canvases[0]
+
+                // Development shortcut to simulate the canvas losing WebGL2 context.
+                Mousetrap.bind(['command+w', 'alt+w'], () => {
+                    const webgl2Context = canvas.getContext('webgl2', {})
+                    if (webgl2Context) {
+                        console.log(`Losing WebGL2 context...`)
+                        webgl2Context.getExtension('WEBGL_lose_context')?.loseContext()
+                    }
+                })
+
+                canvas.addEventListener('webglcontextlost', this.handleWebGlContextLost)
+            }
+        }
+    }
+
     private initializeGraphics(
         imcData: ImageData | null,
         maxRendererSize: { width: number | null; height: number | null },
@@ -592,6 +651,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.addPan(this.el)
         this.addSelect(this.el)
         this.addFullscreen(this.el)
+        this.addWebGLContextLostListener(this.el)
     }
 
     private loadChannelGraphics(curChannel: ChannelName, channelDomain: Record<ChannelName, [number, number]>): void {

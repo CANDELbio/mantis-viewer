@@ -108,14 +108,15 @@ export function cleanUpStage(
     selectionGraphics: PIXI.Graphics | null,
     segmentOutlineGraphics: PIXI.Graphics | null,
 ): void {
+    const destroyOptions = { children: true, texture: true, baseTexture: true }
     if (selectionGraphics != null) {
         stage.removeChild(selectionGraphics)
-        selectionGraphics.destroy()
+        selectionGraphics.destroy(destroyOptions)
     }
 
     if (segmentOutlineGraphics != null) {
         stage.removeChild(segmentOutlineGraphics)
-        segmentOutlineGraphics.destroy()
+        segmentOutlineGraphics.destroy(destroyOptions)
     }
 }
 
