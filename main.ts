@@ -18,7 +18,13 @@ const contextMenu = require('electron-context-menu').default
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const isDev = require('electron-is-dev')
 
-app.commandLine.appendSwitch('--disable-gpu-process-crash-limit')
+app.commandLine.appendSwitch('disable-gpu-process-crash-limit')
+app.commandLine.appendSwitch('gpu-no-context-lost')
+app.commandLine.appendSwitch('force-gpu-mem-available-mb', '9999999')
+app.commandLine.appendSwitch('max-active-webgl-contexts', '32')
+app.commandLine.appendSwitch('max-decoded-image-size-mb', '1000')
+app.commandLine.appendSwitch('enable-zero-copy')
+
 app.disableDomainBlockingFor3DAPIs()
 
 // Keep a global reference of the window object, if you don't, the window will
