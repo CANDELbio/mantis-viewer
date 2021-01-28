@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js'
 import { observable, action, autorun } from 'mobx'
 import * as shortId from 'shortid'
 import * as _ from 'underscore'
@@ -168,7 +169,9 @@ export class PopulationStore {
             if (segmentationData) {
                 // If segmentation data is present then refresh the outline graphics for the segments in this selection
                 // Separate from the above region selected block for selections/populations loaded from csv
-                population.segmentGraphics = segmentationData.generateOutlineGraphics(
+                population.segmentGraphics = new PIXI.Graphics()
+                segmentationData.generateOutlineGraphics(
+                    population.segmentGraphics,
                     color,
                     SelectedSegmentOutlineWidth,
                     population.selectedSegments,

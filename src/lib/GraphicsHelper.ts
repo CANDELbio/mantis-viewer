@@ -74,13 +74,17 @@ export function drawCentroids(selectedCentroids: { [key: number]: PixelLocation 
 }
 
 // Draws a selected region of the format [x, y, x, y, ...] of the given color and alpha
-export function drawSelectedRegion(selection: number[], color: number, alpha: number): PIXI.Graphics {
-    const selectionGraphics = new PIXI.Graphics()
+export function drawSelectedRegion(
+    selectionGraphics: PIXI.Graphics,
+    selection: number[],
+    color: number,
+    alpha: number,
+): void {
+    selectionGraphics.clear()
     selectionGraphics.beginFill(color)
     selectionGraphics.drawPolygon(selection)
     selectionGraphics.endFill()
     selectionGraphics.alpha = alpha
-    return selectionGraphics
 }
 
 // Returns an array of segmentIds whose centroids collide with the selection in selectionGraphics
@@ -101,35 +105,16 @@ export function findSegmentsInSelection(
     return selectedSegments
 }
 
-// Cleans up the graphics/sprites passed in.
-// Used to delete selectionGraphics and segmentOutlineGraphics when a user is actively selecting.
-export function cleanUpStage(
-    stage: PIXI.Container,
-    selectionGraphics: PIXI.Graphics | null,
-    segmentOutlineGraphics: PIXI.Graphics | null,
-): void {
-    const destroyOptions = { children: true, texture: true, baseTexture: true }
-    if (selectionGraphics != null) {
-        stage.removeChild(selectionGraphics)
-        selectionGraphics.destroy(destroyOptions)
-    }
-
-    if (segmentOutlineGraphics != null) {
-        stage.removeChild(segmentOutlineGraphics)
-        segmentOutlineGraphics.destroy(destroyOptions)
-    }
-}
-
 // Expects an array containing arrays of pixel locations.
 // Each array of pixel locations should be the coordinates of the outline.
 // The easiest way to get these is from the SegmentationData segmentOutlineMap
 export function drawOutlines(
+    outlineGraphics: PIXI.Graphics,
     outlines: PixelLocation[][],
     color: number,
     width: number,
     alignment = 0.5,
-): PIXI.Graphics {
-    const outlineGraphics = new PIXI.Graphics()
+): void {
     // Always set the alpha to 1.0 and adjust it elsewhere
     // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
     outlineGraphics.lineStyle(width, color, 1, alignment)
@@ -144,7 +129,6 @@ export function drawOutlines(
             }
         }
     }
-    return outlineGraphics
 }
 
 // Generating brightness filter code for the passed in channel.

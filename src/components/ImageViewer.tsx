@@ -81,13 +81,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
 
+    private highlightedSegmentGraphics: PIXI.Graphics
+
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private panState: { active: boolean; x?: number; y?: number }
+
+    // Variables dealing with on image selections
     private selectState: {
         active: boolean
         selection: number[]
-        selectionGraphics: PIXI.Graphics | null
-        segmentOutlineGraphics: PIXI.Graphics | null
         selectedSegments: number[]
         selectionColor: number
         minX: number | null
@@ -95,11 +97,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         minY: number | null
         maxY: number | null
     }
+    selectionGraphics: PIXI.Graphics
+    selectionSegmentGraphics: PIXI.Graphics
 
     // If the renderer is full screened or not
     private fullScreen: boolean
 
-    private initializePIXIGlobals() {
+    private initializePIXIGlobals(): void {
         // Need a root container to hold the stage so that we can call updateTransform on the stage.
 
         this.rootContainer?.destroy()
@@ -115,6 +119,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.legendGraphics = new PIXI.Graphics()
         this.zoomInsetGraphics?.destroy(destroyOptions)
         this.zoomInsetGraphics = new PIXI.Graphics()
+
+        this.highlightedSegmentGraphics?.destroy(destroyOptions)
+        this.highlightedSegmentGraphics = new PIXI.Graphics()
+
+        this.selectionGraphics?.destroy(destroyOptions)
+        this.selectionGraphics = new PIXI.Graphics()
+        this.selectionSegmentGraphics?.destroy(destroyOptions)
+        this.selectionSegmentGraphics = new PIXI.Graphics()
     }
 
     public constructor(props: ImageProps) {
@@ -207,22 +219,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.clearEventListeners()
     }
 
-    private clearSelectState = (): void => {
-        const curSelectState = this.selectState
-        if (curSelectState) {
-            const destroyOptions = { children: true, texture: true, baseTexture: true }
-            if (curSelectState.selectionGraphics) curSelectState.selectionGraphics.destroy(destroyOptions)
-            if (curSelectState.segmentOutlineGraphics) curSelectState.segmentOutlineGraphics.destroy(destroyOptions)
-        }
+    private clearSelectGraphics = (): void => {
+        this.selectionGraphics.clear()
+        this.selectionSegmentGraphics.clear()
     }
 
     private initializeSelectState = (): void => {
-        this.clearSelectState()
+        this.clearSelectGraphics()
         this.selectState = {
             active: false,
             selection: [],
-            selectionGraphics: null,
-            segmentOutlineGraphics: null,
             selectedSegments: [],
             selectionColor: 0,
             minX: null,
@@ -441,31 +447,41 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // selected region and the highlighted segments
     private selectMouseMoveHandler = (): void => {
         const state = this.selectState
+
         if (state.active) {
+            const stage = this.stage
+            const selectionGraphics = this.selectionGraphics
+            const selectionSegmentGraphics = this.selectionSegmentGraphics
             this.addPositionToSelection(state)
 
-            GraphicsHelper.cleanUpStage(this.stage, state.selectionGraphics, state.segmentOutlineGraphics)
+            stage.removeChild(selectionGraphics, selectionSegmentGraphics)
 
-            state.selectionGraphics = GraphicsHelper.drawSelectedRegion(
+            GraphicsHelper.drawSelectedRegion(
+                selectionGraphics,
                 state.selection,
                 state.selectionColor,
                 SelectedRegionAlpha,
             )
-            state.selectedSegments = GraphicsHelper.findSegmentsInSelection(
-                state.selectionGraphics,
-                this.segmentationData,
-            )
-            this.stage.addChild(state.selectionGraphics)
+
+            this.resizeStaticGraphics(selectionGraphics)
+            selectionGraphics.updateTransform()
+
+            state.selectedSegments = GraphicsHelper.findSegmentsInSelection(selectionGraphics, this.segmentationData)
+
+            selectionGraphics.setTransform(0, 0, 1, 1)
 
             if (this.segmentationData != null) {
-                state.segmentOutlineGraphics = this.segmentationData.generateOutlineGraphics(
+                this.segmentationData.generateOutlineGraphics(
+                    selectionSegmentGraphics,
                     state.selectionColor,
                     SelectedSegmentOutlineWidth,
                     state.selectedSegments,
                 )
-                state.segmentOutlineGraphics.alpha = SelectedSegmentOutlineAlpha
-                this.stage.addChild(state.segmentOutlineGraphics)
+                // Not correctly setting the alpha for some reason.
+                selectionSegmentGraphics.alpha = SelectedSegmentOutlineAlpha
             }
+
+            this.stage.addChild(selectionGraphics, selectionSegmentGraphics)
 
             // Re-draw the legend and zoom inset graphics in case the user is selecting a region under the legend or zoom inset
             // Otherwise the region and segments render over the legend and zoom inset
@@ -479,7 +495,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private getSelectionPixelIndexes = (): number[] => {
         const state = this.selectState
         let pixelIndexes: number[] = []
-        if (this.imageData && state.selectionGraphics && state.minX && state.maxX && state.minY && state.maxY) {
+        if (this.imageData && state.minX && state.maxX && state.minY && state.maxY) {
             // Keep track of the starting X and Y positions and X and Y scale to reset at the end
             const initialXPosition = this.stage.position.x
             const initialYPosition = this.stage.position.y
@@ -495,7 +511,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
             // Clear all children, add back the current selection, and then re-render so we can export
             this.stage.removeChildren()
-            this.stage.addChild(state.selectionGraphics)
+            this.stage.addChild(this.selectionGraphics)
             this.renderer.render(this.rootContainer)
 
             // Get the pixels for the current selection in RGBA format and convert to pixel locations
@@ -523,7 +539,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // If the mouse is released stop selecting
     private selectMouseUpHandler = (): void => {
         const state = this.selectState
-        if (state.active && state.selectionGraphics && state.segmentOutlineGraphics) {
+        if (state.active) {
             const pixelsIndexes = this.getSelectionPixelIndexes()
             this.addSelectedRegionToStore(pixelsIndexes, state.selectionColor)
             // Clear the temp storage now that we've stored the selection.
@@ -644,6 +660,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             height: this.rendererHeight,
             transparent: true,
         })
+        this.renderer.reset()
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners
@@ -741,13 +758,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Generates and adds segments highlighted/moused over on the graph.
     private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
+        this.stage.removeChild(this.highlightedSegmentGraphics)
         if (this.segmentationData && highlightedSegments.length > 0) {
-            const graphics = this.segmentationData.generateOutlineGraphics(
+            this.segmentationData.generateOutlineGraphics(
+                this.highlightedSegmentGraphics,
                 HighlightedSegmentOutlineColor,
                 SelectedSegmentOutlineWidth,
                 highlightedSegments,
             )
-            this.stage.addChild(graphics)
+            this.stage.addChild(this.highlightedSegmentGraphics)
         }
     }
 

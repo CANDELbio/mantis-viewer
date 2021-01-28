@@ -35,7 +35,12 @@ export class SegmentationData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
-    public generateOutlineGraphics(color: number, width: number, segments?: number[]): PIXI.Graphics {
+    public generateOutlineGraphics(
+        outlineGraphics: PIXI.Graphics,
+        color: number,
+        width: number,
+        segments?: number[],
+    ): void {
         const outlines = []
         for (const segment in this.segmentOutlineMap) {
             const segmentId = Number(segment)
@@ -45,7 +50,7 @@ export class SegmentationData {
                 outlines.push(this.segmentOutlineMap[segmentId])
             }
         }
-        return drawOutlines(outlines, color, width)
+        drawOutlines(outlineGraphics, outlines, color, width)
     }
 
     public segmentsInRegion(regionPixelIndexes: number[]): number[] {
@@ -78,7 +83,8 @@ export class SegmentationData {
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
         this.fillSprite = imageBitmapToSprite(fData.fillBitmap, false)
-        this.outlineGraphics = this.generateOutlineGraphics(SegmentOutlineColor, SegmentOutlineWidth)
+        this.outlineGraphics = new PIXI.Graphics()
+        this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
         this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)
         this.onReady(this)
     }
