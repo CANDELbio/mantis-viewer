@@ -183,6 +183,14 @@ function askCalculateFeatures(channel: string, dir: string): void {
     }
 }
 
+function imageExportDefaultFilePath(): string | undefined {
+    if (activeImageDirectory) {
+        return path.join(path.dirname(activeImageDirectory), path.basename(activeImageDirectory) + '.png')
+    } else {
+        return undefined
+    }
+}
+
 function generateMenuTemplate(): any {
     return [
         {
@@ -287,7 +295,7 @@ function generateMenuTemplate(): any {
                         {
                             label: 'Image and layers to PNG',
                             enabled: imageLoaded,
-                            click: showSaveFileIpcDialog('export-image', activeImageDirectory, 'png'),
+                            click: showSaveFileIpcDialog('export-image', imageExportDefaultFilePath(), 'png'),
                         },
                         {
                             label: 'Regions to TIFF',
