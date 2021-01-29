@@ -43,6 +43,7 @@ export interface ImageProps {
     legendVisible: boolean
     zoomInsetVisible: boolean
     windowHeight: number | null
+    reloadAllImageSets: () => void
 }
 
 @observer
@@ -623,7 +624,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             }
         }
         this.initializePIXIGlobals()
-        this.forceUpdate()
+        this.props.reloadAllImageSets()
     }
 
     private addWebGLContextLostListener(el: HTMLDivElement): void {
@@ -688,6 +689,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 if (sprite && uniforms) {
                     const brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
                     // Delete sprite filters so they get cleared from memory before adding new ones
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                    //@ts-ignore
+                    sprite.filters = null
                     sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
                     this.stage.addChild(sprite)
                 }

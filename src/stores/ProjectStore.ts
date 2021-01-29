@@ -187,15 +187,23 @@ export class ProjectStore {
 
     // Adds dirName to the image set history.
     // Cleans up the oldest image set ImageStore if there are too many in memory.
-    @action private cleanImageSetHistory = (dirName: string): void => {
+    @action private cleanImageSetHistory = (dirName: string, forceClean = false): void => {
         // If dirName is already in the history, remove it and readd it to the front
         const historyIndex = this.imageSetHistory.indexOf(dirName)
         if (historyIndex > -1) this.imageSetHistory.splice(historyIndex, 1)
         this.imageSetHistory.push(dirName)
-        if (this.imageSetHistory.length > this.preferencesStore.maxImageSetsInMemory) {
+        if (forceClean || this.imageSetHistory.length > this.preferencesStore.maxImageSetsInMemory) {
             const setToClean = this.imageSetHistory.shift()
             if (setToClean) this.clearImageSetData(setToClean)
         }
+    }
+
+    // Clears all image sets out of memory and reloads the active image set.
+    // Used when WebGL context is lost.
+    @action public reloadAllImageSets = (): void => {
+        this.notificationStore.setErrorMessage('Mantis encountered an error and needs to reload your image sets.')
+        this.imageSetHistory.forEach((dirName: string): void => this.cleanImageSetHistory(dirName, true))
+        if (this.activeImageSetPath) this.setActiveImageSet(this.activeImageSetPath)
     }
 
     @action public setActiveImageSet = (dirName: string): void => {
