@@ -764,6 +764,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
         this.stage.removeChild(this.highlightedSegmentGraphics)
         if (this.segmentationData && highlightedSegments.length > 0) {
+            this.highlightedSegmentGraphics.clear()
             this.segmentationData.generateOutlineGraphics(
                 this.highlightedSegmentGraphics,
                 HighlightedSegmentOutlineColor,
