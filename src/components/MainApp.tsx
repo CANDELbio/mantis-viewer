@@ -105,6 +105,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return null
     }
 
+    componentDidCatch(): void {
+        this.props.projectStore.notificationStore.requestReloadMainWindow()
+    }
+
     public render(): React.ReactNode {
         const projectStore = this.props.projectStore
         const imageSetStore = this.props.projectStore.activeImageSetStore
