@@ -506,6 +506,13 @@ Mobx.autorun((): void => {
     }
 })
 
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.reloadMainWindow) {
+        ipcRenderer.send('mainWindow-reload')
+    }
+})
+
 ReactDOM.render(
     <div>
         <MainApp projectStore={projectStore} />

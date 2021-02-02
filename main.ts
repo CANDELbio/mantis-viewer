@@ -539,11 +539,10 @@ function registerDebuggingFinishLoadEventHandler(window: BrowserWindow): void {
     })
 }
 
-function createMainWindow(): void {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
-        width: 1540,
-        height: 860,
+function initializeMainWindow(width?: number, height?: number): BrowserWindow {
+    const newWindow = new BrowserWindow({
+        width: width ? width : 1540,
+        height: height ? height : 860,
         show: false,
         webPreferences: {
             experimentalFeatures: true,
@@ -552,22 +551,23 @@ function createMainWindow(): void {
             enableRemoteModule: true,
         },
     })
-    setMenu()
 
-    mainWindow.setMinimumSize(1540, 860)
+    newWindow.setMinimumSize(1540, 860)
 
     // and load the index.html of the app.
-    mainWindow.loadURL(
+    newWindow.loadURL(
         url.format({
             pathname: path.join(__dirname, 'app', 'mainWindow.html'),
             protocol: 'file:',
             slashes: true,
         }),
     )
-
     // Open the DevTools.
-    registerDebuggingFinishLoadEventHandler(mainWindow)
+    registerDebuggingFinishLoadEventHandler(newWindow)
+    return newWindow
+}
 
+function registerMainWindowEvents(): void {
     // Use throttle so that when we resize we only send the window size every 333 ms
     mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
     mainWindow.on('enter-full-screen', sendMainWindowSize)
@@ -587,6 +587,12 @@ function createMainWindow(): void {
     mainWindow.on('ready-to-show', (): void => {
         if (mainWindow != null) mainWindow.show()
     })
+}
+
+function createMainWindow(): void {
+    mainWindow = initializeMainWindow()
+    setMenu()
+    registerMainWindowEvents()
 }
 
 function createPlotWindow(): void {
@@ -686,11 +692,13 @@ app.on('before-quit', (): void => {
 //Functions for setting menu flags and regenerating the menu
 ipcMain.on('set-image-loaded', (event: Electron.Event, loaded: boolean): void => {
     imageLoaded = loaded
+    projectLoaded = false
     setMenu()
 })
 
 ipcMain.on('set-project-loaded', (event: Electron.Event, loaded: boolean): void => {
     projectLoaded = loaded
+    imageLoaded = false
     setMenu()
 })
 
@@ -1074,4 +1082,31 @@ ipcMain.on('mainWindow-check-import-project', (): void => {
                 if (mainWindow != null) mainWindow.webContents.send('continue-project-import')
             }
         })
+})
+
+ipcMain.on('mainWindow-reload', (): void => {
+    const oldMainWindow = mainWindow
+    const projectWasLoaded = projectLoaded
+    const oldProjectDirectory = projectDirectory
+    const imageWasLoaded = imageLoaded
+    const oldImageDirectory = activeImageDirectory
+
+    const mainWindowDimensions = oldMainWindow.getSize()
+    mainWindow = initializeMainWindow(mainWindowDimensions[0], mainWindowDimensions[1])
+    setMenu()
+
+    const message = 'Mantis has encountered an error and will restart.'
+    dialog.showMessageBox(oldMainWindow, { type: 'error', message: message }).then((): void => {
+        registerMainWindowEvents()
+        mainWindow.on('ready-to-show', (): void => {
+            oldMainWindow.removeAllListeners()
+            oldMainWindow.destroy()
+            mainWindow.show()
+            if (projectWasLoaded) {
+                mainWindow.webContents.send('open-project', oldProjectDirectory)
+            } else if (imageWasLoaded) {
+                mainWindow.webContents.send('open-image-set', oldImageDirectory)
+            }
+        })
+    })
 })

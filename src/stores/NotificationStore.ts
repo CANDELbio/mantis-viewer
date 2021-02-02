@@ -29,6 +29,9 @@ export class NotificationStore {
     // to check if the user wants to continue importing
     @observable public checkImportProject: boolean
 
+    // Set this flag to true if we've encountered an error and need to reload
+    @observable public reloadMainWindow: boolean
+
     public constructor() {
         this.initialize()
     }
@@ -40,6 +43,7 @@ export class NotificationStore {
         this.checkImportingSegmentFeaturesClearDuplicates = false
         this.checkCalculateAllFeaturesForPlot = false
         this.checkImportProject = false
+        this.reloadMainWindow = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -93,5 +97,9 @@ export class NotificationStore {
 
     @action setCheckImportProject = (value: boolean): void => {
         this.checkImportProject = value
+    }
+
+    @action requestReloadMainWindow = (): void => {
+        this.reloadMainWindow = true
     }
 }

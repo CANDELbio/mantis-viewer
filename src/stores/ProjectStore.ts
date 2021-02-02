@@ -198,12 +198,13 @@ export class ProjectStore {
         }
     }
 
-    // Clears all image sets out of memory and reloads the active image set.
     // Used when WebGL context is lost.
     @action public reloadAllImageSets = (): void => {
-        this.notificationStore.setErrorMessage('Mantis encountered an error and needs to reload your image sets.')
-        this.imageSetHistory.forEach((dirName: string): void => this.cleanImageSetHistory(dirName, true))
-        if (this.activeImageSetPath) this.setActiveImageSet(this.activeImageSetPath)
+        this.notificationStore.requestReloadMainWindow()
+        // Clears all image sets out of memory and reloads the active image set.
+        // this.notificationStore.setErrorMessage('Mantis encountered an error and needs to reload your image sets.')
+        // this.imageSetHistory.forEach((dirName: string): void => this.cleanImageSetHistory(dirName, true))
+        // if (this.activeImageSetPath) this.setActiveImageSet(this.activeImageSetPath)
     }
 
     @action public setActiveImageSet = (dirName: string): void => {
