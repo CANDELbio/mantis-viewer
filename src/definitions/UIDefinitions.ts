@@ -85,6 +85,9 @@ export const HighlightedSegmentOutlineColor = 0xff0000 // red
 export const PlotMinDotSize = 1
 export const DefaultDotSize = 2
 export const PlotMaxDotSize = 10
+export const DefaultNumHistogramBins = 100
+export const PlotMinNumHistogramBins = 20
+export const PlotMaxNumHistogramBins = 250
 
 export const DbFilename = '.mantisDb'
 

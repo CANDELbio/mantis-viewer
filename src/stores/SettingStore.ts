@@ -15,6 +15,7 @@ import {
     DefaultSegmentOutlineAlpha,
     DefaultSegmentFillAlpha,
     DefaultCentroidsVisible,
+    DefaultNumHistogramBins,
     PlotStatisticOptions,
     PlotTransformOptions,
     PlotTypeOptions,
@@ -42,6 +43,9 @@ type SettingStoreData = {
     plotDownsample?: boolean
     plotDownsamplePercent?: number
     plotImageSetColors?: Record<string, number>
+    plotNumHistogramBins?: number
+    plotXLogScale?: boolean
+    plotYLogScale?: boolean
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
@@ -100,6 +104,9 @@ export class SettingStore {
     @observable public plotDownsample: boolean
     @observable public plotDownsamplePercent: number
     @observable public plotImageSetColors: Record<string, number>
+    @observable public plotNumHistogramBins: number
+    @observable public plotXLogScale: boolean
+    @observable public plotYLogScale: boolean
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -143,6 +150,9 @@ export class SettingStore {
         this.plotDownsample = false
         this.plotDownsamplePercent = 1
         this.plotImageSetColors = {}
+        this.plotNumHistogramBins = DefaultNumHistogramBins
+        this.plotXLogScale = false
+        this.plotYLogScale = false
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -230,6 +240,18 @@ export class SettingStore {
 
     @action public setPlotImageSetColors = (imageSetColors: Record<string, number>): void => {
         this.plotImageSetColors = imageSetColors
+    }
+
+    @action public setPlotNumHistogramBins = (numBins: number): void => {
+        this.plotNumHistogramBins = numBins
+    }
+
+    @action public setPlotXLogScale = (value: boolean): void => {
+        this.plotXLogScale = value
+    }
+
+    @action public setPlotYLogScale = (value: boolean): void => {
+        this.plotYLogScale = value
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -373,6 +395,9 @@ export class SettingStore {
                 plotDownsample: this.plotDownsample,
                 plotDownsamplePercent: this.plotDownsamplePercent,
                 plotImageSetColors: this.plotImageSetColors,
+                plotNumHistogramBins: this.plotNumHistogramBins,
+                plotXLogScale: this.plotXLogScale,
+                plotYLogScale: this.plotYLogScale,
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -419,6 +444,10 @@ export class SettingStore {
                 if (importingSettings.plotDownsamplePercent)
                     this.plotDownsamplePercent = importingSettings.plotDownsamplePercent
                 if (importingSettings.plotImageSetColors) this.plotImageSetColors = importingSettings.plotImageSetColors
+                if (importingSettings.plotNumHistogramBins)
+                    this.plotNumHistogramBins = importingSettings.plotNumHistogramBins
+                if (importingSettings.plotXLogScale) this.plotXLogScale = importingSettings.plotXLogScale
+                if (importingSettings.plotYLogScale) this.plotYLogScale = importingSettings.plotYLogScale
                 if (importingSettings.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)

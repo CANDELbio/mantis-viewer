@@ -10,7 +10,6 @@ import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTrace
 import {
     ActiveImageSetTraceColor,
     OtherImageSetsTraceColor,
-    NumHistogramBins,
     OtherImageSetsTraceName,
 } from '../../definitions/PlotDataDefinitions'
 
@@ -157,6 +156,7 @@ function configureTraceForHistogram(
     features: string[],
     featureMinMaxes: Record<string, Record<string, MinMax>>,
     trace: Partial<Plotly.Data>,
+    numBins: number,
 ): Partial<Plotly.Data> {
     const feature = features[0]
     const mins: number[] = []
@@ -175,7 +175,7 @@ function configureTraceForHistogram(
     trace.xbins = {
         start: min,
         end: max,
-        size: (max - min) / NumHistogramBins,
+        size: (max - min) / numBins,
     }
     return trace
 }
@@ -192,6 +192,7 @@ export function calculatePlotData(
     selectedPopulations: SelectedPopulation[] | null,
     colorMap: Record<string, number>,
     dotSize?: number,
+    numBins?: number,
 ): Partial<Plotly.PlotData>[] {
     const rawPlotData = calculateRawPlotData(
         activeImageSet,
@@ -240,8 +241,8 @@ export function calculatePlotData(
                 },
             }
 
-            if (plotType == 'histogram') {
-                trace = configureTraceForHistogram(features, featureMinMaxes, trace)
+            if (plotType == 'histogram' && numBins) {
+                trace = configureTraceForHistogram(features, featureMinMaxes, trace, numBins)
             }
 
             plotData.push(trace)
@@ -281,6 +282,9 @@ export function buildHistogramData(
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
     colorMap: Record<string, number>,
+    numBins: number,
+    xLogScale: boolean,
+    yLogScale: boolean,
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
@@ -293,12 +297,17 @@ export function buildHistogramData(
         transformCoefficient,
         selectedPopulations,
         colorMap,
+        undefined,
+        numBins,
     )
     const layout: Partial<Plotly.Layout> = {
         title: features[0],
         xaxis: { title: features[0], automargin: true },
         barmode: 'overlay',
     }
+
+    if (xLogScale && layout.xaxis) layout.xaxis.type = 'log'
+    if (yLogScale) layout.yaxis = { type: 'log' }
     return { features: features, data: data, layout: layout }
 }
 
@@ -313,7 +322,9 @@ export function buildScatterData(
     transformCoefficient: number | null,
     selectedPopulations: SelectedPopulation[] | null,
     colorMap: Record<string, number>,
-    dotSize?: number,
+    dotSize: number,
+    xLogScale: boolean,
+    yLogScale: boolean,
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
@@ -341,6 +352,9 @@ export function buildScatterData(
         xaxis: xAxis,
         yaxis: yAxis,
     }
+
+    if (xLogScale && layout.xaxis) layout.xaxis.type = 'log'
+    if (yLogScale && layout.yaxis) layout.yaxis.type = 'log'
 
     return { features: features, data: data, layout: layout }
 }

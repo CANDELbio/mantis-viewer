@@ -21,6 +21,8 @@ import {
     PlotNormalization,
     PlotMinDotSize,
     PlotMaxDotSize,
+    PlotMinNumHistogramBins,
+    PlotMaxNumHistogramBins,
 } from '../definitions/UIDefinitions'
 import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
 
@@ -49,6 +51,12 @@ interface PlotControlsProps {
     setDownsample: (x: boolean) => void
     downsamplePercent: number
     setDownsamplePercent: (x: number) => void
+    numHistogramBins: number
+    setNumHistogramBins: (x: number) => void
+    xLogScale: boolean
+    setXLogScale: (x: boolean) => void
+    yLogScale: boolean
+    setYLogScale: (x: boolean) => void
     modalOpen?: boolean
     windowWidth: number | null
 }
@@ -161,7 +169,6 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTypeSelect}
                 isClearable={false}
                 styles={SelectStyle}
-                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -176,7 +183,6 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isDisabled={this.props.selectedType != 'heatmap'}
                 placeholder="Statistic"
                 styles={SelectStyle}
-                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -189,13 +195,12 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 onChange={this.onTransformSelect}
                 isClearable={false}
                 styles={SelectStyle}
-                className="space-bottom"
                 theme={SelectTheme}
             />
         )
 
         const coefficientControls = (
-            <div className="space-bottom">
+            <div>
                 Transform Coefficient
                 <NumericInput
                     step={4}
@@ -219,7 +224,6 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 isDisabled={normalizationDisabled}
                 placeholder="Normalization"
                 styles={SelectStyle}
-                className="space-bottom"
                 theme={SelectTheme}
             />
         )
@@ -237,6 +241,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                 />
             </div>
         )
+
         const plotProjectControlsEnabled = this.props.selectedType != 'heatmap' && this.props.projectLoaded
         const plotProjectControls = (
             <div>
@@ -277,7 +282,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
         )
 
         const downsamplePercentControls = (
-            <div className="space-bottom">
+            <div>
                 Fraction of Segments Plotted
                 <NumericInput
                     step={0.1}
@@ -304,6 +309,46 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             />
         )
 
+        // TODO: Turn min and max into constants
+        const numHistogramBinsEnabled = this.props.selectedType == 'histogram'
+        const numHistogramBins = (
+            <div>
+                Num Histogram Bins
+                <Slider
+                    min={PlotMinNumHistogramBins}
+                    max={PlotMaxNumHistogramBins}
+                    stepSize={1}
+                    labelStepSize={25}
+                    value={this.props.numHistogramBins}
+                    onChange={this.props.setNumHistogramBins}
+                    disabled={!numHistogramBinsEnabled}
+                />
+            </div>
+        )
+
+        const logScaleEnabled = this.props.selectedType != 'heatmap'
+        const logScaleControls = (
+            <div>
+                Log Scale
+                <Checkbox
+                    checked={this.props.xLogScale}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        this.props.setXLogScale(e.target.checked)
+                    }
+                    disabled={!logScaleEnabled}
+                    label="X"
+                />
+                <Checkbox
+                    checked={this.props.yLogScale}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                        this.props.setYLogScale(e.target.checked)
+                    }
+                    disabled={!logScaleEnabled}
+                    label="Y"
+                />
+            </div>
+        )
+
         return (
             <div>
                 <Grid fluid={true}>
@@ -319,24 +364,42 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     </Row>
                 </Grid>
                 <Popover
-                    placement="bottom"
+                    placement="bottom-start"
                     isOpen={this.state.popoverOpen}
                     trigger="legacy"
                     target="controls"
                     toggle={this.togglePopover}
-                    style={{ width: '250px' }}
+                    style={{ width: '500px' }}
                 >
                     <PopoverBody>
-                        {plotType}
-                        {statisticControls}
-                        {transformControls}
-                        {normalizationControls}
-                        {coefficientControls}
-                        {dotControls}
-                        {plotProjectControls}
-                        {collapseControls}
-                        {downsampleControls}
-                        {downsamplePercentControls}
+                        <table style={{ width: '475px' }} cellPadding="8">
+                            <tbody>
+                                <tr>
+                                    <td>{plotType}</td>
+                                    <td>{dotControls}</td>
+                                </tr>
+                                <tr>
+                                    <td>{statisticControls}</td>
+                                    <td>{plotProjectControls}</td>
+                                </tr>
+                                <tr>
+                                    <td>{transformControls}</td>
+                                    <td>{collapseControls}</td>
+                                </tr>
+                                <tr>
+                                    <td>{normalizationControls}</td>
+                                    <td>{downsampleControls}</td>
+                                </tr>
+                                <tr>
+                                    <td>{coefficientControls}</td>
+                                    <td>{downsamplePercentControls}</td>
+                                </tr>
+                                <tr>
+                                    <td>{numHistogramBins}</td>
+                                    <td>{logScaleControls}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </PopoverBody>
                 </Popover>
             </div>

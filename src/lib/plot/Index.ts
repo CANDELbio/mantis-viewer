@@ -21,7 +21,10 @@ export function generatePlotData(
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
     colorMap: Record<string, number>,
-    dotSize?: number,
+    histogramNumBins: number,
+    xLogScale: boolean,
+    yLogScale: boolean,
+    dotSize: number,
 ): PlotData | null {
     let plotData: PlotData | null = null
     const filteredPopulations = selectedPopulations
@@ -40,6 +43,9 @@ export function generatePlotData(
             transformCoefficient,
             filteredPopulations,
             colorMap,
+            histogramNumBins,
+            xLogScale,
+            yLogScale,
         )
     } else if ((plotType == 'scatter' || plotType == 'contour') && selectedFeatures.length > 1) {
         plotData = buildScatterData(
@@ -54,6 +60,8 @@ export function generatePlotData(
             filteredPopulations,
             colorMap,
             dotSize,
+            xLogScale,
+            yLogScale,
         )
     } else if (plotType == 'heatmap') {
         plotData = buildHeatmapData(

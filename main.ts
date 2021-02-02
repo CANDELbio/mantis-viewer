@@ -845,6 +845,9 @@ ipcMain.on(
         collapseAllImageSets: boolean,
         downsample: boolean,
         downsamplePercent: number,
+        numHistogramBins: number,
+        xLogScale: boolean,
+        yLogScale: boolean,
         plotData: any,
     ): void => {
         if (plotWindow != null)
@@ -863,6 +866,9 @@ ipcMain.on(
                 collapseAllImageSets,
                 downsample,
                 downsamplePercent,
+                numHistogramBins,
+                xLogScale,
+                yLogScale,
                 plotData,
             )
     },
@@ -922,7 +928,19 @@ ipcMain.on('plotWindow-set-plot-downsample', (event: Electron.Event, value: bool
 })
 
 ipcMain.on('plotWindow-set-plot-downsample-percent', (event: Electron.Event, value: number): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-set-plot-downsample-percent', value)
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-downsample-percent', value)
+})
+
+ipcMain.on('plotWindow-set-plot-num-histogram-bins', (event: Electron.Event, value: number): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-num-histogram-bins', value)
+})
+
+ipcMain.on('plotWindow-set-x-log-scale', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-x-log-scale', value)
+})
+
+ipcMain.on('plotWindow-set-y-log-scale', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-plot-y-log-scale', value)
 })
 
 // Functions to relay data from the mainWindow to the preferencesWindow

@@ -71,6 +71,9 @@ export class PlotStore {
                                     settingStore.plotNormalization,
                                     populationStore.selectedPopulations,
                                     settingStore.plotImageSetColors,
+                                    settingStore.plotNumHistogramBins,
+                                    settingStore.plotXLogScale,
+                                    settingStore.plotYLogScale,
                                     settingStore.plotDotSize,
                                 )
                                 if (plotData != null) this.setPlotData(plotData)

@@ -102,6 +102,10 @@ span.bp3-slider-label {
     background-color: #b6b1d6;
 }
 
+.bp3-control input:disabled:checked ~ .bp3-control-indicator {
+    background-color: #928ac2;
+}
+
 .bp3-control-indicator:hover {
     background-color: #4a4c9b;
 }
@@ -192,6 +196,10 @@ textarea:disabled {
 }
 .table tr:last-child td:last-child {
     border-bottom-right-radius: 5px;
+}
+
+div.popover.show {
+    min-width: 500px !important;
 }
 
 /* Misc styles */

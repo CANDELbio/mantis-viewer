@@ -284,6 +284,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setDownsample={settingStore.setPlotDownsample}
                                 downsamplePercent={settingStore.plotDownsamplePercent}
                                 setDownsamplePercent={settingStore.setPlotDownsamplePercent}
+                                numHistogramBins={settingStore.plotNumHistogramBins}
+                                setNumHistogramBins={settingStore.setPlotNumHistogramBins}
+                                xLogScale={settingStore.plotXLogScale}
+                                setXLogScale={settingStore.setPlotXLogScale}
+                                yLogScale={settingStore.plotYLogScale}
+                                setYLogScale={settingStore.setPlotYLogScale}
                             />
                         </div>
                     )

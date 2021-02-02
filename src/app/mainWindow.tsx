@@ -193,8 +193,20 @@ ipcRenderer.on('set-plot-downsample', (event: Electron.Event, value: boolean): v
     projectStore.settingStore.setPlotDownsample(value)
 })
 
-ipcRenderer.on('set-set-plot-downsample-percent', (event: Electron.Event, value: number): void => {
+ipcRenderer.on('set-plot-downsample-percent', (event: Electron.Event, value: number): void => {
     projectStore.settingStore.setPlotDownsamplePercent(value)
+})
+
+ipcRenderer.on('set-plot-num-histogram-bins', (event: Electron.Event, value: number): void => {
+    projectStore.settingStore.setPlotNumHistogramBins(value)
+})
+
+ipcRenderer.on('set-plot-x-log-scale', (event: Electron.Event, value: boolean): void => {
+    projectStore.settingStore.setPlotXLogScale(value)
+})
+
+ipcRenderer.on('set-plot-y-log-scale', (event: Electron.Event, value: boolean): void => {
+    projectStore.settingStore.setPlotYLogScale(value)
 })
 
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
@@ -333,6 +345,9 @@ Mobx.autorun((): void => {
         settingStore.plotCollapseAllImageSets,
         settingStore.plotDownsample,
         settingStore.plotDownsamplePercent,
+        settingStore.plotNumHistogramBins,
+        settingStore.plotXLogScale,
+        settingStore.plotYLogScale,
         plotStore.plotData,
     )
 })

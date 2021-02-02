@@ -24,6 +24,9 @@ let plotAllImageSets: boolean | null
 let collapseAllImageSets: boolean | null
 let downsample: boolean
 let downsamplePercent: number
+let numHistogramBins: number
+let xLogScale: boolean
+let yLogScale: boolean
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 const setSelectedPlotFeatures = (features: string[]): void => {
@@ -82,6 +85,18 @@ const setDownsamplePercent = (value: number): void => {
     ipcRenderer.send('plotWindow-set-plot-downsample-percent', value)
 }
 
+const setNumHistogramBins = (value: number): void => {
+    ipcRenderer.send('plotWindow-set-plot-num-histogram-bins', value)
+}
+
+const setXLogScale = (value: boolean): void => {
+    ipcRenderer.send('plotWindow-set-x-log-scale', value)
+}
+
+const setYLogScale = (value: boolean): void => {
+    ipcRenderer.send('plotWindow-set-y-log-scale', value)
+}
+
 function render(): void {
     if (
         featureNames &&
@@ -90,6 +105,9 @@ function render(): void {
         selectedTransform &&
         selectedType &&
         selectedNormalization &&
+        numHistogramBins &&
+        xLogScale != null &&
+        yLogScale != null &&
         projectLoaded != null &&
         plotAllImageSets != null &&
         collapseAllImageSets != null
@@ -125,6 +143,12 @@ function render(): void {
                         setDownsample={setDownsample}
                         downsamplePercent={downsamplePercent}
                         setDownsamplePercent={setDownsamplePercent}
+                        numHistogramBins={numHistogramBins}
+                        setNumHistogramBins={setNumHistogramBins}
+                        xLogScale={xLogScale}
+                        setXLogScale={setXLogScale}
+                        yLogScale={yLogScale}
+                        setYLogScale={setYLogScale}
                     />
                 </div>
                 <Plot
@@ -161,6 +185,9 @@ ipcRenderer.on(
         collapseAll: boolean,
         plotDownsample: boolean,
         plotDownsamplePercent: number,
+        histogramBins: number,
+        plotXLogScale: boolean,
+        plotYLogScale: boolean,
         data: any,
     ): void => {
         featureNames = features
@@ -176,6 +203,9 @@ ipcRenderer.on(
         collapseAllImageSets = collapseAll
         downsample = plotDownsample
         downsamplePercent = plotDownsamplePercent
+        numHistogramBins = histogramBins
+        xLogScale = plotXLogScale
+        yLogScale = plotYLogScale
         plotData = data as PlotData
         render()
     },
