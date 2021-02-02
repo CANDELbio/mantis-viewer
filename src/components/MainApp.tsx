@@ -338,6 +338,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentFeaturesImporting={segmentFeaturesImporting}
                     segmentFeaturesLoading={segmentFeaturesLoading}
                     selectionsLoading={selectionsLoading}
+                    applicationReloading={notificationStore.reloadMainWindow}
                 />
                 <ProjectImportModal
                     open={displayProjectImportModal}

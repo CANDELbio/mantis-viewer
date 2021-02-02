@@ -10,6 +10,7 @@ export interface LoadingModalProps {
     segmentFeaturesLoading: boolean
     segmentFeaturesImporting: boolean
     selectionsLoading: boolean
+    applicationReloading: boolean
 }
 
 @observer
@@ -34,6 +35,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
             if (this.props.segmentFeaturesLoading) modalText = 'Segment intensities are being calculated...'
             if (this.props.segmentFeaturesImporting) modalText = 'Segment features are importing...'
             if (this.props.selectionsLoading) modalText = 'Selections features are importing...'
+            if (this.props.applicationReloading) modalText = 'Mantis is reloading...'
             let progressElement = <Spinner style={{ width: '5rem', height: '5rem' }} color="secondary" />
             let progressText = null
             const numToCalculate = this.props.numToCalculate

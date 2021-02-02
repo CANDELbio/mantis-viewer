@@ -583,16 +583,15 @@ function registerMainWindowEvents(): void {
         closePlotWindow()
         closePreferencesWindow()
     })
-
-    mainWindow.on('ready-to-show', (): void => {
-        if (mainWindow != null) mainWindow.show()
-    })
 }
 
 function createMainWindow(): void {
     mainWindow = initializeMainWindow()
     setMenu()
     registerMainWindowEvents()
+    mainWindow.on('ready-to-show', (): void => {
+        if (mainWindow != null) mainWindow.show()
+    })
 }
 
 function createPlotWindow(): void {
@@ -1094,19 +1093,17 @@ ipcMain.on('mainWindow-reload', (): void => {
     const mainWindowDimensions = oldMainWindow.getSize()
     mainWindow = initializeMainWindow(mainWindowDimensions[0], mainWindowDimensions[1])
     setMenu()
+    registerMainWindowEvents()
 
     const message = 'Mantis has encountered an error and will restart.'
     dialog.showMessageBox(oldMainWindow, { type: 'error', message: message }).then((): void => {
-        registerMainWindowEvents()
-        mainWindow.on('ready-to-show', (): void => {
-            oldMainWindow.removeAllListeners()
-            oldMainWindow.destroy()
-            mainWindow.show()
-            if (projectWasLoaded) {
-                mainWindow.webContents.send('open-project', oldProjectDirectory)
-            } else if (imageWasLoaded) {
-                mainWindow.webContents.send('open-image-set', oldImageDirectory)
-            }
-        })
+        oldMainWindow.removeAllListeners()
+        oldMainWindow.destroy()
+        mainWindow.show()
+        if (projectWasLoaded) {
+            mainWindow.webContents.send('open-project', oldProjectDirectory)
+        } else if (imageWasLoaded) {
+            mainWindow.webContents.send('open-image-set', oldImageDirectory)
+        }
     })
 })
