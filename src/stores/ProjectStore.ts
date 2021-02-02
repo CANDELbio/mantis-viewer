@@ -142,7 +142,12 @@ export class ProjectStore {
 
             this.projectPath = dirName
             this.initializeImageSetStores(paths)
-            this.setActiveImageSet(this.imageSetPaths[0])
+            const savedActiveImageSet = this.settingStore.activeImageSet
+            if (savedActiveImageSet && this.imageSetPaths.includes(savedActiveImageSet)) {
+                this.setActiveImageSet(savedActiveImageSet)
+            } else {
+                this.setActiveImageSet(this.imageSetPaths[0])
+            }
         } else {
             this.notificationStore.setErrorMessage('No image set directories found in ' + path.basename(dirName) + '.')
         }
@@ -217,6 +222,7 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
+        this.settingStore.setActiveImageSet(dirName)
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(

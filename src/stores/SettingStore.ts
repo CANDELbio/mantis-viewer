@@ -24,6 +24,7 @@ import {
 import { ProjectStore } from './ProjectStore'
 
 type SettingStoreData = {
+    activeImageSet?: string | null
     imageSubdirectory?: string | null
     channelMarker?: Record<ChannelName, string | null> | null
     channelDomainPercentage?: Record<ChannelName, [number, number]> | null
@@ -65,6 +66,9 @@ export class SettingStore {
 
     // Storing the base path of the image set or project path for saving/loading settings from a file.
     @observable public basePath: string | null
+    // Storing the active image set so we can reload it.
+    // TODO: DRY up with activeImageSet in project store.
+    @observable public activeImageSet: string | null
     // Storing the subdirectory name where images are stored in an ImageSet. Blank if not used.
     @observable public imageSubdirectory: string | null
     // Image settings below
@@ -112,6 +116,7 @@ export class SettingStore {
         this.basePath = null
         this.db = null
         this.imageSubdirectory = null
+        this.activeImageSet = null
 
         this.channelMarker = {
             rChannel: null,
@@ -190,6 +195,10 @@ export class SettingStore {
 
     @action public setImageSubdirectory = (subDir: string): void => {
         this.imageSubdirectory = subDir
+    }
+
+    @action public setActiveImageSet = (imageSet: string): void => {
+        this.activeImageSet = imageSet
     }
 
     @action public setPlotStatistic = (statistic: PlotStatistic): void => {
@@ -377,6 +386,7 @@ export class SettingStore {
         if (this.db != null) {
             const exporting: SettingStoreData = {
                 imageSubdirectory: this.imageSubdirectory,
+                activeImageSet: this.activeImageSet,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainPercentage: this.channelDomainPercentage,
@@ -419,6 +429,7 @@ export class SettingStore {
             try {
                 const importingSettings: SettingStoreData = this.db.getSettings()
                 if (importingSettings.imageSubdirectory) this.imageSubdirectory = importingSettings.imageSubdirectory
+                if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
                 if (importingSettings.channelDomainPercentage)
