@@ -188,7 +188,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 legendVisible={settingStore.legendVisible}
                 zoomInsetVisible={settingStore.zoomInsetVisible}
                 windowHeight={windowHeight}
-                reloadAllImageSets={projectStore.reloadAllImageSets}
+                onWebGLContextLoss={projectStore.onWebGLContextLoss}
             />
         )
 

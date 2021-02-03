@@ -629,7 +629,7 @@ function createPlotWindow(): void {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 695,
+        height: 730,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -967,6 +967,7 @@ ipcMain.on(
         recalculateSegmentationStatistics: boolean,
         rememberClearDuplicateSegmentFeatures: boolean,
         clearDuplicateSegmentFeatures: boolean,
+        reloadOnError: boolean,
     ): void => {
         if (preferencesWindow != null)
             preferencesWindow.webContents.send(
@@ -983,6 +984,7 @@ ipcMain.on(
                 recalculateSegmentationStatistics,
                 rememberClearDuplicateSegmentFeatures,
                 clearDuplicateSegmentFeatures,
+                reloadOnError,
             )
     },
 )
@@ -1040,6 +1042,10 @@ ipcMain.on('preferencesWindow-set-remember-clear', (event: Electron.Event, value
 
 ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
+})
+
+ipcMain.on('preferencesWindow-set-reload-on-error', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-reload-on-error', value)
 })
 
 ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {

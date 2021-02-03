@@ -43,7 +43,7 @@ export interface ImageProps {
     legendVisible: boolean
     zoomInsetVisible: boolean
     windowHeight: number | null
-    reloadAllImageSets: () => void
+    onWebGLContextLoss: () => void
 }
 
 @observer
@@ -615,7 +615,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private handleWebGlContextLost = (): void => {
-        console.log('Recovering from WebGL context lost.')
         this.clearEventListeners()
         const el = this.el
         if (el) {
@@ -624,7 +623,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             }
         }
         this.initializePIXIGlobals()
-        this.props.reloadAllImageSets()
+        this.props.onWebGLContextLoss()
     }
 
     private addWebGLContextLostListener(el: HTMLDivElement): void {
@@ -634,10 +633,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 const canvas = canvases[0]
 
                 // Development shortcut to simulate the canvas losing WebGL2 context.
+                // TODO: Probably want to disable in production builds at some point.
                 Mousetrap.bind(['command+w', 'alt+w'], () => {
                     const webgl2Context = canvas.getContext('webgl2', {})
                     if (webgl2Context) {
-                        console.log(`Losing WebGL2 context...`)
+                        console.log(`Simulating WebGL Context loss.`)
                         webgl2Context.getExtension('WEBGL_lose_context')?.loseContext()
                     }
                 })

@@ -152,6 +152,10 @@ ipcRenderer.on('set-clear', (event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setClearDuplicateSegmentFeatures(value)
 })
 
+ipcRenderer.on('set-reload-on-error', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setReloadOnError(value)
+})
+
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-features', (event: Electron.Event, features: string[]): void => {
     projectStore.settingStore.setSelectedPlotFeatures(features)
@@ -369,6 +373,7 @@ Mobx.autorun((): void => {
         preferencesStore.recalculateSegmentFeatures,
         preferencesStore.rememberClearDuplicateSegmentFeatures,
         preferencesStore.clearDuplicateSegmentFeatures,
+        preferencesStore.reloadOnError,
     )
 })
 
@@ -508,7 +513,8 @@ Mobx.autorun((): void => {
 
 Mobx.autorun((): void => {
     const notificationStore = projectStore.notificationStore
-    if (notificationStore.reloadMainWindow) {
+    const preferencesStore = projectStore.preferencesStore
+    if (notificationStore.reloadMainWindow && preferencesStore.reloadOnError) {
         ipcRenderer.send('mainWindow-reload')
     }
 })

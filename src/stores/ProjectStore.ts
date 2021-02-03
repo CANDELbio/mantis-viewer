@@ -204,7 +204,7 @@ export class ProjectStore {
     }
 
     // Used when WebGL context is lost.
-    @action public reloadAllImageSets = (): void => {
+    @action public onWebGLContextLoss = (): void => {
         this.notificationStore.requestReloadMainWindow()
         // Clears all image sets out of memory and reloads the active image set.
         // this.notificationStore.setErrorMessage('Mantis encountered an error and needs to reload your image sets.')

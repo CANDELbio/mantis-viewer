@@ -31,6 +31,7 @@ export class PreferencesStore {
     @observable public recalculateSegmentFeatures: boolean
     @observable public rememberClearDuplicateSegmentFeatures: boolean
     @observable public clearDuplicateSegmentFeatures: boolean
+    @observable public reloadOnError: boolean
 
     private channelSelectionOrder: ChannelName[] = [
         'bChannel',
@@ -78,6 +79,7 @@ export class PreferencesStore {
         this.recalculateSegmentFeatures = false
         this.rememberClearDuplicateSegmentFeatures = false
         this.clearDuplicateSegmentFeatures = false
+        this.reloadOnError = true
     }
 
     @action public setMaxImageSetsInMemory(max: number): void {
@@ -193,6 +195,10 @@ export class PreferencesStore {
         this.clearDuplicateSegmentFeatures = clear
     }
 
+    @action public setReloadOnError = (reload: boolean): void => {
+        this.reloadOnError = reload
+    }
+
     private saveToStore = autorun(() => {
         const store = this.store
         store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
@@ -206,6 +212,7 @@ export class PreferencesStore {
         store.set('recalculateSegmentationStatistics', this.recalculateSegmentFeatures)
         store.set('rememberClearDuplicateSegmentFeatures', this.rememberClearDuplicateSegmentFeatures)
         store.set('clearDuplicateSegmentFeatures', this.clearDuplicateSegmentFeatures)
+        store.set('reloadOnError', this.reloadOnError)
         if (this.defaultSegmentationBasename) {
             store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
         } else {
@@ -239,5 +246,7 @@ export class PreferencesStore {
         if (rememberClear) this.rememberClearDuplicateSegmentFeatures = rememberClear
         const clear = store.get('clearDuplicateSegmentFeatures')
         if (clear) this.clearDuplicateSegmentFeatures = clear
+        const reload = store.get('reloadOnError')
+        if (reload != null) this.reloadOnError = reload
     }
 }

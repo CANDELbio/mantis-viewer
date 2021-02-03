@@ -16,6 +16,7 @@ let rememberRecalculateSegmentationStatistics: boolean
 let recalculateSegmentationStatistics: boolean
 let rememberClearDuplicateSegmentFeatures: boolean
 let clearDuplicateSegmentFeatures: boolean
+let reloadOnError: boolean
 
 const setMaxImageSetsInMemory = (max: number): void => {
     ipcRenderer.send('preferencesWindow-set-max-image-sets', max)
@@ -65,6 +66,10 @@ const setClear = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-clear', value)
 }
 
+const setReloadOnError = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-reload-on-error', value)
+}
+
 function render(): void {
     ReactDOM.render(
         <div style={{ paddingTop: '10px', paddingLeft: '15px', paddingRight: '15px' }}>
@@ -93,6 +98,8 @@ function render(): void {
                 setRememberClearDuplicates={setRememberClear}
                 clearDuplicates={clearDuplicateSegmentFeatures}
                 setClearDuplicates={setClear}
+                reloadOnError={reloadOnError}
+                setReloadOnError={setReloadOnError}
             />
         </div>,
         document.getElementById('preferences'),
@@ -115,6 +122,7 @@ ipcRenderer.on(
         recalculate: boolean,
         rememberClear: boolean,
         clear: boolean,
+        reload: boolean,
     ): void => {
         maxImageSetsInMemory = maxImageSets
         blurPixels = blur
@@ -128,6 +136,7 @@ ipcRenderer.on(
         recalculateSegmentationStatistics = recalculate
         rememberClearDuplicateSegmentFeatures = rememberClear
         clearDuplicateSegmentFeatures = clear
+        reloadOnError = reload
         render()
     },
 )
