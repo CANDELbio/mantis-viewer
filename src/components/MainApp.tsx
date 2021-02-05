@@ -216,10 +216,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 channel={s}
                                 channelVisible={settingStore.channelVisibility[s]}
                                 setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
-                                sliderMin={this.getChannelMin(s)}
-                                sliderMax={this.getChannelMax(s)}
+                                channelMin={this.getChannelMin(s)}
+                                channelMax={this.getChannelMax(s)}
                                 sliderValue={imageStore.channelDomain[s]}
-                                setChannelDomainPercentage={settingStore.setChannelDomainPercentageCallback(s)}
+                                setChannelDomainValue={settingStore.setChannelDomainValueCallback(s)}
                                 markers={markerNames}
                                 selectedMarker={selectedMarker}
                                 allSelectedMarkers={Object.values(settingStore.channelMarker)}

@@ -629,7 +629,7 @@ function createPlotWindow(): void {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 730,
+        height: 770,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -967,6 +967,7 @@ ipcMain.on(
         recalculateSegmentationStatistics: boolean,
         rememberClearDuplicateSegmentFeatures: boolean,
         clearDuplicateSegmentFeatures: boolean,
+        scaleChannelDomainValues: boolean,
         reloadOnError: boolean,
     ): void => {
         if (preferencesWindow != null)
@@ -984,6 +985,7 @@ ipcMain.on(
                 recalculateSegmentationStatistics,
                 rememberClearDuplicateSegmentFeatures,
                 clearDuplicateSegmentFeatures,
+                scaleChannelDomainValues,
                 reloadOnError,
             )
     },
@@ -1042,6 +1044,10 @@ ipcMain.on('preferencesWindow-set-remember-clear', (event: Electron.Event, value
 
 ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
+})
+
+ipcMain.on('preferencesWindow-set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-scale-channel-domain-values', value)
 })
 
 ipcMain.on('preferencesWindow-set-reload-on-error', (event: Electron.Event, value: boolean): void => {

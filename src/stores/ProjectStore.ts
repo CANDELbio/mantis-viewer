@@ -75,7 +75,7 @@ export class ProjectStore {
 
     @action public initialize = (): void => {
         // Initialize the preferences store (for storing user preferences)
-        this.preferencesStore = new PreferencesStore()
+        this.preferencesStore = new PreferencesStore(this)
         // Initialize the setting store (for storing image display settings to transfer when switching)
         this.settingStore = new SettingStore(this)
         this.notificationStore = new NotificationStore()

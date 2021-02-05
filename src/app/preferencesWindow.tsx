@@ -16,6 +16,7 @@ let rememberRecalculateSegmentationStatistics: boolean
 let recalculateSegmentationStatistics: boolean
 let rememberClearDuplicateSegmentFeatures: boolean
 let clearDuplicateSegmentFeatures: boolean
+let scaleChannelDomainValues: boolean
 let reloadOnError: boolean
 
 const setMaxImageSetsInMemory = (max: number): void => {
@@ -66,6 +67,10 @@ const setClear = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-clear', value)
 }
 
+const setScale = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-scale-channel-domain-values', value)
+}
+
 const setReloadOnError = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-reload-on-error', value)
 }
@@ -98,6 +103,8 @@ function render(): void {
                 setRememberClearDuplicates={setRememberClear}
                 clearDuplicates={clearDuplicateSegmentFeatures}
                 setClearDuplicates={setClear}
+                scaleChannelBrightness={scaleChannelDomainValues}
+                setScaleChannelBrightness={setScale}
                 reloadOnError={reloadOnError}
                 setReloadOnError={setReloadOnError}
             />
@@ -122,6 +129,7 @@ ipcRenderer.on(
         recalculate: boolean,
         rememberClear: boolean,
         clear: boolean,
+        scale: boolean,
         reload: boolean,
     ): void => {
         maxImageSetsInMemory = maxImageSets
@@ -136,6 +144,7 @@ ipcRenderer.on(
         recalculateSegmentationStatistics = recalculate
         rememberClearDuplicateSegmentFeatures = rememberClear
         clearDuplicateSegmentFeatures = clear
+        scaleChannelDomainValues = scale
         reloadOnError = reload
         render()
     },

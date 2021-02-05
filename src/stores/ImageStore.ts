@@ -39,15 +39,26 @@ export class ImageStore {
             kChannel: [0, 100],
         }
         const settingStore = this.imageSetStore.projectStore.settingStore
+        const preferencesStore = this.imageSetStore.projectStore.preferencesStore
         for (const channel of ImageChannels) {
             const channelMarker = settingStore.channelMarker[channel]
             if (this.imageData && channelMarker) {
                 const channelMinMax = this.imageData.minmax[channelMarker]
                 if (channelMinMax) {
+                    const channelMin = channelMinMax.min
                     const channelMax = channelMinMax.max
-                    const channelDomainPercentage = settingStore.channelDomainPercentage[channel]
-                    results[channel][0] = channelMax * channelDomainPercentage[0]
-                    results[channel][1] = channelMax * channelDomainPercentage[1]
+                    const channelDomainValue = settingStore.channelDomainValue[channel]
+                    if (preferencesStore.scaleChannelDomainValues) {
+                        // If the user's preference is to scale channel domain values, the domain value is a percentage
+                        // that we multiply by the max to get the actual channel domain for the current marker.
+                        results[channel][0] = channelMax * channelDomainValue[0]
+                        results[channel][1] = channelMax * channelDomainValue[1]
+                    } else {
+                        // If the user's preference is not to channel domain values, the domain value is an actual value
+                        // that we use unless it's past the min/max.
+                        results[channel][0] = Math.max(channelMin, channelDomainValue[0])
+                        results[channel][1] = Math.min(channelMax, channelDomainValue[1])
+                    }
                 }
             }
         }

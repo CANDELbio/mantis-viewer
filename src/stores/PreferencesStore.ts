@@ -1,15 +1,18 @@
 import { observable, action, autorun } from 'mobx'
 import { ChannelName } from '../definitions/UIDefinitions'
+import { ProjectStore } from './ProjectStore'
 
 import * as Store from 'electron-store'
 
 export class PreferencesStore {
-    public constructor() {
+    public constructor(projectStore: ProjectStore) {
+        this.projectStore = projectStore
         this.store = new Store()
         this.initialize()
         this.loadFromStore()
     }
 
+    private projectStore: ProjectStore
     private store: Store
 
     @observable public maxImageSetsInMemory: number
@@ -31,6 +34,7 @@ export class PreferencesStore {
     @observable public recalculateSegmentFeatures: boolean
     @observable public rememberClearDuplicateSegmentFeatures: boolean
     @observable public clearDuplicateSegmentFeatures: boolean
+    @observable public scaleChannelDomainValues: boolean
     @observable public reloadOnError: boolean
 
     private channelSelectionOrder: ChannelName[] = [
@@ -79,6 +83,7 @@ export class PreferencesStore {
         this.recalculateSegmentFeatures = false
         this.rememberClearDuplicateSegmentFeatures = false
         this.clearDuplicateSegmentFeatures = false
+        this.scaleChannelDomainValues = false
         this.reloadOnError = true
     }
 
@@ -195,6 +200,11 @@ export class PreferencesStore {
         this.clearDuplicateSegmentFeatures = clear
     }
 
+    @action public setScaleChannelDomainValues = (scale: boolean): void => {
+        this.scaleChannelDomainValues = scale
+        this.projectStore.settingStore.resetChannelDomainValues()
+    }
+
     @action public setReloadOnError = (reload: boolean): void => {
         this.reloadOnError = reload
     }
@@ -212,6 +222,7 @@ export class PreferencesStore {
         store.set('recalculateSegmentationStatistics', this.recalculateSegmentFeatures)
         store.set('rememberClearDuplicateSegmentFeatures', this.rememberClearDuplicateSegmentFeatures)
         store.set('clearDuplicateSegmentFeatures', this.clearDuplicateSegmentFeatures)
+        store.set('scaleChannelDomainValues', this.scaleChannelDomainValues)
         store.set('reloadOnError', this.reloadOnError)
         if (this.defaultSegmentationBasename) {
             store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
@@ -246,6 +257,8 @@ export class PreferencesStore {
         if (rememberClear) this.rememberClearDuplicateSegmentFeatures = rememberClear
         const clear = store.get('clearDuplicateSegmentFeatures')
         if (clear) this.clearDuplicateSegmentFeatures = clear
+        const scale = store.get('scaleChannelDomainValues')
+        if (scale) this.scaleChannelDomainValues = scale
         const reload = store.get('reloadOnError')
         if (reload != null) this.reloadOnError = reload
     }

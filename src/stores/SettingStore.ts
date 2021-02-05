@@ -22,12 +22,13 @@ import {
     PlotNormalizationOptions,
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
+import { MinMax } from '../interfaces/ImageInterfaces'
 
 type SettingStoreData = {
     activeImageSet?: string | null
     imageSubdirectory?: string | null
     channelMarker?: Record<ChannelName, string | null> | null
-    channelDomainPercentage?: Record<ChannelName, [number, number]> | null
+    channelDomainValue?: Record<ChannelName, [number, number]> | null
     channelVisibility?: Record<ChannelName, boolean> | null
     segmentationBasename?: string | null
     regionsBasename?: string | null
@@ -74,8 +75,8 @@ export class SettingStore {
     // Image settings below
     // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
-    // channelDomain stored here as percentages.
-    @observable public channelDomainPercentage: Record<ChannelName, [number, number]>
+    // channelDomain stored here as raw values or percentages depending on what the user has set in settings.
+    @observable public channelDomainValue: Record<ChannelName, [number, number]>
     // Which channels are visible
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
@@ -168,7 +169,7 @@ export class SettingStore {
         this.transformCoefficient = null
 
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
-        this.channelDomainPercentage = this.projectStore.preferencesStore.getChannelDomainPercentage()
+        this.channelDomainValue = this.projectStore.preferencesStore.getChannelDomainPercentage()
     }
 
     @action public setBasePath = (path: string): void => {
@@ -287,14 +288,24 @@ export class SettingStore {
         this.zoomInsetVisible = visible
     }
 
-    @action public setChannelDomainPercentageCallback = (name: ChannelName): ((value: [number, number]) => void) => {
-        return action((value: [number, number]) => {
-            this.setChannelDomainPercentage(name, value)
+    @action public setChannelDomainValueCallback = (
+        name: ChannelName,
+    ): ((value: [number, number], minMax: MinMax) => void) => {
+        return action((value: [number, number], minMax: MinMax) => {
+            this.setChannelDomainValue(name, value, minMax)
         })
     }
 
-    @action public setChannelDomainPercentage = (name: ChannelName, value: [number, number]): void => {
-        this.channelDomainPercentage[name] = value
+    @action private setChannelDomainValue = (name: ChannelName, value: [number, number], minMax: MinMax): void => {
+        this.channelDomainValue[name] = value
+        const preferencesStore = this.projectStore.preferencesStore
+        if (preferencesStore.scaleChannelDomainValues) {
+            // If scaling, convert to a percentage based on the max first.
+            this.channelDomainValue[name] = [value[0] / minMax.max, value[1] / minMax.max]
+        } else {
+            // Otherwise just store the raw values
+            this.channelDomainValue[name] = value
+        }
     }
 
     @action public setChannelVisibilityCallback = (name: ChannelName): ((value: boolean) => void) => {
@@ -303,15 +314,18 @@ export class SettingStore {
         })
     }
 
-    @action public setChannelVisibility = (name: ChannelName, visible: boolean): void => {
+    @action private setChannelVisibility = (name: ChannelName, visible: boolean): void => {
         this.channelVisibility[name] = visible
     }
 
-    @action public setChannelMarkerCallback = (name: ChannelName): ((x: string | null) => void) => {
-        return action((x: string | null) => {
+    @action public setChannelMarkerCallback = (name: ChannelName): ((marker: string | null) => void) => {
+        return action((marker: string | null) => {
             // If the SelectOption has a value.
-            if (x) {
-                this.setChannelMarker(name, x)
+            if (marker) {
+                const activeImageData = this.projectStore.activeImageSetStore.imageStore.imageData
+                if (activeImageData) {
+                    this.setChannelMarker(name, marker, activeImageData.minmax[marker])
+                }
                 // If SelectOption doesn't have a value the channel has been cleared and values should be reset.
             } else {
                 this.unsetChannelMarker(name)
@@ -358,28 +372,47 @@ export class SettingStore {
         if (imageStore.imageData != null) {
             const preferencesStore = this.projectStore.preferencesStore
             const defaultValues = preferencesStore.getDefaultChannelMarkers(imageStore.imageData.markerNames)
+            const markerMinMaxes = imageStore.imageData.minmax
             for (const s in defaultValues) {
                 const channelName = s as ChannelName
                 const markerName = defaultValues[channelName]
-                if (markerName != null) this.setChannelMarker(channelName, markerName)
+                if (markerName != null) this.setChannelMarker(channelName, markerName, markerMinMaxes[markerName])
             }
         }
     }
-    @action public setChannelMarker = (channelName: ChannelName, markerName: string): void => {
+
+    @action private setChannelMarker = (channelName: ChannelName, markerName: string, markerMinMax: MinMax): void => {
         this.channelMarker[channelName] = markerName
-        this.setDefaultChannelDomainPercentage(channelName)
+        this.setDefaultChannelDomainValue(channelName, markerMinMax)
     }
 
     @action public unsetChannelMarker = (channelName: ChannelName): void => {
         this.channelMarker[channelName] = null
-        this.setDefaultChannelDomainPercentage(channelName)
+        this.setDefaultChannelDomainValue(channelName)
     }
 
-    @action private setDefaultChannelDomainPercentage = (channelName: ChannelName): void => {
+    @action public resetChannelDomainValues = (): void => {
+        const activeImageData = this.projectStore.activeImageSetStore.imageStore.imageData
+        if (activeImageData) {
+            ImageChannels.map((channel: ChannelName) => {
+                const marker = this.channelMarker[channel]
+                if (marker) this.setDefaultChannelDomainValue(channel, activeImageData.minmax[marker])
+            })
+        }
+    }
+
+    @action private setDefaultChannelDomainValue = (channelName: ChannelName, markerMinMax?: MinMax): void => {
         const preferencesStore = this.projectStore.preferencesStore
         const domains = preferencesStore.getChannelDomainPercentage()
         const domainPercentage = domains[channelName]
-        this.channelDomainPercentage[channelName] = domainPercentage
+        if (!preferencesStore.scaleChannelDomainValues && markerMinMax) {
+            this.channelDomainValue[channelName] = [
+                domainPercentage[0] * markerMinMax.max,
+                domainPercentage[1] * markerMinMax.max,
+            ]
+        } else {
+            this.channelDomainValue[channelName] = domainPercentage
+        }
     }
 
     private exportSettings = autorun(() => {
@@ -389,7 +422,7 @@ export class SettingStore {
                 activeImageSet: this.activeImageSet,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
-                channelDomainPercentage: this.channelDomainPercentage,
+                channelDomainValue: this.channelDomainValue,
                 segmentationBasename: this.segmentationBasename,
                 regionsBasename: this.regionsBasename,
                 regionsFilesLoaded: toJS(this.regionsFilesLoaded),
@@ -432,8 +465,7 @@ export class SettingStore {
                 if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
-                if (importingSettings.channelDomainPercentage)
-                    this.channelDomainPercentage = importingSettings.channelDomainPercentage
+                if (importingSettings.channelDomainValue) this.channelDomainValue = importingSettings.channelDomainValue
                 if (importingSettings.segmentationBasename)
                     this.segmentationBasename = importingSettings.segmentationBasename
                 if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename

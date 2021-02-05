@@ -15,19 +15,20 @@ import {
 } from '../lib/SelectHelper'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
+import { MinMax } from '../interfaces/ImageInterfaces'
 
 export interface ChannelControlsProps {
     channel: ChannelName
     channelVisible: boolean
     setChannelVisibility: (value: boolean) => void
-    sliderMin: number
-    sliderMax: number
+    channelMin: number
+    channelMax: number
     sliderValue: [number, number]
-    setChannelDomainPercentage: (value: [number, number]) => void
+    setChannelDomainValue: (value: [number, number], minMax: MinMax) => void
     markers: string[]
     selectedMarker: string | null
     allSelectedMarkers: (string | null)[]
-    setMarker: (x: string | null) => void
+    setMarker: (marker: string | null) => void
     windowWidth: number | null
 }
 
@@ -65,9 +66,8 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         )
     }
 
-    // Convert channel domain to percentage before saving
-    private setChannelDomain = (value: [number, number]): void => {
-        this.props.setChannelDomainPercentage([value[0] / this.props.sliderMax, value[1] / this.props.sliderMax])
+    private onChannelDomainChange = (value: [number, number]): void => {
+        this.props.setChannelDomainValue(value, { min: this.props.channelMin, max: this.props.channelMax })
     }
 
     public render(): React.ReactNode {
@@ -78,7 +78,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
         const paddingStyle = { paddingTop: '3px' }
 
-        const unroundedStepSize = this.props.sliderMax / 5
+        const unroundedStepSize = this.props.channelMax / 5
         const roundedStepSize = Math.round(unroundedStepSize)
         const labelStepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
 
@@ -96,17 +96,17 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
         let brightnessSlider = (
             <RangeSlider
-                min={this.props.sliderMin}
-                max={this.props.sliderMax}
+                min={this.props.channelMin}
+                max={this.props.channelMax}
                 value={this.props.sliderValue}
                 labelStepSize={labelStepSize}
                 labelPrecision={1}
-                stepSize={this.props.sliderMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                onChange={this.setChannelDomain}
+                stepSize={this.props.channelMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
+                onChange={this.onChannelDomainChange}
             />
         )
 
-        if (this.props.sliderMin == this.props.sliderMax) {
+        if (this.props.channelMin == this.props.channelMax) {
             brightnessSlider = <div>No non-zero values present in image</div>
         }
 

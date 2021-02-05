@@ -31,6 +31,8 @@ export interface PreferencesProps {
     setRememberClearDuplicates: (value: boolean) => void
     clearDuplicates: boolean
     setClearDuplicates: (value: boolean) => void
+    scaleChannelBrightness: boolean
+    setScaleChannelBrightness: (value: boolean) => void
     reloadOnError: boolean
     setReloadOnError: (value: boolean) => void
 }
@@ -83,6 +85,9 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
 
     private onUseAnyMarkerChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
         this.props.setUseAnyMarker(this.state.selectedChannel, event.target.checked)
+
+    private onScaleChannelBrightnessChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
+        this.props.setScaleChannelBrightness(event.target.checked)
 
     private onReloadOnErrorChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
         this.props.setReloadOnError(event.target.checked)
@@ -230,6 +235,13 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         checked={this.props.useAnyMarker[this.state.selectedChannel]}
                         onChange={this.onUseAnyMarkerChange}
                         label="Use Any Marker if Defaults Not Present"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.scaleChannelBrightness}
+                        onChange={this.onScaleChannelBrightnessChange}
+                        label="Scale channel brightnesses when switching image sets"
                     />
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>
