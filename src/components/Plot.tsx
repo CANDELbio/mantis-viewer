@@ -14,6 +14,8 @@ interface PlotProps {
     setSelectedSegments: (selectedSegments: number[]) => void
     setSelectedRange: (min: number, max: number) => void
     setHoveredSegments: (selectedSegments: number[]) => void
+    updateHiddenPopulation: (populationName: string) => void
+    hiddenPopulations: string[]
     plotData: PlotData | null
     windowWidth: number | null
     maxPlotHeight: number | null
@@ -44,6 +46,13 @@ export class Plot extends React.Component<PlotProps, {}> {
         if (this.props.selectedType == 'scatter') this.props.setHoveredSegments(this.parseScatterEvent(data))
     }
     private onUnHover = (): void => this.props.setHoveredSegments([])
+
+    private onLegendClick = (data: Plotly.LegendClickEvent): boolean => {
+        const curveNumber = data.curveNumber
+        const curveName = data.data[curveNumber].name
+        if (curveName) this.props.updateHiddenPopulation(curveName)
+        return false
+    }
 
     public componentWillUnmount(): void {
         this.cleanupPlotly()
@@ -99,19 +108,41 @@ export class Plot extends React.Component<PlotProps, {}> {
         }
     }
 
-    private mountPlot = async (el: HTMLElement | null, width: number | null, height: number | null): Promise<void> => {
-        if (el != null && this.props.plotData != null) {
+    private mountPlot = async (
+        el: HTMLElement | null,
+        width: number | null,
+        height: number | null,
+        plotData: PlotData,
+        hiddenPopulations: string[],
+    ): Promise<void> => {
+        if (el != null) {
             const firstRender = this.container == null
-            const layoutWithSize = this.props.plotData.layout
+            const layoutWithSize = plotData.layout
             const config: Partial<Plotly.Config> = {}
+            // Setting any hidden populations as hidden, and all visible as visible.
+            plotData.data.forEach(
+                (curve: Partial<Plotly.Data>): Partial<Plotly.Data> => {
+                    const populationName = curve.name
+                    if (populationName && hiddenPopulations.includes(populationName)) {
+                        curve.visible = 'legendonly'
+                    } else {
+                        curve.visible = true
+                    }
+                    return curve
+                },
+            )
+
             if (width != null && height != null) {
                 layoutWithSize.width = width
                 layoutWithSize.height = height
             }
+
             if (this.props.selectedType == 'histogram') config['modeBarButtonsToRemove'] = ['lasso2d']
+
             if (this.props.selectedType == 'heatmap' || this.props.downsample)
                 config['modeBarButtonsToRemove'] = ['lasso2d', 'select2d']
-            this.container = await Plotly.react(el, this.props.plotData.data, layoutWithSize, config)
+
+            this.container = await Plotly.react(el, plotData.data, layoutWithSize, config)
             // Resize the plot to fit the container
             // Might need to remove. Seems that if this fires too much can cause weirdness with WebGL contexts.
             Plotly.Plots.resize(this.container)
@@ -120,6 +151,7 @@ export class Plot extends React.Component<PlotProps, {}> {
                 this.container.on('plotly_selected', this.onPlotSelected)
                 this.container.on('plotly_hover', this.onHover)
                 this.container.on('plotly_unhover', this.onUnHover)
+                this.container.on('plotly_legendclick', this.onLegendClick)
             }
         }
     }
@@ -130,11 +162,13 @@ export class Plot extends React.Component<PlotProps, {}> {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const windowWidth = this.props.windowWidth
         const maxPlotHeight = this.props.maxPlotHeight
+        const plotData = this.props.plotData
+        const hiddenPopulations = this.props.hiddenPopulations
 
         let plot = null
 
         // If plot data is unset, cleanup Plotly
-        if (!this.props.plotData) {
+        if (!plotData) {
             this.cleanupPlotly()
         } else {
             plot = (
@@ -142,7 +176,9 @@ export class Plot extends React.Component<PlotProps, {}> {
                     {({ size }): React.ReactElement => (
                         <div
                             id="plotly-scatterplot"
-                            ref={(el): Promise<void> => this.mountPlot(el, size.width, maxPlotHeight)}
+                            ref={(el): Promise<void> =>
+                                this.mountPlot(el, size.width, maxPlotHeight, plotData, hiddenPopulations)
+                            }
                         />
                     )}
                 </SizeMe>

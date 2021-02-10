@@ -855,6 +855,7 @@ ipcMain.on(
         numHistogramBins: number,
         xLogScale: boolean,
         yLogScale: boolean,
+        hiddenPopulations: string[],
         plotData: any,
     ): void => {
         if (plotWindow != null)
@@ -876,6 +877,7 @@ ipcMain.on(
                 numHistogramBins,
                 xLogScale,
                 yLogScale,
+                hiddenPopulations,
                 plotData,
             )
     },
@@ -948,6 +950,10 @@ ipcMain.on('plotWindow-set-x-log-scale', (event: Electron.Event, value: boolean)
 
 ipcMain.on('plotWindow-set-y-log-scale', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-plot-y-log-scale', value)
+})
+
+ipcMain.on('plotWindow-update-hidden-population', (event: Electron.Event, value: string): void => {
+    if (mainWindow != null) mainWindow.webContents.send('update-plot-hidden-population', value)
 })
 
 // Functions to relay data from the mainWindow to the preferencesWindow

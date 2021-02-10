@@ -48,6 +48,7 @@ type SettingStoreData = {
     plotNumHistogramBins?: number
     plotXLogScale?: boolean
     plotYLogScale?: boolean
+    plotHiddenPopulations?: string[]
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
@@ -112,6 +113,7 @@ export class SettingStore {
     @observable public plotNumHistogramBins: number
     @observable public plotXLogScale: boolean
     @observable public plotYLogScale: boolean
+    @observable public plotHiddenPopulations: string[]
 
     @action public initialize = (): void => {
         this.basePath = null
@@ -159,6 +161,7 @@ export class SettingStore {
         this.plotNumHistogramBins = DefaultNumHistogramBins
         this.plotXLogScale = false
         this.plotYLogScale = false
+        this.plotHiddenPopulations = []
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
@@ -262,6 +265,18 @@ export class SettingStore {
 
     @action public setPlotYLogScale = (value: boolean): void => {
         this.plotYLogScale = value
+    }
+
+    @action public updateHiddenPopulation = (populationName: string): void => {
+        if (this.plotHiddenPopulations.includes(populationName)) {
+            this.plotHiddenPopulations = this.plotHiddenPopulations.filter(
+                (curPop: string): boolean => curPop != populationName,
+            )
+        } else {
+            const updatedHiddenPopulations = this.plotHiddenPopulations.slice()
+            updatedHiddenPopulations.push(populationName)
+            this.plotHiddenPopulations = updatedHiddenPopulations
+        }
     }
 
     @action public setTransformCoefficient = (coefficient: number): void => {
@@ -441,6 +456,7 @@ export class SettingStore {
                 plotNumHistogramBins: this.plotNumHistogramBins,
                 plotXLogScale: this.plotXLogScale,
                 plotYLogScale: this.plotYLogScale,
+                plotHiddenPopulations: toJS(this.plotHiddenPopulations),
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
@@ -491,6 +507,8 @@ export class SettingStore {
                     this.plotNumHistogramBins = importingSettings.plotNumHistogramBins
                 if (importingSettings.plotXLogScale) this.plotXLogScale = importingSettings.plotXLogScale
                 if (importingSettings.plotYLogScale) this.plotYLogScale = importingSettings.plotYLogScale
+                if (importingSettings.plotHiddenPopulations)
+                    this.plotHiddenPopulations = importingSettings.plotHiddenPopulations
                 if (importingSettings.segmentationFillAlpha)
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)

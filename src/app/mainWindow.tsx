@@ -217,6 +217,10 @@ ipcRenderer.on('set-plot-y-log-scale', (event: Electron.Event, value: boolean): 
     projectStore.settingStore.setPlotYLogScale(value)
 })
 
+ipcRenderer.on('update-plot-hidden-population', (event: Electron.Event, value: string): void => {
+    projectStore.settingStore.updateHiddenPopulation(value)
+})
+
 ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
     projectStore.activeImageSetStore.populationStore.createPopulationFromSegments(segmentIds)
 })
@@ -356,6 +360,7 @@ Mobx.autorun((): void => {
         settingStore.plotNumHistogramBins,
         settingStore.plotXLogScale,
         settingStore.plotYLogScale,
+        Mobx.toJS(settingStore.plotHiddenPopulations),
         plotStore.plotData,
     )
 })

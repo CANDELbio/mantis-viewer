@@ -27,6 +27,7 @@ let downsamplePercent: number
 let numHistogramBins: number
 let xLogScale: boolean
 let yLogScale: boolean
+let hiddenPopulations: string[]
 
 // Callback functions for the scatterplot that send data back to the main thread to be relayed to the main window.
 const setSelectedPlotFeatures = (features: string[]): void => {
@@ -97,6 +98,10 @@ const setYLogScale = (value: boolean): void => {
     ipcRenderer.send('plotWindow-set-y-log-scale', value)
 }
 
+const updateHiddenPopulation = (population: string): void => {
+    ipcRenderer.send('plotWindow-update-hidden-population', population)
+}
+
 function render(): void {
     if (
         featureNames &&
@@ -108,6 +113,7 @@ function render(): void {
         numHistogramBins &&
         xLogScale != null &&
         yLogScale != null &&
+        hiddenPopulations &&
         projectLoaded != null &&
         plotAllImageSets != null &&
         collapseAllImageSets != null
@@ -157,6 +163,8 @@ function render(): void {
                     setSelectedSegments={addSelectedPopulation}
                     setHoveredSegments={setHoveredSegments}
                     setSelectedRange={addPopulationFromRange}
+                    updateHiddenPopulation={updateHiddenPopulation}
+                    hiddenPopulations={hiddenPopulations}
                     plotData={plotData}
                     maxPlotHeight={plotHeight}
                     downsample={downsample}
@@ -188,6 +196,7 @@ ipcRenderer.on(
         histogramBins: number,
         plotXLogScale: boolean,
         plotYLogScale: boolean,
+        hidden: string[],
         data: any,
     ): void => {
         featureNames = features
@@ -206,6 +215,7 @@ ipcRenderer.on(
         numHistogramBins = histogramBins
         xLogScale = plotXLogScale
         yLogScale = plotYLogScale
+        hiddenPopulations = hidden
         plotData = data as PlotData
         render()
     },
