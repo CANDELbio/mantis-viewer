@@ -47,4 +47,4 @@ You can also import both regions on the image and populations of segments into M
 
 You can read more about the file formats that Mantis supports on the [importing segmentation and region data]({{ site.baseurl }}{% link docs/importing_data/importing_segmentation_region.md %}) or [importing populations]({{ site.baseurl }}{% link docs/importing_data/importing_populations.md %}) pages.
 
- 
+
