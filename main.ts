@@ -691,13 +691,11 @@ app.on('before-quit', (): void => {
 //Functions for setting menu flags and regenerating the menu
 ipcMain.on('set-image-loaded', (event: Electron.Event, loaded: boolean): void => {
     imageLoaded = loaded
-    projectLoaded = false
     setMenu()
 })
 
 ipcMain.on('set-project-loaded', (event: Electron.Event, loaded: boolean): void => {
     projectLoaded = loaded
-    imageLoaded = false
     setMenu()
 })
 
@@ -1107,6 +1105,12 @@ ipcMain.on('mainWindow-reload', (): void => {
     const oldProjectDirectory = projectDirectory
     const imageWasLoaded = imageLoaded
     const oldImageDirectory = activeImageDirectory
+
+    // Reset global variables to keep track of what's going on in the mainWindow.
+    projectLoaded = false
+    imageLoaded = false
+    segmentationLoaded = false
+    populationsSelected = false
 
     const mainWindowDimensions = oldMainWindow.getSize()
     mainWindow = initializeMainWindow(mainWindowDimensions[0], mainWindowDimensions[1])
