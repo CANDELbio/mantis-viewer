@@ -31,6 +31,7 @@ export class ProjectImportStore {
     @observable public imageSetSegmentationFile: string | null
     @observable public imageSetRegionFile: string | null
     @observable public imageSubdirectory: string | null
+    @observable public subdirectoryTiffs: string[]
 
     @observable public readyToImport: boolean
 
@@ -48,13 +49,17 @@ export class ProjectImportStore {
         this.featuresFileError = false
         this.projectDirectories = []
         this.projectCsvs = []
+        this.imageSetTiffs = []
+        this.subdirectoryTiffs = []
+        this.imageSetCsvs = []
+        this.imageSetDirs = []
         this.clearFileSelections()
     }
 
     private autoSetReadyToImport = autorun(() => {
         const ready =
             this.directory != null &&
-            this.imageSetTiffs.length > 0 &&
+            (this.imageSetTiffs.length > 0 || this.subdirectoryTiffs.length > 0) &&
             !this.featuresFileError &&
             !this.populationsFileError
         this.setReadyToImport(ready)
@@ -238,6 +243,20 @@ export class ProjectImportStore {
 
     @action public setImageSubdirectory = (file: string | null): void => {
         this.imageSubdirectory = file
+        // Make sure the subdirectory has tiffs we can import
+        const subdirectoryTiffs = []
+        if (this.directory && this.imageSet && file) {
+            const imageSubdirectoryPath = path.join(this.directory, this.imageSet, file)
+            const entries = fs.readdirSync(imageSubdirectoryPath, { withFileTypes: true })
+            for (const entry of entries) {
+                if (entry.isFile()) {
+                    const lowerFileName = entry.name.toLowerCase()
+                    if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff'))
+                        subdirectoryTiffs.push(entry.name)
+                }
+            }
+        }
+        this.subdirectoryTiffs = subdirectoryTiffs
     }
 
     public import = (): void => {
