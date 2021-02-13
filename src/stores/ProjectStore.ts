@@ -15,11 +15,6 @@ import {
     writeToCSV,
 } from '../lib/IO'
 
-import {
-    SegmentFeatureImporterResult,
-    importSegmentFeatureCSV,
-    SegmentFeatureImporterError,
-} from '../workers/SegmentFeatureImporter'
 import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 
@@ -531,73 +526,14 @@ export class ProjectStore {
         const rememberClearDuplicates = this.preferencesStore.rememberClearDuplicateSegmentFeatures
         if (rememberClearDuplicates && filePath && forProject != null) {
             // If the user wants us to remember their choice to clear duplicates, kick off importing segment features
-            this.importSegmentFeatures(this.preferencesStore.clearDuplicateSegmentFeatures)
+            this.segmentFeatureStore.importSegmentFeatures(
+                filePath,
+                forProject,
+                this.preferencesStore.clearDuplicateSegmentFeatures,
+            )
         } else if (filePath != null && forProject != null) {
             // Otherwise, ask the user if we should clear duplicates before importing
             this.notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(true)
-        }
-    }
-
-    public importSegmentFeatures = (clearDuplicates: boolean, remember?: boolean): void => {
-        const basePath = this.settingStore.basePath
-        const filePath = this.importingSegmentFeaturesPath
-        const activeImageSetName = this.activeImageSetStore.name
-        const forProject = this.importingSegmentFeaturesForProject
-
-        if (remember != null) {
-            // If this is being called from a context where we want to remember or forget the choice
-            // Then save the values to the preferences store
-            this.preferencesStore.setRememberClearDuplicateSegmentFeatures(remember)
-            this.preferencesStore.setClearDuplicateSegmentFeatures(clearDuplicates)
-        }
-
-        // If we're importing for the project, set to undefined.
-        // Otherwise get the name of the active image set
-        const validImageSets = this.imageSetPaths.map((p) => path.basename(p))
-        // importingImageSetName should be undefined if we're plotting from the project
-        // If it's not undefined, this will override all of the image set names from the CSV.
-        const importingImageSetName = !forProject && activeImageSetName ? activeImageSetName : undefined
-        const onImportComplete = (result: SegmentFeatureImporterResult | SegmentFeatureImporterError): void => {
-            if ('error' in result) {
-                this.notificationStore.setErrorMessage(result.error)
-            } else {
-                let message =
-                    'Successfully imported ' +
-                    result.importedFeatures +
-                    ' out of ' +
-                    result.totalFeatures +
-                    ' features.'
-                if (result.invalidFeatureNames.length > 0) {
-                    message +=
-                        '\nCould not import some of the following features: ' + result.invalidFeatureNames.join(', ')
-                }
-                if (result.invalidImageSets.length > 0) {
-                    message += '\nCould not find the following image sets: ' + result.invalidImageSets.join(', ')
-                }
-                this.notificationStore.setInfoMessage(message)
-            }
-            this.setImportingSegmentFeaturesValues(null, null)
-            // Refresh the available features once import is done so the user can use them for plotting
-            if (activeImageSetName) this.segmentFeatureStore.refreshAvailableFeatures(activeImageSetName)
-        }
-        if (basePath && filePath) {
-            // Launch a worker to import segment features from the CSV.
-            importSegmentFeatureCSV(
-                {
-                    basePath: basePath,
-                    filePath: filePath,
-                    validImageSets: validImageSets,
-                    imageSetName: importingImageSetName,
-                    clearDuplicates: clearDuplicates,
-                },
-                onImportComplete,
-            )
-        } else {
-            // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
-            this.notificationStore.setErrorMessage(
-                'Could not import segment features. Unable to find database path or file path.',
-            )
-            this.setImportingSegmentFeaturesValues(null, null)
         }
     }
 

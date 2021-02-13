@@ -1,3 +1,5 @@
+import * as path from 'path'
+
 import { observable, action, autorun, set, get, computed } from 'mobx'
 import { computedFn } from 'mobx-utils'
 
@@ -6,6 +8,12 @@ import { Db } from '../lib/Db'
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
+
+import {
+    SegmentFeatureDbRequest,
+    SegmentFeatureDbResult,
+    submitSegmentFeatureDbRequest,
+} from '../workers/SegmentFeatureDbWorker'
 
 export class SegmentFeatureStore {
     public constructor(projectStore: ProjectStore) {
@@ -32,8 +40,12 @@ export class SegmentFeatureStore {
         this.minMaxes = {}
     }
 
+    @computed public get basePath(): string | null {
+        return this.projectStore.settingStore.basePath
+    }
+
     private refreshDb = autorun(() => {
-        const basePath = this.projectStore.settingStore.basePath
+        const basePath = this.basePath
         if (basePath) this.setActiveDb(basePath)
     })
 
@@ -41,21 +53,23 @@ export class SegmentFeatureStore {
         this.db = new Db(dbPath)
     }
 
-    private autoRefreshAvailableFeatures = autorun(() => {
-        const activeImageSetName = this.projectStore.activeImageSetStore.name
-        if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
-    })
+    // private autoRefreshAvailableFeatures = autorun(() => {
+    //     const activeImageSetStore = this.projectStore.activeImageSetStore
+    //     const activeImageDataLoading = activeImageSetStore.imageStore.imageDataLoading
+    //     const activeImageSetName = activeImageSetStore.name
+    //     if (activeImageSetName && !activeImageDataLoading) this.refreshAvailableFeatures(activeImageSetName)
+    // })
 
     // When the user changes the features selected for the plot we want to automatically refresh
     // the feature statistics we have loaded from the database.
-    private autoRefreshFeatureStatistics = autorun(() => {
-        const features = this.projectStore.settingStore.selectedPlotFeatures
-        const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
-        // Only want to auto calculate if we're not loading multiple.
-        if (notLoadingMultiple) {
-            this.setFeatureStatisticsForSelectedImageSets(features)
-        }
-    })
+    // private autoRefreshFeatureStatistics = autorun(() => {
+    //     const features = this.projectStore.settingStore.selectedPlotFeatures
+    //     const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
+    //     // Only want to auto calculate if we're not loading multiple.
+    //     if (notLoadingMultiple) {
+    //         this.setFeatureStatisticsForSelectedImageSets(features)
+    //     }
+    // })
 
     featuresLoading = computedFn(function getFeaturesLoading(this: SegmentFeatureStore, imageSetName: string): boolean {
         const featuresLoading = get(this.loadingStatuses, imageSetName)
@@ -297,5 +311,74 @@ export class SegmentFeatureStore {
             }
         }
         return segments
+    }
+
+    public importSegmentFeatures = (
+        filePath: string,
+        forProject: boolean,
+        clearDuplicates: boolean,
+        remember?: boolean,
+    ): void => {
+        const projectStore = this.projectStore
+        const preferencesStore = projectStore.preferencesStore
+        const notificationStore = projectStore.notificationStore
+        const basePath = this.basePath
+        const activeImageSetName = projectStore.activeImageSetStore.name
+
+        if (remember != null) {
+            // If this is being called from a context where we want to remember or forget the choice
+            // Then save the values to the preferences store
+            preferencesStore.setRememberClearDuplicateSegmentFeatures(remember)
+            preferencesStore.setClearDuplicateSegmentFeatures(clearDuplicates)
+        }
+
+        // If we're importing for the project, set to undefined.
+        // Otherwise get the name of the active image set
+        const validImageSets = projectStore.imageSetPaths.map((p) => path.basename(p))
+        // importingImageSetName should be undefined if we're plotting from the project
+        // If it's not undefined, this will override all of the image set names from the CSV.
+        const importingImageSetName = !forProject && activeImageSetName ? activeImageSetName : undefined
+        const onImportComplete = (result: SegmentFeatureDbResult): void => {
+            if ('error' in result) {
+                notificationStore.setErrorMessage(result.error)
+            } else if ('importedFeatures' in result) {
+                let message =
+                    'Successfully imported ' +
+                    result.importedFeatures +
+                    ' out of ' +
+                    result.totalFeatures +
+                    ' features.'
+                if (result.invalidFeatureNames.length > 0) {
+                    message +=
+                        '\nCould not import some of the following features: ' + result.invalidFeatureNames.join(', ')
+                }
+                if (result.invalidImageSets.length > 0) {
+                    message += '\nCould not find the following image sets: ' + result.invalidImageSets.join(', ')
+                }
+                notificationStore.setInfoMessage(message)
+            }
+            projectStore.setImportingSegmentFeaturesValues(null, null)
+            // Refresh the available features once import is done so the user can use them for plotting
+            if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
+        }
+        if (basePath && filePath) {
+            // Launch a worker to import segment features from the CSV.
+            submitSegmentFeatureDbRequest(
+                {
+                    basePath: basePath,
+                    filePath: filePath,
+                    validImageSets: validImageSets,
+                    imageSetName: importingImageSetName,
+                    clearDuplicates: clearDuplicates,
+                },
+                onImportComplete,
+            )
+        } else {
+            // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
+            notificationStore.setErrorMessage(
+                'Could not import segment features. Unable to find database path or file path.',
+            )
+            projectStore.setImportingSegmentFeaturesValues(null, null)
+        }
     }
 }

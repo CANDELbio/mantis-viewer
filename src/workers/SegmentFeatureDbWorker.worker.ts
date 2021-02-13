@@ -4,11 +4,7 @@ const ctx: Worker = self as any
 
 import { Db } from '../lib/Db'
 import { parseSegmentDataCSV } from '../lib/IO'
-import {
-    SegmentFeatureImporterInput,
-    SegmentFeatureImporterResult,
-    SegmentFeatureImporterError,
-} from './SegmentFeatureImporter'
+import { SegmentFeatureDbRequest, SegmentFeatureDbResult } from './SegmentFeatureDbWorker'
 
 function importSegmentFeaturesFromCSV(
     basePath: string,
@@ -16,7 +12,7 @@ function importSegmentFeaturesFromCSV(
     validImageSets: string[],
     imageSetName: string | undefined,
     clearDuplicates: boolean,
-): SegmentFeatureImporterResult {
+): SegmentFeatureDbResult {
     const db = new Db(basePath)
     const invalidImageSets: string[] = []
     const parsed = parseSegmentDataCSV(filePath, imageSetName)
@@ -45,16 +41,20 @@ function importSegmentFeaturesFromCSV(
 ctx.addEventListener(
     'message',
     (message) => {
-        const input: SegmentFeatureImporterInput = message.data
-        let results: SegmentFeatureImporterResult | SegmentFeatureImporterError
+        const input: SegmentFeatureDbRequest = message.data
+        let results: SegmentFeatureDbResult
         try {
-            results = importSegmentFeaturesFromCSV(
-                input.basePath,
-                input.filePath,
-                input.validImageSets,
-                input.imageSetName,
-                input.clearDuplicates,
-            )
+            if ('filePath' in input) {
+                results = importSegmentFeaturesFromCSV(
+                    input.basePath,
+                    input.filePath,
+                    input.validImageSets,
+                    input.imageSetName,
+                    input.clearDuplicates,
+                )
+            } else {
+                results = { error: 'Invalid request' }
+            }
         } catch (err) {
             results = { error: err.message }
         }
