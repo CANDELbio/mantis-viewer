@@ -92,7 +92,7 @@ function startNextJob(): void {
 }
 
 function onSegmentationDataComplete(data: SegmentFeatureDbResult): void {
-    const completedJob = queuedJobs.pop()
+    const completedJob = queuedJobs.shift()
     if (completedJob) {
         completedJob.onComplete(data)
     }
