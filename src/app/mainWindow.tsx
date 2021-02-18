@@ -279,7 +279,7 @@ ipcRenderer.on('add-project-segment-features', (event: Electron.Event, filePath:
 })
 
 ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, clear: boolean, remember: boolean): void => {
-    projectStore.importSegmentFeatures(clear, remember)
+    projectStore.continueCalculatingSegmentFeatures(clear, remember)
 })
 
 ipcRenderer.on('calculate-segment-features', (event: Electron.Event, calculate: boolean, remember: boolean): void => {

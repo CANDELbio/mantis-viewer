@@ -1,4 +1,4 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureDb.worker')
+import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureDbWorker.worker')
 import { MinMax } from '../interfaces/ImageInterfaces'
 
 export type SegmentFeatureDbRequest = ImportRequest | ListFeaturesRequest | FeatureRequest
