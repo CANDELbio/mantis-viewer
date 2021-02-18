@@ -22,9 +22,9 @@ function getExistingSegmentationDataWorker(): SegmentationDataWorker {
         return worker
     } else {
         // We should never get here.
-        // This function willl only be called if there are maxImageDataWorkers in imageDataWorkerPool
+        // This function will only be called if there are maxImageDataWorkers in imageDataWorkerPool
         // Couldn't think of an elegant way to check for shift() returning undefined.
-        throw 'No ImageDataWorkers in pool.'
+        throw 'No SegmentationDataWorkers in pool.'
     }
 }
 

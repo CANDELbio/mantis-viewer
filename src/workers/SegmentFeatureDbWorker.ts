@@ -1,7 +1,21 @@
 import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureDb.worker')
+import { MinMax } from '../interfaces/ImageInterfaces'
 
 export type SegmentFeatureDbRequest = ImportRequest | ListFeaturesRequest | FeatureRequest
 export type SegmentFeatureDbResult = ImportResult | ListFeaturesResult | FeatureResult | RequestError
+
+export interface ImageSetFeatureRequest {
+    feature: string
+    imageSetName: string
+}
+
+export interface ImageSetFeatureResult {
+    feature: string
+    imageSetName: string
+    values: Record<number, number>
+    minMax: MinMax
+}
+;[]
 
 interface ImportRequest {
     basePath: string
@@ -30,14 +44,12 @@ interface ListFeaturesResult {
 
 interface FeatureRequest {
     basePath: string
-    imageSetNames: string[]
-    features: string[]
+    requestedFeatures: ImageSetFeatureRequest[]
 }
 
 interface FeatureResult {
     basePath: string
-    imageSetNames: string[]
-    features: string[]
+    featureResults: ImageSetFeatureResult[]
 }
 
 interface RequestError {
@@ -84,6 +96,7 @@ function onSegmentationDataComplete(data: SegmentFeatureDbResult): void {
     if (completedJob) {
         completedJob.onComplete(data)
     }
+    startNextJob()
 }
 
 export function submitSegmentFeatureDbRequest(

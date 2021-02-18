@@ -4,16 +4,33 @@ const ctx: Worker = self as any
 
 import { Db } from '../lib/Db'
 import { parseSegmentDataCSV } from '../lib/IO'
-import { SegmentFeatureDbRequest, SegmentFeatureDbResult } from './SegmentFeatureDbWorker'
+import { SegmentFeatureDbRequest, SegmentFeatureDbResult, ImageSetFeatureResult } from './SegmentFeatureDbWorker'
+import { MinMax } from '../interfaces/ImageInterfaces'
+
+// Globals to keep db connection
+let basePath: string
+let db: Db
+// Globals to cache feature values and min maxes
+let featureValues: Record<string, Record<string, Record<number, number>>>
+let featureMinMaxes: Record<string, Record<string, MinMax>>
+
+function initializeDb(dbPath: string): void {
+    if (basePath != dbPath) {
+        basePath = dbPath
+        db = new Db(basePath)
+        featureValues = {}
+        featureMinMaxes = {}
+    }
+}
 
 function importSegmentFeaturesFromCSV(
-    basePath: string,
+    dbPath: string,
     filePath: string,
     validImageSets: string[],
     imageSetName: string | undefined,
     clearDuplicates: boolean,
 ): SegmentFeatureDbResult {
-    const db = new Db(basePath)
+    initializeDb(dbPath)
     const invalidImageSets: string[] = []
     const parsed = parseSegmentDataCSV(filePath, imageSetName)
     const segmentData = parsed.data
@@ -38,6 +55,46 @@ function importSegmentFeaturesFromCSV(
     }
 }
 
+function getFeatureValues(
+    dbPath: string,
+    requestedFeatures: { feature: string; imageSetName: string }[],
+): SegmentFeatureDbResult {
+    initializeDb(dbPath)
+    const results: ImageSetFeatureResult[] = []
+    for (const feature of requestedFeatures) {
+        const curImageSet = feature.imageSetName
+        const curFeature = feature.feature
+
+        const currentValues = featureValues[curImageSet]
+        const currentMinMaxes = featureMinMaxes[curImageSet]
+
+        if (!currentValues) featureValues[curImageSet] = {}
+        if (!(curFeature in currentValues))
+            featureValues[curImageSet][curFeature] = db.selectValues([curImageSet], curFeature)[curImageSet]
+
+        if (!currentMinMaxes) featureMinMaxes[curImageSet] = {}
+        if (!(curFeature in currentMinMaxes))
+            featureMinMaxes[curImageSet][curFeature] = db.minMaxValues([curImageSet], curFeature)[curImageSet]
+
+        results.push({
+            feature: curFeature,
+            imageSetName: curImageSet,
+            values: featureValues[curImageSet][curFeature],
+            minMax: featureMinMaxes[curImageSet][curFeature],
+        })
+    }
+
+    return {
+        basePath: basePath,
+        featureResults: results,
+    }
+}
+
+function getFeaturesAvailable(dbPath: string, imageSetName: string): SegmentFeatureDbResult {
+    initializeDb(dbPath)
+    return { imageSetName: imageSetName, features: db.listFeatures(imageSetName) }
+}
+
 ctx.addEventListener(
     'message',
     (message) => {
@@ -52,6 +109,12 @@ ctx.addEventListener(
                     input.imageSetName,
                     input.clearDuplicates,
                 )
+            } else if ('requestedFeatures' in input) {
+                // Request to get values for feature for passed in image set
+                results = getFeatureValues(input.basePath, input.requestedFeatures)
+            } else if ('imageSetName' in input) {
+                // Request to list features available for the passed in image set
+                results = getFeaturesAvailable(input.basePath, input.imageSetName)
             } else {
                 results = { error: 'Invalid request' }
             }
