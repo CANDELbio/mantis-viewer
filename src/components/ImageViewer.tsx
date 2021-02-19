@@ -57,6 +57,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private imageData: ImageData | null
 
     private channelMarker: Record<ChannelName, string | null>
+    private channelVisibility: Record<ChannelName, boolean>
 
     // Color filters to use so that the sprites display as the desired color
     private channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
@@ -792,7 +793,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const legendVisible = this.legendVisible
         const imcData = this.imageData
         if (imcData && legendVisible) {
-            GraphicsHelper.drawLegend(this.legendGraphics, imcData, this.channelMarker)
+            GraphicsHelper.drawLegend(this.legendGraphics, imcData, this.channelMarker, this.channelVisibility)
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
             // Clear out the legend graphics so they don't get redrawn when zooming.
@@ -967,6 +968,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.removeChildren()
 
         this.channelMarker = channelMarker
+        this.channelVisibility = channelVisibility
         // For each channel setting the brightness and color filters
         for (const s of ImageChannels) {
             const curChannel = s as ChannelName

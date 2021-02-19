@@ -276,6 +276,7 @@ export function drawLegend(
     legendGraphics: PIXI.Graphics,
     imcData: ImageData,
     channelMarkers: Record<ChannelName, string | null>,
+    channelVisibility: Record<ChannelName, boolean>,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -297,7 +298,7 @@ export function drawLegend(
         const curChannel = s as ChannelName
         const curMarker = channelMarkers[curChannel]
         // If a marker is selected for the channel and the image data has a sprite for that marker
-        if (curMarker && imcData.sprites[curMarker]) {
+        if (channelVisibility[curChannel] && curMarker && imcData.sprites[curMarker]) {
             if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
             const text = new PIXI.Text(curMarker, {
                 fontFamily: 'Arial',
