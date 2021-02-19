@@ -198,7 +198,7 @@ textarea:disabled {
     border-bottom-right-radius: 5px;
 }
 
-div.popover.show {
+div.plot-popover > div.popover.show {
     min-width: 500px !important;
 }
 

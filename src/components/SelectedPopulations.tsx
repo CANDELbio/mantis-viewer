@@ -268,6 +268,18 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }, 200)()
     }
 
+    private addPopulationPopover(): JSX.Element {
+        return (
+            <a
+                href="#"
+                onClick={this.props.addEmptyPopulation}
+                className={`${this.props.segmentationDataLoaded ? '' : 'disabled'}`}
+            >
+                <IoMdAddCircle size="1.5em" />
+            </a>
+        )
+    }
+
     public render(): React.ReactElement {
         const populations = this.props.populations
         const tableHeight = SelectedPopulationsTableHeight + 'px'
@@ -295,15 +307,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                     />
                                 </th>
                                 <th />
-                                <th>
-                                    <a
-                                        href="#"
-                                        onClick={this.props.addEmptyPopulation}
-                                        className={`${this.props.segmentationDataLoaded ? '' : 'disabled'}`}
-                                    >
-                                        <IoMdAddCircle size="1.5em" />
-                                    </a>
-                                </th>
+                                <th>{this.addPopulationPopover()}</th>
                             </tr>
                         </thead>
                         <tbody>{this.populationRows(populations, this.state.tableScrolling)}</tbody>
