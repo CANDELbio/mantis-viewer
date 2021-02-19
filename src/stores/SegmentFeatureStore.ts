@@ -315,10 +315,11 @@ export class SegmentFeatureStore {
             const imageSetValues = this.db.selectValues([imageSetName], feature)
             values = imageSetValues[imageSetName]
         }
-        for (const segmentId in values) {
-            const curValue = values[parseInt(segmentId)]
+        for (const segmentIdStr in values) {
+            const segmentId = parseInt(segmentIdStr)
+            const curValue = values[segmentId]
             if (min <= curValue && curValue <= max) {
-                segments.push(Number(segmentId))
+                segments.push(segmentId)
             }
         }
         return segments

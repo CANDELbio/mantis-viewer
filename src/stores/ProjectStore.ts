@@ -298,14 +298,25 @@ export class ProjectStore {
         }
     }
 
-    @action public addPopulationFromRange = (min: number, max: number): void => {
-        const settingStore = this.settingStore
-        const populationStore = this.activeImageSetStore.populationStore
-        const feature = settingStore.selectedPlotFeatures[0]
+    @action public addPopulationFromRange = (min?: number, max?: number, feature?: string): void => {
+        const activeImageData = this.activeImageSetStore.imageStore.imageData
         const activeImageSetName = this.activeImageSetStore.name
-        if (activeImageSetName) {
-            const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, feature, min, max)
-            if (segmentIds.length > 0) populationStore.createPopulationFromSegments(segmentIds)
+        if (activeImageData && activeImageSetName) {
+            const settingStore = this.settingStore
+            const populationStore = this.activeImageSetStore.populationStore
+            const selectedFeature = feature ? feature : settingStore.selectedPlotFeatures[0]
+            const featureMinMaxes = activeImageData.minmax[selectedFeature]
+            const minValue = min ? min : featureMinMaxes.min
+            const maxValue = max ? max : featureMinMaxes.max
+            const segmentIds = this.segmentFeatureStore.segmentsInRange(
+                activeImageSetName,
+                selectedFeature,
+                minValue,
+                maxValue,
+            )
+            const populationName =
+                selectedFeature + ' ' + minValue.toPrecision(2).toString() + ' - ' + maxValue.toPrecision(2).toString()
+            populationStore.createPopulationFromSegments(segmentIds, populationName)
         }
     }
     @action public setWindowDimensions = (width: number, height: number): void => {
