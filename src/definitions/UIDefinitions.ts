@@ -65,6 +65,11 @@ export const PlotNormalizationOptions = [
 
 export type PlotNormalization = 'none' | 'population' | 'marker'
 
+export const PopulationCreationOptions = [
+    { label: 'From Range', value: 'range' },
+    { label: 'From Segment IDs', value: 'ids' },
+]
+
 export const ImageViewerHeightPadding = 90
 export const MainPlotHeightPadding = 400 // Amount of padding above and below the plot in the main window.
 export const ExternalPlotHeightPadding = 80 // Amount of padding above and below the plot in the external window.

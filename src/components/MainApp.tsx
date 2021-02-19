@@ -328,8 +328,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 setAllVisibility={populationStore.setAllSelectedPopulationVisibility}
                 highlightPopulation={populationStore.highlightSelectedPopulation}
                 unhighlightPopulation={populationStore.unHighlightSelectedPopulation}
-                addEmptyPopulation={populationStore.addEmptyPopulation}
+                addPopulationFromSegments={populationStore.createPopulationFromSegments}
                 segmentationDataLoaded={segmentationStore.segmentationData != null}
+                markerMinMaxes={imageStore.imageData?.minmax}
             />
         )
 

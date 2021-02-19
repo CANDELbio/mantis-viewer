@@ -3,13 +3,16 @@ import * as _ from 'underscore'
 import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
-import { Popover, PopoverBody } from 'reactstrap'
+import { Popover, PopoverBody, Button } from 'reactstrap'
 import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
-import { hexToString } from '../lib/ColorHelper'
+import Select from 'react-select'
 
+import { hexToString } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
-import { SelectedPopulationsTableHeight } from '../definitions/UIDefinitions'
+import { SelectedPopulationsTableHeight, PopulationCreationOptions } from '../definitions/UIDefinitions'
+import { MinMaxMap } from '../interfaces/ImageInterfaces'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../lib/SelectHelper'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -24,8 +27,9 @@ interface SelectedProps {
 interface SelectedPopulationProps extends SelectedProps {
     populations: SelectedPopulation[] | null
     setAllVisibility: (visibility: boolean) => void
-    addEmptyPopulation: () => void
     segmentationDataLoaded: boolean
+    markerMinMaxes: MinMaxMap | undefined
+    addPopulationFromSegments: (segments: number[]) => void
 }
 
 interface SelectedDataRowProps extends SelectedProps {
@@ -35,11 +39,25 @@ interface SelectedDataRowProps extends SelectedProps {
 
 interface SelectedPopulationState {
     tableScrolling: boolean
+    addPopulationPopoverVisible: boolean
+    selectedPopulationCreationOption: string
+    newPopulationSegmentIds: string
 }
 
 interface SelectedDataRowState {
     colorPopoverVisible: boolean
     segmentPopoverVisible: boolean
+}
+
+function parseSegmentIds(toParse: string): number[] {
+    return toParse
+        .split(',')
+        .map((v: string): number => {
+            return parseInt(v)
+        })
+        .filter((v: number): boolean => {
+            return !Number.isNaN(v)
+        })
 }
 
 @observer
@@ -50,7 +68,13 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
     public state = {
         tableScrolling: false,
+        addPopulationPopoverVisible: false,
+        selectedPopulationCreationOption: PopulationCreationOptions[0].value,
+        newPopulationSegmentIds: '',
     }
+
+    private onToggleAddPopulationPopover = (): void =>
+        this.setState({ addPopulationPopoverVisible: !this.state.addPopulationPopoverVisible })
 
     private TableRowItem = class TableRow extends React.Component<SelectedDataRowProps, SelectedDataRowState> {
         public state = {
@@ -96,14 +120,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             this.setState({ colorPopoverVisible: false, segmentPopoverVisible: !this.state.segmentPopoverVisible })
 
         private onChangeSelectedSegments = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
-            const updatedSegments = event.target.value
-                .split(',')
-                .map((v: string): number => {
-                    return parseInt(v)
-                })
-                .filter((v: number): boolean => {
-                    return !Number.isNaN(v)
-                })
+            const updatedSegments = parseSegmentIds(event.target.value)
             this.props.updateSegments(this.props.population.id, updatedSegments)
         }
 
@@ -268,15 +285,78 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }, 200)()
     }
 
-    private addPopulationPopover(): JSX.Element {
+    private addPopulationButton(): JSX.Element {
         return (
             <a
                 href="#"
-                onClick={this.props.addEmptyPopulation}
                 className={`${this.props.segmentationDataLoaded ? '' : 'disabled'}`}
+                onClick={this.onToggleAddPopulationPopover}
             >
-                <IoMdAddCircle size="1.5em" />
+                <IoMdAddCircle size="1.5em" id="add-population-button" />
             </a>
+        )
+    }
+
+    private onCreationOptionSelect = (x: SelectOption): void => {
+        if (x != null) this.setState({ selectedPopulationCreationOption: x.value })
+    }
+
+    private onAddPopulationIdsChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+        this.setState({ newPopulationSegmentIds: event.target.value })
+    }
+
+    private addPopulationSubmit = (): void => {
+        if (this.state.selectedPopulationCreationOption == 'ids') {
+            this.props.addPopulationFromSegments(parseSegmentIds(this.state.newPopulationSegmentIds))
+            this.setState({
+                addPopulationPopoverVisible: false,
+                newPopulationSegmentIds: '',
+            })
+        } else if (this.state.selectedPopulationCreationOption == 'range') {
+            console.log('Not implemented')
+        }
+    }
+
+    private addPopulationPopover(): JSX.Element {
+        const selectedPopulationCreationOption = getSelectedOptions(
+            this.state.selectedPopulationCreationOption,
+            PopulationCreationOptions,
+        )
+        const creationSelect = (
+            <Select
+                value={selectedPopulationCreationOption}
+                options={PopulationCreationOptions}
+                onChange={this.onCreationOptionSelect}
+                isClearable={false}
+                styles={SelectStyle}
+                theme={SelectTheme}
+            />
+        )
+        let creationForm = null
+        if (this.state.selectedPopulationCreationOption == 'ids') {
+            creationForm = <textarea style={{ overflow: 'auto' }} onChange={this.onAddPopulationIdsChange} />
+        } else if (this.state.selectedPopulationCreationOption == 'range') {
+            creationForm = null
+        }
+        return (
+            <Popover
+                placement="left"
+                isOpen={this.state.addPopulationPopoverVisible}
+                trigger="legacy"
+                target="add-population-button"
+                toggle={this.onToggleAddPopulationPopover}
+                style={{ backgroundColor: 'transparent' }}
+            >
+                <PopoverBody>
+                    <div style={{ position: 'relative' }}>
+                        {creationSelect}
+                        {creationForm}
+                        <Button type="button" size="sm" onClick={this.addPopulationSubmit}>
+                            Create Population
+                        </Button>
+                    </div>
+                </PopoverBody>
+            </Popover>
         )
     }
 
@@ -307,12 +387,14 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                     />
                                 </th>
                                 <th />
-                                <th>{this.addPopulationPopover()}</th>
+                                <th>{this.addPopulationButton()}</th>
                             </tr>
                         </thead>
                         <tbody>{this.populationRows(populations, this.state.tableScrolling)}</tbody>
                     </table>
                 </ReactTableContainer>
+                {/* Popover outside of the table so that the user can interact with it */}
+                {this.addPopulationPopover()}
             </div>
         )
     }

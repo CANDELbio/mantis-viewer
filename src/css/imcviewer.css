@@ -198,6 +198,8 @@ textarea:disabled {
     border-bottom-right-radius: 5px;
 }
 
+/* Increase  the minimum width of the plot popover */
+
 div.plot-popover > div.popover.show {
     min-width: 500px !important;
 }
