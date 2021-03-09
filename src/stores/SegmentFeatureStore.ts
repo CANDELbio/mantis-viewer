@@ -63,7 +63,10 @@ export class SegmentFeatureStore {
     // When the user changes the features selected for the plot we want to automatically refresh
     // the feature statistics we have loaded from the database.
     private autoRefreshFeatureStatistics = autorun(() => {
-        const features = this.projectStore.settingStore.selectedPlotFeatures
+        const features = this.projectStore.settingStore.selectedPlotFeatures.slice()
+        const selectedFeatureForNewPopulation = this.projectStore.activeImageSetStore.populationStore
+            .selectedFeatureForNewPopulation
+        if (selectedFeatureForNewPopulation) features.push(selectedFeatureForNewPopulation)
         const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
         // Only want to auto calculate if we're not loading multiple.
         if (notLoadingMultiple) {
@@ -133,6 +136,16 @@ export class SegmentFeatureStore {
         }
         return minMaxes
     })
+
+    activeFeatureMinMaxes(feature: string | null): MinMax | null {
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
+        if (activeImageSetName && feature) {
+            const minMaxes = get(this.minMaxes, activeImageSetName)
+            return minMaxes[feature]
+        } else {
+            return null
+        }
+    }
 
     @action public calculateSegmentFeatures = (
         imageSetStore: ImageSetStore,
@@ -308,6 +321,7 @@ export class SegmentFeatureStore {
         return values
     }
 
+    // TODO: Clean this up. Use cached values in this.values if present before grabbing from DB.
     public segmentsInRange(imageSetName: string, feature: string, min: number, max: number): number[] {
         const segments = []
         let values: Record<number, number> = {}

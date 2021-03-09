@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as _ from 'underscore'
 import { RangeSlider } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import Select from 'react-select'
@@ -96,13 +97,14 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
         let brightnessSlider = (
             <RangeSlider
+                disabled={this.props.selectedMarker == null}
                 min={this.props.channelMin}
                 max={this.props.channelMax}
                 value={this.props.sliderValue}
                 labelStepSize={labelStepSize}
                 labelPrecision={1}
                 stepSize={this.props.channelMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
-                onChange={this.onChannelDomainChange}
+                onChange={_.throttle(this.onChannelDomainChange, 100)}
             />
         )
 

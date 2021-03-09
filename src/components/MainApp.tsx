@@ -19,7 +19,7 @@ import { ImageViewer } from './ImageViewer'
 import { ImageSetSelector } from './ImageSetSelector'
 import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
-import { SelectedPopulations } from './SelectedPopulations'
+import { SelectedPopulations } from './populations/SelectedPopulations'
 import { WelcomeModal } from './modals/WelcomeModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
@@ -328,9 +328,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 setAllVisibility={populationStore.setAllSelectedPopulationVisibility}
                 highlightPopulation={populationStore.highlightSelectedPopulation}
                 unhighlightPopulation={populationStore.unHighlightSelectedPopulation}
-                addPopulationFromSegments={populationStore.createPopulationFromSegments}
+                createPopulationFromSegments={populationStore.createPopulationFromSegments}
+                createPopulationFromRange={projectStore.addPopulationFromRange}
                 segmentationDataLoaded={segmentationStore.segmentationData != null}
-                markerMinMaxes={imageStore.imageData?.minmax}
+                availableFeatures={segmentFeatureStore.activeAvailableFeatures}
+                selectedFeature={populationStore.selectedFeatureForNewPopulation}
+                setSelectedFeature={populationStore.setSelectedFeatureForNewPopulation}
+                selectedFeatureMinMax={segmentFeatureStore.activeFeatureMinMaxes(
+                    populationStore.selectedFeatureForNewPopulation,
+                )}
             />
         )
 

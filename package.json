@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.1.1-alpha.3",
+    "version": "1.1.1-alpha.4",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "main.js",
     "scripts": {
@@ -100,7 +100,7 @@
         "worker-loader": "^2.0.0"
     },
     "dependencies": {
-        "@blueprintjs/core": "^3.18.0",
+        "@blueprintjs/core": "^3.40.1",
         "about-window": "^1.13.4",
         "better-sqlite3": "^7.1.2",
         "bindings": "^1.5.0",

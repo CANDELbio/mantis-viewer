@@ -373,7 +373,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     className="plot-popover"
                 >
                     <PopoverBody>
-                        <table style={{ width: '475px' }} cellPadding="8">
+                        <table style={{ width: '475px' }} cellPadding="4">
                             <tbody>
                                 <tr>
                                     <td>{plotType}</td>

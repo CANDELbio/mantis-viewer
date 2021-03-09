@@ -70,9 +70,11 @@ body {
 }
 
 /* Apply theme colors and style to blueprint elements */
-span.bp3-slider-label {
+/* Uncomment below if you want to hide the slider label.
+Not sure why I did in the first place. */
+/* span.bp3-slider-label {
     visibility: hidden;
-}
+} */
 
 .bp3-control input ~ .bp3-control-indicator {
     background-color: #a197e6;
@@ -202,6 +204,11 @@ textarea:disabled {
 
 div.plot-popover > div.popover.show {
     min-width: 500px !important;
+}
+
+div.create-population-popover > div.popover.show {
+    max-width: 200px !important;
+    min-width: 200px !important;
 }
 
 /* Misc styles */

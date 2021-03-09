@@ -66,8 +66,8 @@ export const PlotNormalizationOptions = [
 export type PlotNormalization = 'none' | 'population' | 'marker'
 
 export const PopulationCreationOptions = [
-    { label: 'From Range', value: 'range' },
     { label: 'From Segment IDs', value: 'ids' },
+    { label: 'From Range', value: 'range' },
 ]
 
 export const ImageViewerHeightPadding = 90

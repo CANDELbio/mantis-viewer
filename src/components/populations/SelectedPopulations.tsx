@@ -3,16 +3,15 @@ import * as _ from 'underscore'
 import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { CompactPicker, ColorResult } from 'react-color'
-import { Popover, PopoverBody, Button } from 'reactstrap'
+import { Popover, PopoverBody } from 'reactstrap'
 import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
-import Select from 'react-select'
 
-import { hexToString } from '../lib/ColorHelper'
-import { SelectedPopulation } from '../stores/PopulationStore'
-import { SelectedPopulationsTableHeight, PopulationCreationOptions } from '../definitions/UIDefinitions'
-import { MinMaxMap } from '../interfaces/ImageInterfaces'
-import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../lib/SelectHelper'
+import { hexToString } from '../../lib/ColorHelper'
+import { SelectedPopulation } from '../../stores/PopulationStore'
+import { SelectedPopulationsTableHeight, PopulationCreationOptions } from '../../definitions/UIDefinitions'
+import { MinMax } from '../../interfaces/ImageInterfaces'
+import { CreatePopulation } from './CreatePopulation'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void
@@ -28,8 +27,12 @@ interface SelectedPopulationProps extends SelectedProps {
     populations: SelectedPopulation[] | null
     setAllVisibility: (visibility: boolean) => void
     segmentationDataLoaded: boolean
-    markerMinMaxes: MinMaxMap | undefined
-    addPopulationFromSegments: (segments: number[]) => void
+    availableFeatures: string[]
+    setSelectedFeature: (feature: string) => void
+    selectedFeature: string | null
+    selectedFeatureMinMax: MinMax | null
+    createPopulationFromSegments: (segments: number[], name?: string) => void
+    createPopulationFromRange: (min: number, max: number, marker: string) => void
 }
 
 interface SelectedDataRowProps extends SelectedProps {
@@ -297,47 +300,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         )
     }
 
-    private onCreationOptionSelect = (x: SelectOption): void => {
-        if (x != null) this.setState({ selectedPopulationCreationOption: x.value })
-    }
-
-    private onAddPopulationIdsChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
-        this.setState({ newPopulationSegmentIds: event.target.value })
-    }
-
-    private addPopulationSubmit = (): void => {
-        if (this.state.selectedPopulationCreationOption == 'ids') {
-            this.props.addPopulationFromSegments(parseSegmentIds(this.state.newPopulationSegmentIds))
-            this.setState({
-                addPopulationPopoverVisible: false,
-                newPopulationSegmentIds: '',
-            })
-        } else if (this.state.selectedPopulationCreationOption == 'range') {
-            console.log('Not implemented')
-        }
-    }
-
-    private addPopulationPopover(): JSX.Element {
-        const selectedPopulationCreationOption = getSelectedOptions(
-            this.state.selectedPopulationCreationOption,
-            PopulationCreationOptions,
-        )
-        const creationSelect = (
-            <Select
-                value={selectedPopulationCreationOption}
-                options={PopulationCreationOptions}
-                onChange={this.onCreationOptionSelect}
-                isClearable={false}
-                styles={SelectStyle}
-                theme={SelectTheme}
-            />
-        )
-        let creationForm = null
-        if (this.state.selectedPopulationCreationOption == 'ids') {
-            creationForm = <textarea style={{ overflow: 'auto' }} onChange={this.onAddPopulationIdsChange} />
-        } else if (this.state.selectedPopulationCreationOption == 'range') {
-            creationForm = null
-        }
+    private createPopulationPopover(): JSX.Element {
         return (
             <Popover
                 placement="left"
@@ -346,15 +309,18 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                 target="add-population-button"
                 toggle={this.onToggleAddPopulationPopover}
                 style={{ backgroundColor: 'transparent' }}
+                className="create-population-popover"
             >
                 <PopoverBody>
-                    <div style={{ position: 'relative' }}>
-                        {creationSelect}
-                        {creationForm}
-                        <Button type="button" size="sm" onClick={this.addPopulationSubmit}>
-                            Create Population
-                        </Button>
-                    </div>
+                    <CreatePopulation
+                        availableFeatures={this.props.availableFeatures}
+                        setSelectedFeature={this.props.setSelectedFeature}
+                        selectedFeature={this.props.selectedFeature}
+                        selectedFeatureMinMax={this.props.selectedFeatureMinMax}
+                        createPopulationFromSegments={this.props.createPopulationFromSegments}
+                        createPopulationFromRange={this.props.createPopulationFromRange}
+                        onCreatePopulation={this.onToggleAddPopulationPopover}
+                    ></CreatePopulation>
                 </PopoverBody>
             </Popover>
         )
@@ -394,7 +360,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                     </table>
                 </ReactTableContainer>
                 {/* Popover outside of the table so that the user can interact with it */}
-                {this.addPopulationPopover()}
+                {this.createPopulationPopover()}
             </div>
         )
     }

@@ -46,11 +46,14 @@ export class PopulationStore {
     @observable.ref public selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
     @observable.ref public highlightedPopulations: string[]
+    // Name of feature selected by user in the selected populations -> create population tooltip for creating a new population from a feature and intensity range.
+    @observable public selectedFeatureForNewPopulation: string | null
 
     @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
         this.selectionsLoading = false
+        this.selectedFeatureForNewPopulation = null
         const imageSetName = this.imageSetStore.name
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         if (projectBasePath) {
@@ -409,5 +412,9 @@ export class PopulationStore {
             // We should raise an error if there are more than 255 populations.
             TiffWriter.arrayToFile(populationData, width, height, filePath)
         }
+    }
+
+    @action public setSelectedFeatureForNewPopulation = (feature: string | null): void => {
+        this.selectedFeatureForNewPopulation = feature
     }
 }
