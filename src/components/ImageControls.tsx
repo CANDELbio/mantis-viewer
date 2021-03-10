@@ -14,8 +14,11 @@ export interface ImageControlsProps {
     zoomInsetVisible: boolean
     setZoomInsetVisible: (visible: boolean) => void
 
-    legendVisible: boolean
-    setLegendVisible: (visible: boolean) => void
+    channelLegendVisible: boolean
+    setChannelLegendVisible: (visible: boolean) => void
+
+    populationLegendVisible: boolean
+    setPopulationLegendVisible: (visible: boolean) => void
 
     centroidsVisible: boolean
     setCentroidsVisible: (visible: boolean) => void
@@ -34,14 +37,21 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
     private sliderMax = 10
 
     private onFillAlphaSliderChange = (value: number): void => this.props.onFillAlphaChange(value / this.sliderMax)
+
     private onOutlineAlphaSliderChange = (value: number): void =>
         this.props.onOutlineAlphaChange(value / this.sliderMax)
+
     private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setCentroidsVisible(event.currentTarget.checked)
+
     private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setZoomInsetVisible(event.currentTarget.checked)
-    private onLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setLegendVisible(event.currentTarget.checked)
+
+    private onChannelLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
+        this.props.setChannelLegendVisible(event.currentTarget.checked)
+
+    private onPopulationLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
+        this.props.setPopulationLegendVisible(event.currentTarget.checked)
 
     private selectedSegmentationFileLabel(): JSX.Element {
         const segmentationFileName = this.props.selectedSegmentationFile
@@ -64,9 +74,14 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                     onChange={this.onZoomInsetVisibilityChange}
                 />
                 <Checkbox
-                    checked={this.props.legendVisible}
+                    checked={this.props.channelLegendVisible}
                     label="Show Channel Legend"
-                    onChange={this.onLegendVisibilityChange}
+                    onChange={this.onChannelLegendVisibilityChange}
+                />
+                <Checkbox
+                    checked={this.props.populationLegendVisible}
+                    label="Show Population Legend"
+                    onChange={this.onPopulationLegendVisibilityChange}
                 />
                 <Checkbox
                     checked={this.props.centroidsVisible}

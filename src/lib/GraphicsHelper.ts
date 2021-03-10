@@ -5,6 +5,7 @@ import { ImageData } from './ImageData'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { hexToRGB } from './ColorHelper'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const canvas = document.createElement('canvas')
@@ -275,8 +276,11 @@ export function drawZoomInset(
 export function drawLegend(
     legendGraphics: PIXI.Graphics,
     imcData: ImageData,
+    channelsOnLegend: boolean,
     channelMarkers: Record<ChannelName, string | null>,
     channelVisibility: Record<ChannelName, boolean>,
+    populationsOnLegend: boolean,
+    populations: SelectedPopulation[] | null,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -291,31 +295,66 @@ export function drawLegend(
 
     let textWidth = 0
     let textHeight = 0
-    const markerText: PIXI.Text[] = []
+    const legendText: PIXI.Text[] = []
+
+    let spacerHeight = 0
 
     // Create channel names
-    for (const s in channelMarkers) {
-        const curChannel = s as ChannelName
-        const curMarker = channelMarkers[curChannel]
-        // If a marker is selected for the channel and the image data has a sprite for that marker
-        if (channelVisibility[curChannel] && curMarker && imcData.sprites[curMarker]) {
-            if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
-            const text = new PIXI.Text(curMarker, {
-                fontFamily: 'Arial',
-                fontSize: 14,
-                fill: ChannelColorMap[curChannel],
-                align: 'center',
-            })
-            const textY = initialTextlXY + textHeight
-            text.setTransform(initialTextlXY, textY)
-            textHeight += text.height
-            textWidth = Math.max(textWidth, text.width)
-            markerText.push(text)
+    if (channelsOnLegend) {
+        for (const s in channelMarkers) {
+            const curChannel = s as ChannelName
+            const curMarker = channelMarkers[curChannel]
+            // If a marker is selected for the channel and the image data has a sprite for that marker
+            if (channelVisibility[curChannel] && curMarker && imcData.sprites[curMarker]) {
+                if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
+                const text = new PIXI.Text(curMarker, {
+                    fontFamily: 'Arial',
+                    fontSize: 14,
+                    fill: ChannelColorMap[curChannel],
+                    align: 'center',
+                })
+                const textY = initialTextlXY + textHeight
+                text.setTransform(initialTextlXY, textY)
+                textHeight += text.height
+                textWidth = Math.max(textWidth, text.width)
+                legendText.push(text)
+                if (spacerHeight == 0) spacerHeight = text.height
+            }
+        }
+    }
+
+    // Keep track of the number of channels on the legend.
+    // If there are channels on the legend and populations will be added
+    // We will add a spacer to separate the sections
+    const numChannelsOnLegend = legendText.length
+
+    // Create population names
+    if (populationsOnLegend && populations != null) {
+        let spacerAdded = false
+        for (const population of populations) {
+            if (population.visible) {
+                if (!spacerAdded && numChannelsOnLegend > 0) {
+                    textHeight += spacerHeight
+                    spacerAdded = true
+                }
+                if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
+                const text = new PIXI.Text(population.name, {
+                    fontFamily: 'Arial',
+                    fontSize: 14,
+                    fill: population.color,
+                    align: 'center',
+                })
+                const textY = initialTextlXY + textHeight
+                text.setTransform(initialTextlXY, textY)
+                textHeight += text.height
+                textWidth = Math.max(textWidth, text.width)
+                legendText.push(text)
+            }
         }
     }
 
     // If we generated marker text, render the legend
-    if (markerText.length > 0) {
+    if (legendText.length > 0) {
         const outerLegendWidth = textWidth + (bgBorderWidth + textPadding) * 2
         const outerLegnedHeight = textHeight + (bgBorderWidth + textPadding) * 2
         legendGraphics.beginFill(0xffffff)
@@ -334,7 +373,7 @@ export function drawLegend(
         legendGraphics.drawRoundedRect(innerBgXY, innerBgXY, innerLegendWidth, innerLegendHeight, legendRectRadius)
         legendGraphics.endFill()
 
-        for (const textGraphics of markerText) {
+        for (const textGraphics of legendText) {
             legendGraphics.addChild(textGraphics)
         }
     }

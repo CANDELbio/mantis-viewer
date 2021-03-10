@@ -34,13 +34,14 @@ export interface ImageProps {
     position: { x: number; y: number } | null
     scale: { x: number; y: number } | null
     setPositionAndScale: (position: { x: number; y: number }, scale: { x: number; y: number }) => void
-    selectedRegions: SelectedPopulation[] | null
-    addSelectedRegion: (pixelIndexes: number[], color: number) => void
-    highlightedRegions: string[]
+    selectedPopulations: SelectedPopulation[] | null
+    addSelectedPopulation: (pixelIndexes: number[], color: number) => void
+    highlightedPopulations: string[]
     highlightedSegmentsFromPlot: number[]
     exportPath: string | null
     onExportComplete: () => void
-    legendVisible: boolean
+    channelLegendVisible: boolean
+    populationLegendVisible: boolean
     zoomInsetVisible: boolean
     windowHeight: number | null
     onWebGLContextLoss: () => void
@@ -77,8 +78,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // We re-render the segmentationSprite and segmentationCentroidGraphics below.
     private segmentationData: SegmentationData | null
 
+    // Selected Populations stored locally for rendering the population names on the legend.
+    private selectedPopulations: SelectedPopulation[] | null
+
     private legendGraphics: PIXI.Graphics
-    private legendVisible: boolean
+    private channelLegendVisible: boolean
+    private populationLegendVisible: boolean
 
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
@@ -99,8 +104,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         minY: number | null
         maxY: number | null
     }
-    selectionGraphics: PIXI.Graphics
-    selectionSegmentGraphics: PIXI.Graphics
+    private selectionGraphics: PIXI.Graphics
+    private selectionSegmentGraphics: PIXI.Graphics
 
     // If the renderer is full screened or not
     private fullScreen: boolean
@@ -135,7 +140,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         super(props)
 
         this.initializePIXIGlobals()
-        this.legendVisible = false
+        this.channelLegendVisible = false
+        this.populationLegendVisible = false
         this.zoomInsetVisible = true
 
         const redFilter = new PIXI.filters.ColorMatrixFilter()
@@ -246,8 +252,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private onExportComplete = (): void => this.props.onExportComplete()
 
-    private addSelectedRegionToStore = (pixelIndexes: number[], color: number): void => {
-        this.props.addSelectedRegion(pixelIndexes, color)
+    private addSelectedPopulationToStore = (pixelIndexes: number[], color: number): void => {
+        this.props.addSelectedPopulation(pixelIndexes, color)
     }
 
     private syncPositionAndScale = (): void => {
@@ -543,7 +549,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const state = this.selectState
         if (state.active) {
             const pixelsIndexes = this.getSelectionPixelIndexes()
-            this.addSelectedRegionToStore(pixelsIndexes, state.selectionColor)
+            this.addSelectedPopulationToStore(pixelsIndexes, state.selectionColor)
             // Clear the temp storage now that we've stored the selection.
             this.initializeSelectState()
         }
@@ -728,30 +734,30 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Adds the graphics for regions or segment/cell populations selected by users to the stage.
-    private loadSelectedRegionGraphics(
+    private loadSelectedPopulationsGraphics(
         stage: PIXI.Container,
-        selectedRegions: SelectedPopulation[] | null,
-        highlightedRegions: string[],
+        selectedPopulations: SelectedPopulation[] | null,
+        highlightedPopulations: string[],
     ): void {
-        if (selectedRegions) {
-            for (const selectedRegion of selectedRegions) {
-                if (selectedRegion.visible) {
-                    const regionId = selectedRegion.id
+        if (selectedPopulations) {
+            for (const selectedPopulation of selectedPopulations) {
+                if (selectedPopulation.visible) {
+                    const regionId = selectedPopulation.id
                     // Set the alpha correctly for regions that need to be highlighted
                     let regionAlpha = SelectedRegionAlpha
                     let outlineAlpha = SelectedSegmentOutlineAlpha
-                    if (highlightedRegions.indexOf(regionId) > -1) {
+                    if (highlightedPopulations.indexOf(regionId) > -1) {
                         regionAlpha = HighlightedSelectedRegionAlpha
                         outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
                     }
 
-                    const regionGraphics = selectedRegion.regionGraphics
+                    const regionGraphics = selectedPopulation.regionGraphics
                     if (regionGraphics != null) {
                         regionGraphics.alpha = regionAlpha
                         stage.addChild(regionGraphics)
                     }
 
-                    const outlineGraphics = selectedRegion.segmentGraphics
+                    const outlineGraphics = selectedPopulation.segmentGraphics
                     if (outlineGraphics != null) {
                         outlineGraphics.alpha = outlineAlpha
                         stage.addChild(outlineGraphics)
@@ -790,10 +796,18 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private loadLegendGraphics(): void {
-        const legendVisible = this.legendVisible
+        const legendVisible = this.channelLegendVisible || this.populationLegendVisible
         const imcData = this.imageData
         if (imcData && legendVisible) {
-            GraphicsHelper.drawLegend(this.legendGraphics, imcData, this.channelMarker, this.channelVisibility)
+            GraphicsHelper.drawLegend(
+                this.legendGraphics,
+                imcData,
+                this.channelLegendVisible,
+                this.channelMarker,
+                this.channelVisibility,
+                this.populationLegendVisible,
+                this.selectedPopulations,
+            )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
             // Clear out the legend graphics so they don't get redrawn when zooming.
@@ -849,7 +863,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.stage.scale.y = yScale
         this.stage.updateTransform()
         this.renderer.resize(width, height)
-        if (this.legendVisible)
+        if (this.channelLegendVisible)
             this.resizeStaticGraphics(this.legendGraphics, legendXScaleCoefficient, legendYScaleCoefficient)
         this.loadZoomInsetGraphics(legendXScaleCoefficient)
         this.renderer.render(this.rootContainer)
@@ -927,11 +941,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         segmentationFillAlpha: number,
         segmentationOutlineAlpha: number,
         segmentationCentroidsVisible: boolean,
-        selectedRegions: SelectedPopulation[] | null,
-        highlightedRegions: string[],
+        selectedPopulations: SelectedPopulation[] | null,
+        highlightedPopulations: string[],
         highlightedSegmentsFromGraph: number[],
         exportPath: string | null,
-        legendVisible: boolean,
+        channelLegendVisible: boolean,
+        populationLegendVisible: boolean,
         zoomInsetVisible: boolean,
         parentElementSize: { width: number | null; height: number | null },
         windowHeight: number | null,
@@ -984,13 +999,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         )
 
         // Load selected region graphics
-        this.loadSelectedRegionGraphics(this.stage, selectedRegions, highlightedRegions)
+        this.selectedPopulations = selectedPopulations
+        this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
 
         // Load graphics for any highlighted
         this.loadHighlightedSegmentGraphics(highlightedSegmentsFromGraph)
 
         // Create the legend for which markers are being displayed
-        this.legendVisible = legendVisible
+        this.channelLegendVisible = channelLegendVisible
+        this.populationLegendVisible = populationLegendVisible
         this.loadLegendGraphics()
         // Update whether or not the zoom inset is visible and then re-render it
         this.zoomInsetVisible = zoomInsetVisible
@@ -1051,15 +1068,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
         const segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
 
-        const regions = this.props.selectedRegions
+        const selectedPopulations = this.props.selectedPopulations
 
-        const highlightedRegions = this.props.highlightedRegions
+        const highlightedPopulations = this.props.highlightedPopulations
 
         const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 
         const exportPath = this.props.exportPath
 
-        const legendVisible = this.props.legendVisible
+        const channelLegendVisible = this.props.channelLegendVisible
+        const populationLegendVisible = this.props.populationLegendVisible
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
@@ -1084,11 +1102,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     segmentationFillAlpha,
                                     segmentationOutlineAlpha,
                                     segmentationCentroidsVisible,
-                                    regions,
-                                    highlightedRegions,
+                                    selectedPopulations,
+                                    highlightedPopulations,
                                     highlightedSegmentsFromGraph,
                                     exportPath,
-                                    legendVisible,
+                                    channelLegendVisible,
+                                    populationLegendVisible,
                                     zoomInsetVisible,
                                     size,
                                     windowHeight,

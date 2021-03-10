@@ -52,7 +52,8 @@ type SettingStoreData = {
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
-    legendVisible?: boolean | null
+    channelLegendVisible?: boolean | null
+    populationLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
 }
@@ -85,8 +86,9 @@ export class SettingStore {
     // Region file basename when a region file is selected for teh whole project
     @observable public regionsBasename: string | null
     @observable public regionsFilesLoaded: string[]
-    // Whether or not the legend is visible on the image
-    @observable public legendVisible: boolean
+    // Whether or not the channel/population legend is visible on the image
+    @observable public channelLegendVisible: boolean
+    @observable public populationLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
 
@@ -167,7 +169,8 @@ export class SettingStore {
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
         this.segmentationCentroidsVisible = DefaultCentroidsVisible
 
-        this.legendVisible = true
+        this.channelLegendVisible = true
+        this.populationLegendVisible = false
         this.zoomInsetVisible = true
         this.transformCoefficient = null
 
@@ -295,8 +298,12 @@ export class SettingStore {
         this.segmentationCentroidsVisible = visible
     }
 
-    @action public setLegendVisible = (visible: boolean): void => {
-        this.legendVisible = visible
+    @action public setChannelLegendVisible = (visible: boolean): void => {
+        this.channelLegendVisible = visible
+    }
+
+    @action public setPopulationLegendVisible = (visible: boolean): void => {
+        this.populationLegendVisible = visible
     }
 
     @action public setZoomInsetVisible = (visible: boolean): void => {
@@ -460,7 +467,8 @@ export class SettingStore {
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
-                legendVisible: this.legendVisible,
+                channelLegendVisible: this.channelLegendVisible,
+                populationLegendVisible: this.populationLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
@@ -515,7 +523,10 @@ export class SettingStore {
                     this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
                 if (importingSettings.segmentationCentroidsVisible != null)
                     this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
-                if (importingSettings.legendVisible != null) this.legendVisible = importingSettings.legendVisible
+                if (importingSettings.channelLegendVisible != null)
+                    this.channelLegendVisible = importingSettings.channelLegendVisible
+                if (importingSettings.populationLegendVisible != null)
+                    this.populationLegendVisible = importingSettings.populationLegendVisible
                 if (importingSettings.zoomInsetVisible != null)
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
                 if (importingSettings.transformCoefficient)

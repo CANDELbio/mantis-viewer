@@ -179,13 +179,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 position={imageStore.position}
                 scale={imageStore.scale}
                 setPositionAndScale={imageStore.setPositionAndScale}
-                addSelectedRegion={populationStore.createPopulationFromPixels}
-                selectedRegions={populationStore.selectedPopulations}
-                highlightedRegions={populationStore.highlightedPopulations}
+                addSelectedPopulation={populationStore.createPopulationFromPixels}
+                selectedPopulations={populationStore.selectedPopulations}
+                highlightedPopulations={populationStore.highlightedPopulations}
                 highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
                 exportPath={imageStore.imageExportFilename}
                 onExportComplete={imageStore.clearImageExportFilePath}
-                legendVisible={settingStore.legendVisible}
+                channelLegendVisible={settingStore.channelLegendVisible}
+                populationLegendVisible={settingStore.populationLegendVisible}
                 zoomInsetVisible={settingStore.zoomInsetVisible}
                 windowHeight={windowHeight}
                 onWebGLContextLoss={projectStore.onWebGLContextLoss}
@@ -245,8 +246,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         }}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         setZoomInsetVisible={settingStore.setZoomInsetVisible}
-                        legendVisible={settingStore.legendVisible}
-                        setLegendVisible={settingStore.setLegendVisible}
+                        channelLegendVisible={settingStore.channelLegendVisible}
+                        setChannelLegendVisible={settingStore.setChannelLegendVisible}
+                        populationLegendVisible={settingStore.populationLegendVisible}
+                        setPopulationLegendVisible={settingStore.setPopulationLegendVisible}
                         selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
                         segmentationLoaded={segmentationStore.segmentationData != null}
                     />
