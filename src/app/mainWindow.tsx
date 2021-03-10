@@ -234,7 +234,7 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
 })
 
 ipcRenderer.on('export-populations-fcs', (event: Electron.Event, dirName: string): void => {
-    projectStore.exportActiveImageSetPopulationsToFcs(dirName)
+    projectStore.exportActiveImageSetPopulationsToFCS(dirName)
 })
 
 ipcRenderer.on(
@@ -247,13 +247,13 @@ ipcRenderer.on(
         if (rememberPreference) {
             projectStore.exportProjectFeaturesToFCS(dirName, true, calculateFeatures, recalculatePreference)
         } else {
-            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
+            projectStore.exportProjectFeaturesToFCS(dirName, true, calculateFeatures, false)
         }
     },
 )
 
 ipcRenderer.on('export-segments-to-fcs', (event: Electron.Event, filePath: string): void => {
-    projectStore.exportActiveImageSetToFcs(filePath)
+    projectStore.exportActiveImageSetToFCS(filePath)
 })
 
 ipcRenderer.on(
@@ -265,7 +265,7 @@ ipcRenderer.on(
         if (rememberPreference) {
             projectStore.exportProjectFeaturesToFCS(dirName, false, calculateFeatures, recalculatePreference)
         } else {
-            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
+            projectStore.exportProjectFeaturesToFCS(dirName, false, calculateFeatures, false)
         }
     },
 )

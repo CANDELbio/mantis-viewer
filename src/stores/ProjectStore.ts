@@ -441,11 +441,11 @@ export class ProjectStore {
         this.exportProjectFeatures(dirName, false, false, calculateFeatures, recalculateExistingFeatures)
     }
 
-    public exportActiveImageSetToFcs = (filePath: string): void => {
+    public exportActiveImageSetToFCS = (filePath: string): void => {
         exportToFCS(filePath, this.activeImageSetStore)
     }
 
-    public exportActiveImageSetPopulationsToFcs = (filePath: string): void => {
+    public exportActiveImageSetPopulationsToFCS = (filePath: string): void => {
         exportPopulationsToFCS(filePath, this.activeImageSetStore)
     }
 
