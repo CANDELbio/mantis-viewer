@@ -477,6 +477,8 @@ export class ProjectStore {
 
     public importProjectPopulationsFromCSV = (filePath: string): void => {
         const populations = parseProjectPopulationCSV(filePath)
+        // Mapping of population name to colors to be used for populations with that name.
+        const populationColorMap: Record<string, number> = {}
         for (const imageSetName in populations) {
             const imageSetPopulations = populations[imageSetName]
             if (this.projectPath) {
@@ -485,10 +487,15 @@ export class ProjectStore {
                 if (imageSet) {
                     const populationStore = imageSet.populationStore
                     for (const populationName in imageSetPopulations) {
-                        populationStore.createPopulationFromSegments(
+                        const populationColor = populationColorMap[populationName]
+                        const newPopulation = populationStore.createPopulationFromSegments(
                             imageSetPopulations[populationName],
                             populationName,
+                            populationColor,
                         )
+                        // Store the color of the created population in the color map if we haven't already
+                        if (!(populationName in populationColorMap))
+                            populationColorMap[populationName] = newPopulation.color
                     }
                 }
             }

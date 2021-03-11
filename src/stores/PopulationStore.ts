@@ -133,18 +133,23 @@ export class PopulationStore {
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
     }
 
-    @action public createPopulationFromSegments = (selectedSegments: number[], name?: string): void => {
+    @action public createPopulationFromSegments = (
+        selectedSegments: number[],
+        name?: string,
+        color?: number,
+    ): SelectedPopulation => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
             renderOrder: order,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(order, GraphPopulationNamePrefix),
-            color: randomHexColor(),
+            color: color ? color : randomHexColor(),
             visible: true,
         }
         this.refreshGraphics(newPopulation)
         this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
+        return newPopulation
     }
 
     private refreshGraphics = (population: SelectedPopulation): SelectedPopulation => {
