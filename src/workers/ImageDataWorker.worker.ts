@@ -89,19 +89,34 @@ async function generateMarkerName(
 ): Promise<string> {
     let markerNameFromImageDescription = null
     // If we can find a name in the image description use that, otherwise use the filename.
+
+    // Try parsing the image description as XML string
     try {
         const parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
         markerNameFromImageDescription = getMarkerNameFromImageDescription(parsedImageDescription)
-    } finally {
-        let markerName = markerNameFromFilename
-        if (markerNameFromImageDescription) {
-            markerName = markerNameFromImageDescription
-        } else if (numImages > 1) {
-            // If we're using the filename and there is more than one image, append the image number to the marker name.
-            markerName += '_' + imageNumber.toString()
+    } catch (error) {}
+
+    // Try parsing the image description as JSON string from a mibitiff
+    try {
+        if (markerNameFromImageDescription == null) {
+            // Clean up the imageDescription string and try to parse it as a JSON string.
+            const parsedImageDescription = JSON.parse(imageDescription.replace(/(\r\n|\n|\r|\0)/gm, ''))
+            if ('channel.target' in parsedImageDescription)
+                markerNameFromImageDescription = parsedImageDescription['channel.target']
         }
-        return markerName
+    } catch (error) {}
+
+    // Set the marker name based on what we found.
+    let markerName
+    if (markerNameFromImageDescription) {
+        markerName = markerNameFromImageDescription
+    } else if (numImages > 1) {
+        // If we're using the filename and there is more than one image, append the image number to the marker name.
+        markerName = 'Marker ' + (imageNumber + 1).toString()
+    } else {
+        markerName = markerNameFromFilename
     }
+    return markerName
 }
 
 export async function readFile(input: ImageDataWorkerInput): Promise<ImageDataWorkerResult | ImageDataWorkerError> {
