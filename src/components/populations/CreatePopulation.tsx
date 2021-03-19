@@ -14,6 +14,7 @@ import {
     generateSelectOptions,
     onClearableSelectChange,
 } from '../../lib/SelectHelper'
+import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../../lib/SliderHelper'
 
 interface CreatePopulationProps {
     availableFeatures: string[]
@@ -134,19 +135,14 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
         const newPopulationMinMax = this.state.newPopulationMinMax
         if (selectedMinMax != null && newPopulationMinMax != null) {
             const selectedMax = selectedMinMax.max
-
-            const unroundedStepSize = selectedMinMax.max / 5
-            const roundedStepSize = Math.round(unroundedStepSize)
-            const labelStepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
-
             return (
                 <RangeSlider
                     min={selectedMinMax.min}
                     max={selectedMinMax.max}
                     value={newPopulationMinMax}
-                    labelStepSize={labelStepSize}
-                    labelPrecision={1}
-                    stepSize={selectedMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
+                    labelStepSize={labelStepSize(selectedMax)}
+                    labelRenderer={sliderLabelRendererFunction(selectedMax)}
+                    stepSize={stepSize(selectedMax)}
                     onChange={this.onMarkerInstensityChange}
                 />
             )

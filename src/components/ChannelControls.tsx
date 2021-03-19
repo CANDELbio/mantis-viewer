@@ -14,6 +14,7 @@ import {
     generateSelectOptions,
     onClearableSelectChange,
 } from '../lib/SelectHelper'
+import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../lib/SliderHelper'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
 import { MinMax } from '../interfaces/ImageInterfaces'
@@ -79,10 +80,6 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
 
         const paddingStyle = { paddingTop: '3px' }
 
-        const unroundedStepSize = this.props.channelMax / 5
-        const roundedStepSize = Math.round(unroundedStepSize)
-        const labelStepSize = roundedStepSize == 0 ? unroundedStepSize : roundedStepSize
-
         // Remove nulls and the value selected for this channel from the list of all selected values
         const filteredSelectedValues = this.props.allSelectedMarkers.filter((value) => {
             return value != null && value != this.props.selectedMarker
@@ -95,20 +92,23 @@ export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
         })
         const selectedValue = getSelectedOptions(this.props.selectedMarker, selectOptions)
 
+        const channelMin = this.props.channelMin
+        const channelMax = this.props.channelMax
+
         let brightnessSlider = (
             <RangeSlider
                 disabled={this.props.selectedMarker == null}
-                min={this.props.channelMin}
-                max={this.props.channelMax}
+                min={channelMin}
+                max={channelMax}
                 value={this.props.sliderValue}
-                labelStepSize={labelStepSize}
-                labelPrecision={1}
-                stepSize={this.props.channelMax / 1000} // Might want to change the number/size of steps. Seemed like a good starting point.
+                labelStepSize={labelStepSize(channelMax)}
+                labelRenderer={sliderLabelRendererFunction(channelMax)}
+                stepSize={stepSize(channelMax)}
                 onChange={_.throttle(this.onChannelDomainChange, 100)}
             />
         )
 
-        if (this.props.channelMin == this.props.channelMax) {
+        if (channelMin == channelMax) {
             brightnessSlider = <div>No non-zero values present in image</div>
         }
 
