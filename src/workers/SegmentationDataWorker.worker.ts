@@ -60,7 +60,7 @@ function generatePixelMapKey(x: number, y: number): string {
 // Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
 // or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
 async function generateFillBitmap(
-    v: Float32Array | Uint16Array | Uint8Array,
+    v: Float32Array | Uint16Array | Uint8Array | number[],
     width: number,
     height: number,
 ): Promise<ImageBitmap> {
@@ -106,8 +106,8 @@ function generateOutlineMap(segmentLocationMap: Record<number, PixelLocation[]>)
 // pixelMap - Mapping of a stringified pixel location (i.e. x_y) to a segmentId
 // segmentLocationMap - Mapping of a segmentId to pixel locations (x, y)
 // segmentIndexMap - Mapping of a segmentId to pixel indices.
-function generateMapsFromTiff(
-    v: Float32Array | Uint16Array | Uint8Array,
+function generateMapsFromPixelArray(
+    v: Float32Array | Uint16Array | Uint8Array | number[],
     width: number,
 ): {
     pixelMap: Record<string, number[]>
@@ -176,8 +176,9 @@ async function loadTiffData(
     height: number,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
+        const t0 = performance.now()
         // Generating the pixelMap and segmentMaps that represent the segementation data
-        const maps = generateMapsFromTiff(data, width)
+        const maps = generateMapsFromPixelArray(data, width)
         const pixelMap = maps.pixelMap
         const segmentLocationMap = maps.segmentLocationMap
         const segmentIndexMap = maps.segmentIndexMap
@@ -187,6 +188,10 @@ async function loadTiffData(
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
         const bitmap = await generateFillBitmap(data, width, height)
+
+        const t1 = performance.now()
+
+        console.log('Call to loadTiffData took ' + (t1 - t0) + ' milliseconds.')
 
         return {
             filepath: filepath,
@@ -226,7 +231,7 @@ function generateMapsFromText(
     pixelMap: Record<string, number[]>
     segmentLocationMap: Record<number, PixelLocation[]>
     segmentIndexMap: Record<number, number[]>
-    pixelData: Uint16Array
+    pixelData: number[]
 } {
     const pixelMap: { [key: string]: number[] } = {}
     const segmentLocationMap: { [key: number]: PixelLocation[] } = {}
@@ -234,10 +239,10 @@ function generateMapsFromText(
 
     // Converts the segmentation data into an array format like we would get from reading a tiff segmentation file.
     // We do this to make generating the fillBitmap much faster than getting the pixel segment membership from the pixelMap.
-    const pixelData = new Uint16Array(width * height).fill(0)
+    const pixelData = new Array(width * height).fill(0)
 
     // The incoming data is an file with one row per segment.
-    // We use row index as segmentId.
+    // We use row index + 1 as segmentId.
     // Each row contains a list of comma separated values that make up the
     // x and y coordinates for the pixel.
     // e.g. x1, y1, x2, y2, ...
@@ -247,10 +252,11 @@ function generateMapsFromText(
         .map((line) => line.trim())
         .filter((line) => line.length > 0)
 
-    for (let segmentId = 0; segmentId < lines.length; ++segmentId) {
+    for (let curLine = 0; curLine < lines.length; ++curLine) {
+        const segmentId = curLine + 1
         // Split the line for the current segment into an array of the format
         // [[x1, y1], [x2, y2], ...]
-        const segmentCoordinates = chunkArray(lines[segmentId].split(','), 2)
+        const segmentCoordinates = chunkArray(lines[curLine].split(','), 2)
         segmentCoordinates.forEach(function (coordinate: string[]) {
             const x = parseInt(coordinate[0])
             const y = parseInt(coordinate[1])
@@ -284,24 +290,131 @@ function generateMapsFromText(
     }
 }
 
+function writeDataToJSON(
+    filepath: string,
+    width: number,
+    height: number,
+    pixelData: number[],
+    pixelMap: Record<string, number[]>,
+    segmentLocationMap: Record<number, PixelLocation[]>,
+    segmentIndexMap: Record<number, number[]>,
+    segmentOutlineMap: Record<number, PixelLocation[]>,
+    centroidMap: Record<number, PixelLocation>,
+): void {
+    const imageSetPath = path.dirname(filepath)
+    const data = {
+        width: width,
+        height: height,
+        pixelMap: pixelMap,
+        pixelData: pixelData,
+        segmentLocationMap: segmentLocationMap,
+        segmentIndexMap: segmentIndexMap,
+        segmentOutlineMap: segmentOutlineMap,
+        centroidMap: centroidMap,
+    }
+    const dataJSON = JSON.stringify(data)
+    fs.writeFileSync(path.join(imageSetPath, 'segmentation.json'), dataJSON, { encoding: 'utf8' })
+}
+
 async function loadTextData(
     filepath: string,
     width: number,
     height: number,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
+        const t0 = performance.now()
         // Generating the pixelMap and segmentMaps that represent the segementation data
         const maps = generateMapsFromText(filepath, width, height)
+        const pixelData = maps.pixelData
         const pixelMap = maps.pixelMap
         const segmentLocationMap = maps.segmentLocationMap
         const segmentIndexMap = maps.segmentIndexMap
 
-        const segmentOutlineMap = generateOutlineMap(maps.segmentLocationMap)
-        const centroidMap = calculateCentroids(maps.segmentLocationMap)
+        const segmentOutlineMap = generateOutlineMap(segmentLocationMap)
+        const centroidMap = calculateCentroids(segmentLocationMap)
 
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
-        const bitmap = await generateFillBitmap(maps.pixelData, width, height)
+        const bitmap = await generateFillBitmap(pixelData, width, height)
+        const t1 = performance.now()
+
+        console.log('Call to loadTextData took ' + (t1 - t0) + ' milliseconds.')
+
+        writeDataToJSON(
+            filepath,
+            width,
+            height,
+            pixelData,
+            pixelMap,
+            segmentLocationMap,
+            segmentIndexMap,
+            segmentOutlineMap,
+            centroidMap,
+        )
+
+        return {
+            filepath: filepath,
+            width: width,
+            height: height,
+            pixelMap: pixelMap,
+            segmentIndexMap: segmentIndexMap,
+            segmentLocationMap: segmentLocationMap,
+            segmentOutlineMap: segmentOutlineMap,
+            centroidMap: centroidMap,
+            fillBitmap: bitmap,
+        }
+    } catch (err) {
+        return { filepath: filepath, error: err.message }
+    }
+}
+
+async function loadJsonData(filepath: string): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
+    try {
+        const t0 = performance.now()
+
+        const jsonString = fs.readFileSync(filepath, { encoding: 'utf8' })
+        const data: {
+            width: number
+            height: number
+            pixelData: number[]
+            pixelMap?: Record<string, number[]>
+            segmentLocationMap?: Record<number, PixelLocation[]>
+            segmentIndexMap?: Record<number, number[]>
+            segmentOutlineMap?: Record<number, PixelLocation[]>
+            centroidMap?: Record<number, PixelLocation>
+        } = JSON.parse(jsonString)
+
+        const width = data.width
+        const height = data.height
+        const pixelData = data.pixelData
+
+        let pixelMap
+        let segmentLocationMap
+        let segmentIndexMap
+
+        if (data.pixelMap && data.segmentLocationMap && data.segmentIndexMap) {
+            pixelMap = data.pixelMap
+            segmentLocationMap = data.segmentLocationMap
+            segmentIndexMap = data.segmentIndexMap
+        } else {
+            const maps = generateMapsFromPixelArray(pixelData, width)
+            pixelMap = maps.pixelMap
+            segmentLocationMap = maps.segmentLocationMap
+            segmentIndexMap = maps.segmentIndexMap
+        }
+
+        const segmentOutlineMap = data.segmentOutlineMap
+            ? data.segmentOutlineMap
+            : generateOutlineMap(segmentLocationMap)
+        const centroidMap = data.centroidMap ? data.centroidMap : calculateCentroids(segmentLocationMap)
+
+        // Generate an ImageBitmap from the tiffData
+        // ImageBitmaps are rendered canvases can be passed between processes
+        const bitmap = await generateFillBitmap(pixelData, width, height)
+        const t1 = performance.now()
+
+        console.log('Call to loadJsonData took ' + (t1 - t0) + ' milliseconds.')
+
         return {
             filepath: filepath,
             width: width,
@@ -337,6 +450,8 @@ async function loadFile(
                 }
             }
             return await loadTiffData(filepath, tiffData.data, tiffData.width, tiffData.height)
+        } else if (extension == '.json') {
+            return loadJsonData(filepath)
         } else {
             return {
                 filepath: filepath,
@@ -354,7 +469,9 @@ ctx.addEventListener(
         const data: SegmentationDataWorkerInput = message.data
         // Callback if an error is raised when loading data.
         loadFile(data.filepath, data.width, data.height).then((message) => {
-            ctx.postMessage(message)
+            if (message) {
+                ctx.postMessage(message)
+            }
         })
     },
     false,

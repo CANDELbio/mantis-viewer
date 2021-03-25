@@ -223,7 +223,7 @@ function generateMenuTemplate(): any {
                                 openSegmentation,
                                 'Select Segmentation File',
                                 activeImageDirectory,
-                                ['tif', 'tiff', 'csv', 'txt'],
+                                ['tif', 'tiff', 'csv', 'txt', 'json'],
                             ),
                         },
                         {
