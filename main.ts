@@ -8,7 +8,8 @@ import * as _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
 
-// TODO: Should try to import from UIDefinitions, but generates unwanted .js and .js.map files
+// TODO: Tried to import from FileDefinitions, but generates unwanted .js and .js.map files.
+// Would be ideal to import instead of duplicating.
 const DbFilename = '.mantisDb'
 
 import url = require('url')
@@ -223,7 +224,7 @@ function generateMenuTemplate(): any {
                                 openSegmentation,
                                 'Select Segmentation File',
                                 activeImageDirectory,
-                                ['tif', 'tiff', 'csv', 'txt', 'json'],
+                                ['tif', 'tiff', 'csv', 'txt'],
                             ),
                         },
                         {

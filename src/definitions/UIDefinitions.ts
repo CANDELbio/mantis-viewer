@@ -94,9 +94,7 @@ export const DefaultNumHistogramBins = 100
 export const PlotMinNumHistogramBins = 20
 export const PlotMaxNumHistogramBins = 250
 
-export const DbFilename = '.mantisDb'
-
 // TODO: Need to test on a big monitor
-// Combined height of the leftmost pannel when channel and segmentation are both open.
-// If this ends up being different on differnt OSes or we are restyling often, might be better to use sizeme instead
+// Combined height of the leftmost panel when channel and segmentation are both open.
+// If this ends up being different on different OSes or we are restyling often, might be better to use sizeme instead
 export const ChannelControlsCombinedHeight = 1180

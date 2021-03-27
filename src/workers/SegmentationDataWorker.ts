@@ -5,6 +5,7 @@ export interface SegmentationDataWorkerInput {
     filepath: string
     width: number
     height: number
+    optimizeFile: boolean
 }
 
 export interface SegmentationDataWorkerResult {

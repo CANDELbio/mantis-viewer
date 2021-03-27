@@ -14,9 +14,52 @@ import {
 import { PixelLocation } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
 import { randomRGBColor } from '../lib/ColorHelper'
+import { OptimizedSegmentationSubfolder } from '../definitions/FileDefinitions'
 
 import * as path from 'path'
 import * as fs from 'fs'
+
+function optimizedSegmentationDirectoryPath(segmentationPath: string): string {
+    const segmentationDirectory = path.dirname(segmentationPath)
+    return path.join(segmentationDirectory, OptimizedSegmentationSubfolder)
+}
+
+function optimizedSegmentationPath(segmentationPath: string): string {
+    const optimizedSegmentationFilename = path.basename(segmentationPath) + '.optimized.json'
+    return path.join(optimizedSegmentationDirectoryPath(segmentationPath), optimizedSegmentationFilename)
+}
+
+function ensureOptimizedSegmentationDirectoryExists(segmentationPath: string): void {
+    const optimizedSegmentationDirectory = optimizedSegmentationDirectoryPath(segmentationPath)
+    if (!fs.existsSync(optimizedSegmentationDirectory)) fs.mkdirSync(optimizedSegmentationDirectory)
+}
+
+function saveOptimizedSegmentation(
+    filepath: string,
+    width: number,
+    height: number,
+    pixelData: number[],
+    pixelMap: Record<string, number[]>,
+    segmentLocationMap: Record<number, PixelLocation[]>,
+    segmentIndexMap: Record<number, number[]>,
+    segmentOutlineMap: Record<number, PixelLocation[]>,
+    centroidMap: Record<number, PixelLocation>,
+): void {
+    ensureOptimizedSegmentationDirectoryExists(filepath)
+    const optimizedPath = optimizedSegmentationPath(filepath)
+    const data = {
+        width: width,
+        height: height,
+        pixelMap: pixelMap,
+        pixelData: pixelData,
+        segmentLocationMap: segmentLocationMap,
+        segmentIndexMap: segmentIndexMap,
+        segmentOutlineMap: segmentOutlineMap,
+        centroidMap: centroidMap,
+    }
+    const dataJSON = JSON.stringify(data)
+    fs.writeFileSync(optimizedPath, dataJSON, { encoding: 'utf8' })
+}
 
 function getPixelColor(segmentId: number, colors: RGBColorCollection): { r: number; g: number; b: number } {
     if (!(segmentId in colors)) {
@@ -174,9 +217,9 @@ async function loadTiffData(
     data: Float32Array | Uint16Array | Uint8Array,
     width: number,
     height: number,
+    optimize: boolean,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        const t0 = performance.now()
         // Generating the pixelMap and segmentMaps that represent the segementation data
         const maps = generateMapsFromPixelArray(data, width)
         const pixelMap = maps.pixelMap
@@ -189,9 +232,19 @@ async function loadTiffData(
         // ImageBitmaps are rendered canvases can be passed between processes
         const bitmap = await generateFillBitmap(data, width, height)
 
-        const t1 = performance.now()
-
-        console.log('Call to loadTiffData took ' + (t1 - t0) + ' milliseconds.')
+        if (optimize) {
+            saveOptimizedSegmentation(
+                filepath,
+                width,
+                height,
+                Array.from(data),
+                pixelMap,
+                segmentLocationMap,
+                segmentIndexMap,
+                segmentOutlineMap,
+                centroidMap,
+            )
+        }
 
         return {
             filepath: filepath,
@@ -290,39 +343,13 @@ function generateMapsFromText(
     }
 }
 
-function writeDataToJSON(
-    filepath: string,
-    width: number,
-    height: number,
-    pixelData: number[],
-    pixelMap: Record<string, number[]>,
-    segmentLocationMap: Record<number, PixelLocation[]>,
-    segmentIndexMap: Record<number, number[]>,
-    segmentOutlineMap: Record<number, PixelLocation[]>,
-    centroidMap: Record<number, PixelLocation>,
-): void {
-    const imageSetPath = path.dirname(filepath)
-    const data = {
-        width: width,
-        height: height,
-        pixelMap: pixelMap,
-        pixelData: pixelData,
-        segmentLocationMap: segmentLocationMap,
-        segmentIndexMap: segmentIndexMap,
-        segmentOutlineMap: segmentOutlineMap,
-        centroidMap: centroidMap,
-    }
-    const dataJSON = JSON.stringify(data)
-    fs.writeFileSync(path.join(imageSetPath, 'segmentation.json'), dataJSON, { encoding: 'utf8' })
-}
-
 async function loadTextData(
     filepath: string,
     width: number,
     height: number,
+    optimize: boolean,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        const t0 = performance.now()
         // Generating the pixelMap and segmentMaps that represent the segementation data
         const maps = generateMapsFromText(filepath, width, height)
         const pixelData = maps.pixelData
@@ -336,21 +363,20 @@ async function loadTextData(
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
         const bitmap = await generateFillBitmap(pixelData, width, height)
-        const t1 = performance.now()
 
-        console.log('Call to loadTextData took ' + (t1 - t0) + ' milliseconds.')
-
-        writeDataToJSON(
-            filepath,
-            width,
-            height,
-            pixelData,
-            pixelMap,
-            segmentLocationMap,
-            segmentIndexMap,
-            segmentOutlineMap,
-            centroidMap,
-        )
+        if (optimize) {
+            saveOptimizedSegmentation(
+                filepath,
+                width,
+                height,
+                pixelData,
+                pixelMap,
+                segmentLocationMap,
+                segmentIndexMap,
+                segmentOutlineMap,
+                centroidMap,
+            )
+        }
 
         return {
             filepath: filepath,
@@ -368,11 +394,13 @@ async function loadTextData(
     }
 }
 
-async function loadJsonData(filepath: string): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
+async function loadOptimizedSegmentation(
+    filepath: string,
+): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        const t0 = performance.now()
+        const optimizedPath = optimizedSegmentationPath(filepath)
 
-        const jsonString = fs.readFileSync(filepath, { encoding: 'utf8' })
+        const jsonString = fs.readFileSync(optimizedPath, { encoding: 'utf8' })
         const data: {
             width: number
             height: number
@@ -411,9 +439,6 @@ async function loadJsonData(filepath: string): Promise<SegmentationDataWorkerRes
         // Generate an ImageBitmap from the tiffData
         // ImageBitmaps are rendered canvases can be passed between processes
         const bitmap = await generateFillBitmap(pixelData, width, height)
-        const t1 = performance.now()
-
-        console.log('Call to loadJsonData took ' + (t1 - t0) + ' milliseconds.')
 
         return {
             filepath: filepath,
@@ -435,27 +460,30 @@ async function loadFile(
     filepath: string,
     imageWidth: number,
     imageHeight: number,
+    optimize: boolean,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        //Decode tiff data
-        const extension = path.extname(filepath).toLowerCase()
-        if (['.csv', '.txt'].includes(extension)) {
-            return await loadTextData(filepath, imageWidth, imageHeight)
-        } else if (['.tif', '.tiff'].includes(extension)) {
-            const tiffData = await readTiffData(filepath, 0)
-            if (tiffData.width != imageWidth || tiffData.height != imageHeight) {
+        if (optimize && fs.existsSync(optimizedSegmentationPath(filepath))) {
+            return loadOptimizedSegmentation(filepath)
+        } else {
+            //Decode tiff data
+            const extension = path.extname(filepath).toLowerCase()
+            if (['.csv', '.txt'].includes(extension)) {
+                return await loadTextData(filepath, imageWidth, imageHeight, optimize)
+            } else if (['.tif', '.tiff'].includes(extension)) {
+                const tiffData = await readTiffData(filepath, 0)
+                if (tiffData.width != imageWidth || tiffData.height != imageHeight) {
+                    return {
+                        filepath: filepath,
+                        error: 'Segmentation file dimensions do not match image dimensions.',
+                    }
+                }
+                return await loadTiffData(filepath, tiffData.data, tiffData.width, tiffData.height, optimize)
+            } else {
                 return {
                     filepath: filepath,
-                    error: 'Segmentation file dimensions do not match image dimensions.',
+                    error: 'Segmentation filetype not supported. Must be a tif, tiff, csv, or txt.',
                 }
-            }
-            return await loadTiffData(filepath, tiffData.data, tiffData.width, tiffData.height)
-        } else if (extension == '.json') {
-            return loadJsonData(filepath)
-        } else {
-            return {
-                filepath: filepath,
-                error: 'Segmentation filetype not supported. Must be a tif, tiff, csv, or txt.',
             }
         }
     } catch (err) {
@@ -468,7 +496,7 @@ ctx.addEventListener(
     (message) => {
         const data: SegmentationDataWorkerInput = message.data
         // Callback if an error is raised when loading data.
-        loadFile(data.filepath, data.width, data.height).then((message) => {
+        loadFile(data.filepath, data.width, data.height, data.optimizeFile).then((message) => {
             if (message) {
                 ctx.postMessage(message)
             }

@@ -2,7 +2,7 @@ import sqlite3 = require('better-sqlite3')
 
 import * as path from 'path'
 
-import { DbFilename } from '../definitions/UIDefinitions'
+import { DbFilename } from '../definitions/FileDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { SelectedPopulation } from '../stores/PopulationStore'
 

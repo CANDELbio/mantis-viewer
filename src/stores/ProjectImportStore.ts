@@ -2,7 +2,7 @@ import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import path = require('path')
 import { ProjectStore } from './ProjectStore'
-import { DbFilename } from '../definitions/UIDefinitions'
+import { DbFilename } from '../definitions/FileDefinitions'
 import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
 
 export class ProjectImportStore {
