@@ -19,10 +19,12 @@ export interface ImageSetFeatureResult {
 
 interface ImportRequest {
     basePath: string
-    filePath: string
     clearDuplicates: boolean
     validImageSets: string[]
-    imageSetName?: string
+    files: {
+        filePath: string
+        imageSet?: string
+    }[]
 }
 
 interface ImportResult {

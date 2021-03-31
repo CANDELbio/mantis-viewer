@@ -24,33 +24,43 @@ function initializeDb(dbPath: string): void {
 }
 
 function importSegmentFeaturesFromCSV(
-    dbPath: string,
-    filePath: string,
+    basePath: string,
+    files: {
+        filePath: string
+        imageSet?: string
+    }[],
     validImageSets: string[],
-    imageSetName: string | undefined,
     clearDuplicates: boolean,
 ): SegmentFeatureDbResult {
-    initializeDb(dbPath)
+    initializeDb(basePath)
     const invalidImageSets: string[] = []
-    const parsed = parseSegmentDataCSV(filePath, imageSetName)
-    const segmentData = parsed.data
-    const segmentInfo = parsed.info
-    for (const imageSet of Object.keys(segmentData)) {
-        if (validImageSets.includes(imageSet)) {
-            const imageSetData = segmentData[imageSet]
-            for (const feature of Object.keys(imageSetData)) {
-                const segmentValues = imageSetData[feature]
-                if (clearDuplicates) db.deleteFeatures(imageSet, feature)
-                db.insertFeatures(imageSet, feature, segmentValues)
+    let importedFeatures = 0
+    let totalFeatures = 0
+    let invalidFeatureNames: string[] = []
+    for (const curFile of files) {
+        const parsed = parseSegmentDataCSV(curFile.filePath, curFile.imageSet)
+        const segmentData = parsed.data
+        const segmentInfo = parsed.info
+        for (const imageSet of Object.keys(segmentData)) {
+            if (validImageSets.includes(imageSet)) {
+                const imageSetData = segmentData[imageSet]
+                for (const feature of Object.keys(imageSetData)) {
+                    const segmentValues = imageSetData[feature]
+                    if (clearDuplicates) db.deleteFeatures(imageSet, feature)
+                    db.insertFeatures(imageSet, feature, segmentValues)
+                }
+            } else {
+                if (!invalidImageSets.includes(imageSet)) invalidImageSets.push(imageSet)
             }
-        } else {
-            if (!invalidImageSets.includes(imageSet)) invalidImageSets.push(imageSet)
         }
+        importedFeatures += segmentInfo.validFeatures
+        totalFeatures += segmentInfo.totalFeatures
+        invalidFeatureNames = invalidFeatureNames.concat(segmentInfo.invalidFeatureNames)
     }
     return {
-        importedFeatures: segmentInfo.validFeatures,
-        totalFeatures: segmentInfo.totalFeatures,
-        invalidFeatureNames: segmentInfo.invalidFeatureNames,
+        importedFeatures: importedFeatures,
+        totalFeatures: totalFeatures,
+        invalidFeatureNames: invalidFeatureNames,
         invalidImageSets: invalidImageSets,
     }
 }
@@ -100,12 +110,11 @@ ctx.addEventListener(
         const input: SegmentFeatureDbRequest = message.data
         let results: SegmentFeatureDbResult
         // try {
-        if ('filePath' in input) {
+        if ('files' in input) {
             results = importSegmentFeaturesFromCSV(
                 input.basePath,
-                input.filePath,
+                input.files,
                 input.validImageSets,
-                input.imageSetName,
                 input.clearDuplicates,
             )
         } else if ('requestedFeatures' in input) {

@@ -376,11 +376,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setRegion={projectImportStore.setImageSetRegionFile}
                     segmentation={projectImportStore.imageSetSegmentationFile}
                     setSegmentation={projectImportStore.setImageSetSegmentationFile}
-                    features={projectImportStore.projectSegmentFeaturesFile}
+                    setProjectFeatures={projectImportStore.setProjectSegmentFeaturesFile}
+                    projectFeatures={projectImportStore.projectSegmentFeaturesFile}
+                    setImageSetFeatures={projectImportStore.setImageSetSegmentFeaturesFile}
+                    imageSetFeatures={projectImportStore.imageSetSegmentFeaturesFile}
                     numFeatures={projectImportStore.numFeaturesInFeaturesFile}
                     numImageSetsWithFeatures={projectImportStore.numImageSetsInFeaturesFile}
                     featuresError={projectImportStore.featuresFileError}
-                    setFeatures={projectImportStore.setProjectSegmentFeaturesFile}
                     population={projectImportStore.projectPopulationFile}
                     setPopulations={projectImportStore.setProjectPopulationFile}
                     numPopulations={projectImportStore.numPopulationsInPopulationsFile}

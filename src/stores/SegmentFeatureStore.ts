@@ -339,6 +339,53 @@ export class SegmentFeatureStore {
         return segments
     }
 
+    // Checks if the filepath is contained within an image subdirectory.
+    // If it is, returns the path of the feature file relative to the image subdirectory.
+    // Otherwise don't return anything
+    private featureFileImageSubdirectory = (
+        basePath: string,
+        filePath: string,
+        validImageSets: string[],
+    ): string | void => {
+        // Get the file path relative to the imageSetPath (with the imageSetPath removed from the beginning)
+        const relativeFilePath = filePath.replace(basePath, '')
+        const splitRelativeFilePath = relativeFilePath.split(path.delimiter)
+        // If the split relative file path contains at least 2 entries, then the segment file might be in an image subdirectory.
+        if (splitRelativeFilePath.length > 2) {
+            const possibleImageSubdirectory = splitRelativeFilePath[0]
+            const relativeFilePathWithoutImageSubdirectory = path.join(...splitRelativeFilePath.slice(1))
+            if (validImageSets.includes(possibleImageSubdirectory)) return relativeFilePathWithoutImageSubdirectory
+        }
+    }
+
+    private getSegmentFeaturePaths = (
+        basePath: string,
+        filePath: string,
+        validImageSets: string[],
+        imageSetName: string | undefined,
+    ): {
+        filePath: string
+        imageSet?: string
+    }[] => {
+        if (imageSetName) {
+            // If the imageSetName is known for this file, we want to import the file for that imageSet
+            return [{ filePath: filePath, imageSet: imageSetName }]
+        } else {
+            // Check if the feature filePath is in an image subdirectory
+            // If it is we assume that each image subdirectory has it's own feature file and will try to import for each of those
+            const featureFileImageSubPath = this.featureFileImageSubdirectory(basePath, filePath, validImageSets)
+            if (featureFileImageSubPath) {
+                return validImageSets.map((imageSet: string) => {
+                    return { filePath: path.join(basePath, imageSet, featureFileImageSubPath), imageSet: imageSet }
+                })
+            } else {
+                // If it's not in an image subdirectory then we just import as a single file for the project
+                return [{ filePath: filePath }]
+            }
+        }
+    }
+
+    // TODO: Should raise error if multipleFiles is true and filePath is not within an image directory.
     public importSegmentFeatures = (
         filePath: string,
         forProject: boolean,
@@ -364,6 +411,7 @@ export class SegmentFeatureStore {
         // importingImageSetName should be undefined if we're plotting from the project
         // If it's not undefined, this will override all of the image set names from the CSV.
         const importingImageSetName = !forProject && activeImageSetName ? activeImageSetName : undefined
+        // Callback for worker once import is done.
         const onImportComplete = (result: SegmentFeatureDbResult): void => {
             if ('error' in result) {
                 notificationStore.setErrorMessage(result.error)
@@ -383,16 +431,19 @@ export class SegmentFeatureStore {
                 }
                 notificationStore.setInfoMessage(message)
             }
-            projectStore.setImportingSegmentFeaturesValues(null, null)
+            // Clear the values for the segment features file on the project store once we're done importing.
+            projectStore.clearImportingSegmentFeaturesValues()
             // Refresh the available features once import is done so the user can use them for plotting
             if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
         }
-        if (basePath && filePath) {
+        if (basePath) {
+            // Get the files to import formatted for the web worker
+            const filesToImport = this.getSegmentFeaturePaths(basePath, filePath, validImageSets, importingImageSetName)
             // Launch a worker to import segment features from the CSV.
             submitSegmentFeatureDbRequest(
                 {
                     basePath: basePath,
-                    filePath: filePath,
+                    files: filesToImport,
                     validImageSets: validImageSets,
                     imageSetName: importingImageSetName,
                     clearDuplicates: clearDuplicates,
@@ -404,7 +455,8 @@ export class SegmentFeatureStore {
             notificationStore.setErrorMessage(
                 'Could not import segment features. Unable to find database path or file path.',
             )
-            projectStore.setImportingSegmentFeaturesValues(null, null)
+            // Clear the values for the segment features file on the project store once we're done importing.
+            projectStore.clearImportingSegmentFeaturesValues()
         }
     }
 }

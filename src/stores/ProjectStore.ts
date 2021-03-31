@@ -529,12 +529,17 @@ export class ProjectStore {
         writeToCSV(projectPopulationArray, filePath, null)
     }
 
-    @action setImportingSegmentFeaturesValues = (filePath: string | null, forProject: boolean | null): void => {
+    @action clearImportingSegmentFeaturesValues = (): void => {
+        this.importingSegmentFeaturesPath = null
+        this.importingSegmentFeaturesForProject = null
+    }
+
+    @action setImportingSegmentFeaturesValues = (filePath: string, forProject: boolean): void => {
         // Set the importing features values
         this.importingSegmentFeaturesPath = filePath
         this.importingSegmentFeaturesForProject = forProject
         const rememberClearDuplicates = this.preferencesStore.rememberClearDuplicateSegmentFeatures
-        if (rememberClearDuplicates && filePath && forProject != null) {
+        if (rememberClearDuplicates) {
             // If the user wants us to remember their choice to clear duplicates, kick off importing segment features
             this.segmentFeatureStore.importSegmentFeatures(
                 filePath,

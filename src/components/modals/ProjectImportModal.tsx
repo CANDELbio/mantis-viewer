@@ -32,8 +32,10 @@ export interface ProjectImportModalProps {
     segmentation: string | null
     setRegion: (file: string | null) => void
     region: string | null
-    setFeatures: (file: string | null) => void
-    features: string | null
+    setProjectFeatures: (file: string | null) => void
+    projectFeatures: string | null
+    setImageSetFeatures: (file: string | null) => void
+    imageSetFeatures: string | null
     numFeatures: number | null
     numImageSetsWithFeatures: number | null
     featuresError: boolean
@@ -66,8 +68,10 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const selectedRegion = getSelectedOptions(this.props.region, regionOptions)
         const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
         const selectedSegmentation = getSelectedOptions(this.props.segmentation, segmentationOptions)
-        const featureOptions = generateSelectOptions(this.props.projectCsvs)
-        const selectedFeature = getSelectedOptions(this.props.features, featureOptions)
+        const projectFeatureOptions = generateSelectOptions(this.props.projectCsvs)
+        const selectedProjectFeatures = getSelectedOptions(this.props.projectFeatures, projectFeatureOptions)
+        const imageSetFeatureOptions = generateSelectOptions(this.props.imageSetCsvs)
+        const selectedImageSetFeatures = getSelectedOptions(this.props.imageSetFeatures, imageSetFeatureOptions)
         const populationOptions = generateSelectOptions(this.props.projectCsvs)
         const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
 
@@ -85,6 +89,8 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const numImageSetsWithFeatures = this.props.numImageSetsWithFeatures
         let featureStatsBody = null
         let featureStats = null
+        let projectFeatureStats = null
+        let imageSetFeatureStats = null
         if (this.props.featuresError) {
             featureStatsBody = 'Error parsing segment features file'
         } else if (numFeatures && numImageSetsWithFeatures) {
@@ -98,6 +104,9 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     <Col xs={8}>{featureStatsBody}</Col>
                 </Row>
             )
+
+        if (featureStatsBody && this.props.projectFeatures) projectFeatureStats = featureStats
+        if (featureStatsBody && this.props.imageSetFeatures) imageSetFeatureStats = featureStats
 
         const numPopulations = this.props.numPopulations
         const numImageSetsWithPopulations = this.props.numImageSetsWithPopulations
@@ -186,20 +195,35 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Segment Features File:</Col>
+                    <Col xs={4}>Project Segment Features File:</Col>
                     <Col xs={8}>
                         <Select
-                            value={selectedFeature}
-                            options={featureOptions}
-                            onChange={onClearableSelectChange(this.props.setFeatures)}
+                            value={selectedProjectFeatures}
+                            options={projectFeatureOptions}
+                            onChange={onClearableSelectChange(this.props.setProjectFeatures)}
                             isClearable={true}
                             styles={SelectStyle}
                             theme={SelectTheme}
-                            isDisabled={!Boolean(this.props.segmentation)}
+                            isDisabled={!Boolean(this.props.segmentation) || Boolean(this.props.imageSetFeatures)}
                         />
                     </Col>
                 </Row>
-                {featureStats}
+                {projectFeatureStats}
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Image Segment Features File:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedImageSetFeatures}
+                            options={imageSetFeatureOptions}
+                            onChange={onClearableSelectChange(this.props.setImageSetFeatures)}
+                            isClearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.segmentation) || Boolean(this.props.projectFeatures)}
+                        />
+                    </Col>
+                </Row>
+                {imageSetFeatureStats}
                 <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4}>Populations File:</Col>
                     <Col xs={8}>
