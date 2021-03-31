@@ -349,9 +349,9 @@ export class SegmentFeatureStore {
     ): string | void => {
         // Get the file path relative to the imageSetPath (with the imageSetPath removed from the beginning)
         const relativeFilePath = filePath.replace(basePath, '')
-        const splitRelativeFilePath = relativeFilePath.split(path.delimiter)
+        const splitRelativeFilePath = relativeFilePath.split(path.sep).filter(Boolean)
         // If the split relative file path contains at least 2 entries, then the segment file might be in an image subdirectory.
-        if (splitRelativeFilePath.length > 2) {
+        if (splitRelativeFilePath.length >= 2) {
             const possibleImageSubdirectory = splitRelativeFilePath[0]
             const relativeFilePathWithoutImageSubdirectory = path.join(...splitRelativeFilePath.slice(1))
             if (validImageSets.includes(possibleImageSubdirectory)) return relativeFilePathWithoutImageSubdirectory

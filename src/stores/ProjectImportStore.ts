@@ -98,6 +98,7 @@ export class ProjectImportStore {
         this.setImageSet(null)
         this.projectPopulationFile = null
         this.projectSegmentFeaturesFile = null
+        this.imageSetSegmentFeaturesFile = null
         this.imageSetSegmentationFile = null
         this.imageSetRegionFile = null
         this.imageSubdirectory = null
@@ -366,17 +367,18 @@ export class ProjectImportStore {
                                         projectStore.importProjectPopulationsFromCSV(
                                             path.join(this.directory, this.projectPopulationFile),
                                         )
-                                    // Import segment features for hte project if set
-                                    if (this.projectSegmentFeaturesFile)
+                                    // Import segment features for the project if set
+                                    if (this.projectSegmentFeaturesFile) {
                                         projectStore.setImportingSegmentFeaturesValues(
                                             path.join(this.directory, this.projectSegmentFeaturesFile),
                                             true,
                                         )
-                                    if (this.imageSet && this.imageSetSegmentFeaturesFile)
+                                    } else if (this.imageSet && this.imageSetSegmentFeaturesFile) {
                                         projectStore.setImportingSegmentFeaturesValues(
                                             path.join(this.directory, this.imageSet, this.imageSetSegmentFeaturesFile),
                                             true,
                                         )
+                                    }
                                 }
                                 // Reinitialize when we're done loading if we have segmentation data to load
                                 this.initialize()

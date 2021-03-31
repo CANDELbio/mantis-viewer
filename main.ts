@@ -277,7 +277,7 @@ function generateMenuTemplate(): any {
                                     ),
                                 },
                                 {
-                                    label: 'For project from single CSV',
+                                    label: 'For project from CSV',
                                     enabled: projectLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-project-segment-features',
