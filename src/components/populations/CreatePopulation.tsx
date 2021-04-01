@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
-import { Button } from 'reactstrap'
+import { Button, Input } from 'reactstrap'
 import Select from 'react-select'
-import { NumberRange, RangeSlider } from '@blueprintjs/core'
 
 import { PopulationCreationOptions } from '../../definitions/UIDefinitions'
 import { MinMax } from '../../interfaces/ImageInterfaces'
@@ -14,7 +13,6 @@ import {
     generateSelectOptions,
     onClearableSelectChange,
 } from '../../lib/SelectHelper'
-import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../../lib/SliderHelper'
 
 interface CreatePopulationProps {
     availableFeatures: string[]
@@ -29,7 +27,7 @@ interface CreatePopulationProps {
 interface CreatePopulationState {
     selectedPopulationCreationOption: string
     newPopulationSegmentIds: string
-    newPopulationMinMax: NumberRange | null
+    newPopulationMinMax: MinMax | null
 }
 
 function parseSegmentIds(toParse: string): number[] {
@@ -63,7 +61,7 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
         const selectedMinMax = props.selectedFeatureMinMax
         if (selectedMinMax != null && state.newPopulationMinMax == null) {
             const updatedState = state
-            updatedState.newPopulationMinMax = [selectedMinMax.min, selectedMinMax.max]
+            updatedState.newPopulationMinMax = selectedMinMax
             return updatedState
         }
         return null
@@ -88,7 +86,7 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
             const selectedFeature = this.props.selectedFeature
             const populationMinMax = this.state.newPopulationMinMax
             if (selectedFeature != null && populationMinMax != null) {
-                this.props.createPopulationFromRange(populationMinMax[0], populationMinMax[1], selectedFeature)
+                this.props.createPopulationFromRange(populationMinMax.min, populationMinMax.max, selectedFeature)
                 this.setState({ newPopulationMinMax: null })
                 this.props.setSelectedFeature(null)
             }
@@ -126,25 +124,57 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
         )
     }
 
-    private onMarkerInstensityChange = (value: NumberRange): void => {
-        this.setState({ newPopulationMinMax: value })
+    private setMarkerIntensityMin = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const curMinMax = this.state.newPopulationMinMax
+        const parsedValue = Number(e.target.value)
+        if (curMinMax && !Number.isNaN(parsedValue)) {
+            this.setState({ newPopulationMinMax: { min: parsedValue, max: curMinMax.max } })
+        }
     }
 
-    private markerInsensitySlider(): React.ReactElement | void {
+    private setMarkerIntensityMax = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const curMinMax = this.state.newPopulationMinMax
+        const parsedValue = Number(e.target.value)
+        if (curMinMax && !Number.isNaN(parsedValue)) {
+            this.setState({ newPopulationMinMax: { min: curMinMax.min, max: parsedValue } })
+        }
+    }
+
+    private markerInsensityInput(): React.ReactElement | void {
         const selectedMinMax = this.props.selectedFeatureMinMax
         const newPopulationMinMax = this.state.newPopulationMinMax
         if (selectedMinMax != null && newPopulationMinMax != null) {
-            const selectedMax = selectedMinMax.max
             return (
-                <RangeSlider
-                    min={selectedMinMax.min}
-                    max={selectedMinMax.max}
-                    value={newPopulationMinMax}
-                    labelStepSize={labelStepSize(selectedMax)}
-                    labelRenderer={sliderLabelRendererFunction(selectedMax)}
-                    stepSize={stepSize(selectedMax)}
-                    onChange={this.onMarkerInstensityChange}
-                />
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Min</td>
+                            <td>
+                                {' '}
+                                <Input
+                                    min={selectedMinMax.min}
+                                    max={selectedMinMax.max}
+                                    value={newPopulationMinMax.min}
+                                    onChange={this.setMarkerIntensityMin}
+                                    type={'number'}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Max</td>
+                            <td>
+                                {' '}
+                                <Input
+                                    min={selectedMinMax.min}
+                                    max={selectedMinMax.max}
+                                    value={newPopulationMinMax.max}
+                                    onChange={this.setMarkerIntensityMax}
+                                    type={'number'}
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             )
         }
     }
@@ -171,7 +201,7 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
             creationForm = (
                 <div>
                     {this.markerSelect()}
-                    {this.markerInsensitySlider()}
+                    {this.markerInsensityInput()}
                 </div>
             )
         }
