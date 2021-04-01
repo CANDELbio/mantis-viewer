@@ -297,15 +297,21 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
+        const featuresInDb = this.props.features.length != 0
+        const featureControlsPlaceholder = featuresInDb
+            ? 'Select features to plot...'
+            : 'No features present in database...'
+
         const featureControls = (
             <Select
                 value={selectedFeatureSelectOptions}
                 options={this.featureSelectOptions}
                 onChange={this.onPlotFeatureSelect}
                 isMulti={true}
-                placeholder="Select features to plot..."
+                placeholder={featureControlsPlaceholder}
                 styles={SelectStyle}
                 theme={SelectTheme}
+                isDisabled={!featuresInDb}
             />
         )
 
