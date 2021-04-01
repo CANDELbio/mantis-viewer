@@ -24,6 +24,7 @@ import { WelcomeModal } from './modals/WelcomeModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
 import { PlotControls } from './PlotControls'
+import { ImageMessage } from './ImageMessage'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -121,7 +122,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const notificationStore = projectStore.notificationStore
         const projectImportStore = projectStore.projectImportStore
 
-        let imageMessage = null
         let imageSetSelector = null
         let channelControls = null
         let plotControls = null
@@ -158,14 +158,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const modalOpen = displayWelcomeModal || displayLoadingModal || displayProjectImportModal
 
         let windowHeight = projectStore.windowHeight
-        if (imageStore.imageData && imageStore.imageData.scaled) {
-            imageMessage = (
-                <div style={{ position: 'relative', textAlign: 'center' }}>
-                    This image has been downsampled to fit in memory.
-                </div>
-            )
-            if (windowHeight) windowHeight -= 20
-        }
+        const imageMessage = (
+            <ImageMessage
+                imageData={imageStore.imageData}
+                channelMarker={settingStore.channelMarker}
+                channelVisibility={settingStore.channelVisibility}
+            ></ImageMessage>
+        )
+        // Reduce windowHeight to account for the height of the message
+        if (imageMessage && windowHeight) windowHeight -= 20
+
         const imageViewer = (
             <ImageViewer
                 imageData={imageStore.imageData}
@@ -407,8 +409,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             </Collapse>
                         </Col>
                         <Col xs={6} sm={6} md={6} lg={6}>
-                            {imageViewer}
                             {imageMessage}
+                            {imageViewer}
                         </Col>
                         <Col xs={4} sm={4} md={4} lg={4}>
                             <Button onClick={this.handleRegionsClick} style={fullWidthBottomSpaced} size="sm">
