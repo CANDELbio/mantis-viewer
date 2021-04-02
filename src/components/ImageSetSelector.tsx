@@ -41,7 +41,14 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
             )
         }
 
-        const imageSetOptions = generateSelectOptions(this.props.imageSets, basename)
+        // Sorts the image sets in a human readable order (numbers first, numbers in number line order)
+        const collator = new Intl.Collator(undefined, {
+            numeric: true,
+            sensitivity: 'base',
+        })
+        const sortedImageSets = this.props.imageSets.sort(collator.compare)
+
+        const imageSetOptions = generateSelectOptions(sortedImageSets, basename)
         const selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)
         return (
             <Grid fluid={true}>
@@ -59,7 +66,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
                             isClearable={false}
                             styles={SelectStyle}
                             theme={SelectTheme}
-                            isDisabled={this.props.imageSets.length == 0}
+                            isDisabled={sortedImageSets.length == 0}
                         />
                     </Col>
                     <Col xs={2} sm={2} md={2} lg={2}>
