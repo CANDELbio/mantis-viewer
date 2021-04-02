@@ -109,9 +109,10 @@ export class SegmentationData {
         fName: string,
         width: number,
         height: number,
+        optimize: boolean,
         onReady: (SegmentationData: SegmentationData) => void,
     ): void {
-        this.loadInWorker({ filepath: fName, width: width, height: height, optimizeFile: true }, onReady)
+        this.loadInWorker({ filepath: fName, width: width, height: height, optimizeFile: optimize }, onReady)
     }
 
     public destroyGraphics(): void {

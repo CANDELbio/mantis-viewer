@@ -35,6 +35,7 @@ export class PreferencesStore {
     @observable public rememberClearDuplicateSegmentFeatures: boolean
     @observable public clearDuplicateSegmentFeatures: boolean
     @observable public scaleChannelDomainValues: boolean
+    @observable public optimizeSegmentation: boolean
     @observable public reloadOnError: boolean
 
     private channelSelectionOrder: ChannelName[] = [
@@ -84,6 +85,7 @@ export class PreferencesStore {
         this.rememberClearDuplicateSegmentFeatures = false
         this.clearDuplicateSegmentFeatures = false
         this.scaleChannelDomainValues = false
+        this.optimizeSegmentation = true
         this.reloadOnError = true
     }
 
@@ -205,6 +207,10 @@ export class PreferencesStore {
         this.projectStore.settingStore.resetChannelDomainValues()
     }
 
+    @action public setOptimizeSegmentation = (optimize: boolean): void => {
+        this.optimizeSegmentation = optimize
+    }
+
     @action public setReloadOnError = (reload: boolean): void => {
         this.reloadOnError = reload
     }
@@ -223,6 +229,7 @@ export class PreferencesStore {
         store.set('rememberClearDuplicateSegmentFeatures', this.rememberClearDuplicateSegmentFeatures)
         store.set('clearDuplicateSegmentFeatures', this.clearDuplicateSegmentFeatures)
         store.set('scaleChannelDomainValues', this.scaleChannelDomainValues)
+        store.set('optimizeSegmentation', this.optimizeSegmentation)
         store.set('reloadOnError', this.reloadOnError)
         if (this.defaultSegmentationBasename) {
             store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
@@ -259,6 +266,8 @@ export class PreferencesStore {
         if (clear) this.clearDuplicateSegmentFeatures = clear
         const scale = store.get('scaleChannelDomainValues')
         if (scale) this.scaleChannelDomainValues = scale
+        const optimize = store.get('optimizeSegmentation')
+        if (optimize != null) this.optimizeSegmentation = optimize
         const reload = store.get('reloadOnError')
         if (reload != null) this.reloadOnError = reload
     }

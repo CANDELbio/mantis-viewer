@@ -46,7 +46,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
             numeric: true,
             sensitivity: 'base',
         })
-        const sortedImageSets = this.props.imageSets.sort(collator.compare)
+        const sortedImageSets = this.props.imageSets.slice().sort(collator.compare)
 
         const imageSetOptions = generateSelectOptions(sortedImageSets, basename)
         const selectedValue = getSelectedOptions(this.props.selectedImageSet, imageSetOptions)

@@ -156,6 +156,10 @@ ipcRenderer.on('set-scale-channel-domain-values', (event: Electron.Event, value:
     projectStore.preferencesStore.setScaleChannelDomainValues(value)
 })
 
+ipcRenderer.on('set-optimize-segmentation', (event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setOptimizeSegmentation(value)
+})
+
 ipcRenderer.on('set-reload-on-error', (event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setReloadOnError(value)
 })
@@ -383,6 +387,7 @@ Mobx.autorun((): void => {
         preferencesStore.rememberClearDuplicateSegmentFeatures,
         preferencesStore.clearDuplicateSegmentFeatures,
         preferencesStore.scaleChannelDomainValues,
+        preferencesStore.optimizeSegmentation,
         preferencesStore.reloadOnError,
     )
 })

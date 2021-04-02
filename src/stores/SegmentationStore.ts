@@ -69,6 +69,7 @@ export class SegmentationStore {
 
     @action public refreshSegmentationData = (): void => {
         const imageData = this.imageSetStore.imageStore.imageData
+        const preferencesStore = this.imageSetStore.projectStore.preferencesStore
         if (this.selectedSegmentationFile != null && this.segmentationData == null && imageData != null) {
             this.setSegmentationDataLoadingStatus(true)
             const segmentationData = new SegmentationData()
@@ -76,6 +77,7 @@ export class SegmentationStore {
                 this.selectedSegmentationFile,
                 imageData.width,
                 imageData.height,
+                preferencesStore.optimizeSegmentation,
                 this.setSegmentationData,
             )
         }
