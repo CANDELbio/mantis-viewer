@@ -21,10 +21,8 @@ interface ImportRequest {
     basePath: string
     clearDuplicates: boolean
     validImageSets: string[]
-    files: {
-        filePath: string
-        imageSet?: string
-    }[]
+    filePath: string
+    imageSet?: string
 }
 
 interface ImportResult {

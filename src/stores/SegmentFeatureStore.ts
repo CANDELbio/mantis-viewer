@@ -411,45 +411,78 @@ export class SegmentFeatureStore {
         // importingImageSetName should be undefined if we're plotting from the project
         // If it's not undefined, this will override all of the image set names from the CSV.
         const importingImageSetName = !forProject && activeImageSetName ? activeImageSetName : undefined
-        // Callback for worker once import is done.
-        const onImportComplete = (result: SegmentFeatureDbResult): void => {
-            if ('error' in result) {
-                notificationStore.setErrorMessage(result.error)
-            } else if ('importedFeatures' in result) {
-                let message =
-                    'Successfully imported ' +
-                    result.importedFeatures +
-                    ' out of ' +
-                    result.totalFeatures +
-                    ' features.'
-                if (result.invalidFeatureNames.length > 0) {
-                    message +=
-                        '\nCould not import some of the following features: ' + result.invalidFeatureNames.join(', ')
-                }
-                if (result.invalidImageSets.length > 0) {
-                    message += '\nCould not find the following image sets: ' + result.invalidImageSets.join(', ')
-                }
-                notificationStore.setInfoMessage(message)
-            }
-            // Clear the values for the segment features file on the project store once we're done importing.
-            projectStore.clearImportingSegmentFeaturesValues()
-            // Refresh the available features once import is done so the user can use them for plotting
-            if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
-        }
         if (basePath) {
             // Get the files to import formatted for the web worker
             const filesToImport = this.getSegmentFeaturePaths(basePath, filePath, validImageSets, importingImageSetName)
+            let numToImport = filesToImport.length
+            notificationStore.setNumToCalculate(numToImport)
+            const invalidFeatureNames: Set<string> = new Set()
+            const invalidImageSets: Set<string> = new Set()
+            const importErrors: string[] = []
+            // Keep track of the max imported features to know if we imported any features
+            let maxImportedFeatures = 0
+
+            // Callback for worker once import is done.
+            const onImportComplete = (result: SegmentFeatureDbResult): void => {
+                // Keep track of the results of the imports
+                if ('error' in result) {
+                    importErrors.push(result.error)
+                } else if ('importedFeatures' in result) {
+                    result.invalidFeatureNames.forEach((feature) => invalidFeatureNames.add(feature))
+                    result.invalidImageSets.forEach((feature) => invalidImageSets.add(feature))
+                    maxImportedFeatures = Math.max(maxImportedFeatures, result.importedFeatures)
+                }
+                // Decrement the number left to import and update the notification store
+                numToImport--
+                notificationStore.incrementNumCalculated()
+                // If we're done importing all of the files. Only set a message if there was an error.
+                if (numToImport == 0) {
+                    if (
+                        maxImportedFeatures > 0 &&
+                        (invalidFeatureNames.size > 0 || invalidImageSets.size > 0 || importErrors.length > 0)
+                    ) {
+                        let message = 'Successfully imported some segment features.'
+                        if (invalidFeatureNames.size > 0) {
+                            message +=
+                                '\nCould not import some of the following features: ' +
+                                Array.from(invalidFeatureNames).join(', ')
+                        }
+                        if (invalidImageSets.size > 0) {
+                            message +=
+                                '\nCould not find the following image sets: ' + Array.from(invalidImageSets).join(', ')
+                        }
+                        if (importErrors.length > 0) {
+                            message += '\nEncountered the following errors: ' + importErrors.join('\n')
+                        }
+                        notificationStore.setErrorMessage(message)
+                    } else if (maxImportedFeatures == 0) {
+                        let message = 'Unable to import segment features.'
+                        if (importErrors.length > 0) {
+                            message += '\nEncountered the following errors: ' + importErrors.join('\n')
+                        }
+                        notificationStore.setErrorMessage(message)
+                    }
+                    // Clear the values for the segment features file on the project store once we're done importing.
+                    projectStore.clearImportingSegmentFeaturesValues()
+                    // Refresh the available features once import is done so the user can use them for plotting
+                    if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
+                }
+            }
+            // Kick off in import request for each file.
+            filesToImport.forEach((file) => {
+                submitSegmentFeatureDbRequest(
+                    {
+                        basePath: basePath,
+                        validImageSets: validImageSets,
+                        imageSetName: importingImageSetName,
+                        clearDuplicates: clearDuplicates,
+                        filePath: file.filePath,
+                        imageSet: file.imageSet,
+                    },
+                    onImportComplete,
+                )
+            })
             // Launch a worker to import segment features from the CSV.
-            submitSegmentFeatureDbRequest(
-                {
-                    basePath: basePath,
-                    files: filesToImport,
-                    validImageSets: validImageSets,
-                    imageSetName: importingImageSetName,
-                    clearDuplicates: clearDuplicates,
-                },
-                onImportComplete,
-            )
         } else {
             // We shouldn't get here ever, but if we do tell the user and clear the values to close the modal.
             notificationStore.setErrorMessage(
