@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 module.exports = {
-    mode: 'development',
     entry: {
+        main: './main.ts',
         mainWindow: './src/app/mainWindow.tsx',
         plotWindow: './src/app/plotWindow.tsx',
         configurationWindow: './src/app/preferencesWindow.tsx',
@@ -53,7 +51,7 @@ module.exports = {
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                use: ['file-loader'],
+                loader: 'file-loader',
             },
             {
                 enforce: 'pre',

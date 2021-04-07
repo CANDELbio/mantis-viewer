@@ -178,7 +178,7 @@ function askCalculateFeatures(channel: string, dir: string): void {
             message: 'Do you want to calculate mean and median segment features for all image sets before exporting?',
             detail: 'These features will also be available in the plot once data has been exported',
         }
-        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null) mainWindow.webContents.send(channel, dir, value.response == 0)
         })
     }
@@ -202,7 +202,10 @@ function generateMenuTemplate(): any {
                     submenu: [
                         {
                             label: 'New Project',
-                            click: (): void => mainWindow.webContents.send('set-project-import-modal-visibility', true),
+                            click: (): void => {
+                                if (mainWindow != null)
+                                    mainWindow.webContents.send('set-project-import-modal-visibility', true)
+                            },
                         },
                         {
                             label: 'Existing Project',
@@ -362,7 +365,8 @@ function generateMenuTemplate(): any {
                                     label: 'For all populations in active image set',
                                     enabled: imageLoaded && segmentationLoaded && populationsSelected,
                                     click: showOpenDirectoryDialogCallback((dir: string): void => {
-                                        mainWindow.webContents.send('export-populations-fcs', dir)
+                                        if (mainWindow != null)
+                                            mainWindow.webContents.send('export-populations-fcs', dir)
                                     }, activeImageDirectory),
                                 },
                                 {
@@ -383,14 +387,16 @@ function generateMenuTemplate(): any {
                             label: 'Segment intensities for active image set',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
-                                mainWindow.webContents.send('recalculate-segment-features-from-menu')
+                                if (mainWindow != null)
+                                    mainWindow.webContents.send('recalculate-segment-features-from-menu')
                             },
                         },
                         {
                             label: 'Segment intensities for project',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
-                                mainWindow.webContents.send('calculate-project-segment-features')
+                                if (mainWindow != null)
+                                    mainWindow.webContents.send('calculate-project-segment-features')
                             },
                         },
                     ],
@@ -558,7 +564,7 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
     // and load the index.html of the app.
     newWindow.loadURL(
         url.format({
-            pathname: path.join(__dirname, 'app', 'mainWindow.html'),
+            pathname: path.join(__dirname, 'mainWindow.html'),
             protocol: 'file:',
             slashes: true,
         }),
@@ -605,7 +611,7 @@ function createPlotWindow(): void {
 
     plotWindow.loadURL(
         url.format({
-            pathname: path.join(__dirname, 'app', 'plotWindow.html'),
+            pathname: path.join(__dirname, 'plotWindow.html'),
             protocol: 'file:',
             slashes: true,
         }),
@@ -638,7 +644,7 @@ function createPreferencesWindow(): void {
 
     preferencesWindow.loadURL(
         url.format({
-            pathname: path.join(__dirname, 'app', 'preferencesWindow.html'),
+            pathname: path.join(__dirname, 'preferencesWindow.html'),
             protocol: 'file:',
             slashes: true,
         }),
@@ -768,7 +774,7 @@ ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
         }
-        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
                 mainWindow.webContents.send('calculate-segment-features', value.response == 0, value.checkboxChecked)
         })
@@ -787,7 +793,7 @@ ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
         }
-        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
                 mainWindow.webContents.send('recalculate-segment-features', value.response == 1, value.checkboxChecked)
         })
@@ -805,7 +811,7 @@ ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
         }
-        dialog.showMessageBox(null, options).then((value: Electron.MessageBoxReturnValue) => {
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
                 mainWindow.webContents.send(
                     'continue-segment-feature-import',
@@ -1067,43 +1073,49 @@ ipcMain.on('preferencesWindow-set-reload-on-error', (event: Electron.Event, valu
 
 ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
     showOpenDirectoryDialogCallback((directory: string) => {
-        if (isExistingProject(directory)) {
-            const message =
-                'The selected directory contains an existing Mantis project. Do you want to reinitialize it or open it as an existing project?'
-            const detail =
-                'If you choose to reinitialize any populations and features in the existing project will be lost.'
-            dialog
-                .showMessageBox(mainWindow, {
-                    type: 'warning',
-                    message: message,
-                    detail: detail,
-                    buttons: ['Reinitialize', 'Open As Existing'],
-                })
-                .then((value: Electron.MessageBoxReturnValue): void => {
-                    if (value.response == 1) {
-                        if (mainWindow != null) {
-                            mainWindow.webContents.send('set-project-import-modal-visibility', false)
-                            mainWindow.webContents.send('open-project', directory)
+        if (mainWindow != null) {
+            if (isExistingProject(directory)) {
+                const message =
+                    'The selected directory contains an existing Mantis project. Do you want to reinitialize it or open it as an existing project?'
+                const detail =
+                    'If you choose to reinitialize any populations and features in the existing project will be lost.'
+                dialog
+                    .showMessageBox(mainWindow, {
+                        type: 'warning',
+                        message: message,
+                        detail: detail,
+                        buttons: ['Reinitialize', 'Open As Existing'],
+                    })
+                    .then((value: Electron.MessageBoxReturnValue): void => {
+                        if (value.response == 1) {
+                            if (mainWindow != null) {
+                                mainWindow.webContents.send('set-project-import-modal-visibility', false)
+                                mainWindow.webContents.send('open-project', directory)
+                            }
+                        } else {
+                            if (mainWindow != null)
+                                mainWindow.webContents.send('project-import-set-directory', directory)
                         }
-                    } else {
-                        if (mainWindow != null) mainWindow.webContents.send('project-import-set-directory', directory)
-                    }
-                })
-        } else {
-            mainWindow.webContents.send('project-import-set-directory', directory)
+                    })
+            } else {
+                mainWindow.webContents.send('project-import-set-directory', directory)
+            }
         }
     })()
 })
 
 ipcMain.on('mainWindow-check-import-project', (): void => {
-    const message = 'You will lose any unsaved changes if you import a new project. Are you sure you want to do this?'
-    dialog
-        .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
-        .then((value: Electron.MessageBoxReturnValue): void => {
-            if (value.response == 1) {
-                if (mainWindow != null) mainWindow.webContents.send('continue-project-import')
-            }
-        })
+    if (mainWindow != null) {
+        const message =
+            'You will lose any unsaved changes if you import a new project. Are you sure you want to do this?'
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (value.response == 1) {
+                    if (mainWindow != null) mainWindow.webContents.send('continue-project-import')
+                }
+            })
+    }
 })
 
 ipcMain.on('mainWindow-reload', (): void => {

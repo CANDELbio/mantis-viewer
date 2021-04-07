@@ -18,14 +18,13 @@ To get up and running for the first time first clone the repository and install 
 npm install
 ```
 
-Once NPM has installed all of the dependencies, build the application and then run it.
+Once NPM has installed all of the dependencies, you can start the application.
 
 ```shell
-npm run build
 npm start
 ```
 
-If you are actively developing you will need to run `npm run build` before running `npm start` to see your changes.
+Webpack will automatically rebuild the application and restart Electron if you are actively developing.
 
 ## Running tests
 
@@ -50,7 +49,6 @@ npm install
 Once this is done, you can build the application and then package it for distribution.
 
 ```shell
-npm run build
 npm run dist
 ```
 
