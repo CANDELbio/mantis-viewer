@@ -18,6 +18,7 @@
         "allowSyntheticDefaultImports": true
     },
     "include": [
+        "main.ts",
         "src/**/*.ts",
         "typings/**/*.ts",
         "src/**/*.tsx"

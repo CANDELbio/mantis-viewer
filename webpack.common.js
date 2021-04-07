@@ -1,26 +1,16 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const path = require('path')
-const createElectronReloadWebpackPlugin = require('electron-reload-webpack-plugin')
-
-const ElectronReloadWebpackPlugin = createElectronReloadWebpackPlugin({
-    path: path.join(__dirname, './main.js'),
-    logLevel: 0,
-})
-
 module.exports = {
-    mode: 'development',
     entry: {
         main: './main.ts',
-        'app/mainWindow': './src/app/mainWindow.tsx',
-        'app/plotWindow': './src/app/plotWindow.tsx',
-        'app/configurationWindow': './src/app/preferencesWindow.tsx',
+        mainWindow: './src/app/mainWindow.tsx',
+        plotWindow: './src/app/plotWindow.tsx',
+        configurationWindow: './src/app/preferencesWindow.tsx',
     },
     output: {
-        path: __dirname + '/',
+        path: __dirname + '/app',
         filename: '[name].js',
     },
     // Enable sourcemaps for debugging webpack's output.
-    devtool: 'eval',
+    devtool: 'source-map',
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
@@ -61,7 +51,7 @@ module.exports = {
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                use: ['file-loader'],
+                loader: 'file-loader',
             },
             {
                 enforce: 'pre',
@@ -87,5 +77,4 @@ module.exports = {
         'better-sqlite3': 'commonjs better-sqlite3',
     },
     target: 'electron-main',
-    plugins: [ElectronReloadWebpackPlugin()],
 }
