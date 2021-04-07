@@ -5,7 +5,8 @@
     "main": "main.js",
     "scripts": {
         "start": "electron . debug",
-        "build": "tsc main.ts --sourceMap && webpack",
+        "build": "webpack",
+        "build:watch": "webpack --watch",
         "pack": "electron-builder --dir",
         "dist": "electron-builder -ml --x64",
         "dist-win": "electron-builder -w --x64",
@@ -76,6 +77,8 @@
         "css-loader": "^0.27.3",
         "electron": "^8.2.2",
         "electron-builder": "^22.5.1",
+        "electron-connect": "^0.6.3",
+        "electron-reload-webpack-plugin": "^2.0.4",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.1",
         "eslint-plugin-prettier": "^3.1.3",

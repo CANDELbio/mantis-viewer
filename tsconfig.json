@@ -11,12 +11,18 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noImplicitAny": true,
-        //"noUnusedLocals": true,
-        //"noUnusedParameters": true,
+        // "noUnusedLocals": true,
+        // "noUnusedParameters": true,
         "strictNullChecks": true,
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/**/*.ts", "typings/**/*.ts", "src/**/*.tsx"],
-    "exclude": ["node_modules/**"]
+    "include": [
+        "src/**/*.ts",
+        "typings/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules/**"
+    ]
 }
