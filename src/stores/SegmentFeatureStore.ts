@@ -449,7 +449,7 @@ export class SegmentFeatureStore {
                         }
                         if (invalidImageSets.size > 0) {
                             message +=
-                                '\nCould not find the following image sets: ' + Array.from(invalidImageSets).join(', ')
+                                '\nCould not find the following images: ' + Array.from(invalidImageSets).join(', ')
                         }
                         if (importErrors.length > 0) {
                             message += '\nEncountered the following errors: ' + importErrors.join('\n')

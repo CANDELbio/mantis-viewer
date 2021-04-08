@@ -138,7 +138,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         }
         return (
             <div>
-                <Label>Maximum image sets in memory</Label>
+                <Label>Maximum images in memory</Label>
                 <Slider
                     min={1}
                     max={10}
@@ -246,7 +246,7 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     <Checkbox
                         checked={this.props.scaleChannelBrightness}
                         onChange={this.onScaleChannelBrightnessChange}
-                        label="Scale channel brightnesses when switching image sets"
+                        label="Scale channel brightnesses when switching images"
                     />
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>

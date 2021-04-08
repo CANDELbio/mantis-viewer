@@ -80,7 +80,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
             projectStats = (
                 <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4} />
-                    <Col xs={8}>Directory has {projectDirectories.length} image sets</Col>
+                    <Col xs={8}>Directory has {projectDirectories.length} images</Col>
                 </Row>
             )
         }
@@ -94,7 +94,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         if (this.props.featuresError) {
             featureStatsBody = 'Error parsing segment features file'
         } else if (numFeatures && numImageSetsWithFeatures) {
-            featureStatsBody = `File has ${numFeatures} features across ${numImageSetsWithFeatures} image sets`
+            featureStatsBody = `File has ${numFeatures} features across ${numImageSetsWithFeatures} images`
         }
 
         if (featureStatsBody)
@@ -115,7 +115,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         if (this.props.populationError) {
             populationStatsBody = 'Error parsing populations file'
         } else if (numPopulations && numImageSetsWithPopulations) {
-            populationStatsBody = `File has ${numPopulations} populations across ${numImageSetsWithPopulations} image sets`
+            populationStatsBody = `File has ${numPopulations} populations across ${numImageSetsWithPopulations} images`
         }
 
         if (populationStatsBody) {
@@ -139,7 +139,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                 </Row>
                 {projectStats}
                 <Row middle="xs" center="xs" style={this.rowStyle}>
-                    <Col xs={4}>Representative Image Set:</Col>
+                    <Col xs={4}>Representative Image Directory:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedImageSet}

@@ -144,7 +144,7 @@ export class ProjectStore {
                 this.setActiveImageSet(this.imageSetPaths[0])
             }
         } else {
-            this.notificationStore.setErrorMessage('No image set directories found in ' + path.basename(dirName) + '.')
+            this.notificationStore.setErrorMessage('No image directories found in ' + path.basename(dirName) + '.')
         }
     }
 
@@ -234,7 +234,7 @@ export class ProjectStore {
             if (imageStore.imageData != null) {
                 if (imageStore.imageData.markerNames.length == 0) {
                     let msg = 'Warning: No tiffs found in ' + path.basename(this.activeImageSetPath) + '.'
-                    msg += ' Do you wish to remove it from the list of image sets?'
+                    msg += ' Do you wish to remove it from the list of images?'
                     this.notificationStore.setRemoveMessage(msg)
                 }
             }

@@ -54,7 +54,7 @@ function openImageSet(path: string): void {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
-                'You will lose any unsaved changes if you open a new image set. Are you sure you want to do this?'
+                'You will lose any unsaved changes if you open a new image. Are you sure you want to do this?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -105,7 +105,7 @@ function openSegmentation(dir: string): void {
     if (mainWindow != null) {
         if (segmentationLoaded) {
             const message =
-                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all image sets. Are you sure you want to do this?"
+                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -175,7 +175,7 @@ function askCalculateFeatures(channel: string, dir: string): void {
             buttons: ['Yes', 'No'],
             defaultId: 0,
             title: 'Question',
-            message: 'Do you want to calculate mean and median segment features for all image sets before exporting?',
+            message: 'Do you want to calculate mean and median segment features for all images before exporting?',
             detail: 'These features will also be available in the plot once data has been exported',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
@@ -212,7 +212,7 @@ function generateMenuTemplate(): any {
                             click: showOpenDirectoryDialogCallback(openProject),
                         },
                         {
-                            label: 'Image Set',
+                            label: 'Image',
                             click: showOpenDirectoryDialogCallback(openImageSet),
                         },
                     ],
@@ -244,7 +244,7 @@ function generateMenuTemplate(): any {
                             label: 'Populations',
                             submenu: [
                                 {
-                                    label: 'For active image set from CSV',
+                                    label: 'For active image from CSV',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-populations-csv',
@@ -270,7 +270,7 @@ function generateMenuTemplate(): any {
                             enabled: segmentationLoaded,
                             submenu: [
                                 {
-                                    label: 'For active image set from CSV',
+                                    label: 'For active image from CSV',
                                     enabled: segmentationLoaded,
                                     click: showOpenFileDialogCallback(
                                         'add-segment-features',
@@ -310,7 +310,7 @@ function generateMenuTemplate(): any {
                             label: 'Populations',
                             submenu: [
                                 {
-                                    label: 'For active image set to CSV',
+                                    label: 'For active image to CSV',
                                     enabled: imageLoaded && populationsSelected,
                                     click: showSaveFileIpcDialog('export-populations-csv', activeImageDirectory, 'csv'),
                                 },
@@ -329,7 +329,7 @@ function generateMenuTemplate(): any {
                             label: 'Segment features to CSV',
                             submenu: [
                                 {
-                                    label: 'For active image set',
+                                    label: 'For active image',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showSaveFileIpcDialog(
                                         'export-segment-features',
@@ -350,7 +350,7 @@ function generateMenuTemplate(): any {
                             label: 'Segment features to FCS',
                             submenu: [
                                 {
-                                    label: 'For all segments in active image set',
+                                    label: 'For all segments in active image',
                                     enabled: imageLoaded && segmentationLoaded,
                                     click: showSaveFileIpcDialog('export-segments-to-fcs', activeImageDirectory, 'fcs'),
                                 },
@@ -362,7 +362,7 @@ function generateMenuTemplate(): any {
                                     }, projectDirectory),
                                 },
                                 {
-                                    label: 'For all populations in active image set',
+                                    label: 'For all populations in active image',
                                     enabled: imageLoaded && segmentationLoaded && populationsSelected,
                                     click: showOpenDirectoryDialogCallback((dir: string): void => {
                                         if (mainWindow != null)
@@ -384,7 +384,7 @@ function generateMenuTemplate(): any {
                     label: 'Calculate',
                     submenu: [
                         {
-                            label: 'Segment intensities for active image set',
+                            label: 'Segment intensities for active image',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
                                 if (mainWindow != null)
@@ -575,21 +575,23 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
 }
 
 function registerMainWindowEvents(): void {
-    // Use throttle so that when we resize we only send the window size every 333 ms
-    mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
-    mainWindow.on('enter-full-screen', sendMainWindowSize)
-    mainWindow.on('leave-full-screen', sendMainWindowSize)
-    mainWindow.on('show', sendMainWindowSize)
+    if (mainWindow) {
+        // Use throttle so that when we resize we only send the window size every 333 ms
+        mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
+        mainWindow.on('enter-full-screen', sendMainWindowSize)
+        mainWindow.on('leave-full-screen', sendMainWindowSize)
+        mainWindow.on('show', sendMainWindowSize)
 
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function (): void {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        mainWindow = null
-        closePlotWindow()
-        closePreferencesWindow()
-    })
+        // Emitted when the window is closed.
+        mainWindow.on('closed', function (): void {
+            // Dereference the window object, usually you would store windows
+            // in an array if your app supports multi windows, this is the time
+            // when you should delete the corresponding element.
+            mainWindow = null
+            closePlotWindow()
+            closePreferencesWindow()
+        })
+    }
 }
 
 function createMainWindow(): void {
@@ -736,7 +738,7 @@ ipcMain.on('mainWindow-show-info-dialog', (event: Electron.Event, message: strin
     if (mainWindow != null) dialog.showMessageBox(mainWindow, { type: 'info', message: message })
 })
 
-// Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
+// Show a 'remove image' dialog and tell the main window to remove it if the user approves.
 ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, message: string): void => {
     if (mainWindow != null)
         dialog
@@ -748,11 +750,11 @@ ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, messag
             })
 })
 
-// Show a 'remove image set' dialog and tell the main window to remove it if the user approves.
+// Show a 'remove image' dialog and tell the main window to remove it if the user approves.
 ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
     if (mainWindow != null) {
         const message =
-            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all image sets. Are you sure you want to do this?"
+            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {
@@ -788,7 +790,7 @@ ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
             buttons: ['Yes', 'No'],
             defaultId: 0,
             message:
-                'Segment intensities have been previously calculated for this image set. Do you want to use the previously calculated intensities?',
+                'Segment intensities have been previously calculated for this image. Do you want to use the previously calculated intensities?',
             detail: 'You can manually refresh segment intensities from the main menu at any time',
             checkboxLabel: 'Remember my answer (you can change this in preferences)',
             checkboxChecked: true,
@@ -828,9 +830,9 @@ ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            message: 'Do you want to calculate segment intensities for all image sets for the plot?',
+            message: 'Do you want to calculate segment intensities for all images for the plot?',
             detail:
-                'If you select no you will not be able to view data for all image sets on the plot. If you change your mind you can manually calculate the intensities from the menu.',
+                'If you select no you will not be able to view data for all images on the plot. If you change your mind you can manually calculate the intensities from the menu.',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue): void => {
             if (value.response == 0) {
@@ -1120,31 +1122,35 @@ ipcMain.on('mainWindow-check-import-project', (): void => {
 
 ipcMain.on('mainWindow-reload', (): void => {
     const oldMainWindow = mainWindow
-    const projectWasLoaded = projectLoaded
-    const oldProjectDirectory = projectDirectory
-    const imageWasLoaded = imageLoaded
-    const oldImageDirectory = activeImageDirectory
+    if (oldMainWindow) {
+        const projectWasLoaded = projectLoaded
+        const oldProjectDirectory = projectDirectory
+        const imageWasLoaded = imageLoaded
+        const oldImageDirectory = activeImageDirectory
 
-    // Reset global variables to keep track of what's going on in the mainWindow.
-    projectLoaded = false
-    imageLoaded = false
-    segmentationLoaded = false
-    populationsSelected = false
+        // Reset global variables to keep track of what's going on in the mainWindow.
+        projectLoaded = false
+        imageLoaded = false
+        segmentationLoaded = false
+        populationsSelected = false
 
-    const mainWindowDimensions = oldMainWindow.getSize()
-    mainWindow = initializeMainWindow(mainWindowDimensions[0], mainWindowDimensions[1])
-    setMenu()
-    registerMainWindowEvents()
+        const mainWindowDimensions = oldMainWindow.getSize()
+        mainWindow = initializeMainWindow(mainWindowDimensions[0], mainWindowDimensions[1])
+        setMenu()
+        registerMainWindowEvents()
 
-    const message = 'Mantis has encountered an error and will restart.'
-    dialog.showMessageBox(oldMainWindow, { type: 'error', message: message }).then((): void => {
-        oldMainWindow.removeAllListeners()
-        oldMainWindow.destroy()
-        mainWindow.show()
-        if (projectWasLoaded) {
-            mainWindow.webContents.send('open-project', oldProjectDirectory)
-        } else if (imageWasLoaded) {
-            mainWindow.webContents.send('open-image-set', oldImageDirectory)
-        }
-    })
+        const message = 'Mantis has encountered an error and will restart.'
+        dialog.showMessageBox(oldMainWindow, { type: 'error', message: message }).then((): void => {
+            oldMainWindow.removeAllListeners()
+            oldMainWindow.destroy()
+            if (mainWindow) {
+                mainWindow.show()
+                if (projectWasLoaded) {
+                    mainWindow.webContents.send('open-project', oldProjectDirectory)
+                } else if (imageWasLoaded) {
+                    mainWindow.webContents.send('open-image-set', oldImageDirectory)
+                }
+            }
+        })
+    }
 })

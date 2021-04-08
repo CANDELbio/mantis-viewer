@@ -41,7 +41,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
             )
         }
 
-        // Sorts the image sets in a human readable order (numbers first, numbers in number line order)
+        // Sorts the images in a human readable order (numbers first, numbers in number line order)
         const collator = new Intl.Collator(undefined, {
             numeric: true,
             sensitivity: 'base',
@@ -54,7 +54,7 @@ export class ImageSetSelector extends React.Component<ImageSetSelectorProps, {}>
             <Grid fluid={true}>
                 <Row between="xs">
                     <Col xs={12} sm={12} md={12} lg={12}>
-                        <div>Selected Image Set:</div>
+                        <div>Selected Image:</div>
                     </Col>
                 </Row>
                 <Row between="xs">

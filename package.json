@@ -5,6 +5,8 @@
     "main": "app/main.js",
     "scripts": {
         "start": "webpack --watch --config webpack.dev.js",
+        "build": "webpack --config webpack.prod.js",
+        "electron": "electron . debug",
         "pack": "webpack --config webpack.prod.js && electron-builder --dir",
         "dist": "webpack --config webpack.prod.js && electron-builder -ml --x64",
         "dist-win": "webpack --config webpack.prod.js && electron-builder -w --x64",

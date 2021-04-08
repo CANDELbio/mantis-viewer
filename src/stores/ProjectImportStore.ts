@@ -340,7 +340,7 @@ export class ProjectImportStore {
                             const msg =
                                 'Unable to find segmentation file ' +
                                 segmentationFile +
-                                ' in image set ' +
+                                ' in image ' +
                                 activeImageSetName
                             projectStore.notificationStore.setErrorMessage(msg)
                         }
@@ -357,7 +357,7 @@ export class ProjectImportStore {
                                             const msg =
                                                 'Unable to find region file ' +
                                                 regionFile +
-                                                ' in image set ' +
+                                                ' in image ' +
                                                 activeImageSetName
                                             projectStore.notificationStore.setErrorMessage(msg)
                                         }

@@ -251,7 +251,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                         this.props.setPlotAllImageSets(e.target.checked)
                     }
-                    label="Plot all image sets"
+                    label="Plot all images"
                 />
             </div>
         )
@@ -264,7 +264,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
                         this.props.setCollapseAllImageSets(e.target.checked)
                     }
-                    label="Collapse non-active image sets"
+                    label="Collapse non-active images"
                 />
             </div>
         )

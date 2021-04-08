@@ -49,7 +49,7 @@ function getTraceColor(
     } else if (traceId == activeImageSet) {
         color = ActiveImageSetTraceColor
     } else if (traceId in colorMap) {
-        // Get a random color for image sets that haven't been collapsed
+        // Get a random color for images that haven't been collapsed
         // TODO: Should we store these somewhere so that they're persisted?
         color = colorMap[traceId]
     } else {

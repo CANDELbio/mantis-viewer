@@ -12,10 +12,10 @@ export function buildTraceIdArray(
     selectedPopulations: SelectedPopulation[] | null,
 ): string[] {
     let traceIds: string[] = []
-    // First start with other image sets
+    // First start with other images
     traceIds = traceIds.concat(imageSetNames.filter((name: string) => name != activeImageSet))
     if (collapseAllImageSets) traceIds.push(OtherImageSetsTraceName)
-    // Then the active image set
+    // Then the active images
     traceIds.push(activeImageSet)
     // Then selected populations in their render order
     if (selectedPopulations != null) {

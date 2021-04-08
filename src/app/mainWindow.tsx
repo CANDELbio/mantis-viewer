@@ -392,7 +392,7 @@ Mobx.autorun((): void => {
     )
 })
 
-// Sends the active image set path to the main thread when changed.
+// Sends the active image path to the main thread when changed.
 // Used for setting default menu directories.
 Mobx.autorun((): void => {
     ipcRenderer.send('set-active-image-directory', projectStore.activeImageSetPath)
