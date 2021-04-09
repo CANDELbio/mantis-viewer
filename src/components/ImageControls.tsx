@@ -26,6 +26,9 @@ export interface ImageControlsProps {
     selectedSegmentationFile: string | null
     segmentationLoaded: boolean
     onClearSegmentation: () => void
+
+    autoLoadSegmentation: boolean
+    setAutoLoadSegmentation: (value: boolean) => void
 }
 
 @observer
@@ -52,6 +55,9 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
 
     private onPopulationLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setPopulationLegendVisible(event.currentTarget.checked)
+
+    private onAutoLoadSegmentationChange = (event: React.FormEvent<HTMLInputElement>): void =>
+        this.props.setAutoLoadSegmentation(event.currentTarget.checked)
 
     private selectedSegmentationFileLabel(): JSX.Element {
         const segmentationFileName = this.props.selectedSegmentationFile
@@ -82,6 +88,11 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                     checked={this.props.populationLegendVisible}
                     label="Show Population Legend"
                     onChange={this.onPopulationLegendVisibilityChange}
+                />
+                <Checkbox
+                    checked={this.props.autoLoadSegmentation}
+                    label="Automatically Load Segmentation When Switching Images"
+                    onChange={this.onAutoLoadSegmentationChange}
                 />
                 <Checkbox
                     checked={this.props.centroidsVisible}

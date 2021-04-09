@@ -26,9 +26,10 @@ export class SegmentationStore {
         const imageData = imageStore.imageData
         const settingStore = this.imageSetStore.projectStore.settingStore
         const segmentationBasename = settingStore.segmentationBasename
+        const autoLoadSegmentation = settingStore.autoLoadSegmentation
 
         // Check if there is a file to load and if image data has loaded (so we know width and height for text segmentation)
-        if (segmentationBasename && imageData && imageSetDirectory) {
+        if (segmentationBasename && autoLoadSegmentation && imageData && imageSetDirectory) {
             const segmentationFile = path.join(imageSetDirectory, segmentationBasename)
             // If the segmentation file exists and it's not equal to the current file, clear segmentation data and set to the new.
             if (fs.existsSync(segmentationFile) && this.selectedSegmentationFile != segmentationFile) {

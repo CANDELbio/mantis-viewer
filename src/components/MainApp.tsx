@@ -254,6 +254,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setPopulationLegendVisible={settingStore.setPopulationLegendVisible}
                         selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
                         segmentationLoaded={segmentationStore.segmentationData != null}
+                        autoLoadSegmentation={settingStore.autoLoadSegmentation}
+                        setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
                     />
                 </div>
             )

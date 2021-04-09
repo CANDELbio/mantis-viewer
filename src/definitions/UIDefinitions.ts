@@ -94,7 +94,6 @@ export const DefaultNumHistogramBins = 100
 export const PlotMinNumHistogramBins = 20
 export const PlotMaxNumHistogramBins = 250
 
-// TODO: Need to test on a big monitor
 // Combined height of the leftmost panel when channel and segmentation are both open.
 // If this ends up being different on different OSes or we are restyling often, might be better to use sizeme instead
-export const ChannelControlsCombinedHeight = 1180
+export const ChannelControlsCombinedHeight = 1265

@@ -31,6 +31,7 @@ type SettingStoreData = {
     channelDomainValue?: Record<ChannelName, [number, number]> | null
     channelVisibility?: Record<ChannelName, boolean> | null
     segmentationBasename?: string | null
+    autoLoadSegmentation?: boolean
     regionsBasename?: string | null
     regionsFilesLoaded?: string[] | null
     selectedPlotFeatures?: string[] | null
@@ -83,6 +84,8 @@ export class SettingStore {
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
+    // Whether or not segmentation is automatically loaded when switching between images
+    @observable public autoLoadSegmentation: boolean
     // Region file basename when a region file is selected for teh whole project
     @observable public regionsBasename: string | null
     @observable public regionsFilesLoaded: string[]
@@ -144,6 +147,7 @@ export class SettingStore {
         }
 
         this.segmentationBasename = null
+        this.autoLoadSegmentation = true
         this.regionsBasename = null
         this.regionsFilesLoaded = []
 
@@ -359,6 +363,10 @@ export class SettingStore {
         this.segmentationBasename = basename
     }
 
+    @action public setAutoLoadSegmentation = (value: boolean): void => {
+        this.autoLoadSegmentation = value
+    }
+
     @action public setRegionsBasename = (basename: string | null): void => {
         this.regionsBasename = basename
         this.regionsFilesLoaded = []
@@ -446,6 +454,7 @@ export class SettingStore {
                 channelVisibility: this.channelVisibility,
                 channelDomainValue: this.channelDomainValue,
                 segmentationBasename: this.segmentationBasename,
+                autoLoadSegmentation: this.autoLoadSegmentation,
                 regionsBasename: this.regionsBasename,
                 regionsFilesLoaded: toJS(this.regionsFilesLoaded),
                 selectedPlotFeatures: toJS(this.selectedPlotFeatures),
@@ -492,6 +501,8 @@ export class SettingStore {
                 if (importingSettings.channelDomainValue) this.channelDomainValue = importingSettings.channelDomainValue
                 if (importingSettings.segmentationBasename)
                     this.segmentationBasename = importingSettings.segmentationBasename
+                if (importingSettings.autoLoadSegmentation != null)
+                    this.autoLoadSegmentation = importingSettings.autoLoadSegmentation
                 if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
                 if (importingSettings.regionsFilesLoaded) this.regionsFilesLoaded = importingSettings.regionsFilesLoaded
                 if (importingSettings.selectedPlotFeatures)
