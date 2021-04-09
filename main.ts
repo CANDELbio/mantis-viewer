@@ -466,10 +466,12 @@ function generateMenuTemplate(): any {
                     label: 'About',
                     click: (): void => {
                         openAboutWindow({
-                            icon_path: path.join(__dirname, 'icon.png'),
+                            icon_path: path.join(__dirname, '..', 'icon.png'),
                             use_version_info: true,
                             license: 'GPLv3',
                             product_name: 'Mantis Viewer',
+                            // Have to manually set the about-window base path so it plays nicely with webpack.
+                            about_page_dir: path.join(__dirname, '..', 'node_modules', 'about-window'),
                         })
                     },
                 },
