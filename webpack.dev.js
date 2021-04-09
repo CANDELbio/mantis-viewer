@@ -12,6 +12,6 @@ const common = require('./webpack.common.js')
 
 module.exports = merge(common, {
     mode: 'development',
-    devtool: 'eval',
+    devtool: 'cheap-source-map', //Would use eval, but all of the eval options cause issues with sqlite in web workers.
     plugins: [ElectronReloadWebpackPlugin()],
 })
