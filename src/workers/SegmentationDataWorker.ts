@@ -1,5 +1,5 @@
 import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentationDataWorker.worker')
-import { PixelLocation } from '../interfaces/ImageInterfaces'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 
 export interface SegmentationDataWorkerInput {
     filepath: string
@@ -17,11 +17,11 @@ export interface SegmentationDataWorkerResult {
     // Mapping of a segmentId to pixel indices.
     segmentIndexMap: Record<number, number[]>
     // Mapping of a segmentId to pixel locations (x, y)
-    segmentLocationMap: Record<number, PixelLocation[]>
+    segmentLocationMap: Record<number, Coordinate[]>
     // Mapping of a segmentId to pixel locations (x, y) representing the convex hull
-    segmentOutlineMap: Record<number, PixelLocation[]>
+    segmentOutlineMap: Record<number, Coordinate[]>
     // Mapping of segmentId to the pixel that represents the centroid
-    centroidMap: Record<number, PixelLocation>
+    centroidMap: Record<number, Coordinate>
     // Bitmap of segment fill
     fillBitmap: ImageBitmap
 }

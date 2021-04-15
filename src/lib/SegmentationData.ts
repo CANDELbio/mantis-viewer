@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { imageBitmapToSprite } from './GraphicsHelper'
-import { PixelLocation } from '../interfaces/ImageInterfaces'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from '../lib/GraphicsHelper'
 import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
 import { drawCentroids } from '../lib/GraphicsHelper'
@@ -20,11 +20,11 @@ export class SegmentationData {
     // Mapping of a segmentId to pixel indices.
     public segmentIndexMap: Record<number, number[]>
     // Mapping of a segmentId to pixel locations (x, y)
-    public segmentLocationMap: Record<number, PixelLocation[]>
+    public segmentLocationMap: Record<number, Coordinate[]>
     // Mapping of a segmentId to pixel locations (x, y) representing the convex hull
-    public segmentOutlineMap: Record<number, PixelLocation[]>
+    public segmentOutlineMap: Record<number, Coordinate[]>
     // Mapping of segmentId to the pixel that represents the centroid
-    public centroidMap: Record<number, PixelLocation>
+    public centroidMap: Record<number, Coordinate>
     // PIXI Sprite of random colored fills for the segments
     public fillSprite: PIXI.Sprite
     public outlineGraphics: PIXI.Graphics

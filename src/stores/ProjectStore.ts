@@ -17,6 +17,7 @@ import {
 
 import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 
 export class ProjectStore {
     public appVersion: string
@@ -58,6 +59,10 @@ export class ProjectStore {
     @observable public importingSegmentFeaturesPath: string | null
     // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
+
+    // The pixel being higlighted/moused over by the user on the image.
+    // Used to show segment stats and pixel stats.
+    @observable public highlightedPixel: Coordinate | null
 
     @computed public get allImageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
@@ -649,5 +654,9 @@ export class ProjectStore {
                 }
             },
         )
+    }
+
+    @action setHighlightedPixel = (location: Coordinate | null): void => {
+        this.highlightedPixel = location
     }
 }

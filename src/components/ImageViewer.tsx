@@ -21,6 +21,7 @@ import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsHelper'
 import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 
 export interface ImageProps {
     imageData: ImageData | null
@@ -31,9 +32,9 @@ export interface ImageProps {
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
     channelMarker: Record<ChannelName, string | null>
-    position: { x: number; y: number } | null
-    scale: { x: number; y: number } | null
-    setPositionAndScale: (position: { x: number; y: number }, scale: { x: number; y: number }) => void
+    position: Coordinate | null
+    scale: Coordinate | null
+    setPositionAndScale: (position: Coordinate, scale: Coordinate) => void
     selectedPopulations: SelectedPopulation[] | null
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
@@ -45,6 +46,8 @@ export interface ImageProps {
     zoomInsetVisible: boolean
     windowHeight: number | null
     onWebGLContextLoss: () => void
+    setHighlightedPixel: (location: Coordinate | null) => void
+    highlightedSegmentFeatures: Record<number, Record<string, number>>
 }
 
 @observer
@@ -89,6 +92,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private zoomInsetVisible: boolean
 
     private highlightedSegmentGraphics: PIXI.Graphics
+
+    private highlightedSegmentFeatures: Record<number, Record<string, number>>
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private panState: { active: boolean; x?: number; y?: number }
@@ -196,6 +201,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.initializeSelectState()
         this.initializePanState()
         this.fullScreen = false
+        this.highlightedSegmentFeatures = {}
     }
 
     private removeWebGLContextLostListener = (el: HTMLDivElement): void => {
@@ -219,6 +225,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             el.removeEventListener('mousedown', this.selectMouseDownHandler)
             el.removeEventListener('mousemove', this.selectMouseMoveHandler)
             el.removeEventListener('mouseup', this.selectMouseUpHandler)
+            el.removeEventListener('mousemove', this.highlightedPixelMouseMoveHandler)
+            el.removeEventListener('mouseout', this.highlightedPixelMouseOutHandler)
             this.removeWebGLContextLostListener(el)
         }
     }
@@ -354,6 +362,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.panState.active = true
                 this.panState.x = pos.x
                 this.panState.y = pos.y
+                console.log(this.panState)
             }
         }
     }
@@ -633,6 +642,24 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.props.onWebGLContextLoss()
     }
 
+    private highlightedPixelMouseMoveHandler = (): void => {
+        if (!(this.panState.active || this.selectState.active)) {
+            const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
+            const xPosition = Math.round(position.x)
+            const yPosition = Math.round(position.y)
+            this.props.setHighlightedPixel({ x: xPosition, y: yPosition })
+        }
+    }
+
+    private highlightedPixelMouseOutHandler = (): void => {
+        this.props.setHighlightedPixel(null)
+    }
+
+    private addPixelMouseover(el: HTMLDivElement): void {
+        el.addEventListener('mousemove', this.highlightedPixelMouseMoveHandler)
+        el.addEventListener('mouseout', this.highlightedPixelMouseOutHandler)
+    }
+
     private addWebGLContextLostListener(el: HTMLDivElement): void {
         if (el) {
             const canvases = el.getElementsByTagName('canvas')
@@ -672,6 +699,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.el.appendChild(this.renderer.view)
 
         // Setting up event listeners
+        this.addPixelMouseover(this.el)
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
@@ -944,6 +972,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         selectedPopulations: SelectedPopulation[] | null,
         highlightedPopulations: string[],
         highlightedSegmentsFromGraph: number[],
+        highlightedSegmentFeatures: Record<number, Record<string, number>>,
         exportPath: string | null,
         channelLegendVisible: boolean,
         populationLegendVisible: boolean,
@@ -1013,6 +1042,11 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.zoomInsetVisible = zoomInsetVisible
         this.loadZoomInsetGraphics()
 
+        if (this.highlightedSegmentFeatures != highlightedSegmentFeatures) {
+            this.highlightedSegmentFeatures = highlightedSegmentFeatures
+            // TODO: Draw legend with highlighted segment features here
+        }
+
         // Render everything
         this.renderer.render(this.rootContainer)
 
@@ -1074,6 +1108,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 
+        const highlightedSegmentFeatures = this.props.highlightedSegmentFeatures
+
         const exportPath = this.props.exportPath
 
         const channelLegendVisible = this.props.channelLegendVisible
@@ -1105,6 +1141,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     selectedPopulations,
                                     highlightedPopulations,
                                     highlightedSegmentsFromGraph,
+                                    highlightedSegmentFeatures,
                                     exportPath,
                                     channelLegendVisible,
                                     populationLegendVisible,

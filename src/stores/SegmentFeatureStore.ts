@@ -4,6 +4,7 @@ import { observable, action, autorun, set, get, computed, runInAction } from 'mo
 import { computedFn } from 'mobx-utils'
 
 import { SegmentFeatureGenerator } from '../lib/SegmentFeatureGenerator'
+import { generatePixelMapKey } from '../lib/SegmentationHelper'
 import { Db } from '../lib/Db'
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
@@ -60,10 +61,14 @@ export class SegmentFeatureStore {
         if (activeImageSetName && !activeImageDataLoading) this.refreshAvailableFeatures(activeImageSetName)
     })
 
+    private selectedPlotFeatures(): string[] {
+        return this.projectStore.settingStore.selectedPlotFeatures.slice()
+    }
+
     // When the user changes the features selected for the plot we want to automatically refresh
     // the feature statistics we have loaded from the database.
     private autoRefreshFeatureStatistics = autorun(() => {
-        const features = this.projectStore.settingStore.selectedPlotFeatures.slice()
+        const features = this.selectedPlotFeatures()
         const selectedFeatureForNewPopulation = this.projectStore.activeImageSetStore.populationStore
             .selectedFeatureForNewPopulation
         if (selectedFeatureForNewPopulation) features.push(selectedFeatureForNewPopulation)
@@ -111,6 +116,33 @@ export class SegmentFeatureStore {
         } else {
             return []
         }
+    }
+
+    // Computed function that gets the segment features selected on the plot for any segments that are being moused over on the image.
+    // Used to display a segment summary of the plotted features for moused over segments
+    @computed get activeHiglightedSegmentFeatures(): Record<number, Record<string, number>> {
+        const segmentFeatures: Record<number, Record<string, number>> = {}
+        const projectStore = this.projectStore
+        const imageSetStore = projectStore.activeImageSetStore
+        const activeImageSetName = imageSetStore.name
+        const segmentationStore = imageSetStore.segmentationStore
+        const highlightedPixel = projectStore.highlightedPixel
+        const segmentationData = segmentationStore.segmentationData
+        if (highlightedPixel && segmentationData) {
+            const activeValues: Record<string, Record<number, number>> = get(this.values, activeImageSetName)
+            const highlightedPixelMapKey = generatePixelMapKey(highlightedPixel.x, highlightedPixel.y)
+            const highlightedSegments = segmentationData.pixelMap[highlightedPixelMapKey]
+            const featuresToFetch = this.selectedPlotFeatures()
+            if (highlightedSegments) {
+                for (const segment of highlightedSegments) {
+                    segmentFeatures[segment] = {}
+                    for (const feature of featuresToFetch) {
+                        segmentFeatures[segment][feature] = activeValues[feature][segment]
+                    }
+                }
+            }
+        }
+        return segmentFeatures
     }
 
     featureValues = computedFn(function getFeatureValues(

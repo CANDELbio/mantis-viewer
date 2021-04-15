@@ -11,9 +11,10 @@ import {
     SegmentationDataWorkerResult,
     SegmentationDataWorkerError,
 } from './SegmentationDataWorker'
-import { PixelLocation } from '../interfaces/ImageInterfaces'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffHelper'
 import { randomRGBColor } from '../lib/ColorHelper'
+import { generatePixelMapKey } from '../lib/SegmentationHelper'
 import { OptimizedSegmentationSubfolder } from '../definitions/FileDefinitions'
 
 import * as path from 'path'
@@ -40,10 +41,10 @@ function saveOptimizedSegmentation(
     height: number,
     pixelData: number[],
     pixelMap: Record<string, number[]>,
-    segmentLocationMap: Record<number, PixelLocation[]>,
+    segmentLocationMap: Record<number, Coordinate[]>,
     segmentIndexMap: Record<number, number[]>,
-    segmentOutlineMap: Record<number, PixelLocation[]>,
-    centroidMap: Record<number, PixelLocation>,
+    segmentOutlineMap: Record<number, Coordinate[]>,
+    centroidMap: Record<number, Coordinate>,
 ): void {
     ensureOptimizedSegmentationDirectoryExists(filepath)
     const optimizedPath = optimizedSegmentationPath(filepath)
@@ -92,10 +93,6 @@ function drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uin
     }
 }
 
-function generatePixelMapKey(x: number, y: number): string {
-    return x.toString() + '_' + y.toString()
-}
-
 // Generates a texture (to be used to create a PIXI sprite) from segmentation data.
 // Segmentation data is stored as a tiff where the a pixel has a value of 0 if it does not belong to a cell
 // or is a number corresponding to what we're calling the segmentId (i.e. all pixels that belong to cell/segment 1 have a value of 1)
@@ -130,11 +127,11 @@ async function generateFillBitmap(
     return bitmap
 }
 
-function generateOutlineMap(segmentLocationMap: Record<number, PixelLocation[]>): Record<number, PixelLocation[]> {
-    const outlineMap: Record<number, PixelLocation[]> = {}
+function generateOutlineMap(segmentLocationMap: Record<number, Coordinate[]>): Record<number, Coordinate[]> {
+    const outlineMap: Record<number, Coordinate[]> = {}
     for (const segment in segmentLocationMap) {
         const segmentId = Number(segment)
-        const segmentLocations = segmentLocationMap[segmentId].map((value: PixelLocation) => {
+        const segmentLocations = segmentLocationMap[segmentId].map((value: Coordinate) => {
             return [value.x, value.y]
         })
         const concavePolygon = concaveman(segmentLocations)
@@ -154,11 +151,11 @@ function generateMapsFromPixelArray(
     width: number,
 ): {
     pixelMap: Record<string, number[]>
-    segmentLocationMap: Record<number, PixelLocation[]>
+    segmentLocationMap: Record<number, Coordinate[]>
     segmentIndexMap: Record<number, number[]>
 } {
     const pixelMap: { [key: string]: number[] } = {}
-    const segmentLocationMap: { [key: number]: PixelLocation[] } = {}
+    const segmentLocationMap: { [key: number]: Coordinate[] } = {}
     const segmentIndexMap: { [key: number]: number[] } = {}
 
     for (let i = 0; i < v.length; ++i) {
@@ -192,8 +189,8 @@ function generateMapsFromPixelArray(
 }
 
 // Calculates the centroid of a segment by taking the average of the coordinates of all of the pixels in that segment
-function calculateCentroids(segmentMap: { [key: number]: PixelLocation[] }): Record<number, PixelLocation> {
-    const centroidMap: { [key: number]: PixelLocation } = {}
+function calculateCentroids(segmentMap: { [key: number]: Coordinate[] }): Record<number, Coordinate> {
+    const centroidMap: { [key: number]: Coordinate } = {}
 
     for (const segmentId in segmentMap) {
         let xSum = 0
@@ -282,12 +279,12 @@ function generateMapsFromText(
     height: number,
 ): {
     pixelMap: Record<string, number[]>
-    segmentLocationMap: Record<number, PixelLocation[]>
+    segmentLocationMap: Record<number, Coordinate[]>
     segmentIndexMap: Record<number, number[]>
     pixelData: number[]
 } {
     const pixelMap: { [key: string]: number[] } = {}
-    const segmentLocationMap: { [key: number]: PixelLocation[] } = {}
+    const segmentLocationMap: { [key: number]: Coordinate[] } = {}
     const segmentIndexMap: { [key: number]: number[] } = {}
 
     // Converts the segmentation data into an array format like we would get from reading a tiff segmentation file.
@@ -406,10 +403,10 @@ async function loadOptimizedSegmentation(
             height: number
             pixelData: number[]
             pixelMap?: Record<string, number[]>
-            segmentLocationMap?: Record<number, PixelLocation[]>
+            segmentLocationMap?: Record<number, Coordinate[]>
             segmentIndexMap?: Record<number, number[]>
-            segmentOutlineMap?: Record<number, PixelLocation[]>
-            centroidMap?: Record<number, PixelLocation>
+            segmentOutlineMap?: Record<number, Coordinate[]>
+            centroidMap?: Record<number, Coordinate>
         } = JSON.parse(jsonString)
 
         const width = data.width

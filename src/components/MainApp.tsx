@@ -185,6 +185,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedPopulations={populationStore.selectedPopulations}
                 highlightedPopulations={populationStore.highlightedPopulations}
                 highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                highlightedSegmentFeatures={segmentFeatureStore.activeHiglightedSegmentFeatures}
                 exportPath={imageStore.imageExportFilename}
                 onExportComplete={imageStore.clearImageExportFilePath}
                 channelLegendVisible={settingStore.channelLegendVisible}
@@ -192,6 +193,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 zoomInsetVisible={settingStore.zoomInsetVisible}
                 windowHeight={windowHeight}
                 onWebGLContextLoss={projectStore.onWebGLContextLoss}
+                setHighlightedPixel={projectStore.setHighlightedPixel}
             />
         )
 

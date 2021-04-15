@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js'
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
-import { PixelLocation } from '../interfaces/ImageInterfaces'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 
@@ -61,7 +61,7 @@ function drawCross(graphics: PIXI.Graphics, x: number, y: number, armLength: num
 }
 
 // When passed a map of segmentIds to their centroids
-export function drawCentroids(selectedCentroids: { [key: number]: PixelLocation }, color: number): PIXI.Graphics {
+export function drawCentroids(selectedCentroids: { [key: number]: Coordinate }, color: number): PIXI.Graphics {
     const centroidGraphics = new PIXI.Graphics()
 
     centroidGraphics.beginFill(color)
@@ -111,7 +111,7 @@ export function findSegmentsInSelection(
 // The easiest way to get these is from the SegmentationData segmentOutlineMap
 export function drawOutlines(
     outlineGraphics: PIXI.Graphics,
-    outlines: PixelLocation[][],
+    outlines: Coordinate[][],
     color: number,
     width: number,
     alignment = 0.5,
