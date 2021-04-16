@@ -48,6 +48,7 @@ export interface ImageProps {
     onWebGLContextLoss: () => void
     setHighlightedPixel: (location: Coordinate | null) => void
     highlightedSegmentFeatures: Record<number, Record<string, number>>
+    featureLegendVisible: boolean
 }
 
 @observer
@@ -94,6 +95,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private highlightedSegmentGraphics: PIXI.Graphics
 
     private highlightedSegmentFeatures: Record<number, Record<string, number>>
+    private featureLegendVisible: boolean
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private panState: { active: boolean; x?: number; y?: number }
@@ -642,7 +644,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private highlightedPixelMouseMoveHandler = (): void => {
-        if (!(this.panState.active || this.selectState.active)) {
+        if (this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
             const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             const xPosition = Math.round(position.x)
             const yPosition = Math.round(position.y)
@@ -651,11 +653,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     private highlightedPixelMouseOutHandler = (): void => {
-        this.props.setHighlightedPixel(null)
+        if (this.featureLegendVisible) this.props.setHighlightedPixel(null)
     }
 
     private addPixelMouseover(el: HTMLDivElement): void {
-        el.addEventListener('mousemove', this.highlightedPixelMouseMoveHandler)
+        // Need to throttle the mouse move so the renderer reacts more quickly for some reason
+        el.addEventListener('mousemove', _.throttle(this.highlightedPixelMouseMoveHandler, 100))
         el.addEventListener('mouseout', this.highlightedPixelMouseOutHandler)
     }
 
@@ -797,7 +800,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     // Generates and adds segments highlighted/moused over on the graph.
     private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
         this.stage.removeChild(this.highlightedSegmentGraphics)
-        if (this.segmentationData && highlightedSegments.length > 0) {
+        if (this.segmentationData && highlightedSegments && highlightedSegments.length > 0) {
             this.highlightedSegmentGraphics.clear()
             this.segmentationData.generateOutlineGraphics(
                 this.highlightedSegmentGraphics,
@@ -834,7 +837,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.channelVisibility,
                 this.populationLegendVisible,
                 this.selectedPopulations,
-                true,
+                this.featureLegendVisible,
                 this.highlightedSegmentFeatures,
             )
             this.resizeStaticGraphics(this.legendGraphics)
@@ -977,6 +980,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         exportPath: string | null,
         channelLegendVisible: boolean,
         populationLegendVisible: boolean,
+        featureLegendVisible: boolean,
         zoomInsetVisible: boolean,
         parentElementSize: { width: number | null; height: number | null },
         windowHeight: number | null,
@@ -1032,7 +1036,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selectedPopulations = selectedPopulations
         this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
 
-        // Load graphics for any highlighted
+        // Load graphics for any highlighted segments
         const highlightedSegments = highlightedSegmentsFromGraph.concat(
             Object.keys(highlightedSegmentFeatures).map(Number.parseInt),
         )
@@ -1044,6 +1048,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Create the legend for which markers are being displayed
         this.channelLegendVisible = channelLegendVisible
         this.populationLegendVisible = populationLegendVisible
+        this.featureLegendVisible = featureLegendVisible
         this.loadLegendGraphics()
         // Update whether or not the zoom inset is visible and then re-render it
         this.zoomInsetVisible = zoomInsetVisible
@@ -1111,6 +1116,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
 
         const highlightedSegmentFeatures = this.props.highlightedSegmentFeatures
+        const featureLegendVisible = this.props.featureLegendVisible
 
         const exportPath = this.props.exportPath
 
@@ -1147,6 +1153,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     exportPath,
                                     channelLegendVisible,
                                     populationLegendVisible,
+                                    featureLegendVisible,
                                     zoomInsetVisible,
                                     size,
                                     windowHeight,

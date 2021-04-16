@@ -194,6 +194,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 windowHeight={windowHeight}
                 onWebGLContextLoss={projectStore.onWebGLContextLoss}
                 setHighlightedPixel={projectStore.setHighlightedPixel}
+                featureLegendVisible={settingStore.featureLegendVisible}
             />
         )
 
@@ -258,6 +259,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         segmentationLoaded={segmentationStore.segmentationData != null}
                         autoLoadSegmentation={settingStore.autoLoadSegmentation}
                         setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
+                        featureLegendVisible={settingStore.featureLegendVisible}
+                        setFeatureLegendVisible={settingStore.setFeatureLegendVisible}
                     />
                 </div>
             )

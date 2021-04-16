@@ -55,6 +55,7 @@ type SettingStoreData = {
     segmentationCentroidsVisible?: boolean | null
     channelLegendVisible?: boolean | null
     populationLegendVisible?: boolean | null
+    featureLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
 }
@@ -89,9 +90,10 @@ export class SettingStore {
     // Region file basename when a region file is selected for teh whole project
     @observable public regionsBasename: string | null
     @observable public regionsFilesLoaded: string[]
-    // Whether or not the channel/population legend is visible on the image
+    // Whether or not the channel/population/feature legend is visible on the image
     @observable public channelLegendVisible: boolean
     @observable public populationLegendVisible: boolean
+    @observable public featureLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
 
@@ -175,6 +177,7 @@ export class SettingStore {
 
         this.channelLegendVisible = true
         this.populationLegendVisible = false
+        this.featureLegendVisible = true
         this.zoomInsetVisible = true
         this.transformCoefficient = null
 
@@ -308,6 +311,10 @@ export class SettingStore {
 
     @action public setPopulationLegendVisible = (visible: boolean): void => {
         this.populationLegendVisible = visible
+    }
+
+    @action public setFeatureLegendVisible = (visible: boolean): void => {
+        this.featureLegendVisible = visible
     }
 
     @action public setZoomInsetVisible = (visible: boolean): void => {
@@ -478,6 +485,7 @@ export class SettingStore {
                 segmentationCentroidsVisible: this.segmentationCentroidsVisible,
                 channelLegendVisible: this.channelLegendVisible,
                 populationLegendVisible: this.populationLegendVisible,
+                featureLegendVisible: this.featureLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
             }
@@ -538,6 +546,8 @@ export class SettingStore {
                     this.channelLegendVisible = importingSettings.channelLegendVisible
                 if (importingSettings.populationLegendVisible != null)
                     this.populationLegendVisible = importingSettings.populationLegendVisible
+                if (importingSettings.featureLegendVisible != null)
+                    this.featureLegendVisible = importingSettings.featureLegendVisible
                 if (importingSettings.zoomInsetVisible != null)
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
                 if (importingSettings.transformCoefficient)

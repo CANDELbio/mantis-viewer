@@ -20,6 +20,9 @@ export interface ImageControlsProps {
     populationLegendVisible: boolean
     setPopulationLegendVisible: (visible: boolean) => void
 
+    featureLegendVisible: boolean
+    setFeatureLegendVisible: (visible: boolean) => void
+
     centroidsVisible: boolean
     setCentroidsVisible: (visible: boolean) => void
 
@@ -56,6 +59,9 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
     private onPopulationLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setPopulationLegendVisible(event.currentTarget.checked)
 
+    private onFeatureLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
+        this.props.setFeatureLegendVisible(event.currentTarget.checked)
+
     private onAutoLoadSegmentationChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setAutoLoadSegmentation(event.currentTarget.checked)
 
@@ -88,6 +94,11 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                     checked={this.props.populationLegendVisible}
                     label="Show Population Legend"
                     onChange={this.onPopulationLegendVisibilityChange}
+                />
+                <Checkbox
+                    checked={this.props.featureLegendVisible}
+                    label="Show Segment Feature Legend"
+                    onChange={this.onFeatureLegendVisibilityChange}
                 />
                 <Checkbox
                     checked={this.props.autoLoadSegmentation}
