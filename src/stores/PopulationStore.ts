@@ -7,7 +7,7 @@ import * as fs from 'fs'
 
 import { ImageSetStore } from './ImageSetStore'
 import { randomHexColor } from '../lib/ColorHelper'
-import { pixelIndexesToSprite } from '../lib/GraphicsHelper'
+import { pixelIndexesToSprite } from '../lib/GraphicsUtils'
 import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
 import { Db } from '../lib/Db'
 

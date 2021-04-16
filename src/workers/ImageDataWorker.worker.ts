@@ -10,7 +10,7 @@ import * as xml2js from 'xml2js'
 
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { ImageDataWorkerResult, ImageDataWorkerInput, ImageDataWorkerError } from './ImageDataWorker'
-import { readTiffData } from '../lib/TiffHelper'
+import { readTiffData } from '../lib/TiffUtils'
 
 async function bitmapFromData(
     v: Float32Array | Uint16Array | Uint8Array,

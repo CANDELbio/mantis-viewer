@@ -1,4 +1,4 @@
-import { calculateMean, calculateMedian } from './StatsHelper'
+import { calculateMean, calculateMedian } from './StatsUtils'
 
 describe('calculateMean', () => {
     it('should return the mean for a set of integers', () => {

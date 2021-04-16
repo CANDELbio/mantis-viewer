@@ -2,7 +2,7 @@
 
 import { PlotStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
-import { calculateMean, calculateMedian } from '../lib/StatsHelper'
+import { calculateMean, calculateMedian } from '../lib/StatsUtils'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any

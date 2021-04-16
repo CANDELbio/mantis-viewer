@@ -24,7 +24,7 @@ import {
     PlotMinNumHistogramBins,
     PlotMaxNumHistogramBins,
 } from '../definitions/UIDefinitions'
-import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectHelper'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectUtils'
 
 interface PlotControlsProps {
     features: string[]

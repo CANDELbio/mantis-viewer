@@ -12,9 +12,9 @@ import {
     SegmentationDataWorkerError,
 } from './SegmentationDataWorker'
 import { Coordinate } from '../interfaces/ImageInterfaces'
-import { readTiffData } from '../lib/TiffHelper'
+import { readTiffData } from '../lib/TiffUtils'
 import { randomRGBColor } from '../lib/ColorHelper'
-import { generatePixelMapKey } from '../lib/SegmentationHelper'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { OptimizedSegmentationSubfolder } from '../definitions/FileDefinitions'
 
 import * as path from 'path'

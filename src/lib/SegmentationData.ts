@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js'
-import { imageBitmapToSprite } from './GraphicsHelper'
+import { imageBitmapToSprite } from './GraphicsUtils'
 import { Coordinate } from '../interfaces/ImageInterfaces'
-import { drawOutlines } from '../lib/GraphicsHelper'
+import { drawOutlines } from './GraphicsUtils'
 import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
-import { drawCentroids } from '../lib/GraphicsHelper'
+import { drawCentroids } from './GraphicsUtils'
 import {
     SegmentationDataWorkerResult,
     SegmentationDataWorkerInput,

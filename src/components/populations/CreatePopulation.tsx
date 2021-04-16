@@ -12,7 +12,7 @@ import {
     getSelectedOptions,
     generateSelectOptions,
     onClearableSelectChange,
-} from '../../lib/SelectHelper'
+} from '../../lib/SelectUtils'
 
 interface CreatePopulationProps {
     availableFeatures: string[]

@@ -3,7 +3,7 @@
 const ctx: Worker = self as any
 
 import { RegionDataImporterInput, RegionDataImporterResult, RegionDataImporterError } from './RegionDataImporter'
-import { readTiffData } from '../lib/TiffHelper'
+import { readTiffData } from '../lib/TiffUtils'
 
 function generateRegionMap(v: Float32Array | Uint16Array | Uint8Array): Record<number, number[]> {
     const regionIndexMap: { [key: number]: number[] } = {}

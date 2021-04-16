@@ -9,7 +9,7 @@ import {
     getSelectedOptions,
     generateSelectOptions,
     onClearableSelectChange,
-} from '../../lib/SelectHelper'
+} from '../../lib/SelectUtils'
 import path = require('path')
 
 export interface ProjectImportModalProps {

@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import * as fs from 'fs'
 import * as path from 'path'
 import { TiffDataMap, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
-import { imageBitmapToSprite } from './GraphicsHelper'
+import { imageBitmapToSprite } from './GraphicsUtils'
 import { ImageDataWorkerResult, ImageDataWorkerError } from '../workers/ImageDataWorker'
 import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
 

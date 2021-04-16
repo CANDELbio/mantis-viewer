@@ -3,13 +3,7 @@ import Select from 'react-select'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
-import {
-    SelectStyle,
-    SelectTheme,
-    getSelectedOptions,
-    generateSelectOptions,
-    onSelectChange,
-} from '../lib/SelectHelper'
+import { SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions, onSelectChange } from '../lib/SelectUtils'
 import { basename } from 'path'
 
 export interface ImageSetSelectorProps {

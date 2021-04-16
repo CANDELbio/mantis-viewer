@@ -1,7 +1,7 @@
 import { SegmentationData } from '../SegmentationData'
 import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitions/UIDefinitions'
 import { SelectedPopulation } from '../../stores/PopulationStore'
-import { calculateMean, calculateMedian } from '../../lib/StatsHelper'
+import { calculateMean, calculateMedian } from '../StatsUtils'
 import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
 

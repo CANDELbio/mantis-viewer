@@ -281,6 +281,8 @@ export function drawLegend(
     channelVisibility: Record<ChannelName, boolean>,
     populationsOnLegend: boolean,
     populations: SelectedPopulation[] | null,
+    segmentFeaturesOnLegend: boolean,
+    highlightedSegmentFeatures: Record<number, Record<string, number>>,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -299,6 +301,22 @@ export function drawLegend(
 
     let spacerHeight = 0
 
+    const addText = (text: string, color: number): void => {
+        if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
+        const pixiText = new PIXI.Text(text, {
+            fontFamily: 'Arial',
+            fontSize: 14,
+            fill: color,
+            align: 'center',
+        })
+        const textY = initialTextlXY + textHeight
+        pixiText.setTransform(initialTextlXY, textY)
+        textHeight += pixiText.height
+        textWidth = Math.max(textWidth, pixiText.width)
+        legendText.push(pixiText)
+        if (spacerHeight == 0) spacerHeight = pixiText.height
+    }
+
     // Create channel names
     if (channelsOnLegend) {
         for (const s in channelMarkers) {
@@ -306,19 +324,7 @@ export function drawLegend(
             const curMarker = channelMarkers[curChannel]
             // If a marker is selected for the channel and the image data has a sprite for that marker
             if (channelVisibility[curChannel] && curMarker && imcData.sprites[curMarker]) {
-                if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
-                const text = new PIXI.Text(curMarker, {
-                    fontFamily: 'Arial',
-                    fontSize: 14,
-                    fill: ChannelColorMap[curChannel],
-                    align: 'center',
-                })
-                const textY = initialTextlXY + textHeight
-                text.setTransform(initialTextlXY, textY)
-                textHeight += text.height
-                textWidth = Math.max(textWidth, text.width)
-                legendText.push(text)
-                if (spacerHeight == 0) spacerHeight = text.height
+                addText(curMarker, ChannelColorMap[curChannel])
             }
         }
     }
@@ -337,18 +343,20 @@ export function drawLegend(
                     textHeight += spacerHeight
                     spacerAdded = true
                 }
-                if (textWidth != 0) textHeight += textSpacing // Add spacing to text width if this is not the first one.
-                const text = new PIXI.Text(population.name, {
-                    fontFamily: 'Arial',
-                    fontSize: 14,
-                    fill: population.color,
-                    align: 'center',
-                })
-                const textY = initialTextlXY + textHeight
-                text.setTransform(initialTextlXY, textY)
-                textHeight += text.height
-                textWidth = Math.max(textWidth, text.width)
-                legendText.push(text)
+                addText(population.name, population.color)
+            }
+        }
+    }
+    const highlightedSegments = Object.keys(highlightedSegmentFeatures)
+    if (segmentFeaturesOnLegend && highlightedSegments.length > 0) {
+        if (legendText.length > 0) textHeight += spacerHeight
+        for (const segmentIdStr of highlightedSegments) {
+            addText('Segment ' + segmentIdStr, 0xffffff)
+            const segmentId = Number.parseInt(segmentIdStr)
+            const segmentFeatures = highlightedSegmentFeatures[segmentId]
+            for (const segmentFeature of Object.keys(segmentFeatures)) {
+                const segmentFeatureValue = segmentFeatures[segmentFeature]
+                addText(segmentFeature + ': ' + segmentFeatureValue.toFixed(4), 0xffffff)
             }
         }
     }

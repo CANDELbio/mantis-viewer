@@ -18,7 +18,7 @@ import {
     ImageViewerHeightPadding,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
-import * as GraphicsHelper from '../lib/GraphicsHelper'
+import * as GraphicsHelper from '../lib/GraphicsUtils'
 import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
@@ -362,7 +362,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.panState.active = true
                 this.panState.x = pos.x
                 this.panState.y = pos.y
-                console.log(this.panState)
             }
         }
     }
@@ -835,6 +834,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.channelVisibility,
                 this.populationLegendVisible,
                 this.selectedPopulations,
+                true,
+                this.highlightedSegmentFeatures,
             )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -1032,8 +1033,14 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
 
         // Load graphics for any highlighted
-        this.loadHighlightedSegmentGraphics(highlightedSegmentsFromGraph)
+        const highlightedSegments = highlightedSegmentsFromGraph.concat(
+            Object.keys(highlightedSegmentFeatures).map(Number.parseInt),
+        )
+        this.loadHighlightedSegmentGraphics(highlightedSegments)
 
+        if (this.highlightedSegmentFeatures != highlightedSegmentFeatures) {
+            this.highlightedSegmentFeatures = highlightedSegmentFeatures
+        }
         // Create the legend for which markers are being displayed
         this.channelLegendVisible = channelLegendVisible
         this.populationLegendVisible = populationLegendVisible
@@ -1041,11 +1048,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         // Update whether or not the zoom inset is visible and then re-render it
         this.zoomInsetVisible = zoomInsetVisible
         this.loadZoomInsetGraphics()
-
-        if (this.highlightedSegmentFeatures != highlightedSegmentFeatures) {
-            this.highlightedSegmentFeatures = highlightedSegmentFeatures
-            // TODO: Draw legend with highlighted segment features here
-        }
 
         // Render everything
         this.renderer.render(this.rootContainer)

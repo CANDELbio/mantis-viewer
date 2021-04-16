@@ -13,8 +13,8 @@ import {
     getSelectedOptions,
     generateSelectOptions,
     onClearableSelectChange,
-} from '../lib/SelectHelper'
-import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../lib/SliderHelper'
+} from '../lib/SelectUtils'
+import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../lib/SliderUtils'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
 import { MinMax } from '../interfaces/ImageInterfaces'

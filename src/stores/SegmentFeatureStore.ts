@@ -4,7 +4,7 @@ import { observable, action, autorun, set, get, computed, runInAction } from 'mo
 import { computedFn } from 'mobx-utils'
 
 import { SegmentFeatureGenerator } from '../lib/SegmentFeatureGenerator'
-import { generatePixelMapKey } from '../lib/SegmentationHelper'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { Db } from '../lib/Db'
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
