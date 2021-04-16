@@ -50,7 +50,7 @@ function isExistingProject(dir: string): boolean {
     return fs.existsSync(dbFile)
 }
 
-function openImageSet(path: string): void {
+const openImageSet = (path: string): void => {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
@@ -68,7 +68,7 @@ function openImageSet(path: string): void {
     }
 }
 
-function openProject(dir: string): void {
+const openProject = (dir: string): void => {
     if (mainWindow != null) {
         if (isExistingProject(dir)) {
             if (imageLoaded || projectLoaded) {
@@ -101,7 +101,7 @@ function openProject(dir: string): void {
     }
 }
 
-function openSegmentation(dir: string): void {
+const openSegmentation = (dir: string): void => {
     if (mainWindow != null) {
         if (segmentationLoaded) {
             const message =
@@ -168,7 +168,7 @@ function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
     }
 }
 
-function askCalculateFeatures(channel: string, dir: string): void {
+const askCalculateFeatures = (channel: string, dir: string): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
@@ -192,7 +192,7 @@ function imageExportDefaultFilePath(): string | undefined {
     }
 }
 
-function generateMenuTemplate(): any {
+const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
     return [
         {
             label: 'File',
@@ -438,12 +438,12 @@ function generateMenuTemplate(): any {
                 {
                     label: 'Undo',
                     accelerator: 'CmdOrCtrl+Z',
-                    selector: 'undo:',
+                    role: 'undo',
                 },
                 {
                     label: 'Redo',
                     accelerator: 'Shift+CmdOrCtrl+Z',
-                    selector: 'redo:',
+                    role: 'redo',
                 },
                 {
                     type: 'separator',
@@ -451,22 +451,22 @@ function generateMenuTemplate(): any {
                 {
                     label: 'Cut',
                     accelerator: 'CmdOrCtrl+X',
-                    selector: 'cut:',
+                    role: 'cut',
                 },
                 {
                     label: 'Copy',
                     accelerator: 'CmdOrCtrl+C',
-                    selector: 'copy:',
+                    role: 'copy',
                 },
                 {
                     label: 'Paste',
                     accelerator: 'CmdOrCtrl+V',
-                    selector: 'paste:',
+                    role: 'paste',
                 },
                 {
                     label: 'Select All',
                     accelerator: 'CmdOrCtrl+A',
-                    selector: 'selectAll:',
+                    role: 'selectAll',
                 },
             ],
         },
@@ -504,14 +504,14 @@ function setMenu(): void {
     Menu.setApplicationMenu(menu)
 }
 
-function sendMainWindowSize(): void {
+const sendMainWindowSize = (): void => {
     if (mainWindow != null) {
         const dimensions = mainWindow.getSize()
         mainWindow.webContents.send('window-size', dimensions[0], dimensions[1])
     }
 }
 
-function sendPlotWindowSize(): void {
+const sendPlotWindowSize = (): void => {
     if (plotWindow != null) {
         const dimensions = plotWindow.getSize()
         plotWindow.webContents.send('window-size', dimensions[0], dimensions[1])
@@ -520,7 +520,7 @@ function sendPlotWindowSize(): void {
 
 // Need to remove the event listener for close that prevents the default close
 // Otherwise the window will never be destroyed and the application cannot exit.
-function closePlotWindow(): void {
+const closePlotWindow = (): void => {
     if (plotWindow != null) {
         plotWindow.removeAllListeners('close')
         plotWindow.close()
@@ -528,7 +528,7 @@ function closePlotWindow(): void {
     }
 }
 
-function closePreferencesWindow(): void {
+const closePreferencesWindow = (): void => {
     if (preferencesWindow != null) {
         preferencesWindow.removeAllListeners('close')
         preferencesWindow.close()
@@ -576,7 +576,7 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
     return newWindow
 }
 
-function registerMainWindowEvents(): void {
+const registerMainWindowEvents = (): void => {
     if (mainWindow) {
         // Use throttle so that when we resize we only send the window size every 333 ms
         mainWindow.on('resize', _.throttle(sendMainWindowSize, 333))
@@ -596,7 +596,7 @@ function registerMainWindowEvents(): void {
     }
 }
 
-function createMainWindow(): void {
+const createMainWindow = (): void => {
     mainWindow = initializeMainWindow()
     setMenu()
     registerMainWindowEvents()
@@ -605,7 +605,7 @@ function createMainWindow(): void {
     })
 }
 
-function createPlotWindow(): void {
+const createPlotWindow = (): void => {
     plotWindow = new BrowserWindow({
         width: 800,
         height: 800,

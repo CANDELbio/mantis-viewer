@@ -342,6 +342,18 @@ export class SegmentFeatureStore {
         }
     }
 
+    // Gets the names of the features in the database for a given image set.
+    // Bypasses the cache of available features that are currently in use
+    // Should only be used if the data will not be reused soon, like exporting data from the DB
+    public getFeatureNames = (imageSetName: string): string[] => {
+        let features: string[] = []
+        if (this.db && imageSetName) features = this.db.listFeatures(imageSetName)
+        return features
+    }
+
+    // Gets the values of the features in the database for a given image set.
+    // Bypasses the cache of available features that are currently in use
+    // Should only be used if the data will not be reused soon, like exporting data from the DB
     public getValues = (imageSetName: string, features: string[]): Record<string, Record<number, number>> => {
         const values: Record<string, Record<number, number>> = {}
         for (const feature of features) {

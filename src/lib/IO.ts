@@ -39,7 +39,7 @@ export function exportMarkerIntensities(filename: string, imageSetStore: ImageSe
     const segmentationData = segmentationStore.segmentationData
 
     if (imageSetName && imageData != null && segmentationData != null) {
-        const features = segmentFeatureStore.featuresAvailable(imageSetName)
+        const features = segmentFeatureStore.getFeatureNames(imageSetName)
         const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const data = [] as string[][]
 
@@ -91,7 +91,7 @@ export function exportToFCS(filePath: string, imageSetStore: ImageSetStore, segm
     const segmentationData = segmentationStore.segmentationData
 
     if (imageSetName && imageData != null && segmentationData != null) {
-        const features = segmentFeatureStore.featuresAvailable(imageSetName)
+        const features = segmentFeatureStore.getFeatureNames(imageSetName)
         const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const data = [] as number[][]
         // Iterate through the segments and calculate the intensity for each marker
