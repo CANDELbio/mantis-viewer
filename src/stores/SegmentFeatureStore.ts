@@ -67,6 +67,7 @@ export class SegmentFeatureStore {
 
     // When the user changes the features selected for the plot we want to automatically refresh
     // the feature statistics we have loaded from the database.
+    // TODO: This triggers multiple times when switching image sets. Not terrible, but would be good to look into.
     private autoRefreshFeatureStatistics = autorun(() => {
         const features = this.selectedPlotFeatures()
         const selectedFeatureForNewPopulation = this.projectStore.activeImageSetStore.populationStore
@@ -133,11 +134,12 @@ export class SegmentFeatureStore {
             const highlightedPixelMapKey = generatePixelMapKey(highlightedPixel.x, highlightedPixel.y)
             const highlightedSegments = segmentationData.pixelMap[highlightedPixelMapKey]
             const featuresToFetch = this.selectedPlotFeatures()
-            if (highlightedSegments) {
+            if (activeValues && highlightedSegments) {
                 for (const segment of highlightedSegments) {
                     segmentFeatures[segment] = {}
                     for (const feature of featuresToFetch) {
-                        segmentFeatures[segment][feature] = activeValues[feature][segment]
+                        const activeFeatureValues = activeValues[feature]
+                        if (activeFeatureValues) segmentFeatures[segment][feature] = activeFeatureValues[segment]
                     }
                 }
             }
@@ -267,14 +269,14 @@ export class SegmentFeatureStore {
                 const currentMinMaxes = this.minMaxes[imageSetName]
                 let missing = false
 
-                if (currentValues && feature in currentValues) {
+                if (currentValues && feature in currentValues && currentValues[feature]) {
                     if (!(imageSetName in refreshedValues)) refreshedValues[imageSetName] = {}
                     refreshedValues[imageSetName][feature] = currentValues[feature]
                 } else {
                     missing = true
                 }
 
-                if (currentMinMaxes && feature in currentMinMaxes) {
+                if (currentMinMaxes && feature in currentMinMaxes && currentMinMaxes[feature]) {
                     if (!(imageSetName in refreshedMinMaxes)) refreshedMinMaxes[imageSetName] = {}
                     refreshedMinMaxes[imageSetName][feature] = currentMinMaxes[feature]
                 } else {
@@ -293,11 +295,13 @@ export class SegmentFeatureStore {
                                 const imageSetName = featureResult.imageSetName
                                 const feature = featureResult.feature
                                 if (!(imageSetName in refreshedValues)) refreshedValues[imageSetName] = {}
-                                refreshedValues[imageSetName][feature] = featureResult.values
+                                if (featureResult.values) refreshedValues[imageSetName][feature] = featureResult.values
                                 if (!(imageSetName in refreshedMinMaxes)) refreshedMinMaxes[imageSetName] = {}
-                                refreshedMinMaxes[imageSetName][feature] = featureResult.minMax
+                                if (featureResult.minMax)
+                                    refreshedMinMaxes[imageSetName][feature] = featureResult.minMax
                             }
                             runInAction(() => {
+                                // Set the updated values and minMaxes on the store
                                 set(this.values, refreshedValues)
                                 set(this.minMaxes, refreshedMinMaxes)
                             })
@@ -305,7 +309,6 @@ export class SegmentFeatureStore {
                     },
                 )
             }
-            // And then set the updated values and minMaxes on the store
         }
     }
 

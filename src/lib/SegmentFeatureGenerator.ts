@@ -1,9 +1,9 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { SegmentFeatureResult } from '../workers/SegmentFeatureCalculator'
+import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
 import { submitJob } from '../workers/SegmentFeatureCalculatorPool'
 import { Db } from './Db'
-import { PlotStatistic } from '../definitions/UIDefinitions'
+import { PlotStatistics } from '../definitions/UIDefinitions'
 
 export class SegmentFeatureGenerator {
     private db: Db
@@ -42,16 +42,20 @@ export class SegmentFeatureGenerator {
         this.checkIfComplete()
     }
 
-    private featureName(markerName: string, statistic: PlotStatistic): string {
-        return markerName + ' ' + statistic.charAt(0).toUpperCase() + statistic.slice(1)
+    private featureName(input: SegmentFeatureCalculatorInput | SegmentFeatureCalculatorResult): string {
+        if (input.statistic == 'area') {
+            return 'Segment Area'
+        } else {
+            return input.marker + ' ' + input.statistic.charAt(0).toUpperCase() + input.statistic.slice(1)
+        }
     }
 
     // Don't move this to a worker thread.
     // Parallel opening or writing to a SQLite database leads to corruption
     // (I tried it...)
-    private storeStatisticData(data: SegmentFeatureResult): void {
+    private storeStatisticData(data: SegmentFeatureCalculatorResult): void {
         const dataMap = data.statisticMap
-        const feature = this.featureName(data.markerName, data.statistic)
+        const feature = this.featureName(data)
         this.db.deleteFeatures(this.imageSetName, feature)
         this.db.insertFeatures(this.imageSetName, feature, dataMap)
     }
@@ -60,37 +64,61 @@ export class SegmentFeatureGenerator {
         return this.db.featuresPresent(this.imageSetName)
     }
 
+    private submitSegmentFeatureJob(
+        input: SegmentFeatureCalculatorInput,
+        featuresInDb: string[],
+        onComplete: (data: SegmentFeatureCalculatorResult) => void,
+    ): void {
+        const feature = this.featureName(input)
+        if (this.recalculateFeatures || !featuresInDb.includes(feature)) {
+            // If we always want to recalculate features or the current feature isn't in the database
+            submitJob(input, onComplete)
+        } else {
+            this.markJobComplete()
+        }
+    }
+
     public generate(imageData: ImageData, segmentationData: SegmentationData): void {
-        const onComplete = (data: SegmentFeatureResult): void => {
+        const onComplete = (data: SegmentFeatureCalculatorResult): void => {
             this.storeStatisticData(data)
             this.markJobComplete()
         }
 
         const featuresInDb = this.db.listFeatures(this.imageSetName)
 
-        for (const marker in imageData.data) {
-            this.numFeatures += 2
+        const markers = Object.keys(imageData.data)
+        // Keeping track of the number of features to calculate so we know when we're done
+        // For each marker we will be calculating all PlotStatistics
+        this.numFeatures = markers.length * PlotStatistics.length
+        // We will also be calculating the segment area, so add an additional one
+        this.numFeatures += 1
+
+        // Submit a request to calculate the segment areas
+        this.submitSegmentFeatureJob(
+            {
+                basePath: this.db.basePath,
+                imageSetName: this.imageSetName,
+                segmentIndexMap: segmentationData.segmentIndexMap,
+                statistic: 'area',
+            },
+            featuresInDb,
+            onComplete,
+        )
+
+        // Submit requests to calculate segment means and medians for all markers
+        for (const marker of markers) {
             const tiffData = imageData.data[marker]
 
-            for (const s of ['mean', 'median']) {
-                const statistic = s as PlotStatistic
-                const feature = this.featureName(marker, statistic)
-                if (this.recalculateFeatures || !featuresInDb.includes(feature)) {
-                    // If we always want to recalculate features or the current feature isn't in the database
-                    submitJob(
-                        {
-                            basePath: this.db.basePath,
-                            imageSetName: this.imageSetName,
-                            marker: marker,
-                            tiffData: tiffData,
-                            segmentIndexMap: segmentationData.segmentIndexMap,
-                            statistic: statistic,
-                        },
-                        onComplete,
-                    )
-                } else {
-                    this.markJobComplete()
+            for (const statistic of PlotStatistics) {
+                const input = {
+                    basePath: this.db.basePath,
+                    imageSetName: this.imageSetName,
+                    marker: marker,
+                    tiffData: tiffData,
+                    segmentIndexMap: segmentationData.segmentIndexMap,
+                    statistic: statistic,
                 }
+                this.submitSegmentFeatureJob(input, featuresInDb, onComplete)
             }
         }
     }

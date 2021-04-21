@@ -157,7 +157,8 @@ export class ProjectImportStore {
             const entries = fs.readdirSync(imageSetPath, { withFileTypes: true })
             for (const entry of entries) {
                 if (entry.isDirectory()) {
-                    dirs.push(entry.name)
+                    const directoryName = entry.name
+                    if (!directoryName.startsWith('.')) dirs.push(directoryName)
                 } else if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
                     if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)

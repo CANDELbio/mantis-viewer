@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { PlotStatistic } from '../definitions/UIDefinitions'
+import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
 import { calculateMean, calculateMedian } from '../lib/StatsUtils'
 
@@ -23,37 +23,50 @@ function medianSegmentIntensity(tiffData: Float32Array | Uint16Array | Uint8Arra
     return calculateMedian(values)
 }
 
-function generateStatisticMap(
-    tiffData: Float32Array | Uint16Array | Uint8Array,
+function generateFeatureMap(
+    statistic: PlotStatistic | AreaStatistic,
     segmentIndexMap: Record<number, number[]>,
-    statistic: PlotStatistic,
+    tiffData?: Float32Array | Uint16Array | Uint8Array,
 ): Record<string, number> {
-    const statisticMap: Record<number, number> = {}
+    const featureMap: Record<number, number> = {}
     for (const segmentId in segmentIndexMap) {
-        let curIntensity: number | null = null
-        if (statistic == 'mean') {
-            curIntensity = meanSegmentIntensity(tiffData, segmentIndexMap[segmentId])
-        } else if (statistic == 'median') {
-            curIntensity = medianSegmentIntensity(tiffData, segmentIndexMap[segmentId])
+        let curFeature: number | null = null
+        if (statistic == 'mean' && tiffData) {
+            curFeature = meanSegmentIntensity(tiffData, segmentIndexMap[segmentId])
+        } else if (statistic == 'median' && tiffData) {
+            curFeature = medianSegmentIntensity(tiffData, segmentIndexMap[segmentId])
+        } else if (statistic == 'area') {
+            curFeature = segmentIndexMap[segmentId].length
+        } else {
+            throw new Error('Improper Segment Feature Request')
         }
-        if (curIntensity != null) {
-            statisticMap[segmentId] = curIntensity
+        if (curFeature != null) {
+            featureMap[segmentId] = curFeature
         }
     }
-    return statisticMap
+    return featureMap
 }
 
 ctx.addEventListener(
     'message',
     (message) => {
         const data: SegmentFeatureCalculatorInput = message.data
-        const statisticMap = generateStatisticMap(data.tiffData, data.segmentIndexMap, data.statistic)
-        ctx.postMessage({
-            jobId: data.jobId,
-            statistic: data.statistic,
-            statisticMap: statisticMap,
-            markerName: data.marker,
-        })
+        if (data.statistic == 'area') {
+            const statisticMap = generateFeatureMap(data.statistic, data.segmentIndexMap)
+            ctx.postMessage({
+                jobId: data.jobId,
+                statistic: data.statistic,
+                statisticMap: statisticMap,
+            })
+        } else {
+            const statisticMap = generateFeatureMap(data.statistic, data.segmentIndexMap, data.tiffData)
+            ctx.postMessage({
+                jobId: data.jobId,
+                statistic: data.statistic,
+                statisticMap: statisticMap,
+                marker: data.marker,
+            })
+        }
     },
     false,
 )

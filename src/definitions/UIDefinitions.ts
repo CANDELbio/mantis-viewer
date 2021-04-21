@@ -39,6 +39,8 @@ export const PlotStatisticOptions = [
 ]
 
 export type PlotStatistic = 'mean' | 'median'
+export const PlotStatistics: PlotStatistic[] = ['mean', 'median']
+export type AreaStatistic = 'area'
 
 export const PlotTypeOptions = [
     { label: 'Scatter Plot', value: 'scatter' },

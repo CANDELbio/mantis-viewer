@@ -1,7 +1,9 @@
 import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureCalculator.worker')
-import { PlotStatistic } from '../definitions/UIDefinitions'
+import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 
-export interface SegmentFeatureCalculatorInput {
+export type SegmentFeatureCalculatorInput = SegmentStatisticRequest | SegmentAreaRequest
+
+interface SegmentStatisticRequest {
     jobId?: string
     basePath: string
     imageSetName: string
@@ -11,14 +13,27 @@ export interface SegmentFeatureCalculatorInput {
     statistic: PlotStatistic
 }
 
-export interface SegmentFeatureCalculatorResult extends SegmentFeatureResult {
-    jobId: string
+interface SegmentAreaRequest {
+    jobId?: string
+    basePath: string
+    imageSetName: string
+    segmentIndexMap: Record<number, number[]>
+    statistic: AreaStatistic
 }
 
-export interface SegmentFeatureResult {
+export type SegmentFeatureCalculatorResult = SegmentStatisticResult | SegmentAreaResult
+
+interface SegmentStatisticResult {
+    jobId?: string
     statistic: PlotStatistic
     statisticMap: Record<string, number>
-    markerName: string
+    marker: string
+}
+
+interface SegmentAreaResult {
+    jobId?: string
+    statistic: AreaStatistic
+    statisticMap: Record<string, number>
 }
 
 export type OnSegmentFeatureCalculatorComplete = (data: SegmentFeatureCalculatorResult) => void

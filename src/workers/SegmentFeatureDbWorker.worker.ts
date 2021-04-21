@@ -66,11 +66,13 @@ function getFeatureValues(
         const curFeature = feature.feature
 
         if (!(curImageSet in featureValues)) featureValues[curImageSet] = {}
-        if (!(curFeature in featureValues[curImageSet]))
+        const curFeatureValue = featureValues[curImageSet][curFeature]
+        if (!curFeatureValue || Object.keys(curFeatureValue).length == 0)
             featureValues[curImageSet][curFeature] = db.selectValues([curImageSet], curFeature)[curImageSet]
 
         if (!(curImageSet in featureMinMaxes)) featureMinMaxes[curImageSet] = {}
-        if (!(curFeature in featureMinMaxes[curImageSet]))
+        const curFeatureMinMaxes = featureMinMaxes[curImageSet][curFeature]
+        if (!curFeatureMinMaxes || Object.keys(curFeatureMinMaxes).length == 0)
             featureMinMaxes[curImageSet][curFeature] = db.minMaxValues([curImageSet], curFeature)[curImageSet]
 
         if (featureValues[curImageSet][curFeature] && featureMinMaxes[curImageSet][curFeature]) {
@@ -99,27 +101,27 @@ ctx.addEventListener(
     (message) => {
         const input: SegmentFeatureDbRequest = message.data
         let results: SegmentFeatureDbResult
-        // try {
-        if ('filePath' in input) {
-            results = importSegmentFeaturesFromCSV(
-                input.basePath,
-                input.validImageSets,
-                input.clearDuplicates,
-                input.filePath,
-                input.imageSet,
-            )
-        } else if ('requestedFeatures' in input) {
-            // Request to get values for feature for passed in image set
-            results = getFeatureValues(input.basePath, input.requestedFeatures)
-        } else if ('imageSetName' in input) {
-            // Request to list features available for the passed in image set
-            results = getFeaturesAvailable(input.basePath, input.imageSetName)
-        } else {
-            results = { error: 'Invalid request' }
+        try {
+            if ('filePath' in input) {
+                results = importSegmentFeaturesFromCSV(
+                    input.basePath,
+                    input.validImageSets,
+                    input.clearDuplicates,
+                    input.filePath,
+                    input.imageSet,
+                )
+            } else if ('requestedFeatures' in input) {
+                // Request to get values for feature for passed in image set
+                results = getFeatureValues(input.basePath, input.requestedFeatures)
+            } else if ('imageSetName' in input) {
+                // Request to list features available for the passed in image set
+                results = getFeaturesAvailable(input.basePath, input.imageSetName)
+            } else {
+                results = { error: 'Invalid request' }
+            }
+        } catch (err) {
+            results = { error: err.message }
         }
-        // } catch (err) {
-        //     results = { error: err.message }
-        // }
         ctx.postMessage(results)
     },
     false,
