@@ -197,12 +197,12 @@ function calculateCentroids(segmentMap: { [key: number]: Coordinate[] }): Record
         let ySum = 0
         let numPixels = 0
         const pixelLocations = segmentMap[segmentId]
-        pixelLocations.forEach((pixelLocation) => {
+        for (const pixelLocation of pixelLocations) {
             xSum += pixelLocation.x
             ySum += pixelLocation.y
             numPixels += 1
-        })
-        const centroidLocation = { x: Math.round(xSum / numPixels), y: Math.round(ySum / numPixels) }
+        }
+        const centroidLocation = { x: (xSum / numPixels) | 0, y: (ySum / numPixels) | 0 }
         centroidMap[segmentId] = centroidLocation
     }
 
@@ -217,9 +217,10 @@ async function loadTiffData(
     optimize: boolean,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        // Generating the pixelMap and segmentMaps that represent the segementation data
+        // Generating the pixelMap and segmentMaps that represent the segmentation data
         const maps = generateMapsFromPixelArray(data, width)
         const pixelMap = maps.pixelMap
+        // TODO: Lazy. Try to replace worker usage of segment location map with segment index map
         const segmentLocationMap = maps.segmentLocationMap
         const segmentIndexMap = maps.segmentIndexMap
 
@@ -249,7 +250,6 @@ async function loadTiffData(
             height: height,
             pixelMap: pixelMap,
             segmentIndexMap: segmentIndexMap,
-            segmentLocationMap: segmentLocationMap,
             segmentOutlineMap: segmentOutlineMap,
             centroidMap: centroidMap,
             fillBitmap: bitmap,
@@ -347,7 +347,7 @@ async function loadTextData(
     optimize: boolean,
 ): Promise<SegmentationDataWorkerResult | SegmentationDataWorkerError> {
     try {
-        // Generating the pixelMap and segmentMaps that represent the segementation data
+        // Generating the pixelMap and segmentMaps that represent the segmentation data
         const maps = generateMapsFromText(filepath, width, height)
         const pixelData = maps.pixelData
         const pixelMap = maps.pixelMap
@@ -381,7 +381,6 @@ async function loadTextData(
             height: height,
             pixelMap: pixelMap,
             segmentIndexMap: segmentIndexMap,
-            segmentLocationMap: segmentLocationMap,
             segmentOutlineMap: segmentOutlineMap,
             centroidMap: centroidMap,
             fillBitmap: bitmap,
@@ -443,7 +442,6 @@ async function loadOptimizedSegmentation(
             height: height,
             pixelMap: pixelMap,
             segmentIndexMap: segmentIndexMap,
-            segmentLocationMap: segmentLocationMap,
             segmentOutlineMap: segmentOutlineMap,
             centroidMap: centroidMap,
             fillBitmap: bitmap,

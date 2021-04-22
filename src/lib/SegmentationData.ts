@@ -19,8 +19,6 @@ export class SegmentationData {
     public pixelMap: Record<string, number[]>
     // Mapping of a segmentId to pixel indices.
     public segmentIndexMap: Record<number, number[]>
-    // Mapping of a segmentId to pixel locations (x, y)
-    public segmentLocationMap: Record<number, Coordinate[]>
     // Mapping of a segmentId to pixel locations (x, y) representing the convex hull
     public segmentOutlineMap: Record<number, Coordinate[]>
     // Mapping of segmentId to the pixel that represents the centroid
@@ -78,7 +76,6 @@ export class SegmentationData {
         this.height = fData.height
         this.pixelMap = fData.pixelMap
         this.segmentIndexMap = fData.segmentIndexMap
-        this.segmentLocationMap = fData.segmentLocationMap
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))

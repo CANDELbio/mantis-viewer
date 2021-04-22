@@ -119,15 +119,12 @@ export function drawOutlines(
     // Always set the alpha to 1.0 and adjust it elsewhere
     // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
     outlineGraphics.lineStyle(width, color, 1, alignment)
-    for (let outline of outlines) {
-        // Copy the outline array so we're not modifying the one being passed in
-        outline = outline.slice()
-        const start = outline.shift()
-        if (start) {
-            outlineGraphics.moveTo(start.x, start.y)
-            for (const point of outline) {
-                outlineGraphics.lineTo(point.x, point.y)
-            }
+    for (const outline of outlines) {
+        const start = outline[0]
+        outlineGraphics.moveTo(start.x, start.y)
+        for (let i = 1; i < outline.length; i++) {
+            const point = outline[i]
+            outlineGraphics.lineTo(point.x, point.y)
         }
     }
 }

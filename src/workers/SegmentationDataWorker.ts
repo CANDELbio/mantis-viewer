@@ -16,8 +16,6 @@ export interface SegmentationDataWorkerResult {
     pixelMap: Record<string, number[]>
     // Mapping of a segmentId to pixel indices.
     segmentIndexMap: Record<number, number[]>
-    // Mapping of a segmentId to pixel locations (x, y)
-    segmentLocationMap: Record<number, Coordinate[]>
     // Mapping of a segmentId to pixel locations (x, y) representing the convex hull
     segmentOutlineMap: Record<number, Coordinate[]>
     // Mapping of segmentId to the pixel that represents the centroid
