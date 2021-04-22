@@ -96,6 +96,17 @@ function getFeaturesAvailable(dbPath: string, imageSetName: string): SegmentFeat
     return { imageSetName: imageSetName, features: db.listFeatures(imageSetName) }
 }
 
+function insertFeatureValues(
+    dbPath: string,
+    imageSetName: string,
+    feature: string,
+    dataMap: Record<string, number>,
+): void {
+    initializeDb(dbPath)
+    db.deleteFeatures(imageSetName, feature)
+    db.insertFeatures(imageSetName, feature, dataMap)
+}
+
 ctx.addEventListener(
     'message',
     (message) => {
@@ -103,6 +114,7 @@ ctx.addEventListener(
         let results: SegmentFeatureDbResult
         try {
             if ('filePath' in input) {
+                // Request to import features from CSV
                 results = importSegmentFeaturesFromCSV(
                     input.basePath,
                     input.validImageSets,
@@ -113,6 +125,10 @@ ctx.addEventListener(
             } else if ('requestedFeatures' in input) {
                 // Request to get values for feature for passed in image set
                 results = getFeatureValues(input.basePath, input.requestedFeatures)
+            } else if ('insertData' in input) {
+                // Request to insert feature values calculated by SegmentFeatureCalculator into database.
+                insertFeatureValues(input.basePath, input.imageSetName, input.feature, input.insertData)
+                results = { success: true }
             } else if ('imageSetName' in input) {
                 // Request to list features available for the passed in image set
                 results = getFeaturesAvailable(input.basePath, input.imageSetName)
@@ -122,6 +138,7 @@ ctx.addEventListener(
         } catch (err) {
             results = { error: err.message }
         }
+        results.jobId = input.jobId
         ctx.postMessage(results)
     },
     false,

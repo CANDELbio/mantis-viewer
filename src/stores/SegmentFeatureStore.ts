@@ -199,6 +199,7 @@ export class SegmentFeatureStore {
                 basePath,
                 imageSetName,
                 recalculateFeatures,
+                submitSegmentFeatureDbRequest,
                 this.onSegmentFeaturesGenerated,
             )
             this.setSegmentFeatureLoadingStatus(imageSetName, true)

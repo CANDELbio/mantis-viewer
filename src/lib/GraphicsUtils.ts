@@ -356,7 +356,8 @@ export function drawLegend(
             const segmentFeatures = highlightedSegmentFeatures[segmentId]
             for (const segmentFeature of Object.keys(segmentFeatures)) {
                 const segmentFeatureValue = segmentFeatures[segmentFeature]
-                addText(segmentFeature + ': ' + segmentFeatureValue.toFixed(4), 0xffffff)
+                // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
+                addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
             }
         }
     }

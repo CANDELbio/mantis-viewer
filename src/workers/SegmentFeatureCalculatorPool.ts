@@ -13,8 +13,10 @@ const maxWorkers = navigator.hardwareConcurrency
 
 function onSegmentFeatureCalculatorComplete(data: SegmentFeatureCalculatorResult): void {
     const jobId = data.jobId
-    segmentFeatureCalculatorCallbacks[jobId](data)
-    delete segmentFeatureCalculatorCallbacks[jobId]
+    if (jobId) {
+        segmentFeatureCalculatorCallbacks[jobId](data)
+        delete segmentFeatureCalculatorCallbacks[jobId]
+    }
 }
 
 function getExistingSegmentFeatureCalculator(): SegmentFeatureCalculator {

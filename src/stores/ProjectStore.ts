@@ -557,6 +557,14 @@ export class ProjectStore {
         }
     }
 
+    public continueImportingSegmentFeatures = (clear: boolean, remember: boolean): void => {
+        const filePath = this.importingSegmentFeaturesPath
+        const forProject = this.importingSegmentFeaturesForProject
+        if (filePath && forProject) {
+            this.segmentFeatureStore.importSegmentFeatures(filePath, forProject, clear, remember)
+        }
+    }
+
     @action public setCheckCalculateSegmentFeatures = (check: boolean): void => {
         this.checkCalculateSegmentFeatures = check
     }

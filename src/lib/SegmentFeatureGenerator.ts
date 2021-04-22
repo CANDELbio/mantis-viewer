@@ -1,9 +1,10 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
-import { submitJob } from '../workers/SegmentFeatureCalculatorPool'
 import { Db } from './Db'
 import { PlotStatistics } from '../definitions/UIDefinitions'
+import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
+import { submitJob } from '../workers/SegmentFeatureCalculatorPool'
+import { SegmentFeatureDbRequest, OnSegmentFeatureDbRequestComplete } from '../workers/SegmentFeatureDbWorker'
 
 export class SegmentFeatureGenerator {
     private db: Db
@@ -13,6 +14,10 @@ export class SegmentFeatureGenerator {
     // Keep track of the number of markers to calculate features for and the number complete
     private numFeatures: number
     private numFeaturesComplete: number
+    // Callback function to store features in a SegmentFeatureDbWorker
+    // Feels a little janky to have SegmentFeatureCalculator workers calculating data, shuffling to main thread, then writing to db in another worker.
+    // But it lets us calculate the features in parallel and then insert in a worker thread without risking corrupting the db.
+    private storeFeatures: (input: SegmentFeatureDbRequest, onComplete: OnSegmentFeatureDbRequestComplete) => void
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (imageSetName: string) => void
 
@@ -20,6 +25,7 @@ export class SegmentFeatureGenerator {
         basePath: string,
         imageSetName: string,
         recalculateFeatures: boolean,
+        storeFeatures: (input: SegmentFeatureDbRequest, onComplete: OnSegmentFeatureDbRequestComplete) => void,
         onReady: (imageSetName: string) => void,
     ) {
         this.db = new Db(basePath)
@@ -27,6 +33,7 @@ export class SegmentFeatureGenerator {
         this.recalculateFeatures = recalculateFeatures
         this.numFeatures = 0
         this.numFeaturesComplete = 0
+        this.storeFeatures = storeFeatures
         this.onReady = onReady
     }
 
@@ -50,16 +57,6 @@ export class SegmentFeatureGenerator {
         }
     }
 
-    // Don't move this to a worker thread.
-    // Parallel opening or writing to a SQLite database leads to corruption
-    // (I tried it...)
-    private storeStatisticData(data: SegmentFeatureCalculatorResult): void {
-        const dataMap = data.statisticMap
-        const feature = this.featureName(data)
-        this.db.deleteFeatures(this.imageSetName, feature)
-        this.db.insertFeatures(this.imageSetName, feature, dataMap)
-    }
-
     public featuresPresent(): boolean {
         return this.db.featuresPresent(this.imageSetName)
     }
@@ -80,8 +77,15 @@ export class SegmentFeatureGenerator {
 
     public generate(imageData: ImageData, segmentationData: SegmentationData): void {
         const onComplete = (data: SegmentFeatureCalculatorResult): void => {
-            this.storeStatisticData(data)
-            this.markJobComplete()
+            const request = {
+                basePath: this.db.basePath,
+                imageSetName: this.imageSetName,
+                feature: this.featureName(data),
+                insertData: data.statisticMap,
+            }
+            this.storeFeatures(request, () => {
+                this.markJobComplete()
+            })
         }
 
         const featuresInDb = this.db.listFeatures(this.imageSetName)
