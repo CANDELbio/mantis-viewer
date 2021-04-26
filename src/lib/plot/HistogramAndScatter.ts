@@ -283,8 +283,6 @@ export function buildHistogramData(
     selectedPopulations: SelectedPopulation[] | null,
     colorMap: Record<string, number>,
     numBins: number,
-    xLogScale: boolean,
-    yLogScale: boolean,
 ): PlotData {
     const data = calculatePlotData(
         activeImageSet,
@@ -306,8 +304,6 @@ export function buildHistogramData(
         barmode: 'overlay',
     }
 
-    if (xLogScale && layout.xaxis) layout.xaxis.type = 'log'
-    if (yLogScale) layout.yaxis = { type: 'log' }
     return { features: features, data: data, layout: layout }
 }
 

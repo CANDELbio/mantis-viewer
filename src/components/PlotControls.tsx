@@ -332,7 +332,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             </div>
         )
 
-        const logScaleEnabled = this.props.selectedType != 'heatmap'
+        const logScaleEnabled = this.props.selectedType != 'heatmap' && this.props.selectedType != 'histogram'
         const logScaleControls = (
             <div>
                 Log Scale

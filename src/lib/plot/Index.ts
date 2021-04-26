@@ -44,8 +44,6 @@ export function generatePlotData(
             filteredPopulations,
             colorMap,
             histogramNumBins,
-            xLogScale,
-            yLogScale,
         )
     } else if ((plotType == 'scatter' || plotType == 'contour') && selectedFeatures.length > 1) {
         plotData = buildScatterData(
