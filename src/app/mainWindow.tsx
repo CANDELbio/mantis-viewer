@@ -65,20 +65,6 @@ ipcRenderer.on('export-segment-features', (event: Electron.Event, filePath: stri
     projectStore.exportActiveImageSetMarkerIntensities(filePath)
 })
 
-ipcRenderer.on(
-    'export-project-segment-features',
-    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
-        const preferencesStore = projectStore.preferencesStore
-        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-        if (rememberPreference) {
-            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, recalculatePreference)
-        } else {
-            projectStore.exportProjectFeaturesToCSV(dirName, calculateFeatures, false)
-        }
-    },
-)
-
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
 ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number): void => {
     projectStore.setWindowDimensions(width, height)
@@ -237,21 +223,55 @@ ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: nu
     projectStore.addPopulationFromRange(min, max)
 })
 
+const checkIfFeaturesExportable = (channel: string, dir: string, calculateFeatures: boolean | undefined): boolean => {
+    let exportFeatures = true
+    if (calculateFeatures == undefined) {
+        const allImageSetsHaveFeatures = projectStore.segmentFeatureStore.allImageSetsHaveFeatures()
+        if (!allImageSetsHaveFeatures) {
+            exportFeatures = false
+            ipcRenderer.send('mainWindow-ask-calculate-features', channel, dir)
+        }
+    }
+    return exportFeatures
+}
+
+ipcRenderer.on(
+    'export-project-segment-features',
+    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+        const exportFeatures = checkIfFeaturesExportable('export-project-segment-features', dir, calculateFeatures)
+        if (exportFeatures) {
+            if (calculateFeatures == undefined) calculateFeatures = false
+            const preferencesStore = projectStore.preferencesStore
+            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+            if (rememberPreference) {
+                projectStore.exportProjectFeaturesToCSV(dir, calculateFeatures, recalculatePreference)
+            } else {
+                projectStore.exportProjectFeaturesToCSV(dir, calculateFeatures, false)
+            }
+        }
+    },
+)
+
 ipcRenderer.on('export-populations-fcs', (event: Electron.Event, dirName: string): void => {
     projectStore.exportActiveImageSetPopulationsToFCS(dirName)
 })
 
 ipcRenderer.on(
     'export-project-populations-fcs',
-    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
-        const preferencesStore = projectStore.preferencesStore
-        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-        // If the user has a preference for recalculating data use that, otherwise don't recalculate.
-        if (rememberPreference) {
-            projectStore.exportProjectFeaturesToFCS(dirName, true, calculateFeatures, recalculatePreference)
-        } else {
-            projectStore.exportProjectFeaturesToFCS(dirName, true, calculateFeatures, false)
+    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+        const exportFeatures = checkIfFeaturesExportable('export-project-populations-fcs', dir, calculateFeatures)
+        if (exportFeatures) {
+            if (calculateFeatures == undefined) calculateFeatures = false
+            const preferencesStore = projectStore.preferencesStore
+            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+            // If the user has a preference for recalculating data use that, otherwise don't recalculate.
+            if (rememberPreference) {
+                projectStore.exportProjectFeaturesToFCS(dir, true, calculateFeatures, recalculatePreference)
+            } else {
+                projectStore.exportProjectFeaturesToFCS(dir, true, calculateFeatures, false)
+            }
         }
     },
 )
@@ -262,14 +282,18 @@ ipcRenderer.on('export-segments-to-fcs', (event: Electron.Event, filePath: strin
 
 ipcRenderer.on(
     'export-project-segments-to-fcs',
-    (event: Electron.Event, dirName: string, calculateFeatures: boolean): void => {
-        const preferencesStore = projectStore.preferencesStore
-        const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-        const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-        if (rememberPreference) {
-            projectStore.exportProjectFeaturesToFCS(dirName, false, calculateFeatures, recalculatePreference)
-        } else {
-            projectStore.exportProjectFeaturesToFCS(dirName, false, calculateFeatures, false)
+    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+        const exportFeatures = checkIfFeaturesExportable('export-project-segments-to-fcs', dir, calculateFeatures)
+        if (exportFeatures) {
+            if (calculateFeatures == undefined) calculateFeatures = false
+            const preferencesStore = projectStore.preferencesStore
+            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
+            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
+            if (rememberPreference) {
+                projectStore.exportProjectFeaturesToFCS(dir, false, calculateFeatures, recalculatePreference)
+            } else {
+                projectStore.exportProjectFeaturesToFCS(dir, false, calculateFeatures, false)
+            }
         }
     },
 )

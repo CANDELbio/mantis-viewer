@@ -193,7 +193,7 @@ export class SettingStore {
     }
 
     private initializePlotImageSetColors = autorun(() => {
-        const imageSetNames = this.projectStore.allImageSetNames
+        const imageSetNames = this.projectStore.imageSetNames
         if (imageSetNames.length > 0) {
             const imageSetColors: Record<string, number> = {}
             for (const imageSet of imageSetNames) {

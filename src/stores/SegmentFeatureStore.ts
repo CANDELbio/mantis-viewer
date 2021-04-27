@@ -246,7 +246,7 @@ export class SegmentFeatureStore {
     private setFeatureStatisticsForSelectedImageSets = (features: string[]): void => {
         let imageSets: string[] = []
         if (this.projectStore.settingStore.plotAllImageSets) {
-            imageSets = this.projectStore.allImageSetNames
+            imageSets = this.projectStore.imageSetNames
         } else {
             const activeImageSetName = this.projectStore.activeImageSetStore.name
             if (activeImageSetName) imageSets.push(activeImageSetName)
@@ -539,5 +539,15 @@ export class SegmentFeatureStore {
             // Clear the values for the segment features file on the project store once we're done importing.
             projectStore.clearImportingSegmentFeaturesValues()
         }
+    }
+
+    public allImageSetsHaveFeatures = (): boolean => {
+        if (!this.db) return false
+        const imageSets = this.projectStore.imageSetNames
+        const imageSetsInDb = this.db.listImageSets()
+        for (const imageSet of imageSets) {
+            if (!imageSetsInDb.includes(imageSet)) return false
+        }
+        return true
     }
 }

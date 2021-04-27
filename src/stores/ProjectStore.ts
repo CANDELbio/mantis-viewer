@@ -64,7 +64,7 @@ export class ProjectStore {
     // Used to show segment stats and pixel stats.
     @observable public highlightedPixel: Coordinate | null
 
-    @computed public get allImageSetNames(): string[] {
+    @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
     }
 

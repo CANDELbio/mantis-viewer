@@ -109,6 +109,21 @@ export class Db {
         return results
     }
 
+    public listImageSets(): string[] {
+        const results: string[] = []
+        const db = this.getConnection()
+        const stmt = db.prepare(`SELECT image_set
+                                 FROM features
+                                 GROUP BY image_set`)
+
+        for (const row of stmt.iterate()) {
+            results.push(row.image_set)
+        }
+
+        db.close()
+        return results
+    }
+
     public featuresPresent(imageSet: string): boolean {
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT COUNT(*) AS count

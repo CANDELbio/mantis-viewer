@@ -168,22 +168,6 @@ function showSaveFileIpcDialog(ipcMessageName: string, defaultPath?: string, fil
     }
 }
 
-const askCalculateFeatures = (channel: string, dir: string): void => {
-    if (mainWindow != null) {
-        const options = {
-            type: 'question',
-            buttons: ['Yes', 'No'],
-            defaultId: 0,
-            title: 'Question',
-            message: 'Do you want to calculate mean and median segment features for all images before exporting?',
-            detail: 'These features will also be available in the plot once data has been exported',
-        }
-        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
-            if (mainWindow != null) mainWindow.webContents.send(channel, dir, value.response == 0)
-        })
-    }
-}
-
 function imageExportDefaultFilePath(): string | undefined {
     if (activeImageDirectory) {
         return path.join(path.dirname(activeImageDirectory), path.basename(activeImageDirectory) + '.png')
@@ -341,7 +325,8 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenDirectoryDialogCallback((dir: string): void => {
-                                        askCalculateFeatures('export-project-segment-features', dir)
+                                        if (mainWindow != null)
+                                            mainWindow.webContents.send('export-project-segment-features', dir)
                                     }, projectDirectory),
                                 },
                             ],
@@ -358,7 +343,8 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For all segments in project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenDirectoryDialogCallback((dir: string): void => {
-                                        askCalculateFeatures('export-project-segments-to-fcs', dir)
+                                        if (mainWindow != null)
+                                            mainWindow.webContents.send('export-project-segments-to-fcs', dir)
                                     }, projectDirectory),
                                 },
                                 {
@@ -373,7 +359,8 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For all populations in project',
                                     enabled: projectLoaded && imageLoaded && segmentationLoaded,
                                     click: showOpenDirectoryDialogCallback((dir: string): void => {
-                                        askCalculateFeatures('export-project-populations-fcs', dir)
+                                        if (mainWindow != null)
+                                            mainWindow.webContents.send('export-project-populations-fcs', dir)
                                     }, projectDirectory),
                                 },
                             ],
@@ -840,6 +827,23 @@ ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
             if (value.response == 0) {
                 if (mainWindow != null) mainWindow.webContents.send('calculate-project-segment-features')
             }
+        })
+    }
+})
+
+ipcMain.on('mainWindow-ask-calculate-features', (event: Electron.Event, channel: string, dir: string): void => {
+    if (mainWindow != null) {
+        const options = {
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Question',
+            message:
+                'Not all images have segment features present in the database. Do you want to calculate mean and median features for all images before exporting?',
+            detail: 'These features will also be available in the plot once data has been exported',
+        }
+        dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
+            if (mainWindow != null) mainWindow.webContents.send(channel, dir, value.response == 0)
         })
     }
 })
