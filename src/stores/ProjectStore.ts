@@ -543,25 +543,23 @@ export class ProjectStore {
         // Set the importing features values
         this.importingSegmentFeaturesPath = filePath
         this.importingSegmentFeaturesForProject = forProject
-        const rememberClearDuplicates = this.preferencesStore.rememberClearDuplicateSegmentFeatures
-        if (rememberClearDuplicates) {
-            // If the user wants us to remember their choice to clear duplicates, kick off importing segment features
-            this.segmentFeatureStore.importSegmentFeatures(
-                filePath,
-                forProject,
-                this.preferencesStore.clearDuplicateSegmentFeatures,
-            )
-        } else if (filePath != null && forProject != null) {
-            // Otherwise, ask the user if we should clear duplicates before importing
-            this.notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(true)
-        }
+        this.segmentFeatureStore.importSegmentFeatures(filePath, forProject)
+        // TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
+        // TODO: Might want to rip out.
+        // if (rememberClearDuplicates) {
+        //     // If the user wants us to remember their choice to clear duplicates, kick off importing segment features
+        //     this.segmentFeatureStore.importSegmentFeatures(filePath, forProject)
+        // } else if (filePath != null && forProject != null) {
+        //     // Otherwise, ask the user if we should clear duplicates before importing
+        //     this.notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(true)
+        // }
     }
 
-    public continueImportingSegmentFeatures = (clear: boolean, remember: boolean): void => {
+    public continueImportingSegmentFeatures = (): void => {
         const filePath = this.importingSegmentFeaturesPath
         const forProject = this.importingSegmentFeaturesForProject
         if (filePath && forProject) {
-            this.segmentFeatureStore.importSegmentFeatures(filePath, forProject, clear, remember)
+            this.segmentFeatureStore.importSegmentFeatures(filePath, forProject)
         }
     }
 

@@ -32,8 +32,6 @@ export class PreferencesStore {
     @observable public calculateSegmentFeatures: boolean
     @observable public rememberRecalculateSegmentFeatures: boolean
     @observable public recalculateSegmentFeatures: boolean
-    @observable public rememberClearDuplicateSegmentFeatures: boolean
-    @observable public clearDuplicateSegmentFeatures: boolean
     @observable public scaleChannelDomainValues: boolean
     @observable public optimizeSegmentation: boolean
     @observable public reloadOnError: boolean
@@ -82,8 +80,6 @@ export class PreferencesStore {
         this.calculateSegmentFeatures = false
         this.rememberRecalculateSegmentFeatures = false
         this.recalculateSegmentFeatures = false
-        this.rememberClearDuplicateSegmentFeatures = false
-        this.clearDuplicateSegmentFeatures = false
         this.scaleChannelDomainValues = false
         this.optimizeSegmentation = true
         this.reloadOnError = true
@@ -193,15 +189,6 @@ export class PreferencesStore {
         this.recalculateSegmentFeatures = recalculate
     }
 
-    @action public setRememberClearDuplicateSegmentFeatures = (remember: boolean): void => {
-        this.rememberClearDuplicateSegmentFeatures = remember
-        if (!remember) this.clearDuplicateSegmentFeatures = false
-    }
-
-    @action public setClearDuplicateSegmentFeatures = (clear: boolean): void => {
-        this.clearDuplicateSegmentFeatures = clear
-    }
-
     @action public setScaleChannelDomainValues = (scale: boolean): void => {
         this.scaleChannelDomainValues = scale
         this.projectStore.settingStore.resetChannelDomainValues()
@@ -226,8 +213,6 @@ export class PreferencesStore {
         store.set('calculateSegmentationStatistics', this.calculateSegmentFeatures)
         store.set('rememberRecalculateSegmentationStatistics', this.rememberRecalculateSegmentFeatures)
         store.set('recalculateSegmentationStatistics', this.recalculateSegmentFeatures)
-        store.set('rememberClearDuplicateSegmentFeatures', this.rememberClearDuplicateSegmentFeatures)
-        store.set('clearDuplicateSegmentFeatures', this.clearDuplicateSegmentFeatures)
         store.set('scaleChannelDomainValues', this.scaleChannelDomainValues)
         store.set('optimizeSegmentation', this.optimizeSegmentation)
         store.set('reloadOnError', this.reloadOnError)
@@ -260,10 +245,6 @@ export class PreferencesStore {
         if (rememberRecalculate) this.rememberRecalculateSegmentFeatures = rememberRecalculate
         const recalculate = store.get('recalculateSegmentationStatistics')
         if (recalculate) this.recalculateSegmentFeatures = recalculate
-        const rememberClear = store.get('rememberClearDuplicateSegmentFeatures')
-        if (rememberClear) this.rememberClearDuplicateSegmentFeatures = rememberClear
-        const clear = store.get('clearDuplicateSegmentFeatures')
-        if (clear) this.clearDuplicateSegmentFeatures = clear
         const scale = store.get('scaleChannelDomainValues')
         if (scale) this.scaleChannelDomainValues = scale
         const optimize = store.get('optimizeSegmentation')

@@ -18,6 +18,8 @@ export class NotificationStore {
     @observable public numToCalculate: number
     @observable public numCalculated: number
 
+    // TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
+    // TODO: Might want to rip out.
     // Flag to kick up a dialog to check with the user if we want to clear
     // duplicates before importing segment features.
     @observable public checkImportingSegmentFeaturesClearDuplicates: boolean

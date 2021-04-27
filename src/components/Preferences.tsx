@@ -27,10 +27,6 @@ export interface PreferencesProps {
     setRememberRecalculate: (value: boolean) => void
     recalculate: boolean
     setRecalculate: (value: boolean) => void
-    rememberClearDuplicates: boolean
-    setRememberClearDuplicates: (value: boolean) => void
-    clearDuplicates: boolean
-    setClearDuplicates: (value: boolean) => void
     scaleChannelBrightness: boolean
     setScaleChannelBrightness: (value: boolean) => void
     optimizeSegmentation: boolean
@@ -197,25 +193,6 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                             this.props.setRecalculate(e.target.checked)
                         }
                         label="Recalculate segment statistics when loading segmentation data"
-                    />
-                </Label>
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.rememberClearDuplicates}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setRememberClearDuplicates(e.target.checked)
-                        }
-                        label="Remember my choice for clearing duplicate segment features"
-                    />
-                </Label>
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.clearDuplicates}
-                        disabled={!this.props.rememberClearDuplicates}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setClearDuplicates(e.target.checked)
-                        }
-                        label="Clear duplicate segment features when loading custom features"
                     />
                 </Label>
                 <Label>Channel</Label>

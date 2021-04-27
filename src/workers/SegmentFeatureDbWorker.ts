@@ -33,7 +33,6 @@ interface InsertResult {
 interface ImportRequest {
     jobId?: string
     basePath: string
-    clearDuplicates: boolean
     validImageSets: string[]
     filePath: string
     imageSet?: string

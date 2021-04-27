@@ -627,7 +627,7 @@ const createPlotWindow = (): void => {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 810,
+        height: 735,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -791,6 +791,8 @@ ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
     }
 })
 
+// TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
+// TODO: Might want to rip out.
 ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
@@ -984,8 +986,6 @@ ipcMain.on(
         calculateSegmentationStatistics: boolean,
         rememberRecalculateSegmentationStatistics: boolean,
         recalculateSegmentationStatistics: boolean,
-        rememberClearDuplicateSegmentFeatures: boolean,
-        clearDuplicateSegmentFeatures: boolean,
         scaleChannelDomainValues: boolean,
         optimizeSegmentation: boolean,
         reloadOnError: boolean,
@@ -1003,8 +1003,6 @@ ipcMain.on(
                 calculateSegmentationStatistics,
                 rememberRecalculateSegmentationStatistics,
                 recalculateSegmentationStatistics,
-                rememberClearDuplicateSegmentFeatures,
-                clearDuplicateSegmentFeatures,
                 scaleChannelDomainValues,
                 optimizeSegmentation,
                 reloadOnError,
@@ -1057,14 +1055,6 @@ ipcMain.on('preferencesWindow-set-remember-recalculate', (event: Electron.Event,
 
 ipcMain.on('preferencesWindow-set-recalculate', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-recalculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-remember-clear', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-remember-clear', value)
-})
-
-ipcMain.on('preferencesWindow-set-clear', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-clear', value)
 })
 
 ipcMain.on('preferencesWindow-set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {

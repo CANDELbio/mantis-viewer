@@ -130,14 +130,6 @@ ipcRenderer.on('set-recalculate', (event: Electron.Event, value: boolean): void 
     projectStore.preferencesStore.setRecalculateSegmentFeatures(value)
 })
 
-ipcRenderer.on('set-remember-clear', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRememberClearDuplicateSegmentFeatures(value)
-})
-
-ipcRenderer.on('set-clear', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setClearDuplicateSegmentFeatures(value)
-})
-
 ipcRenderer.on('set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setScaleChannelDomainValues(value)
 })
@@ -408,8 +400,6 @@ Mobx.autorun((): void => {
         preferencesStore.calculateSegmentFeatures,
         preferencesStore.rememberRecalculateSegmentFeatures,
         preferencesStore.recalculateSegmentFeatures,
-        preferencesStore.rememberClearDuplicateSegmentFeatures,
-        preferencesStore.clearDuplicateSegmentFeatures,
         preferencesStore.scaleChannelDomainValues,
         preferencesStore.optimizeSegmentation,
         preferencesStore.reloadOnError,
@@ -517,6 +507,8 @@ Mobx.autorun((): void => {
     }
 })
 
+// TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
+// TODO: Might want to rip out.
 Mobx.autorun((): void => {
     const notificationStore = projectStore.notificationStore
     if (notificationStore.checkImportingSegmentFeaturesClearDuplicates) {

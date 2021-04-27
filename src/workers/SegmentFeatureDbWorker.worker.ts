@@ -26,7 +26,6 @@ function initializeDb(dbPath: string): void {
 function importSegmentFeaturesFromCSV(
     basePath: string,
     validImageSets: string[],
-    clearDuplicates: boolean,
     filePath: string,
     imageSet?: string,
 ): SegmentFeatureDbResult {
@@ -40,7 +39,7 @@ function importSegmentFeaturesFromCSV(
             const imageSetData = segmentData[imageSet]
             for (const feature of Object.keys(imageSetData)) {
                 const segmentValues = imageSetData[feature]
-                if (clearDuplicates) db.deleteFeatures(imageSet, feature)
+                db.deleteFeatures(imageSet, feature)
                 db.insertFeatures(imageSet, feature, segmentValues)
             }
         } else {
@@ -118,7 +117,6 @@ ctx.addEventListener(
                 results = importSegmentFeaturesFromCSV(
                     input.basePath,
                     input.validImageSets,
-                    input.clearDuplicates,
                     input.filePath,
                     input.imageSet,
                 )

@@ -434,24 +434,11 @@ export class SegmentFeatureStore {
     }
 
     // TODO: Should raise error if multipleFiles is true and filePath is not within an image directory.
-    public importSegmentFeatures = (
-        filePath: string,
-        forProject: boolean,
-        clearDuplicates: boolean,
-        remember?: boolean,
-    ): void => {
+    public importSegmentFeatures = (filePath: string, forProject: boolean): void => {
         const projectStore = this.projectStore
-        const preferencesStore = projectStore.preferencesStore
         const notificationStore = projectStore.notificationStore
         const basePath = this.basePath
         const activeImageSetName = projectStore.activeImageSetStore.name
-
-        if (remember != null) {
-            // If this is being called from a context where we want to remember or forget the choice
-            // Then save the values to the preferences store
-            preferencesStore.setRememberClearDuplicateSegmentFeatures(remember)
-            preferencesStore.setClearDuplicateSegmentFeatures(clearDuplicates)
-        }
 
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
@@ -523,7 +510,6 @@ export class SegmentFeatureStore {
                         basePath: basePath,
                         validImageSets: validImageSets,
                         imageSetName: importingImageSetName,
-                        clearDuplicates: clearDuplicates,
                         filePath: file.filePath,
                         imageSet: file.imageSet,
                     },

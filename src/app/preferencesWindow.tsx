@@ -14,8 +14,6 @@ let rememberCalculateSegmentationStatistics: boolean
 let calculateSegmentationStatistics: boolean
 let rememberRecalculateSegmentationStatistics: boolean
 let recalculateSegmentationStatistics: boolean
-let rememberClearDuplicateSegmentFeatures: boolean
-let clearDuplicateSegmentFeatures: boolean
 let scaleChannelDomainValues: boolean
 let optimizeSegmentation: boolean
 let reloadOnError: boolean
@@ -59,15 +57,6 @@ const setRememberRecalculate = (value: boolean): void => {
 const setRecalculate = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-recalculate', value)
 }
-
-const setRememberClear = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-remember-clear', value)
-}
-
-const setClear = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-clear', value)
-}
-
 const setScale = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-scale-channel-domain-values', value)
 }
@@ -104,10 +93,6 @@ function render(): void {
                 setRememberRecalculate={setRememberRecalculate}
                 recalculate={recalculateSegmentationStatistics}
                 setRecalculate={setRecalculate}
-                rememberClearDuplicates={rememberClearDuplicateSegmentFeatures}
-                setRememberClearDuplicates={setRememberClear}
-                clearDuplicates={clearDuplicateSegmentFeatures}
-                setClearDuplicates={setClear}
                 scaleChannelBrightness={scaleChannelDomainValues}
                 setScaleChannelBrightness={setScale}
                 optimizeSegmentation={optimizeSegmentation}
@@ -134,8 +119,6 @@ ipcRenderer.on(
         calculate: boolean,
         rememberRecalculate: boolean,
         recalculate: boolean,
-        rememberClear: boolean,
-        clear: boolean,
         scale: boolean,
         optimize: boolean,
         reload: boolean,
@@ -150,8 +133,6 @@ ipcRenderer.on(
         calculateSegmentationStatistics = calculate
         rememberRecalculateSegmentationStatistics = rememberRecalculate
         recalculateSegmentationStatistics = recalculate
-        rememberClearDuplicateSegmentFeatures = rememberClear
-        clearDuplicateSegmentFeatures = clear
         scaleChannelDomainValues = scale
         optimizeSegmentation = optimize
         reloadOnError = reload
