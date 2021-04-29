@@ -92,6 +92,7 @@
         "lint-staged": "^8.1.4",
         "node-abi": "^2.19.3",
         "prettier": "^2.0.3",
+        "raw-loader": "^4.0.2",
         "source-map-loader": "^0.2.4",
         "style-loader": "^0.16.0",
         "ts-jest": "^24.0.0",

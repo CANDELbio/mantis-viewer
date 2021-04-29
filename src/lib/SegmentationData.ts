@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { imageBitmapToSprite } from './GraphicsUtils'
 import { Coordinate } from '../interfaces/ImageInterfaces'
-import { drawOutlines } from './GraphicsUtils'
+import { drawOutlines, drawOutlineLines } from './GraphicsUtils'
 import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
 import { drawCentroids } from './GraphicsUtils'
 import {
@@ -10,6 +10,7 @@ import {
     SegmentationDataWorkerError,
 } from '../workers/SegmentationDataWorker'
 import { submitSegmentationDataJob } from '../workers/SegmentationDataWorkerPool'
+import { Line } from './pixi/Line'
 
 export class SegmentationData {
     public width: number
@@ -25,7 +26,7 @@ export class SegmentationData {
     public centroidMap: Record<number, Coordinate>
     // PIXI Sprite of random colored fills for the segments
     public fillSprite: PIXI.Sprite
-    public outlineGraphics: PIXI.Graphics
+    public outlineGraphics: Line | PIXI.Graphics
     public centroidGraphics: PIXI.Graphics
 
     public errorMessage: string | null
@@ -39,6 +40,7 @@ export class SegmentationData {
         width: number,
         segments?: number[],
     ): void {
+        const t0 = performance.now()
         const outlines = []
         for (const segment in this.segmentOutlineMap) {
             const segmentId = Number(segment)
@@ -49,6 +51,24 @@ export class SegmentationData {
             }
         }
         drawOutlines(outlineGraphics, outlines, color, width)
+        const t1 = performance.now()
+        console.log('Call to generateOutlineGraphics took ' + (t1 - t0) + ' milliseconds.')
+    }
+
+    private generateOutlineLines(line: Line, segments?: number[]): void {
+        const t0 = performance.now()
+        const outlines = []
+        for (const segment in this.segmentOutlineMap) {
+            const segmentId = Number(segment)
+            if (segments) {
+                if (segments.indexOf(segmentId) != -1) outlines.push(this.segmentOutlineMap[segmentId])
+            } else {
+                outlines.push(this.segmentOutlineMap[segmentId])
+            }
+        }
+        drawOutlineLines(line, outlines)
+        const t1 = performance.now()
+        console.log('Call to generateOutlineLines took ' + (t1 - t0) + ' milliseconds.')
     }
 
     public segmentsInRegion(regionPixelIndexes: number[]): number[] {
@@ -80,8 +100,16 @@ export class SegmentationData {
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
         this.fillSprite = imageBitmapToSprite(fData.fillBitmap, false)
-        this.outlineGraphics = new PIXI.Graphics()
-        this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
+        // Comment/uncomment following four lines to switch between graphics and line
+        this.outlineGraphics = new Line({
+            color: SegmentOutlineColor,
+        })
+        this.generateOutlineLines(this.outlineGraphics)
+
+        // Comment/uncomment following two lines to switch between graphics and line
+        // this.outlineGraphics = new PIXI.Graphics()
+        // this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
+
         this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)
         this.onReady(this)
     }

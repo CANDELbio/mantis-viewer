@@ -6,6 +6,7 @@ import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
+import { Line } from './pixi/Line'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const canvas = document.createElement('canvas')
@@ -127,6 +128,10 @@ export function drawOutlines(
             outlineGraphics.lineTo(point.x, point.y)
         }
     }
+}
+
+export function drawOutlineLines(line: Line, outlines: Coordinate[][]): void {
+    line.update(outlines.flat())
 }
 
 // Generating brightness filter code for the passed in channel.
