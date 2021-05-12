@@ -8,15 +8,10 @@ import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
-    const canvas = document.createElement('canvas')
-
-    canvas.width = bitmap.width
-    canvas.height = bitmap.height
-
-    const ctx = canvas.getContext('2d')
-    if (ctx) ctx.drawImage(bitmap, 0, 0)
     const spriteOptions = blurPixels ? undefined : { scaleMode: PIXI.SCALE_MODES.NEAREST }
-    const sprite = PIXI.Sprite.from(canvas, spriteOptions)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    //@ts-ignore
+    const sprite = PIXI.Sprite.from(bitmap, spriteOptions)
     if (!blurPixels) sprite.roundPixels = false
     return sprite
 }
