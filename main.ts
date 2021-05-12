@@ -793,7 +793,7 @@ ipcMain.on('mainWindow-show-continue-importing-segment-features-dialog', (): voi
             buttons: ['Yes', 'No'],
             defaultId: 0,
             message:
-                'Segment features are present in the database with the same names that Mantis uses. Do you want Mantis to continue importing and overwrite these existing features?',
+                'Segment features are present in the database with the same names that are being imported. Do you want Mantis to continue importing and overwrite these existing features?',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)

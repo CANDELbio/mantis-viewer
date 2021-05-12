@@ -161,8 +161,8 @@ ctx.addEventListener(
     (message) => {
         const data: ImageDataWorkerInput = message.data
         readFile(data).then((message) => {
-            // Send the message and then specify the large data array and bitmap as transferrables
-            // Using transferrables dramatically speeds up transfer back to the main thread
+            // Send the message and then specify the large data array and bitmap as transferables
+            // Using transferables dramatically speeds up transfer back to the main thread
             if ('error' in message) {
                 ctx.postMessage(message)
             } else {

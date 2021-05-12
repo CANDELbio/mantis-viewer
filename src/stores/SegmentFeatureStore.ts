@@ -472,10 +472,6 @@ export class SegmentFeatureStore {
         const basePath = this.basePath
         const activeImageSetName = projectStore.activeImageSetStore.name
 
-        console.log('importSegmentFeatures')
-        console.log(checkOverwrite)
-        console.log(overwriteFeatures)
-
         // If we're importing for the project, set to undefined.
         // Otherwise get the name of the active image set
         const validImageSets = projectStore.imageSetPaths.map((p) => path.basename(p))

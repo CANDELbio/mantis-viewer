@@ -529,7 +529,7 @@ export class ProjectStore {
     public continueImportingSegmentFeatures = (overwriteFeatures: boolean): void => {
         const filePath = this.importingSegmentFeaturesPath
         const forProject = this.importingSegmentFeaturesForProject
-        if (filePath && forProject) {
+        if (filePath && forProject != null) {
             this.segmentFeatureStore.importSegmentFeatures(filePath, forProject, false, overwriteFeatures)
         }
     }
