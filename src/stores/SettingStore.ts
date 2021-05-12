@@ -32,6 +32,7 @@ type SettingStoreData = {
     channelVisibility?: Record<ChannelName, boolean> | null
     segmentationBasename?: string | null
     autoLoadSegmentation?: boolean
+    autoCalculateSegmentFeatures?: boolean
     regionsBasename?: string | null
     regionsFilesLoaded?: string[] | null
     selectedPlotFeatures?: string[] | null
@@ -87,6 +88,8 @@ export class SettingStore {
     @observable public segmentationBasename: string | null
     // Whether or not segmentation is automatically loaded when switching between images
     @observable public autoLoadSegmentation: boolean
+    // Whether or not Mantis should automatically calculate segment features
+    @observable public autoCalculateSegmentFeatures: boolean
     // Region file basename when a region file is selected for teh whole project
     @observable public regionsBasename: string | null
     @observable public regionsFilesLoaded: string[]
@@ -150,6 +153,7 @@ export class SettingStore {
 
         this.segmentationBasename = null
         this.autoLoadSegmentation = true
+        this.autoCalculateSegmentFeatures = false
         this.regionsBasename = null
         this.regionsFilesLoaded = []
 
@@ -374,6 +378,10 @@ export class SettingStore {
         this.autoLoadSegmentation = value
     }
 
+    @action public setAutoCalculateSegmentFeatures = (value: boolean): void => {
+        this.autoCalculateSegmentFeatures = value
+    }
+
     @action public setRegionsBasename = (basename: string | null): void => {
         this.regionsBasename = basename
         this.regionsFilesLoaded = []
@@ -462,6 +470,7 @@ export class SettingStore {
                 channelDomainValue: this.channelDomainValue,
                 segmentationBasename: this.segmentationBasename,
                 autoLoadSegmentation: this.autoLoadSegmentation,
+                autoCalculateSegmentFeatures: this.autoCalculateSegmentFeatures,
                 regionsBasename: this.regionsBasename,
                 regionsFilesLoaded: toJS(this.regionsFilesLoaded),
                 selectedPlotFeatures: toJS(this.selectedPlotFeatures),
@@ -511,6 +520,8 @@ export class SettingStore {
                     this.segmentationBasename = importingSettings.segmentationBasename
                 if (importingSettings.autoLoadSegmentation != null)
                     this.autoLoadSegmentation = importingSettings.autoLoadSegmentation
+                if (importingSettings.autoCalculateSegmentFeatures != null)
+                    this.autoCalculateSegmentFeatures = importingSettings.autoCalculateSegmentFeatures
                 if (importingSettings.regionsBasename) this.regionsBasename = importingSettings.regionsBasename
                 if (importingSettings.regionsFilesLoaded) this.regionsFilesLoaded = importingSettings.regionsFilesLoaded
                 if (importingSettings.selectedPlotFeatures)

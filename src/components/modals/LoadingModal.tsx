@@ -7,7 +7,7 @@ export interface LoadingModalProps {
     numToCalculate: number
     imageDataLoading: boolean
     segmentationDataLoading: boolean
-    segmentFeaturesLoading: boolean
+    segmentFeaturesCalculating: boolean
     segmentFeaturesImporting: boolean
     selectionsLoading: boolean
     applicationReloading: boolean
@@ -24,7 +24,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
         if (
             this.props.imageDataLoading ||
             this.props.segmentationDataLoading ||
-            this.props.segmentFeaturesLoading ||
+            this.props.segmentFeaturesCalculating ||
             this.props.segmentFeaturesImporting ||
             this.props.selectionsLoading ||
             this.props.numToCalculate > 0
@@ -32,7 +32,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
             let modalText = 'Processing...'
             if (this.props.imageDataLoading) modalText = 'Image data is loading...'
             if (this.props.segmentationDataLoading) modalText = 'Segmentation data is loading...'
-            if (this.props.segmentFeaturesLoading) modalText = 'Segment intensities are being calculated...'
+            if (this.props.segmentFeaturesCalculating) modalText = 'Segment intensities are being calculated...'
             if (this.props.segmentFeaturesImporting) modalText = 'Segment features are importing...'
             if (this.props.selectionsLoading) modalText = 'Selections features are importing...'
             if (this.props.applicationReloading) modalText = 'Mantis is reloading...'

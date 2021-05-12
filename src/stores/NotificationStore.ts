@@ -18,11 +18,15 @@ export class NotificationStore {
     @observable public numToCalculate: number
     @observable public numCalculated: number
 
-    // TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
-    // TODO: Might want to rip out.
-    // Flag to kick up a dialog to check with the user if we want to clear
-    // duplicates before importing segment features.
-    @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
+    // Gets set to true when segmentation features have already been calculated
+    // So that we can ask the user if they want to recalculate
+    // TODO: Might want to rework into asking users if mantis should calculate segment features when first loading segmentation data.
+    @observable public checkCalculateSegmentFeatures: boolean
+    // Gets set to true when segmentation features have already been calculated
+    // So that we can ask the user if they want to overwrite the old ones
+    @observable public checkOverwriteGeneratingSegmentFeatures: boolean
+    @observable public checkOverwriteImportingSegmentFeatures: boolean
+    @observable public disposeImportingSegmentFeatures: boolean
     // Flag to kick up a dialog to check if the user wants to calculate all features
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
@@ -42,7 +46,8 @@ export class NotificationStore {
         this.clearSegmentationRequested = false
         this.numToCalculate = 0
         this.numCalculated = 0
-        this.checkImportingSegmentFeaturesClearDuplicates = false
+        this.checkOverwriteGeneratingSegmentFeatures = false
+        this.checkOverwriteImportingSegmentFeatures = false
         this.checkCalculateAllFeaturesForPlot = false
         this.checkImportProject = false
         this.reloadMainWindow = false
@@ -78,6 +83,7 @@ export class NotificationStore {
 
     @action public setNumToCalculate = (value: number): void => {
         this.numToCalculate = value
+        this.numCalculated = 0
     }
 
     @action public incrementNumCalculated = (): void => {
@@ -89,8 +95,21 @@ export class NotificationStore {
         }
     }
 
-    @action setCheckImportingSegmentFeaturesClearDuplicates = (value: boolean): void => {
-        this.checkImportingSegmentFeaturesClearDuplicates = value
+    @action public setCheckCalculateSegmentFeatures = (check: boolean): void => {
+        this.checkCalculateSegmentFeatures = check
+    }
+
+    @action setCheckOverwriteGeneratingSegmentFeatures = (value: boolean): void => {
+        this.checkOverwriteGeneratingSegmentFeatures = value
+    }
+
+    @action setCheckOverwriteImportingSegmentFeatures = (value: boolean): void => {
+        this.checkOverwriteImportingSegmentFeatures = value
+        if (value) this.disposeImportingSegmentFeatures = true
+    }
+
+    @action setDisposeImportingSegmentFeatures = (value: boolean): void => {
+        this.disposeImportingSegmentFeatures = value
     }
 
     @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {

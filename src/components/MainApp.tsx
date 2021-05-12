@@ -185,7 +185,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedPopulations={populationStore.selectedPopulations}
                 highlightedPopulations={populationStore.highlightedPopulations}
                 highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
-                highlightedSegmentFeatures={segmentFeatureStore.activeHiglightedSegmentFeatures}
+                highlightedSegmentFeatures={segmentFeatureStore.activeHighlightedSegmentFeatures}
                 exportPath={imageStore.imageExportFilename}
                 onExportComplete={imageStore.clearImageExportFilePath}
                 channelLegendVisible={settingStore.channelLegendVisible}
@@ -361,7 +361,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     imageDataLoading={imageDataLoading}
                     segmentationDataLoading={segmentationDataLoading}
                     segmentFeaturesImporting={segmentFeaturesImporting}
-                    segmentFeaturesLoading={segmentFeaturesLoading}
+                    segmentFeaturesCalculating={segmentFeaturesLoading}
                     selectionsLoading={selectionsLoading}
                     applicationReloading={notificationStore.reloadMainWindow}
                 />

@@ -104,6 +104,7 @@ function insertFeatureValues(
     initializeDb(dbPath)
     db.deleteFeatures(imageSetName, feature)
     db.insertFeatures(imageSetName, feature, dataMap)
+    db.insertFeaturesGeneratedImageSet(imageSetName)
 }
 
 ctx.addEventListener(

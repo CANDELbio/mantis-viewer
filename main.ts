@@ -257,7 +257,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For active image from CSV',
                                     enabled: segmentationLoaded,
                                     click: showOpenFileDialogCallback(
-                                        'add-segment-features',
+                                        'import-active-segment-features',
                                         'Select Segment Feature CSV',
                                         activeImageDirectory,
                                         ['csv', 'txt'],
@@ -267,7 +267,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For project from CSV',
                                     enabled: projectLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
-                                        'add-project-segment-features',
+                                        'import-project-segment-features',
                                         'Select Segment Feature CSV',
                                         activeImageDirectory,
                                         ['csv', 'txt'],
@@ -374,8 +374,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                             label: 'Segment intensities for active image',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
-                                if (mainWindow != null)
-                                    mainWindow.webContents.send('recalculate-segment-features-from-menu')
+                                if (mainWindow != null) mainWindow.webContents.send('calculate-segment-features')
                             },
                         },
                         {
@@ -627,7 +626,7 @@ const createPlotWindow = (): void => {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 735,
+        height: 625,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -762,47 +761,39 @@ ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
             defaultId: 0,
             message: 'Do you want Mantis to calculate mean and median segment intensities?',
             detail: 'If you select no you will not be able to generate plots until you have loaded your own features.',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send('calculate-segment-features', value.response == 0, value.checkboxChecked)
+                mainWindow.webContents.send('set-auto-calculate-segment-features', value.response == 0)
         })
     }
 })
 
-ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
+// TODO: Combine with 'mainWindow-show-continue-importing-segment-features-dialog' to DRY up.
+ipcMain.on('mainWindow-show-continue-calculating-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
             message:
-                'Segment intensities have been previously calculated for this image. Do you want to use the previously calculated intensities?',
-            detail: 'You can manually refresh segment intensities from the main menu at any time',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
+                'Segment features are present in the database with the same names that Mantis uses. Do you want Mantis to continue calculating and overwrite these existing features?',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send('recalculate-segment-features', value.response == 1, value.checkboxChecked)
+                mainWindow.webContents.send('continue-calculating-segment-features', value.response == 0)
         })
     }
 })
 
-// TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
-// TODO: Might want to rip out.
-ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
+ipcMain.on('mainWindow-show-continue-importing-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            message: 'Do you want to delete any existing features with overlapping names before importing?',
-            detail: 'Choosing no can lead to duplicate data',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
+            message:
+                'Segment features are present in the database with the same names that Mantis uses. Do you want Mantis to continue importing and overwrite these existing features?',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
@@ -982,10 +973,6 @@ ipcMain.on(
         markers: any,
         domains: any,
         anyChannel: any,
-        rememberCalculateSegmentationStatistics: boolean,
-        calculateSegmentationStatistics: boolean,
-        rememberRecalculateSegmentationStatistics: boolean,
-        recalculateSegmentationStatistics: boolean,
         scaleChannelDomainValues: boolean,
         optimizeSegmentation: boolean,
         reloadOnError: boolean,
@@ -999,10 +986,6 @@ ipcMain.on(
                 markers,
                 domains,
                 anyChannel,
-                rememberCalculateSegmentationStatistics,
-                calculateSegmentationStatistics,
-                rememberRecalculateSegmentationStatistics,
-                recalculateSegmentationStatistics,
                 scaleChannelDomainValues,
                 optimizeSegmentation,
                 reloadOnError,
@@ -1039,22 +1022,6 @@ ipcMain.on(
 
 ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
-})
-
-ipcMain.on('preferencesWindow-set-remember-calculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-remember-calculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-calculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-calculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-remember-recalculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-recalculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-recalculate', value)
 })
 
 ipcMain.on('preferencesWindow-set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {

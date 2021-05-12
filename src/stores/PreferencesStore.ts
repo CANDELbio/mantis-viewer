@@ -28,10 +28,6 @@ export class PreferencesStore {
     @observable public useAnyMarkerIfNoMatch: Record<ChannelName, boolean>
 
     // Segmentation statistics/Segment level data settings
-    @observable public rememberCalculateSegmentFeatures: boolean
-    @observable public calculateSegmentFeatures: boolean
-    @observable public rememberRecalculateSegmentFeatures: boolean
-    @observable public recalculateSegmentFeatures: boolean
     @observable public scaleChannelDomainValues: boolean
     @observable public optimizeSegmentation: boolean
     @observable public reloadOnError: boolean
@@ -76,10 +72,6 @@ export class PreferencesStore {
             yChannel: false,
             kChannel: false,
         }
-        this.rememberCalculateSegmentFeatures = false
-        this.calculateSegmentFeatures = false
-        this.rememberRecalculateSegmentFeatures = false
-        this.recalculateSegmentFeatures = false
         this.scaleChannelDomainValues = false
         this.optimizeSegmentation = true
         this.reloadOnError = true
@@ -171,24 +163,6 @@ export class PreferencesStore {
         return defaultMarkers
     }
 
-    @action public setRememberCalculateSegmentFeatures = (remember: boolean): void => {
-        this.rememberCalculateSegmentFeatures = remember
-        if (!remember) this.calculateSegmentFeatures = false
-    }
-
-    @action public setCalculateSegmentFeatures = (calculate: boolean): void => {
-        this.calculateSegmentFeatures = calculate
-    }
-
-    @action public setRememberRecalculateSegmentFeatures = (remember: boolean): void => {
-        this.rememberRecalculateSegmentFeatures = remember
-        if (!remember) this.recalculateSegmentFeatures = false
-    }
-
-    @action public setRecalculateSegmentFeatures = (recalculate: boolean): void => {
-        this.recalculateSegmentFeatures = recalculate
-    }
-
     @action public setScaleChannelDomainValues = (scale: boolean): void => {
         this.scaleChannelDomainValues = scale
         this.projectStore.settingStore.resetChannelDomainValues()
@@ -209,10 +183,6 @@ export class PreferencesStore {
         store.set('defaultChannelMarkers', this.defaultChannelMarkers)
         store.set('defaultChannelDomains', this.defaultChannelDomains)
         store.set('useAnyMarkerIfNoMatch', this.useAnyMarkerIfNoMatch)
-        store.set('rememberCalculateSegmentationStatistics', this.rememberCalculateSegmentFeatures)
-        store.set('calculateSegmentationStatistics', this.calculateSegmentFeatures)
-        store.set('rememberRecalculateSegmentationStatistics', this.rememberRecalculateSegmentFeatures)
-        store.set('recalculateSegmentationStatistics', this.recalculateSegmentFeatures)
         store.set('scaleChannelDomainValues', this.scaleChannelDomainValues)
         store.set('optimizeSegmentation', this.optimizeSegmentation)
         store.set('reloadOnError', this.reloadOnError)
@@ -237,14 +207,6 @@ export class PreferencesStore {
         if (useAnyMarkerIfNoMatch) this.useAnyMarkerIfNoMatch = useAnyMarkerIfNoMatch
         const defaultSegmentationBasename = store.get('defaultSegmentationBasename')
         if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename
-        const rememberCalculate = store.get('rememberCalculateSegmentationStatistics')
-        if (rememberCalculate) this.rememberCalculateSegmentFeatures = rememberCalculate
-        const calculate = store.get('calculateSegmentationStatistics')
-        if (calculate) this.calculateSegmentFeatures = calculate
-        const rememberRecalculate = store.get('rememberRecalculateSegmentationStatistics')
-        if (rememberRecalculate) this.rememberRecalculateSegmentFeatures = rememberRecalculate
-        const recalculate = store.get('recalculateSegmentationStatistics')
-        if (recalculate) this.recalculateSegmentFeatures = recalculate
         const scale = store.get('scaleChannelDomainValues')
         if (scale) this.scaleChannelDomainValues = scale
         const optimize = store.get('optimizeSegmentation')

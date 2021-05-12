@@ -19,14 +19,6 @@ export interface PreferencesProps {
     setDefaultChannelDomain: (channel: ChannelName, domain: [number, number]) => void
     useAnyMarker: Record<ChannelName, boolean>
     setUseAnyMarker: (channel: ChannelName, useAnyMarker: boolean) => void
-    rememberCalculate: boolean
-    setRememberCalculate: (value: boolean) => void
-    calculate: boolean
-    setCalculate: (value: boolean) => void
-    rememberRecalculate: boolean
-    setRememberRecalculate: (value: boolean) => void
-    recalculate: boolean
-    setRecalculate: (value: boolean) => void
     scaleChannelBrightness: boolean
     setScaleChannelBrightness: (value: boolean) => void
     optimizeSegmentation: boolean

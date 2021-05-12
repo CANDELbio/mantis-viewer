@@ -114,22 +114,6 @@ ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelNam
     projectStore.preferencesStore.setUseAnyMarker(channel, useAny)
 })
 
-ipcRenderer.on('set-remember-calculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRememberCalculateSegmentFeatures(value)
-})
-
-ipcRenderer.on('set-calculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setCalculateSegmentFeatures(value)
-})
-
-ipcRenderer.on('set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRememberRecalculateSegmentFeatures(value)
-})
-
-ipcRenderer.on('set-recalculate', (event: Electron.Event, value: boolean): void => {
-    projectStore.preferencesStore.setRecalculateSegmentFeatures(value)
-})
-
 ipcRenderer.on('set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setScaleChannelDomainValues(value)
 })
@@ -233,14 +217,7 @@ ipcRenderer.on(
         const exportFeatures = checkIfFeaturesExportable('export-project-segment-features', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
-            const preferencesStore = projectStore.preferencesStore
-            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-            if (rememberPreference) {
-                projectStore.exportProjectFeaturesToCSV(dir, calculateFeatures, recalculatePreference)
-            } else {
-                projectStore.exportProjectFeaturesToCSV(dir, calculateFeatures, false)
-            }
+            projectStore.exportProjectFeaturesToCSV(dir, calculateFeatures)
         }
     },
 )
@@ -255,15 +232,7 @@ ipcRenderer.on(
         const exportFeatures = checkIfFeaturesExportable('export-project-populations-fcs', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
-            const preferencesStore = projectStore.preferencesStore
-            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-            // If the user has a preference for recalculating data use that, otherwise don't recalculate.
-            if (rememberPreference) {
-                projectStore.exportProjectFeaturesToFCS(dir, true, calculateFeatures, recalculatePreference)
-            } else {
-                projectStore.exportProjectFeaturesToFCS(dir, true, calculateFeatures, false)
-            }
+            projectStore.exportProjectFeaturesToFCS(dir, true, calculateFeatures)
         }
     },
 )
@@ -278,46 +247,38 @@ ipcRenderer.on(
         const exportFeatures = checkIfFeaturesExportable('export-project-segments-to-fcs', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
-            const preferencesStore = projectStore.preferencesStore
-            const recalculatePreference = preferencesStore.recalculateSegmentFeatures
-            const rememberPreference = preferencesStore.rememberRecalculateSegmentFeatures
-            if (rememberPreference) {
-                projectStore.exportProjectFeaturesToFCS(dir, false, calculateFeatures, recalculatePreference)
-            } else {
-                projectStore.exportProjectFeaturesToFCS(dir, false, calculateFeatures, false)
-            }
+            projectStore.exportProjectFeaturesToFCS(dir, false, calculateFeatures)
         }
     },
 )
 
-ipcRenderer.on('add-segment-features', (event: Electron.Event, filePath: string): void => {
-    projectStore.setImportingSegmentFeaturesValues(filePath, false)
+ipcRenderer.on('import-active-segment-features', (event: Electron.Event, filePath: string): void => {
+    projectStore.setImportingSegmentFeaturesValues(filePath, false, true)
 })
 
-ipcRenderer.on('add-project-segment-features', (event: Electron.Event, filePath: string): void => {
-    projectStore.setImportingSegmentFeaturesValues(filePath, true)
+ipcRenderer.on('import-project-segment-features', (event: Electron.Event, filePath: string): void => {
+    projectStore.setImportingSegmentFeaturesValues(filePath, true, true)
 })
 
-ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, clear: boolean, remember: boolean): void => {
-    projectStore.continueImportingSegmentFeatures(clear, remember)
+ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, overwrite: boolean): void => {
+    // TODO: Wire into notification store checkOverwriteImportingSegmentFeatures
+    projectStore.continueImportingSegmentFeatures(overwrite)
 })
 
-ipcRenderer.on('calculate-segment-features', (event: Electron.Event, calculate: boolean, remember: boolean): void => {
-    projectStore.continueCalculatingSegmentFeatures(calculate, remember)
+ipcRenderer.on('set-auto-calculate-segment-features', (event: Electron.Event, autoCalculate: boolean): void => {
+    projectStore.settingStore.setAutoCalculateSegmentFeatures(autoCalculate)
+    projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(projectStore.activeImageSetStore)
 })
 
 ipcRenderer.on('calculate-project-segment-features', (): void => {
     projectStore.calculateAllSegmentFeatures()
 })
 
-ipcRenderer.on(
-    'recalculate-segment-features',
-    (event: Electron.Event, recalculate: boolean, remember: boolean): void => {
-        projectStore.recalculateSegmentFeatures(recalculate, remember)
-    },
-)
+ipcRenderer.on('continue-calculating-segment-features', (event: Electron.Event, overwrite: boolean): void => {
+    projectStore.continueCalculatingSegmentFeatures(overwrite)
+})
 
-ipcRenderer.on('recalculate-segment-features-from-menu', (): void => {
+ipcRenderer.on('calculate-segment-features', (): void => {
     projectStore.calculateSegmentFeaturesFromMenu()
 })
 
@@ -396,10 +357,6 @@ Mobx.autorun((): void => {
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),
         Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
-        preferencesStore.rememberCalculateSegmentFeatures,
-        preferencesStore.calculateSegmentFeatures,
-        preferencesStore.rememberRecalculateSegmentFeatures,
-        preferencesStore.recalculateSegmentFeatures,
         preferencesStore.scaleChannelDomainValues,
         preferencesStore.optimizeSegmentation,
         preferencesStore.reloadOnError,
@@ -494,26 +451,26 @@ Mobx.autorun((): void => {
 })
 
 Mobx.autorun((): void => {
-    if (projectStore.checkCalculateSegmentFeatures) {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.checkCalculateSegmentFeatures) {
         ipcRenderer.send('mainWindow-show-calculate-segment-features-dialog')
-        projectStore.setCheckRecalculateSegmentFeatures(false)
+        notificationStore.setCheckCalculateSegmentFeatures(false)
     }
 })
 
-Mobx.autorun((): void => {
-    if (projectStore.checkRecalculateSegmentFeatures) {
-        ipcRenderer.send('mainWindow-show-recalculate-segment-features-dialog')
-        projectStore.setCheckRecalculateSegmentFeatures(false)
-    }
-})
-
-// TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
-// TODO: Might want to rip out.
 Mobx.autorun((): void => {
     const notificationStore = projectStore.notificationStore
-    if (notificationStore.checkImportingSegmentFeaturesClearDuplicates) {
-        ipcRenderer.send('mainWindow-show-clear-segment-features-dialog')
-        notificationStore.setCheckImportingSegmentFeaturesClearDuplicates(false)
+    if (notificationStore.checkOverwriteGeneratingSegmentFeatures) {
+        ipcRenderer.send('mainWindow-show-continue-calculating-segment-features-dialog')
+        notificationStore.setCheckOverwriteGeneratingSegmentFeatures(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.checkOverwriteImportingSegmentFeatures) {
+        ipcRenderer.send('mainWindow-show-continue-importing-segment-features-dialog')
+        notificationStore.setCheckOverwriteImportingSegmentFeatures(false)
     }
 })
 

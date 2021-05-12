@@ -1,7 +1,7 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { Db } from './Db'
-import { PlotStatistics } from '../definitions/UIDefinitions'
+import { AreaStatistic, PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
 import { submitJob } from '../workers/SegmentFeatureCalculatorPool'
 import { SegmentFeatureDbRequest, OnSegmentFeatureDbRequestComplete } from '../workers/SegmentFeatureDbWorker'
@@ -9,8 +9,9 @@ import { SegmentFeatureDbRequest, OnSegmentFeatureDbRequestComplete } from '../w
 export class SegmentFeatureGenerator {
     private db: Db
     private imageSetName: string
-    // Whether or not we should recalculate the features if they've already been calculated
-    private recalculateFeatures: boolean
+    private imageData: ImageData
+    private segmentationData: SegmentationData
+
     // Keep track of the number of markers to calculate features for and the number complete
     private numFeatures: number
     private numFeaturesComplete: number
@@ -24,13 +25,15 @@ export class SegmentFeatureGenerator {
     public constructor(
         basePath: string,
         imageSetName: string,
-        recalculateFeatures: boolean,
+        imageData: ImageData,
+        segmentationData: SegmentationData,
         storeFeatures: (input: SegmentFeatureDbRequest, onComplete: OnSegmentFeatureDbRequestComplete) => void,
         onReady: (imageSetName: string) => void,
     ) {
         this.db = new Db(basePath)
         this.imageSetName = imageSetName
-        this.recalculateFeatures = recalculateFeatures
+        this.imageData = imageData
+        this.segmentationData = segmentationData
         this.numFeatures = 0
         this.numFeaturesComplete = 0
         this.storeFeatures = storeFeatures
@@ -49,46 +52,55 @@ export class SegmentFeatureGenerator {
         this.checkIfComplete()
     }
 
-    private featureName(input: SegmentFeatureCalculatorInput | SegmentFeatureCalculatorResult): string {
-        if (input.statistic == 'area') {
+    private featureName(statistic: AreaStatistic | PlotStatistic, marker?: string): string {
+        if (statistic == 'area') {
             return 'Segment Area'
         } else {
-            return input.marker + ' ' + input.statistic.charAt(0).toUpperCase() + input.statistic.slice(1)
+            return marker + ' ' + statistic.charAt(0).toUpperCase() + statistic.slice(1)
         }
+    }
+
+    private featureNames(): string[] {
+        const featureNames = []
+        featureNames.push(this.featureName('area'))
+
+        const markers = Object.keys(this.imageData.data)
+        for (const marker of markers) {
+            for (const statistic of PlotStatistics) {
+                featureNames.push(this.featureName(statistic, marker))
+            }
+        }
+        return featureNames
     }
 
     public featuresPresent(): boolean {
-        return this.db.featuresPresent(this.imageSetName)
-    }
-
-    private submitSegmentFeatureJob(
-        input: SegmentFeatureCalculatorInput,
-        featuresInDb: string[],
-        onComplete: (data: SegmentFeatureCalculatorResult) => void,
-    ): void {
-        const feature = this.featureName(input)
-        if (this.recalculateFeatures || !featuresInDb.includes(feature)) {
-            // If we always want to recalculate features or the current feature isn't in the database
-            submitJob(input, onComplete)
-        } else {
-            this.markJobComplete()
+        const existingFeatures = this.db.listFeatures(this.imageSetName)
+        const newFeatures = this.featureNames()
+        for (const existingFeature of existingFeatures) {
+            if (newFeatures.includes(existingFeature)) return true
         }
+        return false
     }
 
-    public generate(imageData: ImageData, segmentationData: SegmentationData): void {
+    public generate(): void {
+        const imageData = this.imageData
+        const segmentationData = this.segmentationData
+
         const onComplete = (data: SegmentFeatureCalculatorResult): void => {
+            const featureName =
+                data.statistic == 'area'
+                    ? this.featureName(data.statistic)
+                    : this.featureName(data.statistic, data.marker)
             const request = {
                 basePath: this.db.basePath,
                 imageSetName: this.imageSetName,
-                feature: this.featureName(data),
+                feature: featureName,
                 insertData: data.statisticMap,
             }
             this.storeFeatures(request, () => {
                 this.markJobComplete()
             })
         }
-
-        const featuresInDb = this.db.listFeatures(this.imageSetName)
 
         const markers = Object.keys(imageData.data)
         // Keeping track of the number of features to calculate so we know when we're done
@@ -98,16 +110,13 @@ export class SegmentFeatureGenerator {
         this.numFeatures += 1
 
         // Submit a request to calculate the segment areas
-        this.submitSegmentFeatureJob(
-            {
-                basePath: this.db.basePath,
-                imageSetName: this.imageSetName,
-                segmentIndexMap: segmentationData.segmentIndexMap,
-                statistic: 'area',
-            },
-            featuresInDb,
-            onComplete,
-        )
+        const input: SegmentFeatureCalculatorInput = {
+            basePath: this.db.basePath,
+            imageSetName: this.imageSetName,
+            segmentIndexMap: segmentationData.segmentIndexMap,
+            statistic: 'area',
+        }
+        submitJob(input, onComplete)
 
         // Submit requests to calculate segment means and medians for all markers
         for (const marker of markers) {
@@ -122,7 +131,7 @@ export class SegmentFeatureGenerator {
                     segmentIndexMap: segmentationData.segmentIndexMap,
                     statistic: statistic,
                 }
-                this.submitSegmentFeatureJob(input, featuresInDb, onComplete)
+                submitJob(input, onComplete)
             }
         }
     }
