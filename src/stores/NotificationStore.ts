@@ -15,8 +15,16 @@ export class NotificationStore {
     @observable public clearSegmentationRequested: boolean
 
     // Used to track progress when exporting FCS/Stats for whole project
+    // or when calculating features for whole project
     @observable public numToCalculate: number
     @observable public numCalculated: number
+    @observable public projectSegmentFeaturesCalculating: boolean
+
+    // Used to track progress when importing segment features
+    // Separate from numToCalculate above due to the case of a project import
+    // where features can be simultaneously imported and calculated.
+    @observable public numToImport: number
+    @observable public numImported: number
 
     @observable public checkCalculateSegmentFeatures: boolean
     // Gets set to true when segmentation features have already been calculated
@@ -42,6 +50,9 @@ export class NotificationStore {
         this.clearSegmentationRequested = false
         this.numToCalculate = 0
         this.numCalculated = 0
+        this.projectSegmentFeaturesCalculating = false
+        this.numToImport = 0
+        this.numImported = 0
         this.checkOverwriteGeneratingSegmentFeatures = false
         this.checkOverwriteImportingSegmentFeatures = false
         this.checkCalculateAllFeaturesForPlot = false
@@ -88,6 +99,24 @@ export class NotificationStore {
         if (this.numCalculated >= this.numToCalculate) {
             this.numToCalculate = 0
             this.numCalculated = 0
+        }
+    }
+
+    @action public setProjectSegmentFeaturesCalculating = (value: boolean): void => {
+        this.projectSegmentFeaturesCalculating = value
+    }
+
+    @action public setNumToImport = (value: number): void => {
+        this.numToImport = value
+        this.numImported = 0
+    }
+
+    @action public incrementNumImported = (): void => {
+        this.numImported += 1
+        // If we've exported all files, mark done.
+        if (this.numImported >= this.numToImport) {
+            this.numToImport = 0
+            this.numImported = 0
         }
     }
 

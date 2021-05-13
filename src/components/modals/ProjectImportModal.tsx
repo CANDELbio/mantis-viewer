@@ -6,10 +6,12 @@ import { Grid, Row, Col } from 'react-flexbox-grid'
 import {
     SelectStyle,
     SelectTheme,
+    SelectOption,
     getSelectedOptions,
     generateSelectOptions,
     onClearableSelectChange,
 } from '../../lib/SelectUtils'
+import { FeatureCalculationOption, FeatureCalculationOptions } from '../../definitions/UIDefinitions'
 import path = require('path')
 
 export interface ProjectImportModalProps {
@@ -30,6 +32,8 @@ export interface ProjectImportModalProps {
     setImageSubdir: (file: string | null) => void
     setSegmentation: (file: string | null) => void
     segmentation: string | null
+    calculateFeatures: FeatureCalculationOption
+    setCalculateFeatures: (value: FeatureCalculationOption) => void
     setRegion: (file: string | null) => void
     region: string | null
     setProjectFeatures: (file: string | null) => void
@@ -54,6 +58,10 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
 
     private rowStyle = { marginBottom: '5px' }
 
+    private onCalculateFeaturesSelect = (x: SelectOption): void => {
+        if (x != null) this.props.setCalculateFeatures(x.value as FeatureCalculationOption)
+    }
+
     private generateForm(): JSX.Element | null {
         const directory = this.props.directory
         const projectDirectories = this.props.projectDirectories
@@ -74,6 +82,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const selectedImageSetFeatures = getSelectedOptions(this.props.imageSetFeatures, imageSetFeatureOptions)
         const populationOptions = generateSelectOptions(this.props.projectCsvs)
         const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
+        const selectedCalculateFeatures = getSelectedOptions(this.props.calculateFeatures, FeatureCalculationOptions)
 
         let projectStats = null
         if (directory) {
@@ -239,6 +248,20 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     </Col>
                 </Row>
                 {populationStats}
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Calculate Segment Features (mean, median, and area):</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedCalculateFeatures}
+                            options={FeatureCalculationOptions}
+                            onChange={this.onCalculateFeaturesSelect}
+                            isClearable={false}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!Boolean(this.props.segmentation)}
+                        />
+                    </Col>
+                </Row>
             </Grid>
         )
     }

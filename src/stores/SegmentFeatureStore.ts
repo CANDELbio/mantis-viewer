@@ -482,7 +482,7 @@ export class SegmentFeatureStore {
             // Get the files to import formatted for the web worker
             const filesToImport = this.getSegmentFeaturePaths(basePath, filePath, validImageSets, importingImageSetName)
             let numToImport = filesToImport.length
-            notificationStore.setNumToCalculate(numToImport)
+            notificationStore.setNumToImport(numToImport)
             const someImportingSegmentFeaturesExist = this.checkImportingSegmentFeaturesExist(filesToImport)
             if (checkOverwrite && someImportingSegmentFeaturesExist) {
                 // If we should check if we might overwrite anything, and some features that would be imported already exist
@@ -508,7 +508,7 @@ export class SegmentFeatureStore {
                     }
                     // Decrement the number left to import and update the notification store
                     numToImport--
-                    notificationStore.incrementNumCalculated()
+                    notificationStore.incrementNumImported()
                     // If we're done importing all of the files. Only set a message if there was an error.
                     if (numToImport == 0) {
                         if (

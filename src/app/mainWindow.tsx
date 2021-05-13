@@ -30,7 +30,7 @@ ipcRenderer.on(
 )
 
 ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: string): void => {
-    projectStore.setSegmentationBasename(filePath)
+    projectStore.setSegmentationBasename(filePath, true)
 })
 
 ipcRenderer.on('add-populations-csv', (event: Electron.Event, filePath: string): void => {

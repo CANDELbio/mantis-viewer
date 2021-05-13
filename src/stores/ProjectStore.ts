@@ -277,7 +277,7 @@ export class ProjectStore {
         }
     }
 
-    @action public setSegmentationBasename = (filePath: string): void => {
+    @action public setSegmentationBasename = (filePath: string, checkCalculateFeatures: boolean): void => {
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
         if (dirname == this.activeImageSetPath) {
@@ -287,7 +287,7 @@ export class ProjectStore {
             // Could result in weird behavior when switching between image sets.
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
-        this.notificationStore.setCheckCalculateSegmentFeatures(true)
+        if (checkCalculateFeatures) this.notificationStore.setCheckCalculateSegmentFeatures(true)
     }
 
     @action public importRegionTiff = (filePath: string): void => {
@@ -578,6 +578,7 @@ export class ProjectStore {
         this.imageSetFeaturesToCalculate = remainingImageSetPaths
         // If there are image sets left to process, continue
         if (remainingImageSetPaths.length > 0) {
+            this.notificationStore.setProjectSegmentFeaturesCalculating(true)
             const curDir = remainingImageSetPaths[0]
             this.imageSets[curDir].loadImageStoreData()
             const imageSetStore = this.imageSets[curDir]
@@ -628,6 +629,8 @@ export class ProjectStore {
                     }
                 },
             )
+        } else {
+            this.notificationStore.setProjectSegmentFeaturesCalculating(false)
         }
     }
 

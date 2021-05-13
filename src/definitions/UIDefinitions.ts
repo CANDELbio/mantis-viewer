@@ -72,6 +72,14 @@ export const PopulationCreationOptions = [
     { label: 'From Range', value: 'range' },
 ]
 
+export const FeatureCalculationOptions = [
+    { label: 'Do not calculate', value: 'none' },
+    { label: 'Calculate individually as each image loads', value: 'image' },
+    { label: 'Calculate all when the project loads', value: 'project' },
+]
+
+export type FeatureCalculationOption = 'none' | 'image' | 'project'
+
 export const ImageViewerHeightPadding = 90
 export const MainPlotHeightPadding = 400 // Amount of padding above and below the plot in the main window.
 export const ExternalPlotHeightPadding = 80 // Amount of padding above and below the plot in the external window.

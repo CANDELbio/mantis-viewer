@@ -135,20 +135,26 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const numCalculated = notificationStore.numCalculated
         const numToCalculate = notificationStore.numToCalculate
 
+        const numImported = notificationStore.numImported
+        const numToImport = notificationStore.numToImport
+
         const imageDataLoading = imageStore.imageDataLoading
         const segmentationDataLoading = segmentationStore.segmentationDataLoading
         const segmentFeaturesImporting = projectStore.importingSegmentFeaturesPath != null
-        const segmentFeaturesLoading = segmentFeatureStore.activeFeaturesLoading
+        const segmentFeaturesCalculating =
+            segmentFeatureStore.activeFeaturesLoading || notificationStore.projectSegmentFeaturesCalculating
         const selectionsLoading = populationStore.selectionsLoading
         const dataLoading = numToCalculate > 0
+        const dataImporting = numToImport > 0
 
         const displayLoadingModal =
             imageDataLoading ||
             segmentationDataLoading ||
             segmentFeaturesImporting ||
-            segmentFeaturesLoading ||
+            segmentFeaturesCalculating ||
             selectionsLoading ||
-            dataLoading
+            dataLoading ||
+            dataImporting
 
         const displayProjectImportModal = projectImportStore.modalOpen && !displayLoadingModal
 
@@ -358,10 +364,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <LoadingModal
                     numToCalculate={numToCalculate}
                     numCalculated={numCalculated}
+                    numToImport={numToImport}
+                    numImported={numImported}
                     imageDataLoading={imageDataLoading}
                     segmentationDataLoading={segmentationDataLoading}
                     segmentFeaturesImporting={segmentFeaturesImporting}
-                    segmentFeaturesCalculating={segmentFeaturesLoading}
+                    segmentFeaturesCalculating={segmentFeaturesCalculating}
                     selectionsLoading={selectionsLoading}
                     applicationReloading={notificationStore.reloadMainWindow}
                 />
@@ -385,6 +393,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setRegion={projectImportStore.setImageSetRegionFile}
                     segmentation={projectImportStore.imageSetSegmentationFile}
                     setSegmentation={projectImportStore.setImageSetSegmentationFile}
+                    calculateFeatures={projectImportStore.autoCalculateFeatures}
+                    setCalculateFeatures={projectImportStore.setAutoCalculateFeatures}
                     setProjectFeatures={projectImportStore.setProjectSegmentFeaturesFile}
                     projectFeatures={projectImportStore.projectSegmentFeaturesFile}
                     setImageSetFeatures={projectImportStore.setImageSetSegmentFeaturesFile}

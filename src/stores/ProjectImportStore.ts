@@ -4,6 +4,7 @@ import path = require('path')
 import { ProjectStore } from './ProjectStore'
 import { DbFilename } from '../definitions/FileDefinitions'
 import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
+import { FeatureCalculationOption } from '../definitions/UIDefinitions'
 
 export class ProjectImportStore {
     private projectStore: ProjectStore
@@ -34,6 +35,7 @@ export class ProjectImportStore {
     @observable public imageSetRegionFile: string | null
     @observable public imageSubdirectory: string | null
     @observable public subdirectoryTiffs: string[]
+    @observable public autoCalculateFeatures: FeatureCalculationOption
 
     @observable public readyToImport: boolean
 
@@ -55,6 +57,7 @@ export class ProjectImportStore {
         this.subdirectoryTiffs = []
         this.imageSetCsvs = []
         this.imageSetDirs = []
+        this.autoCalculateFeatures = 'none'
         this.clearFileSelections()
     }
 
@@ -278,6 +281,10 @@ export class ProjectImportStore {
         }
     }
 
+    @action public setAutoCalculateFeatures = (value: FeatureCalculationOption): void => {
+        this.autoCalculateFeatures = value
+    }
+
     @action setImageSetRegionFile = (file: string | null): void => {
         this.imageSetRegionFile = file
     }
@@ -336,7 +343,7 @@ export class ProjectImportStore {
                     if (activeImageSetName && segmentationFile) {
                         const segmentationPath = path.join(activeImageSetName, segmentationFile)
                         if (fs.existsSync(segmentationPath)) {
-                            projectStore.setSegmentationBasename(segmentationPath)
+                            projectStore.setSegmentationBasename(segmentationPath, false)
                         } else {
                             const msg =
                                 'Unable to find segmentation file ' +
@@ -363,11 +370,20 @@ export class ProjectImportStore {
                                             projectStore.notificationStore.setErrorMessage(msg)
                                         }
                                     }
+
+                                    // Calculate segment features if set
+                                    if (this.autoCalculateFeatures == 'image') {
+                                        projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
+                                    } else if (this.autoCalculateFeatures == 'project') {
+                                        projectStore.calculateAllSegmentFeatures()
+                                    }
+
                                     // Import populations for the project if set
                                     if (this.projectPopulationFile)
                                         projectStore.importProjectPopulationsFromCSV(
                                             path.join(this.directory, this.projectPopulationFile),
                                         )
+
                                     // Import segment features for the project if set
                                     if (this.projectSegmentFeaturesFile) {
                                         projectStore.setImportingSegmentFeaturesValues(

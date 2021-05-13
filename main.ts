@@ -54,7 +54,7 @@ const openImageSet = (path: string): void => {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
-                'You will lose any unsaved changes if you open a new image. Are you sure you want to do this?'
+                'The current open image(s) will be closed if you open a new image. Are you sure you want to do this?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -73,7 +73,7 @@ const openProject = (dir: string): void => {
         if (isExistingProject(dir)) {
             if (imageLoaded || projectLoaded) {
                 const message =
-                    'You will lose any unsaved changes if you open an existing project. Are you sure you want to do this?'
+                    'The current open image(s) will be closed if you open a different project. Are you sure you want to do this?'
                 dialog
                     .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                     .then((value: Electron.MessageBoxReturnValue): void => {
@@ -1078,7 +1078,7 @@ ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
 ipcMain.on('mainWindow-check-import-project', (): void => {
     if (mainWindow != null) {
         const message =
-            'You will lose any unsaved changes if you import a new project. Are you sure you want to do this?'
+            'The current open image(s) will be closed if you open a new project. Are you sure you want to do this?'
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {
