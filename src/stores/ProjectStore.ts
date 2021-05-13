@@ -360,7 +360,7 @@ export class ProjectStore {
                         (): boolean => !segmentationStore.segmentationDataLoading,
                         (): void => {
                             if (calculateFeatures) {
-                                // TODO: Default to not overwriting. We should prompt the user if they will overlap
+                                // We only ask the user if we should calculate for images missing features, so we set overwrite to false and don't prompt.
                                 this.segmentFeatureStore.calculateSegmentFeatures(imageSetStore, false, false)
                             }
                             const imageSetName = imageSetStore.name

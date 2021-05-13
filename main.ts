@@ -832,7 +832,7 @@ ipcMain.on('mainWindow-ask-calculate-features', (event: Electron.Event, channel:
             defaultId: 0,
             title: 'Question',
             message:
-                'Not all images have segment features present in the database. Do you want to calculate mean and median features for all images before exporting?',
+                'Not all images have segment features present in the database. Do you want to calculate mean and median features for images missing features before exporting?',
             detail: 'These features will also be available in the plot once data has been exported',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
