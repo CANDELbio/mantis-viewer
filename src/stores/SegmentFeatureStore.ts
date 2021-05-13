@@ -211,7 +211,7 @@ export class SegmentFeatureStore {
             if (!featuresPresent) {
                 generator.generate()
             } else if (featuresPresent && checkOverwrite && !overwriteFeatures) {
-                // If statistics are already present and we should check to recalculate, kick to the user to ask
+                // If statistics are already present and we should check to overwrite, kick to the user to ask
                 notificationStore.setCheckOverwriteGeneratingSegmentFeatures(true)
                 return false
             } else if (featuresPresent && overwriteFeatures) {

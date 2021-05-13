@@ -626,7 +626,7 @@ const createPlotWindow = (): void => {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 625,
+        height: 735,
         resizable: false,
         show: false,
         webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
@@ -969,6 +969,7 @@ ipcMain.on(
         event: Electron.Event,
         maxImageSets: number,
         blurPixels: boolean,
+        calculateFeatures: boolean,
         defaultSegmentation: string | null,
         markers: any,
         domains: any,
@@ -982,6 +983,7 @@ ipcMain.on(
                 'set-preferences',
                 maxImageSets,
                 blurPixels,
+                calculateFeatures,
                 defaultSegmentation,
                 markers,
                 domains,
@@ -1000,6 +1002,10 @@ ipcMain.on('preferencesWindow-set-max-image-sets', (event: Electron.Event, max: 
 
 ipcMain.on('preferencesWindow-set-blur-pixels', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-blur-pixels', value)
+})
+
+ipcMain.on('preferencesWindow-set-calculate-features', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-calculate-features', value)
 })
 
 ipcMain.on('preferencesWindow-set-segmentation', (event: Electron.Event, basename: string): void => {

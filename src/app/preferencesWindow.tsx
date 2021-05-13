@@ -6,6 +6,7 @@ import { Preferences } from '../components/Preferences'
 
 let maxImageSetsInMemory: number
 let blurPixels: boolean
+let calculateFeatures: boolean
 let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
@@ -20,6 +21,10 @@ const setMaxImageSetsInMemory = (max: number): void => {
 
 const setBlurPixels = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-blur-pixels', value)
+}
+
+const setCalculateFeatures = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-calculate-features', value)
 }
 
 const setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
@@ -58,6 +63,8 @@ function render(): void {
                 setMaxImageSetsInMemory={setMaxImageSetsInMemory}
                 blurPixels={blurPixels}
                 setBlurPixels={setBlurPixels}
+                calculate={calculateFeatures}
+                setCalculate={setCalculateFeatures}
                 defaultSegmentationBasename={defaultSegmentation}
                 setDefaultSegmentation={setDefaultSegmentation}
                 defaultChannelMarkers={defaultChannelMarkers}
@@ -84,6 +91,7 @@ ipcRenderer.on(
         event: Electron.Event,
         maxImageSets: number,
         blur: boolean,
+        calculate: boolean,
         segmentation: string | null,
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
@@ -94,6 +102,7 @@ ipcRenderer.on(
     ): void => {
         maxImageSetsInMemory = maxImageSets
         blurPixels = blur
+        calculateFeatures = calculate
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
         defaultChannelDomains = domains

@@ -92,6 +92,10 @@ ipcRenderer.on('set-blur-pixels', (event: Electron.Event, value: boolean): void 
     projectStore.preferencesStore.setBlurPixels(value)
 })
 
+ipcRenderer.on('set-calculate-features', (event: Electron.Event, value: boolean): void => {
+    projectStore.settingStore.setAutoCalculateSegmentFeatures(value)
+})
+
 ipcRenderer.on('set-default-segmentation', (event: Electron.Event, segmentation: string): void => {
     projectStore.preferencesStore.setDefaultSegmentationBasename(segmentation)
 })
@@ -349,10 +353,12 @@ Mobx.autorun((): void => {
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {
     const preferencesStore = projectStore.preferencesStore
+    const settingStore = projectStore.settingStore
     ipcRenderer.send(
         'mainWindow-set-preferences',
         preferencesStore.maxImageSetsInMemory,
         preferencesStore.blurPixels,
+        settingStore.autoCalculateSegmentFeatures,
         preferencesStore.defaultSegmentationBasename,
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),

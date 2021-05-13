@@ -18,15 +18,11 @@ export class NotificationStore {
     @observable public numToCalculate: number
     @observable public numCalculated: number
 
-    // Gets set to true when segmentation features have already been calculated
-    // So that we can ask the user if they want to recalculate
-    // TODO: Might want to rework into asking users if mantis should calculate segment features when first loading segmentation data.
     @observable public checkCalculateSegmentFeatures: boolean
     // Gets set to true when segmentation features have already been calculated
     // So that we can ask the user if they want to overwrite the old ones
     @observable public checkOverwriteGeneratingSegmentFeatures: boolean
     @observable public checkOverwriteImportingSegmentFeatures: boolean
-    @observable public disposeImportingSegmentFeatures: boolean
     // Flag to kick up a dialog to check if the user wants to calculate all features
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
@@ -105,11 +101,6 @@ export class NotificationStore {
 
     @action setCheckOverwriteImportingSegmentFeatures = (value: boolean): void => {
         this.checkOverwriteImportingSegmentFeatures = value
-        if (value) this.disposeImportingSegmentFeatures = true
-    }
-
-    @action setDisposeImportingSegmentFeatures = (value: boolean): void => {
-        this.disposeImportingSegmentFeatures = value
     }
 
     @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {
