@@ -341,6 +341,10 @@ export class ProjectImportStore {
                     const segmentationFile = this.imageSetSegmentationFile
                     const activeImageSetName = projectStore.activeImageSetPath
                     if (activeImageSetName && segmentationFile) {
+                        // Set auto calculate segment features if set
+                        if (this.autoCalculateFeatures == 'image') {
+                            projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
+                        }
                         const segmentationPath = path.join(activeImageSetName, segmentationFile)
                         if (fs.existsSync(segmentationPath)) {
                             projectStore.setSegmentationBasename(segmentationPath, false)
@@ -371,10 +375,8 @@ export class ProjectImportStore {
                                         }
                                     }
 
-                                    // Calculate segment features if set
-                                    if (this.autoCalculateFeatures == 'image') {
-                                        projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
-                                    } else if (this.autoCalculateFeatures == 'project') {
+                                    // Calculate segment features for the project if set
+                                    if (this.autoCalculateFeatures == 'project') {
                                         projectStore.calculateAllSegmentFeatures()
                                     }
 
