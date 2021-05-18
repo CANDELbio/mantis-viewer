@@ -19,14 +19,8 @@ export interface PreferencesProps {
     setDefaultChannelDomain: (channel: ChannelName, domain: [number, number]) => void
     useAnyMarker: Record<ChannelName, boolean>
     setUseAnyMarker: (channel: ChannelName, useAnyMarker: boolean) => void
-    rememberCalculate: boolean
-    setRememberCalculate: (value: boolean) => void
     calculate: boolean
     setCalculate: (value: boolean) => void
-    rememberRecalculate: boolean
-    setRememberRecalculate: (value: boolean) => void
-    recalculate: boolean
-    setRecalculate: (value: boolean) => void
     scaleChannelBrightness: boolean
     setScaleChannelBrightness: (value: boolean) => void
     optimizeSegmentation: boolean
@@ -134,6 +128,8 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
         }
         return (
             <div>
+                <h6>Application Preferences</h6>
+                <hr></hr>
                 <Label>Maximum images in memory</Label>
                 <Slider
                     min={1}
@@ -143,58 +139,11 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                     onChange={this.onMaxImageSetsInMemoryChange}
                     onRelease={this.props.setMaxImageSetsInMemory}
                 />
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.blurPixels}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setBlurPixels(e.target.checked)
-                        }
-                        label="Blur Pixels (Restart required to take effect)"
-                    />
-                </Label>
                 <Label>Default Segmentation Filename</Label>
                 <Input
                     value={this.props.defaultSegmentationBasename ? this.props.defaultSegmentationBasename : ''}
                     onChange={this.onSegmentationSelect}
                 />
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.rememberCalculate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setRememberCalculate(e.target.checked)
-                        }
-                        label="Remember my choice for calculating segment intensities"
-                    />
-                </Label>
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.calculate}
-                        disabled={!this.props.rememberCalculate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setCalculate(e.target.checked)
-                        }
-                        label="Calculate segment intensities when loading segmentation data"
-                    />
-                </Label>
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.rememberRecalculate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setRememberRecalculate(e.target.checked)
-                        }
-                        label="Remember my choice for recalculating segment statistics"
-                    />
-                </Label>
-                <Label check style={{ paddingTop: '10px' }}>
-                    <Checkbox
-                        checked={this.props.recalculate}
-                        disabled={!this.props.rememberRecalculate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                            this.props.setRecalculate(e.target.checked)
-                        }
-                        label="Recalculate segment statistics when loading segmentation data"
-                    />
-                </Label>
                 <Label>Channel</Label>
                 <Select
                     value={selectedValue}
@@ -228,6 +177,15 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>
                     <Checkbox
+                        checked={this.props.blurPixels}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setBlurPixels(e.target.checked)
+                        }
+                        label="Blur Pixels (Restart required to take effect)"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
                         checked={this.props.optimizeSegmentation}
                         onChange={this.onOptimizeChange}
                         label="Optimize Segmentation Files"
@@ -238,6 +196,17 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         checked={this.props.reloadOnError}
                         onChange={this.onReloadOnErrorChange}
                         label="Reload on Error (Recommended for non-developers)"
+                    />
+                </Label>
+                <h6 style={{ paddingTop: '15px' }}>Project Preferences</h6>
+                <hr></hr>
+                <Label check>
+                    <Checkbox
+                        checked={this.props.calculate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                            this.props.setCalculate(e.target.checked)
+                        }
+                        label="Calculate segment intensities when loading segmentation data"
                     />
                 </Label>
             </div>

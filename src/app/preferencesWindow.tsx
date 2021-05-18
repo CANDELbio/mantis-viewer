@@ -6,14 +6,11 @@ import { Preferences } from '../components/Preferences'
 
 let maxImageSetsInMemory: number
 let blurPixels: boolean
+let calculateFeatures: boolean
 let defaultChannelMarkers: Record<ChannelName, string[]>
 let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
-let rememberCalculateSegmentationStatistics: boolean
-let calculateSegmentationStatistics: boolean
-let rememberRecalculateSegmentationStatistics: boolean
-let recalculateSegmentationStatistics: boolean
 let scaleChannelDomainValues: boolean
 let optimizeSegmentation: boolean
 let reloadOnError: boolean
@@ -24,6 +21,10 @@ const setMaxImageSetsInMemory = (max: number): void => {
 
 const setBlurPixels = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-blur-pixels', value)
+}
+
+const setCalculateFeatures = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-calculate-features', value)
 }
 
 const setDefaultChannelMarkers = (channel: ChannelName, markers: string[]): void => {
@@ -42,21 +43,6 @@ const setUseAnyMarker = (channel: ChannelName, useAnyChannel: boolean): void => 
     ipcRenderer.send('preferencesWindow-set-use-any-marker', channel, useAnyChannel)
 }
 
-const setRememberCalculate = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-remember-calculate', value)
-}
-
-const setCalculate = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-calculate', value)
-}
-
-const setRememberRecalculate = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-remember-recalculate', value)
-}
-
-const setRecalculate = (value: boolean): void => {
-    ipcRenderer.send('preferencesWindow-set-recalculate', value)
-}
 const setScale = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-scale-channel-domain-values', value)
 }
@@ -77,6 +63,8 @@ function render(): void {
                 setMaxImageSetsInMemory={setMaxImageSetsInMemory}
                 blurPixels={blurPixels}
                 setBlurPixels={setBlurPixels}
+                calculate={calculateFeatures}
+                setCalculate={setCalculateFeatures}
                 defaultSegmentationBasename={defaultSegmentation}
                 setDefaultSegmentation={setDefaultSegmentation}
                 defaultChannelMarkers={defaultChannelMarkers}
@@ -85,14 +73,6 @@ function render(): void {
                 setDefaultChannelDomain={setDefaultChannelDomain}
                 useAnyMarker={useAnyMarker}
                 setUseAnyMarker={setUseAnyMarker}
-                rememberCalculate={rememberCalculateSegmentationStatistics}
-                setRememberCalculate={setRememberCalculate}
-                calculate={calculateSegmentationStatistics}
-                setCalculate={setCalculate}
-                rememberRecalculate={rememberRecalculateSegmentationStatistics}
-                setRememberRecalculate={setRememberRecalculate}
-                recalculate={recalculateSegmentationStatistics}
-                setRecalculate={setRecalculate}
                 scaleChannelBrightness={scaleChannelDomainValues}
                 setScaleChannelBrightness={setScale}
                 optimizeSegmentation={optimizeSegmentation}
@@ -111,28 +91,22 @@ ipcRenderer.on(
         event: Electron.Event,
         maxImageSets: number,
         blur: boolean,
+        calculate: boolean,
         segmentation: string | null,
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
         anyMarker: Record<ChannelName, boolean>,
-        rememberCalculate: boolean,
-        calculate: boolean,
-        rememberRecalculate: boolean,
-        recalculate: boolean,
         scale: boolean,
         optimize: boolean,
         reload: boolean,
     ): void => {
         maxImageSetsInMemory = maxImageSets
         blurPixels = blur
+        calculateFeatures = calculate
         defaultSegmentation = segmentation
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
         useAnyMarker = anyMarker
-        rememberCalculateSegmentationStatistics = rememberCalculate
-        calculateSegmentationStatistics = calculate
-        rememberRecalculateSegmentationStatistics = rememberRecalculate
-        recalculateSegmentationStatistics = recalculate
         scaleChannelDomainValues = scale
         optimizeSegmentation = optimize
         reloadOnError = reload

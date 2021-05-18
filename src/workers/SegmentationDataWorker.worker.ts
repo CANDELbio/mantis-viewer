@@ -492,7 +492,11 @@ ctx.addEventListener(
         const data: SegmentationDataWorkerInput = message.data
         // Callback if an error is raised when loading data.
         loadFile(data.filepath, data.width, data.height, data.optimizeFile).then((message) => {
-            if (message) {
+            // Send the message and then specify the fill bitmap as a transferable
+            // Using a transferable dramatically speeds up transfer back to the main thread
+            if ('fillBitmap' in message) {
+                ctx.postMessage(message, [message.fillBitmap])
+            } else {
                 ctx.postMessage(message)
             }
         })

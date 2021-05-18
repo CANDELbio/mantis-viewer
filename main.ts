@@ -54,7 +54,7 @@ const openImageSet = (path: string): void => {
     if (mainWindow != null) {
         if (imageLoaded || projectLoaded) {
             const message =
-                'You will lose any unsaved changes if you open a new image. Are you sure you want to do this?'
+                'The current open image(s) will be closed if you open a new image. Are you sure you want to do this?'
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -73,7 +73,7 @@ const openProject = (dir: string): void => {
         if (isExistingProject(dir)) {
             if (imageLoaded || projectLoaded) {
                 const message =
-                    'You will lose any unsaved changes if you open an existing project. Are you sure you want to do this?'
+                    'The current open image(s) will be closed if you open a different project. Are you sure you want to do this?'
                 dialog
                     .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                     .then((value: Electron.MessageBoxReturnValue): void => {
@@ -257,7 +257,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For active image from CSV',
                                     enabled: segmentationLoaded,
                                     click: showOpenFileDialogCallback(
-                                        'add-segment-features',
+                                        'import-active-segment-features',
                                         'Select Segment Feature CSV',
                                         activeImageDirectory,
                                         ['csv', 'txt'],
@@ -267,7 +267,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     label: 'For project from CSV',
                                     enabled: projectLoaded && segmentationLoaded,
                                     click: showOpenFileDialogCallback(
-                                        'add-project-segment-features',
+                                        'import-project-segment-features',
                                         'Select Segment Feature CSV',
                                         activeImageDirectory,
                                         ['csv', 'txt'],
@@ -374,8 +374,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                             label: 'Segment intensities for active image',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
-                                if (mainWindow != null)
-                                    mainWindow.webContents.send('recalculate-segment-features-from-menu')
+                                if (mainWindow != null) mainWindow.webContents.send('calculate-segment-features')
                             },
                         },
                         {
@@ -762,47 +761,39 @@ ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
             defaultId: 0,
             message: 'Do you want Mantis to calculate mean and median segment intensities?',
             detail: 'If you select no you will not be able to generate plots until you have loaded your own features.',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send('calculate-segment-features', value.response == 0, value.checkboxChecked)
+                mainWindow.webContents.send('set-auto-calculate-segment-features', value.response == 0)
         })
     }
 })
 
-ipcMain.on('mainWindow-show-recalculate-segment-features-dialog', (): void => {
+// TODO: Combine with 'mainWindow-show-continue-importing-segment-features-dialog' to DRY up.
+ipcMain.on('mainWindow-show-continue-calculating-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
             message:
-                'Segment intensities have been previously calculated for this image. Do you want to use the previously calculated intensities?',
-            detail: 'You can manually refresh segment intensities from the main menu at any time',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
+                'Segment features are present in the database with the same names that Mantis uses. Do you want Mantis to continue calculating and overwrite these existing features?',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
-                mainWindow.webContents.send('recalculate-segment-features', value.response == 1, value.checkboxChecked)
+                mainWindow.webContents.send('continue-calculating-segment-features', value.response == 0)
         })
     }
 })
 
-// TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
-// TODO: Might want to rip out.
-ipcMain.on('mainWindow-show-clear-segment-features-dialog', (): void => {
+ipcMain.on('mainWindow-show-continue-importing-segment-features-dialog', (): void => {
     if (mainWindow != null) {
         const options = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
-            message: 'Do you want to delete any existing features with overlapping names before importing?',
-            detail: 'Choosing no can lead to duplicate data',
-            checkboxLabel: 'Remember my answer (you can change this in preferences)',
-            checkboxChecked: true,
+            message:
+                'Segment features are present in the database with the same names that are being imported. Do you want Mantis to continue importing and overwrite these existing features?',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
             if (mainWindow != null)
@@ -841,7 +832,7 @@ ipcMain.on('mainWindow-ask-calculate-features', (event: Electron.Event, channel:
             defaultId: 0,
             title: 'Question',
             message:
-                'Not all images have segment features present in the database. Do you want to calculate mean and median features for all images before exporting?',
+                'Not all images have segment features present in the database. Do you want to calculate mean and median features for images missing features before exporting?',
             detail: 'These features will also be available in the plot once data has been exported',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue) => {
@@ -978,14 +969,11 @@ ipcMain.on(
         event: Electron.Event,
         maxImageSets: number,
         blurPixels: boolean,
+        calculateFeatures: boolean,
         defaultSegmentation: string | null,
         markers: any,
         domains: any,
         anyChannel: any,
-        rememberCalculateSegmentationStatistics: boolean,
-        calculateSegmentationStatistics: boolean,
-        rememberRecalculateSegmentationStatistics: boolean,
-        recalculateSegmentationStatistics: boolean,
         scaleChannelDomainValues: boolean,
         optimizeSegmentation: boolean,
         reloadOnError: boolean,
@@ -995,14 +983,11 @@ ipcMain.on(
                 'set-preferences',
                 maxImageSets,
                 blurPixels,
+                calculateFeatures,
                 defaultSegmentation,
                 markers,
                 domains,
                 anyChannel,
-                rememberCalculateSegmentationStatistics,
-                calculateSegmentationStatistics,
-                rememberRecalculateSegmentationStatistics,
-                recalculateSegmentationStatistics,
                 scaleChannelDomainValues,
                 optimizeSegmentation,
                 reloadOnError,
@@ -1017,6 +1002,10 @@ ipcMain.on('preferencesWindow-set-max-image-sets', (event: Electron.Event, max: 
 
 ipcMain.on('preferencesWindow-set-blur-pixels', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-blur-pixels', value)
+})
+
+ipcMain.on('preferencesWindow-set-calculate-features', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-calculate-features', value)
 })
 
 ipcMain.on('preferencesWindow-set-segmentation', (event: Electron.Event, basename: string): void => {
@@ -1039,22 +1028,6 @@ ipcMain.on(
 
 ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, channel: string, useAny: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-use-any-marker', channel, useAny)
-})
-
-ipcMain.on('preferencesWindow-set-remember-calculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-remember-calculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-calculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-calculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-remember-recalculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-remember-recalculate', value)
-})
-
-ipcMain.on('preferencesWindow-set-recalculate', (event: Electron.Event, value: boolean): void => {
-    if (mainWindow != null) mainWindow.webContents.send('set-recalculate', value)
 })
 
 ipcMain.on('preferencesWindow-set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
@@ -1105,13 +1078,24 @@ ipcMain.on('mainWindow-show-project-import-directory-picker', (): void => {
 ipcMain.on('mainWindow-check-import-project', (): void => {
     if (mainWindow != null) {
         const message =
-            'You will lose any unsaved changes if you import a new project. Are you sure you want to do this?'
+            'The current open image(s) will be closed if you open a new project. Are you sure you want to do this?'
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {
                 if (value.response == 1) {
                     if (mainWindow != null) mainWindow.webContents.send('continue-project-import')
                 }
+            })
+    }
+})
+
+ipcMain.on('mainWindow-check-cancel', (): void => {
+    if (mainWindow != null) {
+        const message = 'Are you sure you want to cancel?'
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (mainWindow != null) mainWindow.webContents.send('cancel-response', value.response == 1)
             })
     }
 })

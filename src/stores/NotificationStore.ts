@@ -15,14 +15,22 @@ export class NotificationStore {
     @observable public clearSegmentationRequested: boolean
 
     // Used to track progress when exporting FCS/Stats for whole project
+    // or when calculating features for whole project
     @observable public numToCalculate: number
     @observable public numCalculated: number
+    @observable public projectSegmentFeaturesCalculating: boolean
 
-    // TODO: Not currently used. Keeping around if we decide to warn users that duplicate features are being cleared
-    // TODO: Might want to rip out.
-    // Flag to kick up a dialog to check with the user if we want to clear
-    // duplicates before importing segment features.
-    @observable public checkImportingSegmentFeaturesClearDuplicates: boolean
+    // Used to track progress when importing segment features
+    // Separate from numToCalculate above due to the case of a project import
+    // where features can be simultaneously imported and calculated.
+    @observable public numToImport: number
+    @observable public numImported: number
+
+    @observable public checkCalculateSegmentFeatures: boolean
+    // Gets set to true when segmentation features have already been calculated
+    // So that we can ask the user if they want to overwrite the old ones
+    @observable public checkOverwriteGeneratingSegmentFeatures: boolean
+    @observable public checkOverwriteImportingSegmentFeatures: boolean
     // Flag to kick up a dialog to check if the user wants to calculate all features
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
@@ -30,6 +38,9 @@ export class NotificationStore {
     // If we're importing a project and one is already open set this flag to true
     // to check if the user wants to continue importing
     @observable public checkImportProject: boolean
+
+    // If a user has requested a cancellation we want to confirm with the user
+    @observable public cancellationRequested: boolean
 
     // Set this flag to true if we've encountered an error and need to reload
     @observable public reloadMainWindow: boolean
@@ -42,10 +53,15 @@ export class NotificationStore {
         this.clearSegmentationRequested = false
         this.numToCalculate = 0
         this.numCalculated = 0
-        this.checkImportingSegmentFeaturesClearDuplicates = false
+        this.projectSegmentFeaturesCalculating = false
+        this.numToImport = 0
+        this.numImported = 0
+        this.checkOverwriteGeneratingSegmentFeatures = false
+        this.checkOverwriteImportingSegmentFeatures = false
         this.checkCalculateAllFeaturesForPlot = false
         this.checkImportProject = false
         this.reloadMainWindow = false
+        this.cancellationRequested = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -78,6 +94,7 @@ export class NotificationStore {
 
     @action public setNumToCalculate = (value: number): void => {
         this.numToCalculate = value
+        this.numCalculated = 0
     }
 
     @action public incrementNumCalculated = (): void => {
@@ -89,8 +106,34 @@ export class NotificationStore {
         }
     }
 
-    @action setCheckImportingSegmentFeaturesClearDuplicates = (value: boolean): void => {
-        this.checkImportingSegmentFeaturesClearDuplicates = value
+    @action public setProjectSegmentFeaturesCalculating = (value: boolean): void => {
+        this.projectSegmentFeaturesCalculating = value
+    }
+
+    @action public setNumToImport = (value: number): void => {
+        this.numToImport = value
+        this.numImported = 0
+    }
+
+    @action public incrementNumImported = (): void => {
+        this.numImported += 1
+        // If we've exported all files, mark done.
+        if (this.numImported >= this.numToImport) {
+            this.numToImport = 0
+            this.numImported = 0
+        }
+    }
+
+    @action public setCheckCalculateSegmentFeatures = (check: boolean): void => {
+        this.checkCalculateSegmentFeatures = check
+    }
+
+    @action setCheckOverwriteGeneratingSegmentFeatures = (value: boolean): void => {
+        this.checkOverwriteGeneratingSegmentFeatures = value
+    }
+
+    @action setCheckOverwriteImportingSegmentFeatures = (value: boolean): void => {
+        this.checkOverwriteImportingSegmentFeatures = value
     }
 
     @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {
@@ -103,5 +146,9 @@ export class NotificationStore {
 
     @action requestReloadMainWindow = (): void => {
         this.reloadMainWindow = true
+    }
+
+    @action setCancellationRequested = (value: boolean): void => {
+        this.cancellationRequested = value
     }
 }
