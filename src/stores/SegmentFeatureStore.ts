@@ -481,7 +481,7 @@ export class SegmentFeatureStore {
         if (basePath) {
             // Get the files to import formatted for the web worker
             const filesToImport = this.getSegmentFeaturePaths(basePath, filePath, validImageSets, importingImageSetName)
-            let numToImport = filesToImport.length
+            const numToImport = filesToImport.length
             notificationStore.setNumToImport(numToImport)
             const someImportingSegmentFeaturesExist = this.checkImportingSegmentFeaturesExist(filesToImport)
             if (checkOverwrite && someImportingSegmentFeaturesExist) {
@@ -490,72 +490,16 @@ export class SegmentFeatureStore {
                 this.projectStore.notificationStore.setCheckOverwriteImportingSegmentFeatures(true)
             } else if (!someImportingSegmentFeaturesExist || (someImportingSegmentFeaturesExist && overwriteFeatures)) {
                 // If no importing features already exist in the db or if they do and the user approved overwriting, import stuff!
-                const invalidFeatureNames: Set<string> = new Set()
-                const invalidImageSets: Set<string> = new Set()
-                const importErrors: string[] = []
-                // Keep track of the max imported features to know if we imported any features
-                let maxImportedFeatures = 0
-
-                // Callback for worker once import is done.
-                const onImportComplete = (result: SegmentFeatureDbResult): void => {
-                    // Keep track of the results of the imports
-                    if ('error' in result) {
-                        importErrors.push(result.error)
-                    } else if ('importedFeatures' in result) {
-                        result.invalidFeatureNames.forEach((feature) => invalidFeatureNames.add(feature))
-                        result.invalidImageSets.forEach((feature) => invalidImageSets.add(feature))
-                        maxImportedFeatures = Math.max(maxImportedFeatures, result.importedFeatures)
-                    }
-                    // Decrement the number left to import and update the notification store
-                    numToImport--
-                    notificationStore.incrementNumImported()
-                    // If we're done importing all of the files. Only set a message if there was an error.
-                    if (numToImport == 0) {
-                        if (
-                            maxImportedFeatures > 0 &&
-                            (invalidFeatureNames.size > 0 || invalidImageSets.size > 0 || importErrors.length > 0)
-                        ) {
-                            let message = 'Successfully imported some segment features.'
-                            if (invalidFeatureNames.size > 0) {
-                                message +=
-                                    '\nCould not import some of the following features: ' +
-                                    Array.from(invalidFeatureNames).join(', ')
-                            }
-                            if (invalidImageSets.size > 0) {
-                                message +=
-                                    '\nCould not find the following images: ' + Array.from(invalidImageSets).join(', ')
-                            }
-                            if (importErrors.length > 0) {
-                                message += '\nEncountered the following errors: ' + importErrors.join('\n')
-                            }
-                            notificationStore.setErrorMessage(message)
-                        } else if (maxImportedFeatures == 0) {
-                            let message = 'Unable to import segment features.'
-                            if (importErrors.length > 0) {
-                                message += '\nEncountered the following errors: ' + importErrors.join('\n')
-                            }
-                            notificationStore.setErrorMessage(message)
-                        }
-                        // Clear the values for the segment features file on the project store once we're done importing.
-                        projectStore.clearImportingSegmentFeaturesValues()
-                        // Refresh the available features once import is done so the user can use them for plotting
-                        if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
-                    }
-                }
-                // Kick off in import request for each file.
-                filesToImport.forEach((file) => {
-                    submitSegmentFeatureDbRequest(
-                        {
-                            basePath: basePath,
-                            validImageSets: validImageSets,
-                            imageSetName: importingImageSetName,
-                            filePath: file.filePath,
-                            imageSet: file.imageSet,
-                        },
-                        onImportComplete,
-                    )
-                })
-                // Launch a worker to import segment features from the CSV.
+                this.importNextSegmentFeature(
+                    basePath,
+                    validImageSets,
+                    filesToImport,
+                    importingImageSetName,
+                    new Set(),
+                    new Set(),
+                    [],
+                    0,
+                )
             } else {
                 // If we're not overwriting, then set num to calculate for this to 0.
                 notificationStore.setNumToCalculate(0)
@@ -568,6 +512,100 @@ export class SegmentFeatureStore {
             )
             // Clear the values for the segment features file on the project store once we're done importing.
             projectStore.clearImportingSegmentFeaturesValues()
+        }
+    }
+
+    private importNextSegmentFeature = (
+        basePath: string,
+        validImageSets: string[],
+        filesToImport: {
+            filePath: string
+            imageSet?: string | undefined
+        }[],
+        importingImageSetName: string | undefined,
+        invalidFeatureNames: Set<string>,
+        invalidImageSets: Set<string>,
+        importErrors: string[],
+        maxImportedFeatures: number,
+    ): void => {
+        const projectStore = this.projectStore
+        const notificationStore = projectStore.notificationStore
+        const activeImageSetName = projectStore.activeImageSetStore.name
+        if (!this.projectStore.checkIfCancelled()) {
+            if (filesToImport.length == 0) {
+                if (
+                    maxImportedFeatures > 0 &&
+                    (invalidFeatureNames.size > 0 || invalidImageSets.size > 0 || importErrors.length > 0)
+                ) {
+                    let message = 'Successfully imported some segment features.'
+                    if (invalidFeatureNames.size > 0) {
+                        message +=
+                            '\nCould not import some of the following features: ' +
+                            Array.from(invalidFeatureNames).join(', ')
+                    }
+                    if (invalidImageSets.size > 0) {
+                        message += '\nCould not find the following images: ' + Array.from(invalidImageSets).join(', ')
+                    }
+                    if (importErrors.length > 0) {
+                        message += '\nEncountered the following errors: ' + importErrors.join('\n')
+                    }
+                    notificationStore.setErrorMessage(message)
+                } else if (maxImportedFeatures == 0) {
+                    let message = 'Unable to import segment features.'
+                    if (importErrors.length > 0) {
+                        message += '\nEncountered the following errors: ' + importErrors.join('\n')
+                    }
+                    notificationStore.setErrorMessage(message)
+                }
+                // Clear the values for the segment features file on the project store once we're done importing.
+                projectStore.clearImportingSegmentFeaturesValues()
+                // Refresh the available features once import is done so the user can use them for plotting
+                if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
+            } else {
+                let newMaxImportedFeatures = maxImportedFeatures
+                // Callback for worker once import is done.
+                const onImportComplete = (result: SegmentFeatureDbResult): void => {
+                    // Keep track of the results of the imports
+                    if ('error' in result) {
+                        importErrors.push(result.error)
+                    } else if ('importedFeatures' in result) {
+                        result.invalidFeatureNames.forEach((feature) => invalidFeatureNames.add(feature))
+                        result.invalidImageSets.forEach((feature) => invalidImageSets.add(feature))
+                        newMaxImportedFeatures = Math.max(maxImportedFeatures, result.importedFeatures)
+                    }
+                    // Decrement the number left to import and update the notification store
+                    notificationStore.incrementNumImported()
+                    this.importNextSegmentFeature(
+                        basePath,
+                        validImageSets,
+                        filesToImport.slice(1),
+                        importingImageSetName,
+                        invalidFeatureNames,
+                        invalidImageSets,
+                        importErrors,
+                        newMaxImportedFeatures,
+                    )
+                }
+                // Kick off in import request for the next file.
+                const file = filesToImport[0]
+                submitSegmentFeatureDbRequest(
+                    {
+                        basePath: basePath,
+                        validImageSets: validImageSets,
+                        imageSetName: importingImageSetName,
+                        filePath: file.filePath,
+                        imageSet: file.imageSet,
+                    },
+                    onImportComplete,
+                )
+            }
+        } else {
+            // Clear all of the importing segment feature values.
+            notificationStore.setNumToImport(0)
+            // Clear the values for the segment features file on the project store once we're done importing.
+            projectStore.clearImportingSegmentFeaturesValues()
+            // Refresh the available features once import is done so the user can use them for plotting
+            if (activeImageSetName) this.refreshAvailableFeatures(activeImageSetName)
         }
     }
 

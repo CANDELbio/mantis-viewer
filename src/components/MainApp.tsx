@@ -372,6 +372,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     segmentFeaturesCalculating={segmentFeaturesCalculating}
                     selectionsLoading={selectionsLoading}
                     applicationReloading={notificationStore.reloadMainWindow}
+                    requestCancellation={notificationStore.setCancellationRequested}
+                    cancelRequested={notificationStore.cancellationRequested || projectStore.cancelTask}
                 />
                 <ProjectImportModal
                     open={displayProjectImportModal}

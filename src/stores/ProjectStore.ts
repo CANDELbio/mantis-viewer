@@ -56,6 +56,9 @@ export class ProjectStore {
     // Used to show segment stats and pixel stats.
     @observable public highlightedPixel: Coordinate | null
 
+    // Used when a user requests to cancel a long running process
+    // (e.g. importing, generating, and exporting segment features for multiple images)
+    @observable public cancelTask: boolean
     // Used to keep track of which image sets we're calculating features for in case we have to break in the middle.
     private imageSetFeaturesToCalculate: string[]
 
@@ -90,6 +93,8 @@ export class ProjectStore {
         // Keep track of importing segment features
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
+
+        this.cancelTask = false
 
         this.imageSetHistory = []
         this.imageSetFeaturesToCalculate = []
@@ -322,6 +327,22 @@ export class ProjectStore {
         this.plotInMainWindow = inWindow
     }
 
+    @action setHighlightedPixel = (location: Coordinate | null): void => {
+        this.highlightedPixel = location
+    }
+
+    @action setCancelTask = (value: boolean): void => {
+        this.cancelTask = value
+    }
+
+    @action checkIfCancelled = (): boolean => {
+        if (this.cancelTask) {
+            this.cancelTask = false
+            return true
+        }
+        return false
+    }
+
     // Export project level summary stats to fcs if fcs is true or csv if fcs is false.
     // CSVs always contain population information. FCS files do not have anywhere to store this.
     // If populations is true, exports one FCS file per population. Has no effect if fcs is false.
@@ -345,76 +366,81 @@ export class ProjectStore {
         populations: boolean,
         calculateFeatures: boolean,
     ): void => {
-        const curDir = remainingImageSetPaths[0]
-        const imageSetStore = this.imageSets[curDir]
-        imageSetStore.loadImageStoreData()
-        const imageStore = imageSetStore.imageStore
-        const segmentationStore = imageSetStore.segmentationStore
-        when(
-            (): boolean => !imageStore.imageDataLoading,
-            (): void => {
-                // If we don't have segmentation, then skip this one.
-                // TODO: Should we notify the user that some were skipped due to missing segmentation?
-                if (segmentationStore.selectedSegmentationFile) {
-                    when(
-                        (): boolean => !segmentationStore.segmentationDataLoading,
-                        (): void => {
-                            if (calculateFeatures) {
-                                // We only ask the user if we should calculate for images missing features, so we set overwrite to false and don't prompt.
-                                this.segmentFeatureStore.calculateSegmentFeatures(imageSetStore, false, false)
-                            }
-                            const imageSetName = imageSetStore.name
-                            if (imageSetName) {
-                                when(
-                                    (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
-                                    (): void => {
-                                        if (populations && fcs) {
-                                            exportPopulationsToFCS(dirName, imageSetStore, imageSetName)
-                                        } else {
-                                            const extension = fcs ? '.fcs' : '.csv'
-                                            const filename = imageSetName + extension
-                                            const filePath = path.join(dirName, filename)
-                                            if (fcs) {
-                                                exportToFCS(filePath, imageSetStore)
+        if (!this.checkIfCancelled()) {
+            const curDir = remainingImageSetPaths[0]
+            const imageSetStore = this.imageSets[curDir]
+            imageSetStore.loadImageStoreData()
+            const imageStore = imageSetStore.imageStore
+            const segmentationStore = imageSetStore.segmentationStore
+            when(
+                (): boolean => !imageStore.imageDataLoading,
+                (): void => {
+                    // If we don't have segmentation, then skip this one.
+                    // TODO: Should we notify the user that some were skipped due to missing segmentation?
+                    if (segmentationStore.selectedSegmentationFile) {
+                        when(
+                            (): boolean => !segmentationStore.segmentationDataLoading,
+                            (): void => {
+                                if (calculateFeatures) {
+                                    // We only ask the user if we should calculate for images missing features, so we set overwrite to false and don't prompt.
+                                    this.segmentFeatureStore.calculateSegmentFeatures(imageSetStore, false, false)
+                                }
+                                const imageSetName = imageSetStore.name
+                                if (imageSetName) {
+                                    when(
+                                        (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
+                                        (): void => {
+                                            if (populations && fcs) {
+                                                exportPopulationsToFCS(dirName, imageSetStore, imageSetName)
                                             } else {
-                                                exportMarkerIntensities(filePath, imageSetStore)
+                                                const extension = fcs ? '.fcs' : '.csv'
+                                                const filename = imageSetName + extension
+                                                const filePath = path.join(dirName, filename)
+                                                if (fcs) {
+                                                    exportToFCS(filePath, imageSetStore)
+                                                } else {
+                                                    exportMarkerIntensities(filePath, imageSetStore)
+                                                }
                                             }
-                                        }
-                                        // Mark this set of files as loaded for loading bar.
-                                        this.notificationStore.incrementNumCalculated()
-                                        this.clearImageSetData(curDir)
-                                        // If there are more imageSets to process, recurse and process the next one.
-                                        if (remainingImageSetPaths.length > 1) {
-                                            this.exportImageSetFeatures(
-                                                remainingImageSetPaths.slice(1),
-                                                dirName,
-                                                fcs,
-                                                populations,
-                                                calculateFeatures,
-                                            )
-                                        }
-                                    },
-                                )
-                            }
-                        },
-                    )
-                } else {
-                    // Mark as success if we're not going to export it
-                    this.notificationStore.incrementNumCalculated()
-                    this.clearImageSetData(curDir)
-                    // If there are more imageSets to process, recurse and process the next one.
-                    if (remainingImageSetPaths.length > 1) {
-                        this.exportImageSetFeatures(
-                            remainingImageSetPaths.slice(1),
-                            dirName,
-                            fcs,
-                            populations,
-                            calculateFeatures,
+                                            // Mark this set of files as loaded for loading bar.
+                                            this.notificationStore.incrementNumCalculated()
+                                            this.clearImageSetData(curDir)
+                                            // If there are more imageSets to process, recurse and process the next one.
+                                            if (remainingImageSetPaths.length > 1) {
+                                                this.exportImageSetFeatures(
+                                                    remainingImageSetPaths.slice(1),
+                                                    dirName,
+                                                    fcs,
+                                                    populations,
+                                                    calculateFeatures,
+                                                )
+                                            }
+                                        },
+                                    )
+                                }
+                            },
                         )
+                    } else {
+                        // Mark as success if we're not going to export it
+                        this.notificationStore.incrementNumCalculated()
+                        this.clearImageSetData(curDir)
+                        // If there are more imageSets to process, recurse and process the next one.
+                        if (remainingImageSetPaths.length > 1) {
+                            this.exportImageSetFeatures(
+                                remainingImageSetPaths.slice(1),
+                                dirName,
+                                fcs,
+                                populations,
+                                calculateFeatures,
+                            )
+                        }
                     }
-                }
-            },
-        )
+                },
+            )
+        } else {
+            // If we're cancelling, set the number to calculate to 0.
+            this.notificationStore.setNumToCalculate(0)
+        }
     }
 
     public exportActiveImageSetMarkerIntensities = (filePath: string): void => {
@@ -574,67 +600,71 @@ export class ProjectStore {
         checkOverwrite: boolean,
         overwriteFeatures: boolean,
     ): void => {
-        // Keep track of which one we're on.
-        this.imageSetFeaturesToCalculate = remainingImageSetPaths
-        // If there are image sets left to process, continue
-        if (remainingImageSetPaths.length > 0) {
-            this.notificationStore.setProjectSegmentFeaturesCalculating(true)
-            const curDir = remainingImageSetPaths[0]
-            this.imageSets[curDir].loadImageStoreData()
-            const imageSetStore = this.imageSets[curDir]
-            const imageStore = imageSetStore.imageStore
-            const segmentationStore = imageSetStore.segmentationStore
-            when(
-                (): boolean => !imageStore.imageDataLoading,
-                (): void => {
-                    // If we don't have segmentation, then skip this one.
-                    if (segmentationStore.selectedSegmentationFile) {
-                        when(
-                            (): boolean => !segmentationStore.segmentationDataLoading,
-                            (): void => {
-                                const featuresCalculating = this.segmentFeatureStore.calculateSegmentFeatures(
-                                    imageSetStore,
-                                    checkOverwrite,
-                                    overwriteFeatures,
-                                )
-                                const imageSetName = imageSetStore.name
-                                if (imageSetName && featuresCalculating) {
-                                    when(
-                                        (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
-                                        (): void => {
-                                            // Mark this set of files as loaded for loading bar.
-                                            this.notificationStore.incrementNumCalculated()
-                                            this.clearImageSetData(curDir)
-                                            // Recurse and process the next one.
-                                            this.calculateImageSetFeatures(
-                                                remainingImageSetPaths.slice(1),
-                                                checkOverwrite,
-                                                overwriteFeatures,
-                                            )
-                                        },
+        if (!this.checkIfCancelled()) {
+            // Keep track of which one we're on.
+            this.imageSetFeaturesToCalculate = remainingImageSetPaths
+            // If there are image sets left to process, continue
+            if (remainingImageSetPaths.length > 0) {
+                this.notificationStore.setProjectSegmentFeaturesCalculating(true)
+                const curDir = remainingImageSetPaths[0]
+                this.imageSets[curDir].loadImageStoreData()
+                const imageSetStore = this.imageSets[curDir]
+                const imageStore = imageSetStore.imageStore
+                const segmentationStore = imageSetStore.segmentationStore
+                when(
+                    (): boolean => !imageStore.imageDataLoading,
+                    (): void => {
+                        // If we don't have segmentation, then skip this one.
+                        if (segmentationStore.selectedSegmentationFile) {
+                            when(
+                                (): boolean => !segmentationStore.segmentationDataLoading,
+                                (): void => {
+                                    const featuresCalculating = this.segmentFeatureStore.calculateSegmentFeatures(
+                                        imageSetStore,
+                                        checkOverwrite,
+                                        overwriteFeatures,
                                     )
-                                }
-                            },
-                        )
-                    } else {
-                        // Mark as success if we're not going to export it
-                        this.notificationStore.incrementNumCalculated()
-                        this.clearImageSetData(curDir)
-                        // Recurse and process the next one.
-                        this.calculateImageSetFeatures(
-                            remainingImageSetPaths.slice(1),
-                            checkOverwrite,
-                            overwriteFeatures,
-                        )
-                    }
-                },
-            )
+                                    const imageSetName = imageSetStore.name
+                                    if (imageSetName && featuresCalculating) {
+                                        when(
+                                            (): boolean => !this.segmentFeatureStore.featuresLoading(imageSetName),
+                                            (): void => {
+                                                // Mark this set of files as loaded for loading bar.
+                                                this.notificationStore.incrementNumCalculated()
+                                                this.clearImageSetData(curDir)
+                                                // Recurse and process the next one.
+                                                this.calculateImageSetFeatures(
+                                                    remainingImageSetPaths.slice(1),
+                                                    checkOverwrite,
+                                                    overwriteFeatures,
+                                                )
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                        } else {
+                            // Mark as success if we're not going to export it
+                            this.notificationStore.incrementNumCalculated()
+                            this.clearImageSetData(curDir)
+                            // Recurse and process the next one.
+                            this.calculateImageSetFeatures(
+                                remainingImageSetPaths.slice(1),
+                                checkOverwrite,
+                                overwriteFeatures,
+                            )
+                        }
+                    },
+                )
+            } else {
+                // If we're done importing, then mark segment features calculating false
+                this.notificationStore.setProjectSegmentFeaturesCalculating(false)
+            }
         } else {
+            // Cancelling segment features from calculating.
             this.notificationStore.setProjectSegmentFeaturesCalculating(false)
+            this.notificationStore.setNumToCalculate(0)
+            this.imageSetFeaturesToCalculate = []
         }
-    }
-
-    @action setHighlightedPixel = (location: Coordinate | null): void => {
-        this.highlightedPixel = location
     }
 }

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
-import { Modal, ModalHeader, ModalBody, Spinner, Progress } from 'reactstrap'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Spinner, Progress, Button } from 'reactstrap'
 
 export interface LoadingModalProps {
     numCalculated: number
@@ -13,12 +13,18 @@ export interface LoadingModalProps {
     segmentFeaturesImporting: boolean
     selectionsLoading: boolean
     applicationReloading: boolean
+    requestCancellation(value: boolean): void
+    cancelRequested: boolean
 }
 
 @observer
 export class LoadingModal extends React.Component<LoadingModalProps, {}> {
     public constructor(props: LoadingModalProps) {
         super(props)
+    }
+
+    private requestCancellation = (): void => {
+        this.props.requestCancellation(true)
     }
 
     public render(): React.ReactNode {
@@ -47,6 +53,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
             let progressText = null
 
             const numToCalculate = segmentFeaturesImporting ? this.props.numToImport : this.props.numToCalculate
+            let modalFooter = null
             if (numToCalculate > 1) {
                 const numCalculated = segmentFeaturesImporting ? this.props.numImported : this.props.numCalculated
                 progressElement = <Progress value={(numCalculated / numToCalculate) * 100} />
@@ -54,6 +61,13 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
                     <div style={{ textAlign: 'center', marginTop: '5px' }}>
                         {numCalculated} of {numToCalculate}
                     </div>
+                )
+                modalFooter = (
+                    <ModalFooter>
+                        <Button onClick={this.requestCancellation} size="sm" disabled={this.props.cancelRequested}>
+                            {this.props.cancelRequested ? 'Cancelling' : 'Cancel'}
+                        </Button>
+                    </ModalFooter>
                 )
             }
             modal = (
@@ -63,6 +77,7 @@ export class LoadingModal extends React.Component<LoadingModalProps, {}> {
                         <div style={{ textAlign: 'center' }}>{progressElement}</div>
                         {progressText}
                     </ModalBody>
+                    {modalFooter}
                 </Modal>
             )
         }

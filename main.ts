@@ -1089,6 +1089,17 @@ ipcMain.on('mainWindow-check-import-project', (): void => {
     }
 })
 
+ipcMain.on('mainWindow-check-cancel', (): void => {
+    if (mainWindow != null) {
+        const message = 'Are you sure you want to cancel?'
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (mainWindow != null) mainWindow.webContents.send('cancel-response', value.response == 1)
+            })
+    }
+})
+
 ipcMain.on('mainWindow-reload', (): void => {
     const oldMainWindow = mainWindow
     if (oldMainWindow) {

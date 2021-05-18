@@ -298,6 +298,11 @@ ipcRenderer.on('continue-project-import', (): void => {
     projectStore.projectImportStore.continueImport()
 })
 
+ipcRenderer.on('cancel-response', (event: Electron.Event, cancel: boolean): void => {
+    if (cancel) projectStore.setCancelTask(cancel)
+    projectStore.notificationStore.setCancellationRequested(false)
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 Mousetrap.bind(['command+left', 'alt+left'], function (): void {
@@ -510,6 +515,13 @@ Mobx.autorun((): void => {
     const preferencesStore = projectStore.preferencesStore
     if (notificationStore.reloadMainWindow && preferencesStore.reloadOnError) {
         ipcRenderer.send('mainWindow-reload')
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    if (notificationStore.cancellationRequested) {
+        ipcRenderer.send('mainWindow-check-cancel')
     }
 })
 

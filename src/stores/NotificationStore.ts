@@ -39,6 +39,9 @@ export class NotificationStore {
     // to check if the user wants to continue importing
     @observable public checkImportProject: boolean
 
+    // If a user has requested a cancellation we want to confirm with the user
+    @observable public cancellationRequested: boolean
+
     // Set this flag to true if we've encountered an error and need to reload
     @observable public reloadMainWindow: boolean
 
@@ -58,6 +61,7 @@ export class NotificationStore {
         this.checkCalculateAllFeaturesForPlot = false
         this.checkImportProject = false
         this.reloadMainWindow = false
+        this.cancellationRequested = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -142,5 +146,9 @@ export class NotificationStore {
 
     @action requestReloadMainWindow = (): void => {
         this.reloadMainWindow = true
+    }
+
+    @action setCancellationRequested = (value: boolean): void => {
+        this.cancellationRequested = value
     }
 }
