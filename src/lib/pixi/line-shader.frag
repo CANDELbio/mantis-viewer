@@ -1,4 +1,5 @@
 varying vec2 uv;
+varying vec4 vColor;
 varying float vThickness;
 uniform vec4 tint;
 
@@ -18,5 +19,5 @@ void main()
 	featherValue = smoothstep(0., 1., featherValue);
 	featherValue *= step(thing, edge);
 
-    gl_FragColor = vec4(1., 1., 1., 1.-featherValue) * tint;
+    gl_FragColor = vec4(1., 1., 1., 1.-featherValue) * vColor * tint;
 }

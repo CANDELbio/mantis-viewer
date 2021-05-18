@@ -1,11 +1,12 @@
 attribute vec2 position;
 attribute float direction;
-attribute float dist;
 attribute vec2 next;
 attribute vec2 prev;
+attribute vec4 color;
 
 varying vec2 uv;
 varying float vThickness;
+varying vec4 vColor;
 
 uniform mat3 translationMatrix;
 uniform mat3 projectionMatrix;
@@ -15,6 +16,8 @@ uniform float uDivisor;
 
 void main()
 {
+	vColor = color;
+	
 	vec2 nextScreen = next; 
     vec2 posScreen = position;
   	vec2 prevScreen = prev;
@@ -45,7 +48,7 @@ void main()
 	d += 1.;
 	d *= 0.5;
 
-	uv = vec2(dist, d );
+	uv = vec2(1., d );
 	uv.x /= uDivisor;
 	
 
