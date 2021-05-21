@@ -127,7 +127,7 @@ export default class LineGeometry extends Geometry {
         doubleUpArray.push(point.x, point.y)
         doubleUpArray.push(point.x, point.y)
 
-        directionArray.push(-2, 2)
+        directionArray.push(-1, 1)
 
         colors.push(color[0], color[1], color[2], color[3])
         colors.push(color[0], color[1], color[2], color[3])
