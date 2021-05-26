@@ -35,6 +35,9 @@ export class NotificationStore {
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
 
+    // If the segment features are being loaded from the database.
+    @observable public segmentFeaturesLoading: boolean
+
     // If we're importing a project and one is already open set this flag to true
     // to check if the user wants to continue importing
     @observable public checkImportProject: boolean
@@ -59,6 +62,7 @@ export class NotificationStore {
         this.checkOverwriteGeneratingSegmentFeatures = false
         this.checkOverwriteImportingSegmentFeatures = false
         this.checkCalculateAllFeaturesForPlot = false
+        this.segmentFeaturesLoading = false
         this.checkImportProject = false
         this.reloadMainWindow = false
         this.cancellationRequested = false
@@ -138,6 +142,10 @@ export class NotificationStore {
 
     @action setCheckCalculateAllFeaturesForPlot = (value: boolean): void => {
         this.checkCalculateAllFeaturesForPlot = value
+    }
+
+    @action setSegmentFeaturesLoading = (value: boolean): void => {
+        this.segmentFeaturesLoading = value
     }
 
     @action setCheckImportProject = (value: boolean): void => {

@@ -72,12 +72,17 @@ export class SegmentFeatureStore {
     // TODO: This triggers multiple times when switching image sets. Not terrible, but would be good to look into.
     private autoRefreshFeatureStatistics = autorun(() => {
         const features = this.selectedPlotFeatures()
-        const selectedFeatureForNewPopulation = this.projectStore.activeImageSetStore.populationStore
-            .selectedFeatureForNewPopulation
+        const activeImageSetStore = this.projectStore.activeImageSetStore
+        const selectedFeatureForNewPopulation = activeImageSetStore.populationStore.selectedFeatureForNewPopulation
         if (selectedFeatureForNewPopulation) features.push(selectedFeatureForNewPopulation)
         const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
         // Only want to auto calculate if we're not loading multiple.
         if (notLoadingMultiple) {
+            const activeImageSetName = activeImageSetStore.name
+            // Want to refresh the features available first in case this gets kicked off before refreshing available features
+            // And the user is stuck with being told no features are available.
+            if (this.featuresAvailable(activeImageSetName).length == 0)
+                this.refreshAvailableFeatures(activeImageSetName)
             this.setFeatureStatisticsForSelectedImageSets(features)
         }
     })
@@ -297,7 +302,9 @@ export class SegmentFeatureStore {
 
                 if (missing) requests.push({ feature: feature, imageSetName: imageSetName })
             }
-
+        }
+        if (requests.length > 0) {
+            this.projectStore.notificationStore.setSegmentFeaturesLoading(true)
             if (this.basePath) {
                 submitSegmentFeatureDbRequest(
                     { basePath: this.basePath, requestedFeatures: requests },
@@ -316,6 +323,7 @@ export class SegmentFeatureStore {
                                 // Set the updated values and minMaxes on the store
                                 set(this.values, refreshedValues)
                                 set(this.minMaxes, refreshedMinMaxes)
+                                this.projectStore.notificationStore.setSegmentFeaturesLoading(false)
                             })
                         }
                     },
