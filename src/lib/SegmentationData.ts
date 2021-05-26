@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js'
-import { imageBitmapToSprite } from './GraphicsUtils'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from './GraphicsUtils'
 import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
@@ -79,7 +78,9 @@ export class SegmentationData {
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
-        this.fillSprite = imageBitmapToSprite(fData.fillBitmap, false)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
+        this.fillSprite = PIXI.Sprite.from(fData.fillBitmap)
         this.outlineGraphics = new PIXI.Graphics()
         this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
         this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)

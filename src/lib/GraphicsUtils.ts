@@ -8,9 +8,10 @@ import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
-    const spriteOptions = blurPixels ? undefined : { scaleMode: PIXI.SCALE_MODES.NEAREST }
+    const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
+    if (!blurPixels) spriteOptions.scaleMode = PIXI.SCALE_MODES.NEAREST
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    //@ts-ignore
+    // @ts-ignore
     const sprite = PIXI.Sprite.from(bitmap, spriteOptions)
     if (!blurPixels) sprite.roundPixels = false
     return sprite
@@ -137,26 +138,10 @@ export function generateBrightnessFilterCode(): string {
     uniform float b;
     uniform float m;
 
-    uniform bool red;
-    uniform bool green;
-    uniform bool blue;
-
     void main(void)
     {
         gl_FragColor = texture2D(uSampler, vTextureCoord);
-        if(red == true)
-        {
-            gl_FragColor.r = min((gl_FragColor.r * m) + b, 1.0);
-        }
-        if(green == true)
-        {
-            gl_FragColor.g = min((gl_FragColor.g * m) + b, 1.0);
-        }
-        if (blue == true)
-        {
-            gl_FragColor.b = min((gl_FragColor.b * m) + b, 1.0);
-        }
-
+        gl_FragColor.rgb = min((gl_FragColor.rgb * m) + b, 1.0);
     }`
 
     return filterCode
@@ -185,9 +170,6 @@ export function generateBrightnessFilterUniforms(
             return {
                 m: m,
                 b: b,
-                red: ['rChannel', 'mChannel', 'yChannel', 'kChannel'].includes(channelName),
-                green: ['gChannel', 'cChannel', 'yChannel', 'kChannel'].includes(channelName),
-                blue: ['bChannel', 'cChannel', 'mChannel', 'kChannel'].includes(channelName),
             }
         }
     }
