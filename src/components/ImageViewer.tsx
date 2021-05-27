@@ -744,7 +744,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         centroidsVisible: boolean,
     ): void {
         if (segmentationData) {
-            this.segmentationData = segmentationData
+            if (this.segmentationData != segmentationData) {
+                // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
+                if (this.segmentationData) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                    // @ts-ignore
+                    this.renderer.texture.destroyTexture(this.segmentationData.fillSprite.texture)
+                }
+                this.segmentationData = segmentationData
+            }
             // Add segmentation cells
             if (segmentationData.fillSprite) {
                 segmentationData.fillSprite.alpha = segmentationFillAlpha
@@ -961,6 +969,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         return maxRendererSize
     }
 
+    // This should remove the image textures off of the graphics card to keep memory free.
+    private destroyImageTextures(): void {
+        const imageData = this.imageData
+        if (imageData) {
+            const markerSprites = Object.values(imageData.sprites)
+            for (const sprite of markerSprites) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                this.renderer.texture.destroyTexture(sprite.texture)
+            }
+        }
+    }
+
     private renderImage(
         el: HTMLDivElement | null,
         imcData: ImageData | null,
@@ -996,6 +1017,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         // We want to resize graphics and reset zoom if imcData has changed
         if (this.imageData != imcData) {
+            this.destroyImageTextures()
             this.imageData = imcData
             this.resizeGraphics(maxRendererSize)
             this.resetZoom()
