@@ -58,7 +58,6 @@ export class SegmentationStore {
     @action public clearSegmentationData = (): void => {
         this.selectedSegmentationFile = null
         this.deleteSegmentationData()
-        this.imageSetStore.projectStore.segmentFeatureStore.deleteAllSegmentFeatures()
     }
 
     // Just deletes the associated segmentation data.

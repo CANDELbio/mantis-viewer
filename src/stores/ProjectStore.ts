@@ -281,11 +281,16 @@ export class ProjectStore {
                 curSet.populationStore.deletePopulationsNotSelectedOnImage()
             }
         }
+        this.segmentFeatureStore.deleteAllSegmentFeatures()
     }
 
     @action public setSegmentationBasename = (filePath: string, checkCalculateFeatures: boolean): void => {
+        const settingStore = this.settingStore
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
+        // Clear segmentation if it's already been set
+        if (settingStore.segmentationBasename != null) this.clearSegmentation()
+        // Set the new segmentation file
         if (dirname == this.activeImageSetPath) {
             this.settingStore.setSegmentationBasename(basename)
         } else {
@@ -293,7 +298,10 @@ export class ProjectStore {
             // Could result in weird behavior when switching between image sets.
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
-        if (checkCalculateFeatures) this.notificationStore.setCheckCalculateSegmentFeatures(true)
+        // If Mantis isn't auto calculating features, ask the user
+        const autoCalculateSegmentFeatures = this.settingStore.autoCalculateSegmentFeatures
+        if (checkCalculateFeatures && !autoCalculateSegmentFeatures)
+            this.notificationStore.setCheckCalculateSegmentFeatures(true)
     }
 
     @action public importRegionTiff = (filePath: string): void => {
@@ -578,6 +586,10 @@ export class ProjectStore {
         } else {
             this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, overwrite)
         }
+    }
+
+    public calculateActiveSegmentFeatures = (): void => {
+        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, false)
     }
 
     public calculateSegmentFeaturesFromMenu = (): void => {

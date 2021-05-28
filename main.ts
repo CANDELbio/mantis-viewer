@@ -371,14 +371,14 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                     label: 'Calculate',
                     submenu: [
                         {
-                            label: 'Segment intensities for active image',
+                            label: 'Segment features for active image',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
                                 if (mainWindow != null) mainWindow.webContents.send('calculate-segment-features')
                             },
                         },
                         {
-                            label: 'Segment intensities for project',
+                            label: 'Segment features for project',
                             enabled: imageLoaded && segmentationLoaded,
                             click: (): void => {
                                 if (mainWindow != null)
