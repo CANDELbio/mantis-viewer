@@ -18,6 +18,7 @@ import {
 import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
+import { reverseTransform } from '../lib/plot/Helper'
 
 export class ProjectStore {
     public appVersion: string
@@ -303,6 +304,15 @@ export class ProjectStore {
         } else {
             this.activeImageSetStore.populationStore.importRegionsFromTiff(filePath)
         }
+    }
+
+    public addPopulationFromPlotRange = (min: number, max: number): void => {
+        const settingStore = this.settingStore
+        const plotTranform = settingStore.plotTransform
+        const transformCoefficient = settingStore.transformCoefficient
+        const reverseMin = reverseTransform(min, plotTranform, transformCoefficient)
+        const reverseMax = reverseTransform(max, plotTranform, transformCoefficient)
+        this.addPopulationFromRange(reverseMin, reverseMax)
     }
 
     @action public addPopulationFromRange = (min: number, max: number, feature?: string): void => {

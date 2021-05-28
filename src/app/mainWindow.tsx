@@ -200,7 +200,7 @@ ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: 
 })
 
 ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: number, max: number): void => {
-    projectStore.addPopulationFromRange(min, max)
+    projectStore.addPopulationFromPlotRange(min, max)
 })
 
 const checkIfFeaturesExportable = (channel: string, dir: string, calculateFeatures: boolean | undefined): boolean => {

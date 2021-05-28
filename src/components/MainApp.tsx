@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Button, Collapse } from 'reactstrap'
+import { Button, Collapse, Spinner } from 'reactstrap'
 
 import * as bottomBar from '../assets/bottom_bar.png'
 import * as piciLogo from '../assets/pici_logo.png'
@@ -125,7 +125,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let imageSetSelector = null
         let channelControls = null
         let plotControls = null
-        let scatterPlot = null
+        let plot = null
         let imageControls = null
 
         const fullWidth = { width: '100%' }
@@ -315,22 +315,26 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             />
                         </div>
                     )
-                    scatterPlot = (
-                        <div>
-                            <Plot
-                                windowWidth={projectStore.windowWidth}
-                                selectedType={settingStore.plotType}
-                                setSelectedSegments={populationStore.createPopulationFromSegments}
-                                setSelectedRange={projectStore.addPopulationFromRange}
-                                setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
-                                updateHiddenPopulation={settingStore.updateHiddenPopulation}
-                                hiddenPopulations={settingStore.plotHiddenPopulations}
-                                plotData={plotStore.plotData}
-                                maxPlotHeight={maxPlotHeight}
-                                downsample={settingStore.plotDownsample}
-                            />
-                        </div>
-                    )
+                    if (notificationStore.segmentFeaturesLoading) {
+                        plot = <Spinner style={{ width: '5rem', height: '5rem' }} color="secondary" />
+                    } else {
+                        plot = (
+                            <div>
+                                <Plot
+                                    windowWidth={projectStore.windowWidth}
+                                    selectedType={settingStore.plotType}
+                                    setSelectedSegments={populationStore.createPopulationFromSegments}
+                                    setSelectedRange={projectStore.addPopulationFromPlotRange}
+                                    setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
+                                    updateHiddenPopulation={settingStore.updateHiddenPopulation}
+                                    hiddenPopulations={settingStore.plotHiddenPopulations}
+                                    plotData={plotStore.plotData}
+                                    maxPlotHeight={maxPlotHeight}
+                                    downsample={settingStore.plotDownsample}
+                                />
+                            </div>
+                        )
+                    }
                 }
             }
         }
@@ -448,7 +452,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             </Button>
                             <Collapse isOpen={this.state.plotOpen} style={fullWidth}>
                                 {plotControls}
-                                {scatterPlot}
+                                {plot}
                             </Collapse>
                         </Col>
                     </Row>
