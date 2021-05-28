@@ -324,7 +324,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                     windowWidth={projectStore.windowWidth}
                                     selectedType={settingStore.plotType}
                                     setSelectedSegments={populationStore.createPopulationFromSegments}
-                                    setSelectedRange={projectStore.addPopulationFromRange}
+                                    setSelectedRange={projectStore.addPopulationFromPlotRange}
                                     setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
                                     updateHiddenPopulation={settingStore.updateHiddenPopulation}
                                     hiddenPopulations={settingStore.plotHiddenPopulations}

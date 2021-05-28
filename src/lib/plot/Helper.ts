@@ -61,6 +61,25 @@ export function applyTransform(
     return result
 }
 
+export function reverseTransform(
+    value: number,
+    plotTransform: PlotTransform,
+    transformCoefficient: number | null,
+): number {
+    let result = value
+
+    // If the user has selected a transform, apply the reverse
+    if (plotTransform == 'arcsinh') {
+        result = Math.sinh(result)
+    } else if (plotTransform == 'log') {
+        result = Math.pow(10, result)
+    }
+
+    if (plotTransform != 'none' && transformCoefficient) result = result / transformCoefficient
+
+    return result
+}
+
 export function getTraceName(
     traceId: string,
     populationMap: { [key: string]: SelectedPopulation },
