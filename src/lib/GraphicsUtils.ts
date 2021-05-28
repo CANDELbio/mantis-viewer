@@ -127,14 +127,9 @@ export function drawOutlines(
 }
 
 export function drawOutlineLines(line: Line, outlines: Coordinate[][]): void {
-    const points: (PointData | undefined)[] = []
     for (const outline of outlines) {
-        if (points.length != 0) points.push(undefined)
-        for (const point of outline) {
-            points.push({ x: point.x, y: point.y, color: [1, 1, 1, 1] })
-        }
+        line.addShape({ points: outline as PointData[], color: 0xffffff, alpha: 1 })
     }
-    line.update(points)
 }
 
 // Generating brightness filter code for the passed in channel.
