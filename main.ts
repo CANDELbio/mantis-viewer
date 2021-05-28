@@ -105,7 +105,7 @@ const openSegmentation = (dir: string): void => {
     if (mainWindow != null) {
         if (segmentationLoaded) {
             const message =
-                "Warning: Opening a new segmentation file will remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
+                "Warning: Opening a new segmentation file will delete all segment features from the database and remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
             dialog
                 .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
                 .then((value: Electron.MessageBoxReturnValue): void => {
@@ -742,7 +742,7 @@ ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, messag
 ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
     if (mainWindow != null) {
         const message =
-            "Warning: Clearing segmentation will remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
+            "Warning: Clearing segmentation will delete all segment features from the database and remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
         dialog
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {

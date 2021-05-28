@@ -626,4 +626,12 @@ export class SegmentFeatureStore {
         }
         return true
     }
+
+    // Used when clearing segmentation data to delete old features.
+    public deleteAllSegmentFeatures = (): void => {
+        if (this.db) {
+            this.db.deleteAllSegmentFeatures()
+            this.initialize()
+        }
+    }
 }

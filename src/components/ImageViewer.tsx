@@ -747,9 +747,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             if (this.segmentationData != segmentationData) {
                 // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
                 if (this.segmentationData) {
+                    const segmentationTexture = this.segmentationData.fillSprite.texture
                     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     // @ts-ignore
-                    this.renderer.texture.destroyTexture(this.segmentationData.fillSprite.texture)
+                    if (segmentationTexture) this.renderer.texture.destroyTexture(segmentationTexture)
                 }
                 this.segmentationData = segmentationData
             }
