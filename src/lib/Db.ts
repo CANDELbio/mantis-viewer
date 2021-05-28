@@ -76,7 +76,9 @@ export class Db {
     public numFeatures(): number {
         const db = this.getConnection()
         const stmt = db.prepare('SELECT COUNT(*) as count FROM features')
-        return stmt.get().count
+        const results = stmt.get().count
+        db.close()
+        return results
     }
 
     public insertFeatures(imageSet: string, feature: string, segmentValues: Record<number, number>): void {
@@ -153,7 +155,9 @@ export class Db {
                                  FROM features
                                  WHERE image_set = ?`)
         const values = stmt.get(imageSet)
-        return values.count > 0
+        const result = values.count > 0
+        db.close()
+        return result
     }
 
     public deleteFeatures(imageSet: string, feature: string): void {
@@ -162,6 +166,7 @@ export class Db {
                                  WHERE image_set = ? AND
                                  feature = ?`)
         stmt.run(imageSet, feature)
+        db.close()
     }
 
     public minMaxValues(imageSets: string[], feature: string): Record<string, MinMax> {
@@ -176,6 +181,7 @@ export class Db {
         for (const row of stmt.iterate(feature)) {
             results[row.image_set] = { min: row.min, max: row.max }
         }
+        db.close()
         return results
     }
 
@@ -186,6 +192,7 @@ export class Db {
                                  WHERE image_set = ? AND
                                  feature = ?`)
         const minFeature = stmt.get(imageSet, feature)
+        db.close()
         return minFeature.min
     }
 
@@ -196,6 +203,7 @@ export class Db {
                                  WHERE image_set = ? AND
                                  feature = ?`)
         const maxFeature = stmt.get(imageSet, feature)
+        db.close()
         return maxFeature.max
     }
 
@@ -204,6 +212,7 @@ export class Db {
         const stmt = db.prepare(`SELECT COUNT(*) AS count
                                  FROM features`)
         const values = stmt.get()
+        db.close()
         return values.count
     }
 
@@ -211,6 +220,7 @@ export class Db {
         const db = this.getConnection()
         const stmt = db.prepare('INSERT OR IGNORE INTO features_generated (image_set) VALUES (?)')
         stmt.run(imageSet)
+        db.close()
     }
 
     public featuresGeneratedForImageSet(imageSet: string): boolean {
@@ -219,7 +229,9 @@ export class Db {
                                  FROM features_generated
                                  WHERE image_set = ?`)
         const values = stmt.get(imageSet)
-        return values.count > 0
+        const result = values.count > 0
+        db.close()
+        return result
     }
 
     public upsertSettings(settings: Record<string, string | object | number | boolean | undefined | null>): void {
@@ -250,13 +262,16 @@ export class Db {
         for (const row of stmt.iterate()) {
             results[row.setting] = JSON.parse(row.value)
         }
+        db.close()
         return results
     }
 
     public numSettings(): number {
         const db = this.getConnection()
         const stmt = db.prepare('SELECT COUNT(*) as count FROM settings')
-        return stmt.get().count
+        const result = stmt.get().count
+        db.close()
+        return result
     }
 
     public upsertSelections(imageSet: string, selections: SelectedPopulation[]): void {
@@ -295,6 +310,7 @@ export class Db {
         for (const row of stmt.iterate(imageSet)) {
             results.push(JSON.parse(row.selection_json))
         }
+        db.close()
         return results
     }
 
@@ -303,11 +319,21 @@ export class Db {
         const stmt = db.prepare(`DELETE FROM selections
                                  WHERE id = ?`)
         stmt.run(imageSet + id)
+        db.close()
     }
 
     public numSelections(): number {
         const db = this.getConnection()
         const stmt = db.prepare('SELECT COUNT(*) as count FROM selections')
-        return stmt.get().count
+        const result = stmt.get().count
+        db.close()
+        return result
+    }
+
+    public deleteAllSegmentFeatures(): void {
+        const db = this.getConnection()
+        db.prepare('DELETE FROM features;').run()
+        db.prepare('DELETE FROM features_generated;').run()
+        db.close()
     }
 }

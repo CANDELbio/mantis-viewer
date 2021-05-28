@@ -315,8 +315,26 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             />
                         </div>
                     )
-                    if (notificationStore.segmentFeaturesLoading) {
-                        plot = <Spinner style={{ width: '5rem', height: '5rem' }} color="secondary" />
+                    if (segmentFeatureStore.activeAvailableFeatures.length == 0) {
+                        plot = (
+                            <p style={{ textAlign: 'center' }}>
+                                <Button onClick={projectStore.calculateActiveSegmentFeatures} size="sm">
+                                    Calculate Segment Features
+                                </Button>
+                            </p>
+                        )
+                    } else if (notificationStore.segmentFeaturesLoading) {
+                        plot = (
+                            <Row center="xs">
+                                <Spinner
+                                    style={{
+                                        width: '5rem',
+                                        height: '5rem',
+                                    }}
+                                    color="secondary"
+                                />
+                            </Row>
+                        )
                     } else {
                         plot = (
                             <div>
