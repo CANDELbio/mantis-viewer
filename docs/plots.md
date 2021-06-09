@@ -30,7 +30,7 @@ Click the field and start typing marker names. Once you've selected two differen
 
 ## Configuring  Plots
 
-You can click the `Controls` button to the right of the marker selection field to change the type of plot, the plot statistic used, how the data is normalized, the size of dots on the plot, whether or not data from all image sets is shown, or if the data is downsampled.
+You can click the `Controls` button to the right of the marker selection field to change the type of plot, the plot statistic used, how the data is normalized, the size of dots on the plot, whether or not data from all images is shown, if the data is downsampled, or plotting the data on a log scale.
 
 ![Plot Controls](../assets/images/plot_controls.png)
 
@@ -38,7 +38,7 @@ Mantis is able to generate scatter plots, contour plots, histograms, and heatmap
 
 Mantis can apply a Log or ArcSinh transformation with a user supplied coefficient to the data prior to plotting.
 
-If you have loaded segment features for a project, Mantis is able to plot segment features for all image sets in a project. When plotting all segment features in a project, you can plot them per image set or have all of the features from non-active image sets collapsed into one group.
+If you have loaded segment features for a project, Mantis is able to plot segment features for all images in a project. When plotting all segment features in a project, you can plot them per image or have all of the features from non-active images collapsed into one group.
 
 Mantis allows you to downsample the number of segments displayed on the plot. This is useful when the plot is slowed down or difficult to interpret due to a large number of data points.
 

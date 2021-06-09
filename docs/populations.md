@@ -7,7 +7,7 @@ permalink: /populations/
 
 ## Overview
 
-Mantis Viewer allows users to select and store populations for further analysis. There are two ways to select populations in Mantis.
+Mantis Viewer allows users to select and store populations for further analysis. There are three ways to select populations in Mantis.
 
 On the image:
 
@@ -16,12 +16,16 @@ On the image:
   <source src="{{site.baseurl}}/assets/videos/population_on_image_640.mp4" type="video/webm">
 </video>
 
-Or from the graph:
+From the graph:
 
 <video autoplay="autoplay" loop="loop">
   <source src="{{site.baseurl}}/assets/videos/population_on_graph_640.mp4" type="video/mp4">
   <source src="{{site.baseurl}}/assets/videos/population_on_graph_640.mp4" type="video/webm">
 </video>
+
+Or from a segment feature range:
+
+![Plot Populations](../assets/images/feature_range_population.png)
 
 See below for detailed instructions on how to select populations in Mantis.
 
@@ -32,6 +36,10 @@ You can select a region on the image by pressing Alt or Command/Windows and hold
 You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Selecting populations is disabled when plot data is downsampled due to technical limitations with the plotting library.
 
 ![Plot Populations](../assets/images/plot_select_populations.png)
+
+You can create a population by entering a comma separated list of segment IDs or by selecting a range of segment feature value by clicking the plus button on the top right of the selected populations table.
+
+![Selected Populations](../assets/images/table_add_population.png)
 
 Once you've selected a population on the image or in a plot it will be shown in the list of selected populations to the right of the image. From the list of selected populations you can change the name (by clicking on the name), change the display color (by clicking on the colored square), toggle display on the image, or delete a selected population.
 

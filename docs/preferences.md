@@ -15,15 +15,16 @@ Mantis Viewer allows the user to configure some default behaviors to improve the
 
 The preferences window allows you to configure the following behaviors:
 
-* The maximum number of image sets stored in memory
-* Whether or not pixels are blurred/smoothed
+* The maximum number of images stored in memory
 * The default segmentation filename
-* If Mantis should remember to automatically calculate segment intensities (or not) or ask you for your input when importing a new image set or project
-* If Mantis should remember to automatically recalculate segment intensities when reloading a project (or not) or ask you for your input when reloading a project
-* If Mantis should clear any potential duplicate segment features (or not) or ask you for your input when loading custom segment features
 * The default brightness settings for each channel
 * The default marker names and their selection priority for each channel
 * Whether or not any marker should be selected if a default marker is not present for each channel
+* If Mantis should scale (or directly copy) channel brightness values when switching between images.
+* Whether or not pixels are blurred/smoothed
+* If Mantis should optimize segmentation files for quick reloading (this takes up extra disk space).
+* Whether or not Mantis should reload when it encounters an error
+* If Mantis should automatically calculate segment intensities when loading segmentation data (set on a per-project basis).
 
-## Maximum Image Sets Stored in Memory
-When viewing a project, Mantis keeps the most recently viewed image sets in memory so you can quickly switch between them without having to wait for them to reload. If too many image sets are stored in memory then Mantis may become slow or unresponsive. However, if very few image sets are stored in memory then you will have to wait as they are reloaded. This setting allows you to tune Mantis to optimally perform on your machine.
+## Maximum Images Stored in Memory
+When viewing a project, Mantis keeps the most recently viewed images in memory so you can quickly switch between them without having to wait for them to reload. If too many images are stored in memory then Mantis may become slow or unresponsive. However, if very few image sets are stored in memory then you will have to wait as they are reloaded. This setting allows you to tune Mantis to optimally perform on your machine.

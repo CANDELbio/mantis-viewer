@@ -9,7 +9,7 @@ nav_order: 3
 
 ### Channel Controls
 
-Once an image set or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in [preferences]({{ site.baseurl }}{% link docs/preferences.md %}). Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads.
+Once an image or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in [preferences]({{ site.baseurl }}{% link docs/preferences.md %}). Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads.
 
 ![Channel Controls](../../assets/images/channel_controls.png)
 
@@ -25,15 +25,22 @@ Other image controls that do not affect the channels can be accessed by clicking
 
 ![Image Controls](../../assets/images/image_controls.png)
 
-From the Image Controls you can toggle the presence of a zoom inset indicator and a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once [segmentation data]({{ site.baseurl }}{% link docs/segmentation/segmentation.md %}) has been loaded, the Image Controls can also be used to adjust segmentation visualization settings.
+From the Image Controls you can perform the following tasks:
 
-### Switching Between Image Sets
+* Toggle the presence of a zoom inset indicator.
+* Add a legend on the image that indicates which markers are currently visible and the channels they are selected for. 
+* Add information about [populations]({{ site.baseurl }}{% link docs/populations.md %}) to the legend.
+* Add information about [segment features]({{ site.baseurl }}{% link docs/segment_features.md %}) for any segments that are moused over.
+* Adjust segmentation outline and fill alpha once [segmentation data]({{ site.baseurl }}{% link docs/segmentation/segmentation.md %}) has been loaded.
+* Clear segmentation data.
 
-If you have loaded a project you can switch between the image sets in the project by using the dropdown under the title `Selected Image Set`, by using the arrows to the right of the dropdown, or by using the keyboard shortcut `Alt + Left or Right` or `Command/Windows + Left or Right`.
+### Switching Between Images
 
-![Switching Image Sets](../../assets/images/switching_image_sets.png)
+If you have loaded a project you can switch between the images in the project by using the dropdown under the title `Selected Image`, by using the arrows to the right of the dropdown, or by using the keyboard shortcut `Alt + Left or Right` or `Command/Windows + Left or Right`.
 
-When switching between image sets the application will automatically copy the selected markers, brightness and visibility settings, and plot settings from image set to image set.
+![Switching Images](../../assets/images/switching_image_sets.png)
+
+When switching between images the application will automatically copy the selected markers, brightness and visibility settings, and plot settings from image to image.
 
 ### Full Screen
 

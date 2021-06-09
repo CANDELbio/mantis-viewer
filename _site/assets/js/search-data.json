@@ -31,7 +31,7 @@
   },"5": {
     "doc": "Exporting Populations",
     "title": "Exporting Populations to CSV",
-    "content": "Mantis supports exporting populations to CSVs for use in other applications. You can export the populations stored in Mantis by navigating to the main menu and then selecting Export followed by Populations and finally For active image set from CSV or For project from single CSV. Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image set. ",
+    "content": "Mantis supports exporting populations to CSVs for use in other applications. You can export the populations stored in Mantis by navigating to the main menu and then selecting Export followed by Populations and finally For active image from CSV or For project from single CSV. Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image. ",
     "url": "http://localhost:4000/docs/exporting_data/exporting_populations.html#exporting-populations-to-csv",
     "relUrl": "/docs/exporting_data/exporting_populations.html#exporting-populations-to-csv"
   },"6": {
@@ -55,7 +55,7 @@
   },"9": {
     "doc": "Exporting Segment Statistics",
     "title": "Exporting Segment Statistics",
-    "content": "Segment statistics are composed of any information Mantis has about the currently loaded segments. This includes segment features, centroid locations, and population membership. Mantis supports exporting segment statistics in two formats: FCS and CSV. Exporting to FCS . Statistics about segments can be exported to FCS by selecting the main menu item Export then Segment Features to FCS and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one FCS for the active image set or to multiple FCS files for all open image sets. The FCS file format does not have the concept of populations or subpopulations, but Mantis supports exporting the selected populations to FCS files by exporting each population to its own FCS file. Exporting to CSV . Statistics about segments can be exported to CSV by selecting the main menu item Export then Segment Features to CSV and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one CSV for the active image set or to multiple CSVs for all open image sets. When exporting to CSV you will get the mean or median segment intensity, the X and Y coordinates of the segment centroid, and any populations the segment belongs to. ",
+    "content": "Segment statistics are composed of any information Mantis has about the currently loaded segments. This includes segment features, centroid locations, and population membership. Mantis supports exporting segment statistics in two formats: FCS and CSV. Exporting to FCS . Statistics about segments can be exported to FCS by selecting the main menu item Export then Segment Features to FCS and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one FCS for the active image or to multiple FCS files for all open images. The FCS file format does not have the concept of populations or subpopulations, but Mantis supports exporting the selected populations to FCS files by exporting each population to its own FCS file. Exporting to CSV . Statistics about segments can be exported to CSV by selecting the main menu item Export then Segment Features to CSV and then one of the options in that submenu. You can export either the mean or median segment intensities, and you can either export to one CSV for the active image or to multiple CSVs for all open images. When exporting to CSV you will get the mean or median segment intensity, the X and Y coordinates of the segment centroid, and any populations the segment belongs to. ",
     "url": "http://localhost:4000/docs/exporting_data/exporting_segment_statistics.html",
     "relUrl": "/docs/exporting_data/exporting_segment_statistics.html"
   },"10": {
@@ -67,7 +67,7 @@
   },"11": {
     "doc": "Opening and Interacting with Images",
     "title": "Overview",
-    "content": "Mantis Viewer allows users to load and analyze sets of images, or ‘image sets’ that contain multiple TIFF files. Each TIFF should contain one or multiple greyscale images of markers from a tissue slide. The below animation gives a brief overview of opening an image set and interacting with the channel and image controls. See below for detailed instructions. ",
+    "content": "Mantis Viewer allows users to load and analyze images composed of multiple grayscale layers or markers. Mantis supports loading these grayscale layers from TIFF files, each of which should contain one or multiple greyscale layers from a tissue slide. The below animation gives a brief overview of opening an image and interacting with the channel and image controls. See below for detailed instructions. ",
     "url": "http://localhost:4000/images/#overview",
     "relUrl": "/images/#overview"
   },"12": {
@@ -91,7 +91,7 @@
   },"15": {
     "doc": "Importing Populations",
     "title": "Importing Populations from CSV",
-    "content": "Mantis supports importing populations from CSVs. You can either select a CSV to import from when setting up a new project or you can select a CSV to import with the main menu. To import populations from the main menu, navigate to Import then Populations then For active image set from CSV or For project from single CSV. Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image set. When importing populations for a project Mantis expects a CSV file with no header. Each row should be of the format image_set_name, segment_id, population_name. For example, here are a few rows from a valid project CSV file: . set_one,220,CD4 High Cells set_one,707,CD4 High Cells set_one,220,CD8 High Cells set_two,77,CD8 High Cells set_two,140,CD8 High Cells . When importing populations for a single image set Mantis expects a similarly formatted CSV. The main difference is that image_set_name is not included. Instead, each row should be of the format segment_id, population_name. For example, here are a few rows from a valid image set CSV file: . 220,CD4 High Cells 707,CD4 High Cells 220,CD8 High Cells 77,CD8 High Cells 140,CD8 High Cells . ",
+    "content": "Mantis supports importing populations from CSVs. You can either select a CSV to import from when setting up a new project or you can select a CSV to import with the main menu. To import populations from the main menu, navigate to Import then Populations then For active image from CSV or For project from single CSV. Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image. When importing populations for a project Mantis expects a CSV file with no header. Each row should be of the format image_folder_name, segment_id, population_name. For example, here are a few rows from a valid project CSV file: . image_one,220,CD4 High Cells image_one,707,CD4 High Cells image_one,220,CD8 High Cells image_two,77,CD8 High Cells image_two,140,CD8 High Cells . When importing populations for a single image Mantis expects a similarly formatted CSV. The main difference is that image_folder_name is not included. Instead, each row should be of the format segment_id, population_name. For example, here are a few rows from a valid image CSV file: . 220,CD4 High Cells 707,CD4 High Cells 220,CD8 High Cells 77,CD8 High Cells 140,CD8 High Cells . ",
     "url": "http://localhost:4000/docs/importing_data/importing_populations.html#importing-populations-from-csv",
     "relUrl": "/docs/importing_data/importing_populations.html#importing-populations-from-csv"
   },"16": {
@@ -103,7 +103,7 @@
   },"17": {
     "doc": "Importing Segment Features",
     "title": "Importing Segment Features from CSV",
-    "content": "Segment features are numerical statistics that describe individual segments (e.g. cell size, or the mean or median pixel intensity for a marker or channel). You can select a CSV to import when setting up a new project or from the main menu. To import segment features from the main menu, navigate to Import then Segment Features and finally For active image set from CSV or For project from single CSV . Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image set. When importing segment features for a project Mantis expects the CSV file to have a header. The first column should contain the image set name (the values in this column should match the folder names), the second column should contain segment/cell ids, and any remaining columns should contain cell/segment features. Mantis doesn’t use the column names/headers for the image set name column or the segment/cell id column, but for the remaining columns Mantis uses the column name as the cell/segment feature name. For example, here are a few rows from a valid project CSV file: . Image Set Name, Segment ID, Cell Size, CD4 Intensity set_one,220,1.23,3.45 set_one,707,2.34,4.32 set_two,77,4.45,5.43 set_two,140,6.54,7.68 . When importing populations for a single image set Mantis expects a similarly formatted CSV. The main difference is that first column (image set name) is not included when importing for a single image set. For example, here are a few rows from a valid image set CSV file: . Segment ID, Cell Size, CD4 Intensity 220,1.23,3.45 707,2.34,4.32 77,4.45,5.43 140,6.54,7.68 . ",
+    "content": "Segment features are numerical statistics that describe individual segments (e.g. cell size, or the mean or median pixel intensity for a marker or channel). You can select a CSV to import when setting up a new project or from the main menu. To import segment features from the main menu, navigate to Import then Segment Features and finally For active image from CSV or For project from single CSV . Note that these menu item will be disabled unless segmentation data has been loaded for the currently active image. When importing segment features for a project Mantis expects the CSV file to have a header. The first column should contain the image folder name (the values in this column should match the folder names), the second column should contain segment/cell ids, and any remaining columns should contain cell/segment features. Mantis doesn’t use the column names/headers for the image folder name column or the segment/cell id column, but for the remaining columns Mantis uses the column name as the cell/segment feature name. For example, here are a few rows from a valid project CSV file: . Image Folder Name, Segment ID, Cell Size, CD4 Intensity set_one,220,1.23,3.45 set_one,707,2.34,4.32 set_two,77,4.45,5.43 set_two,140,6.54,7.68 . When importing populations for a single image Mantis expects a similarly formatted CSV. The main difference is that first column (image folder name) is not included when importing for a single image. For example, here are a few rows from a valid image CSV file: . Segment ID, Cell Size, CD4 Intensity 220,1.23,3.45 707,2.34,4.32 77,4.45,5.43 140,6.54,7.68 . ",
     "url": "http://localhost:4000/docs/importing_data/importing_segment_features.html#importing-segment-features-from-csv",
     "relUrl": "/docs/importing_data/importing_segment_features.html#importing-segment-features-from-csv"
   },"18": {
@@ -144,182 +144,194 @@
     "relUrl": "/#downloading-and-installing"
   },"24": {
     "doc": "Introduction",
+    "title": "Support and Discussion",
+    "content": "Mantis users can find support and discussion on the image.sc forums. Make sure to add the mantis tag any posts that you make about Mantis to make sure the right people see it. You can also include an @rj3d mention if you want to get the lead developer of Mantis involved in the conversation. ",
+    "url": "http://localhost:4000/#support-and-discussion",
+    "relUrl": "/#support-and-discussion"
+  },"25": {
+    "doc": "Introduction",
     "title": "Mailing List",
     "content": "You can use the form below if you’d like to join our mailing list and be notified of new versions of Mantis when they’re released. | Email Address ",
     "url": "http://localhost:4000/#mailing-list",
     "relUrl": "/#mailing-list"
-  },"25": {
+  },"26": {
+    "doc": "Introduction",
+    "title": "Cite Us",
+    "content": "Please cite Mantis Viewer using the following citation: . Robert Schiemann, Pier Federico Gherardini, Robin Kageyama, Mike Travers, &amp; Lacey Kitch. Mantis Viewer. Zenodo. http://doi.org/10.5281/zenodo.4009579 . You may also cite the specific version of Mantis that you used instead if you wish. You can get citations for specific versions on the Mantis Viewer Zenodo Page . ",
+    "url": "http://localhost:4000/#cite-us",
+    "relUrl": "/#cite-us"
+  },"27": {
     "doc": "Introduction",
     "title": "License, Bugs, and Contributing",
     "content": "Mantis Viewer is distributed under a GPLv3 license. Check out the Mantis Viewer GitHub page if you have a bug to report or if you are interested in adding features to Mantis. ",
     "url": "http://localhost:4000/#license-bugs-and-contributing",
     "relUrl": "/#license-bugs-and-contributing"
-  },"26": {
+  },"28": {
     "doc": "Introduction",
     "title": "Introduction",
     "content": " ",
     "url": "http://localhost:4000/",
     "relUrl": "/"
-  },"27": {
+  },"29": {
     "doc": "Interacting with Images",
     "title": "Interacting with Images",
-    "content": "Channel Controls . Once an image set or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in preferences. Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads. If you wish to change the marker selected for a channel you can click on the dropdown and select a new channel. If you wish to clear a channel you can click the x on the channel select dropdown. You can adjust the brightness of a channel by changing the min and max values on the slider below the channel dropdown. The min and max values are set using the pixel intensities from the channel’s TIFF. Brightness adjustments are achieved by means of a linear transform. You can quickly toggle the visibility of a channel by clicking on the eye icon next to the brightness slider. Image Controls . Other image controls that do not affect the channels can be accessed by clicking on the button Show Image Controls. From the Image Controls you can toggle the presence of a zoom inset indicator and a legend on the image that indicates which markers are currently visible and the channels they are selected for. Once segmentation data has been loaded, the Image Controls can also be used to adjust segmentation visualization settings. Switching Between Image Sets . If you have loaded a project you can switch between the image sets in the project by using the dropdown under the title Selected Image Set, by using the arrows to the right of the dropdown, or by using the keyboard shortcut Alt + Left or Right or Command/Windows + Left or Right. When switching between image sets the application will automatically copy the selected markers, brightness and visibility settings, and plot settings from image set to image set. Full Screen . You can full screen the image by using the keyboard shortcut Alt + F or Command/Windows + F. You can exit full screen mode by pressing escape. Selecting Regions and Populations . You can select regions on the image or populations (once segmentation data has been loaded) by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can read more about populations in the Populations page . ",
+    "content": "Channel Controls . Once an image or project has been selected Mantis will load the Channel Controls. Mantis will automatically choose markers to be displayed for the channels on the first load. Automatic marker selection behavior can be configured in preferences. Mantis will automatically reload the last selected markers, brightness settings, and visibility settings on subsequent loads. If you wish to change the marker selected for a channel you can click on the dropdown and select a new channel. If you wish to clear a channel you can click the x on the channel select dropdown. You can adjust the brightness of a channel by changing the min and max values on the slider below the channel dropdown. The min and max values are set using the pixel intensities from the channel’s TIFF. Brightness adjustments are achieved by means of a linear transform. You can quickly toggle the visibility of a channel by clicking on the eye icon next to the brightness slider. Image Controls . Other image controls that do not affect the channels can be accessed by clicking on the button Show Image Controls. From the Image Controls you can perform the following tasks: . | Toggle the presence of a zoom inset indicator. | Add a legend on the image that indicates which markers are currently visible and the channels they are selected for. | Add information about populations to the legend. | Add information about segment features for any segments that are moused over. | Adjust segmentation outline and fill alpha once segmentation data has been loaded. | Clear segmentation data. | . Switching Between Images . If you have loaded a project you can switch between the images in the project by using the dropdown under the title Selected Image, by using the arrows to the right of the dropdown, or by using the keyboard shortcut Alt + Left or Right or Command/Windows + Left or Right. When switching between images the application will automatically copy the selected markers, brightness and visibility settings, and plot settings from image to image. Full Screen . You can full screen the image by using the keyboard shortcut Alt + F or Command/Windows + F. You can exit full screen mode by pressing escape. Selecting Regions and Populations . You can select regions on the image or populations (once segmentation data has been loaded) by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. You can read more about populations in the Populations page . ",
     "url": "http://localhost:4000/docs/images/interacting.html",
     "relUrl": "/docs/images/interacting.html"
-  },"28": {
+  },"30": {
     "doc": "Opening Images and Projects",
     "title": "Opening Images",
-    "content": "When you first load the application you should see a blank screen with a few unpopulated controls. Click the menu item named mantis-viewer, and then select Open. In the Open submenu you should see option for New Project, Existing Project and Image Set, which represent the two ways of working with Mantis. If you just want to look at images from a single slide or ROI you can choose to import an image set. If you want to analyze and compare multiple image sets you can chose to open a new project. For an image set Mantis expects one folder with a single multi-image TIFF or multiple single-image TIFFs (one per marker). If you have multiple images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple image sets. See the below screenshot for an example file structure of a project with detailed view of one of the contained image sets. When you open a new project Mantis will open a popup (shown below) that will walk you through setting up the project. If you’ve already gone through the import process you can bypass it by choosing to open the project as an existing project. When importing a new project, Mantis will first ask you to select the root directory of the project you would like to import. Once you’ve selected the root directory, Mantis will automatically select a representative image set for the rest of the process, but you can change the representative image set if you need to. The image subdirectory dropdown will be populated with any directories that are present within the representative image set. It allows you to choose a directory within your representative image set that stores all of the image files. If unselected, Mantis will load all images from the root of each image set. If you do select an image subdirectory all of the image sets in the project must have the same image subdirectory folder name. The region file and segmentation file dropdowns will be enabled and populated with files from the representative image set. You can read more about the formats that Mantis accepts for region and segmentation files on the importing segmentation and region data page. The segment features file and populations file dropdowns will be enabled and populated with CSV files from the root project directory. You can read more about the formats that Mantis accepts for segment features and population files on the importing segment features and importing populations pages. ",
+    "content": "When you first load the application you should see a blank screen with a few unpopulated controls. Click the menu item named mantis-viewer, and then select Open. In the Open submenu you should see option for New Project, Existing Project and Image, which represent the two ways of working with Mantis. If you just want to look at a single slide or ROI you can choose to import an image. If you want to analyze and compare multiple images you can chose to open a new project. For an image Mantis expects one folder with a single multi-page TIFF or multiple single-page TIFFs (one per marker). If you have multiple images from many slides or ROIs, you can import a project. For a project, Mantis expects expects a folder containing multiple images. See the below screenshot for an example file structure of a project with detailed view of one of the contained images. When you open a new project Mantis will open a popup (shown below) that will walk you through setting up the project. If you’ve already gone through the import process you can bypass it by choosing to open the project as an existing project. When importing a new project, Mantis will first ask you to select the root directory of the project you would like to import. Once you’ve selected the root directory, Mantis will automatically select a representative image for the rest of the process, but you can change the representative image if you need to. The image subdirectory dropdown will be populated with any directories that are present within the representative image folder. It allows you to choose a directory within your representative image that stores all of the marker TIFFs. If unselected, Mantis will load all TIFFs from the root of each image folder. If you do select an image subdirectory all of the image folders in the project must have the same image subdirectory folder name. The region file and segmentation file dropdowns will be enabled and populated with files from the representative image folder. You can read more about the formats that Mantis accepts for region and segmentation files on the importing segmentation and region data page. The dropdowns following the segmentation file dropdown will only be enabled if a file is selected for the segmentation dropdown. Once enabled, the project segment features file and populations file dropdowns will be populated with CSV files from the root project directory. The image segment features file dropdown will bepopulated with CSV files from the representative image folder. You can read more about the formats that Mantis accepts for segment features and population files on the importing segment features and importing populations pages. Once enabled, the calculate segment features dropdown will allow you to chose if Mantis will generate segment features as each image loads or for the whole project or if it will skip generating features. ",
     "url": "http://localhost:4000/docs/images/opening_images.html#opening-images",
     "relUrl": "/docs/images/opening_images.html#opening-images"
-  },"29": {
+  },"31": {
     "doc": "Opening Images and Projects",
     "title": "Opening Images and Projects",
     "content": " ",
     "url": "http://localhost:4000/docs/images/opening_images.html",
     "relUrl": "/docs/images/opening_images.html"
-  },"30": {
+  },"32": {
     "doc": "Plots",
     "title": "Overview",
     "content": "Mantis Viewer can generate plots of any segment features that have been calculated or imported. Segmentation data must be loaded and segment features must be present for Mantis to generate plots. The following animation gives a brief overview of generating and interacting with plots in Mantis. See below for more detailed instructions. ",
     "url": "http://localhost:4000/plots/#overview",
     "relUrl": "/plots/#overview"
-  },"31": {
+  },"33": {
     "doc": "Plots",
     "title": "Basic Plotting in Mantis",
     "content": "Once segmentation data has been loaded you can access plots by clicking the Show Plot Pane button or by selecting the Pop-out Plot Window entry in the View menu. When you first load the plot view you should see a blank view with a dropdown that says Select plot markers.... If you do not see any options when you click on the dropdown it means that segment features have not been calculated or imported. Click the field and start typing marker names. Once you’ve selected two different channels you should be shown a scatter plot comparing the intensities for each segment. ",
     "url": "http://localhost:4000/plots/#basic-plotting-in-mantis",
     "relUrl": "/plots/#basic-plotting-in-mantis"
-  },"32": {
+  },"34": {
     "doc": "Plots",
     "title": "Configuring  Plots",
-    "content": "You can click the Controls button to the right of the marker selection field to change the type of plot, the plot statistic used, how the data is normalized, the size of dots on the plot, whether or not data from all image sets is shown, or if the data is downsampled. Mantis is able to generate scatter plots, contour plots, histograms, and heatmaps. For heatmaps, Mantis can summarize the data using a mean or median calculation, and it can normalize per marker or per population. Mantis can apply a Log or ArcSinh transformation with a user supplied coefficient to the data prior to plotting. If you have loaded segment features for a project, Mantis is able to plot segment features for all image sets in a project. When plotting all segment features in a project, you can plot them per image set or have all of the features from non-active image sets collapsed into one group. Mantis allows you to downsample the number of segments displayed on the plot. This is useful when the plot is slowed down or difficult to interpret due to a large number of data points. ",
+    "content": "You can click the Controls button to the right of the marker selection field to change the type of plot, the plot statistic used, how the data is normalized, the size of dots on the plot, whether or not data from all images is shown, if the data is downsampled, or plotting the data on a log scale. Mantis is able to generate scatter plots, contour plots, histograms, and heatmaps. For heatmaps, Mantis can summarize the data using a mean or median calculation, and it can normalize per marker or per population. Mantis can apply a Log or ArcSinh transformation with a user supplied coefficient to the data prior to plotting. If you have loaded segment features for a project, Mantis is able to plot segment features for all images in a project. When plotting all segment features in a project, you can plot them per image or have all of the features from non-active images collapsed into one group. Mantis allows you to downsample the number of segments displayed on the plot. This is useful when the plot is slowed down or difficult to interpret due to a large number of data points. ",
     "url": "http://localhost:4000/plots/#configuring--plots",
     "relUrl": "/plots/#configuring--plots"
-  },"33": {
+  },"35": {
     "doc": "Plots",
     "title": "Selecting Populations from the Plot",
-    "content": "You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Lasso select is disabled when plot data is downsampled due to technical limitations with the plotting library. You can read more about populations on the populations page . ",
+    "content": "You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Selecting populations is disabled when plot data is downsampled due to technical limitations with the plotting library. You can read more about populations on the populations page . ",
     "url": "http://localhost:4000/plots/#selecting-populations-from-the-plot",
     "relUrl": "/plots/#selecting-populations-from-the-plot"
-  },"34": {
+  },"36": {
     "doc": "Plots",
     "title": "Plots",
     "content": " ",
     "url": "http://localhost:4000/plots/",
     "relUrl": "/plots/"
-  },"35": {
+  },"37": {
     "doc": "Populations and Selected Regions",
     "title": "Overview",
-    "content": "Mantis Viewer allows users to select and store populations for further analysis. There are two ways to select populations in Mantis. On the image: . Or from the graph: . See below for detailed instructions on how to select populations in Mantis. ",
+    "content": "Mantis Viewer allows users to select and store populations for further analysis. There are three ways to select populations in Mantis. On the image: . From the graph: . Or from a segment feature range: . See below for detailed instructions on how to select populations in Mantis. ",
     "url": "http://localhost:4000/populations/#overview",
     "relUrl": "/populations/#overview"
-  },"36": {
+  },"38": {
     "doc": "Populations and Selected Regions",
     "title": "Selecting Regions or Populations",
-    "content": "You can select a region on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. Once a region is selected on the image, Mantis will automatically create a population with all of the segments contained in the region. You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Lasso select is disabled when plot data is downsampled due to technical limitations with the plotting library. Once you’ve selected a population on the image or in a plot it will be shown in the list of selected populations to the right of the image. From the list of selected populations you can change the name (by clicking on the name), change the display color (by clicking on the colored square), toggle display on the image, or delete a selected population. If segmentation data has been loaded the segments contained in regions selected on the image will also be displayed on the scatter plot. You can toggle visibility of regions on the scatter plot by clicking on the colored dot next to the name in the legend. ",
+    "content": "You can select a region on the image by pressing Alt or Command/Windows and holding the left mouse button and outlining the region on the image. Once a region is selected on the image, Mantis will automatically create a population with all of the segments contained in the region. You can select populations in the plot to view on the image or in other plots by using the lasso select or the box select tools. Selecting populations is disabled when plot data is downsampled due to technical limitations with the plotting library. You can create a population by entering a comma separated list of segment IDs or by selecting a range of segment feature value by clicking the plus button on the top right of the selected populations table. Once you’ve selected a population on the image or in a plot it will be shown in the list of selected populations to the right of the image. From the list of selected populations you can change the name (by clicking on the name), change the display color (by clicking on the colored square), toggle display on the image, or delete a selected population. If segmentation data has been loaded the segments contained in regions selected on the image will also be displayed on the scatter plot. You can toggle visibility of regions on the scatter plot by clicking on the colored dot next to the name in the legend. ",
     "url": "http://localhost:4000/populations/#selecting-regions-or-populations",
     "relUrl": "/populations/#selecting-regions-or-populations"
-  },"37": {
+  },"39": {
     "doc": "Populations and Selected Regions",
     "title": "Importing Regions or Populations",
     "content": "You can also import both regions on the image and populations of segments into Mantis by navigating to the Import submenu in the main menu and then selecting or Regions from TIFF or any of the entries within the Populations submenu. You can read more about the file formats that Mantis supports on the importing segmentation and region data or importing populations pages. ",
     "url": "http://localhost:4000/populations/#importing-regions-or-populations",
     "relUrl": "/populations/#importing-regions-or-populations"
-  },"38": {
+  },"40": {
     "doc": "Populations and Selected Regions",
     "title": "Populations and Selected Regions",
     "content": " ",
     "url": "http://localhost:4000/populations/",
     "relUrl": "/populations/"
-  },"39": {
+  },"41": {
     "doc": "Preferences",
     "title": "Overview",
     "content": "Mantis Viewer allows the user to configure some default behaviors to improve the user experience or performance of the application. You can access the Preferences window by selecting the Preferences entry in the main menu. ",
     "url": "http://localhost:4000/preferences/#overview",
     "relUrl": "/preferences/#overview"
-  },"40": {
+  },"42": {
     "doc": "Preferences",
     "title": "Configurable Preferences",
-    "content": "The preferences window allows you to configure the following behaviors: . | The maximum number of image sets stored in memory | Whether or not pixels are blurred/smoothed | The default segmentation filename | If Mantis should remember to automatically calculate segment intensities (or not) or ask you for your input when importing a new image set or project | If Mantis should remember to automatically recalculate segment intensities when reloading a project (or not) or ask you for your input when reloading a project | If Mantis should clear any potential duplicate segment features (or not) or ask you for your input when loading custom segment features | The default brightness settings for each channel | The default marker names and their selection priority for each channel | Whether or not any marker should be selected if a default marker is not present for each channel | . ",
+    "content": "The preferences window allows you to configure the following behaviors: . | The maximum number of images stored in memory | The default segmentation filename | The default brightness settings for each channel | The default marker names and their selection priority for each channel | Whether or not any marker should be selected if a default marker is not present for each channel | If Mantis should scale (or directly copy) channel brightness values when switching between images. | Whether or not pixels are blurred/smoothed | If Mantis should optimize segmentation files for quick reloading (this takes up extra disk space). | Whether or not Mantis should reload when it encounters an error | If Mantis should automatically calculate segment intensities when loading segmentation data (set on a per-project basis). | . ",
     "url": "http://localhost:4000/preferences/#configurable-preferences",
     "relUrl": "/preferences/#configurable-preferences"
-  },"41": {
+  },"43": {
     "doc": "Preferences",
-    "title": "Maximum Image Sets Stored in Memory",
-    "content": "When viewing a project, Mantis keeps the most recently viewed image sets in memory so you can quickly switch between them without having to wait for them to reload. If too many image sets are stored in memory then Mantis may become slow or unresponsive. However, if very few image sets are stored in memory then you will have to wait as they are reloaded. This setting allows you to tune Mantis to optimally perform on your machine. ",
-    "url": "http://localhost:4000/preferences/#maximum-image-sets-stored-in-memory",
-    "relUrl": "/preferences/#maximum-image-sets-stored-in-memory"
-  },"42": {
+    "title": "Maximum Images Stored in Memory",
+    "content": "When viewing a project, Mantis keeps the most recently viewed images in memory so you can quickly switch between them without having to wait for them to reload. If too many images are stored in memory then Mantis may become slow or unresponsive. However, if very few image sets are stored in memory then you will have to wait as they are reloaded. This setting allows you to tune Mantis to optimally perform on your machine. ",
+    "url": "http://localhost:4000/preferences/#maximum-images-stored-in-memory",
+    "relUrl": "/preferences/#maximum-images-stored-in-memory"
+  },"44": {
     "doc": "Preferences",
     "title": "Preferences",
     "content": " ",
     "url": "http://localhost:4000/preferences/",
     "relUrl": "/preferences/"
-  },"43": {
+  },"45": {
     "doc": "Segment Features",
     "title": "Overview",
     "content": "In addition to segmentation data, many of the features in Mantis also rely on segment features. Segment features are numerical statistics that describe individual segments (e.g. cell size, or the mean or median pixel intensity for a marker or channel). Mantis is able to calculate mean and median segment intensities, and you can also import custom segment features. ",
     "url": "http://localhost:4000/segment_features/#overview",
     "relUrl": "/segment_features/#overview"
-  },"44": {
+  },"46": {
     "doc": "Segment Features",
     "title": "Calculating Segment Features",
-    "content": "Once segmentation data has been loaded, Mantis will ask you if you want it to calculate mean and median segment intensities. If you select yes, Mantis will calculate mean and median pixel intensities for every pixel and every marker or channel in the project. You can configure whether or not Mantis remembers your choice in preferences. You can also force Mantis to calculate or recalculate the segment features for a single image set or the whole project using the Calculate entry in the main menu. ",
+    "content": "Once segmentation data has been loaded, Mantis will ask you if you want it to calculate mean and median segment intensities. If you select yes, Mantis will calculate segment area for every segment and mean and median pixel intensities for every segment and every marker or channel in the project. You can also manually calculate or recalculate the segment features for a single image or the whole project using the Calculate entry in the main menu. ",
     "url": "http://localhost:4000/segment_features/#calculating-segment-features",
     "relUrl": "/segment_features/#calculating-segment-features"
-  },"45": {
+  },"47": {
     "doc": "Segment Features",
     "title": "Importing Custom Segment Features",
-    "content": "You can import custom segment features from the main menu by selecting Import then Segment Features then From active image set from CSV or For project from single CSV. You can read about the CSV formats that Mantis accepts on the importing segment features page. ",
+    "content": "You can import custom segment features from the main menu by selecting Import then Segment Features then For active image from CSV or For project from single CSV. You can read about the CSV formats that Mantis accepts on the importing segment features page. ",
     "url": "http://localhost:4000/segment_features/#importing-custom-segment-features",
     "relUrl": "/segment_features/#importing-custom-segment-features"
-  },"46": {
+  },"48": {
     "doc": "Segment Features",
     "title": "Segment Features",
     "content": " ",
     "url": "http://localhost:4000/segment_features/",
     "relUrl": "/segment_features/"
-  },"47": {
+  },"49": {
     "doc": "Segmentation Data",
     "title": "Overview",
     "content": "Many of the features in Mantis rely on segmentation data. Segmentation is a process by which regions of an image are identified as cells. Mantis is not able to generate segmentation data, but there are many publicly available methods available to segment images. If you have never generated segmentation data we recommend starting with our tutorial for generating segmentation data with CellProfiler as a starting point. ",
     "url": "http://localhost:4000/segmentation/#overview",
     "relUrl": "/segmentation/#overview"
-  },"48": {
+  },"50": {
     "doc": "Segmentation Data",
     "title": "Segmentation Format",
     "content": "Mantis Viewer currently supports two different segmentation formats: a TIFF-based format and a TXT/CSV-based format. You can read about the formats on the importing segmentation and region data page. ",
     "url": "http://localhost:4000/segmentation/#segmentation-format",
     "relUrl": "/segmentation/#segmentation-format"
-  },"49": {
+  },"51": {
     "doc": "Segmentation Data",
     "title": "Loading Segmentation Data",
     "content": "You can load segmentation data when loading a new project or by navigating to the opening main menu, selecting the Import menu entry, and then clicking on the Segmentation entry. ",
     "url": "http://localhost:4000/segmentation/#loading-segmentation-data",
     "relUrl": "/segmentation/#loading-segmentation-data"
-  },"50": {
+  },"52": {
     "doc": "Segmentation Data",
     "title": "Segmentation Display Controls",
     "content": "Once segmentation data has been loaded segment outlines will be overlaid on the image. You can access controls for displaying the segmentation data by clicking the button labeled Show Image Controls. Once the Image Controls have been expanded you can toggle whether or not centroids for segments are displayed, adjust the alpha of segment outlines, adjust the alpha of segment fills, and clear the segmentation data. ",
     "url": "http://localhost:4000/segmentation/#segmentation-display-controls",
     "relUrl": "/segmentation/#segmentation-display-controls"
-  },"51": {
+  },"53": {
     "doc": "Segmentation Data",
     "title": "Automatically Loading Segmentation Data",
-    "content": "Mantis can be configured to automatically look for and load segmentation files when an image set or project is loaded. You can configure a default segmentation filename in preferences. Mantis can also automatically load segmentation files that do not match the default filename when switching between image sets in a project. To enable this behavior segmentation data files must be stored in their respective image set folders and all have the same name (e.g./project/imageSetOne/segmentation.tif, ./project/imageSetTwo/segmentation.tif, etc.). ",
+    "content": "Mantis can be configured to automatically look for and load segmentation files when an image or project is loaded. You can configure a default segmentation filename in preferences. Mantis can also automatically load segmentation files that do not match the default filename when switching between images in a project. To enable this behavior segmentation data files must be stored in their respective image folders and all have the same name (e.g./project/imageSetOne/segmentation.tif, ./project/imageSetTwo/segmentation.tif, etc.). You can enable or disable automatically loading segmentation data when switching images from the Image Controls pane. ",
     "url": "http://localhost:4000/segmentation/#automatically-loading-segmentation-data",
     "relUrl": "/segmentation/#automatically-loading-segmentation-data"
-  },"52": {
+  },"54": {
     "doc": "Segmentation Data",
     "title": "Segmentation Data",
     "content": " ",
     "url": "http://localhost:4000/segmentation/",
     "relUrl": "/segmentation/"
-  },"53": {
+  },"55": {
     "doc": "Supported Image Formats",
     "title": "Supported Image Formats",
-    "content": "Mantis currently supports loading images from two types of TIFFs: a folder containing multiple greyscale single-image TIFFs or a folder containing one greyscale multi-image TIFF. In the case of multi-image TIFFs, each image within the TIFF must be stored within its own image file directory (IFD). Mantis does not support other types of multi-image TIFF files (such as hyperstacks), but there are plans to add support in the future. In the interim you can use image-utils to split up unsupported multi-image TIFFs into single channel TIFFs that can be analyzed by Mantis. Inferring Marker Names . Mantis will attempt to parse the ImageDescription tag for each image file directory as an XML string. If parsing is successful Mantis will search for an element called name within the parsed XML tree. If Mantis finds an element called name it will take the text value of the name element and use that value as the marker name. If Mantis is unable to parse the ImageDescription tag as an XML string or does not find an element called name, it will use the filename as the marker name. In the case of multi-image TIFFs, Mantis will append the image file directory index to the filename and use that as the marker name if it is unable to find a name in the ImageDescription tag. Downsampling Images . Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases. Additional Formats . If you encounter an image that you expect to work with Mantis but doesn’t or if you need help getting your images into a format that Mantis supports feel free to create an issue on the GitHub page or send us an email at engineering@parkerici.org. ",
+    "content": "Mantis currently supports loading image layers from two types of TIFFs: a folder containing multiple greyscale single-page TIFFs or a folder containing one greyscale, stacked, multi-page TIFF. In the case of stacked multi-page TIFFs, each image within the TIFF must be stored within its own image file directory (IFD). Mantis does not support other types of multi-image TIFF files (such as hyperstacks), but there are plans to add support in the future. In the interim you can use image-utils to split up unsupported multi-image TIFFs into single channel TIFFs that can be analyzed by Mantis. Marker Names . Mantis has a few different strategies for inferring marker names from the image layer files. Mantis will first attempt to parse the ImageDescription tag for each image file directory as either an XML or a JSON string. If parsing of the ImageDescription as XML is successful Mantis will search for an element called name within the parsed XML tree. If Mantis finds an element called name it will take the text value of the name element and use that value as the marker name. If parsing of the ImageDescription as JSON is successful, Mantis will try to find a property named channel.target. If Mantis finds a property called channel.target it will take the text value of the channel.target property and use that value as the marker name. Mantis will use the TIFF filename if parsing of the ImageDescription tag is unsuccessful when importing a single-page TIFF. In the case of multi-image TIFFs, Mantis will instead use the prefix Marker followed by the image file directory index as the marker name if it is unable to find a name in the ImageDescription tag. Downsampling Images . Mantis will downsample images when either the width or the height of the image is greater than 10,000 pixels. There are plans to build support for viewing higher resolution images without downsampling in later releases. Additional Formats . If you encounter an image that you expect to work with Mantis but doesn’t or if you need help getting your images into a format that Mantis supports feel free to create an issue on the GitHub page or send us an email at engineering@parkerici.org. ",
     "url": "http://localhost:4000/docs/images/supported_formats.html",
     "relUrl": "/docs/images/supported_formats.html"
   }
