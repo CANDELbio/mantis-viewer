@@ -54,6 +54,10 @@ export default class LineGeometry extends Geometry {
         this._dirty = true
     }
 
+    clear(): void {
+        this.shapes = []
+    }
+
     updateColor(): void {
         this._colorDirty = true
     }

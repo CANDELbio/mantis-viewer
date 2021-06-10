@@ -14,7 +14,6 @@ import {
     HighlightedSegmentOutlineColor,
     SelectedSegmentOutlineAlpha,
     HighlightedSelectedSegmentOutlineAlpha,
-    SelectedSegmentOutlineWidth,
     ImageViewerHeightPadding,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
@@ -22,6 +21,7 @@ import * as GraphicsHelper from '../lib/GraphicsUtils'
 import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
+import { Line } from '../lib/pixi/Line'
 
 export interface ImageProps {
     imageData: ImageData | null
@@ -92,7 +92,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
 
-    private highlightedSegmentGraphics: PIXI.Graphics
+    private highlightedSegmentOutline: Line
 
     private highlightedSegmentFeatures: Record<number, Record<string, number>>
     private featureLegendVisible: boolean
@@ -112,7 +112,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         maxY: number | null
     }
     private selectionGraphics: PIXI.Graphics
-    private selectionSegmentGraphics: PIXI.Graphics
+    private selectionSegmentOutline: Line
 
     // If the renderer is full screened or not
     private fullScreen: boolean
@@ -134,13 +134,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.zoomInsetGraphics?.destroy(destroyOptions)
         this.zoomInsetGraphics = new PIXI.Graphics()
 
-        this.highlightedSegmentGraphics?.destroy(destroyOptions)
-        this.highlightedSegmentGraphics = new PIXI.Graphics()
+        this.highlightedSegmentOutline?.destroy(destroyOptions)
+        this.highlightedSegmentOutline = new Line()
 
         this.selectionGraphics?.destroy(destroyOptions)
         this.selectionGraphics = new PIXI.Graphics()
-        this.selectionSegmentGraphics?.destroy(destroyOptions)
-        this.selectionSegmentGraphics = new PIXI.Graphics()
+        this.selectionSegmentOutline?.destroy(destroyOptions)
+        this.selectionSegmentOutline = new Line()
     }
 
     public constructor(props: ImageProps) {
@@ -239,7 +239,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private clearSelectGraphics = (): void => {
         this.selectionGraphics.clear()
-        this.selectionSegmentGraphics.clear()
+        this.selectionSegmentOutline.clear()
     }
 
     private initializeSelectState = (): void => {
@@ -469,10 +469,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (state.active) {
             const stage = this.stage
             const selectionGraphics = this.selectionGraphics
-            const selectionSegmentGraphics = this.selectionSegmentGraphics
+            const selectionSegmentOutline = this.selectionSegmentOutline
             this.addPositionToSelection(state)
 
-            stage.removeChild(selectionGraphics, selectionSegmentGraphics)
+            stage.removeChild(selectionGraphics, selectionSegmentOutline)
 
             GraphicsHelper.drawSelectedRegion(
                 selectionGraphics,
@@ -489,17 +489,16 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             selectionGraphics.setTransform(0, 0, 1, 1)
 
             if (this.segmentationData != null) {
-                this.segmentationData.generateOutlineGraphics(
-                    selectionSegmentGraphics,
+                this.segmentationData.generateOutlines(
+                    selectionSegmentOutline,
                     state.selectionColor,
-                    SelectedSegmentOutlineWidth,
                     state.selectedSegments,
                 )
                 // Not correctly setting the alpha for some reason.
-                selectionSegmentGraphics.alpha = SelectedSegmentOutlineAlpha
+                selectionSegmentOutline.alpha = SelectedSegmentOutlineAlpha
             }
 
-            this.stage.addChild(selectionGraphics, selectionSegmentGraphics)
+            this.stage.addChild(selectionGraphics, selectionSegmentOutline)
 
             // Re-draw the legend and zoom inset graphics in case the user is selecting a region under the legend or zoom inset
             // Otherwise the region and segments render over the legend and zoom inset
@@ -763,6 +762,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Add segmentation outlines
             if (segmentationData.outlineGraphics) {
                 segmentationData.outlineGraphics.alpha = segmentationOutlineAlpha
+
+                // if ('lineAlpha' in segmentationData.outlineGraphics) {
+                //     segmentationData.outlineGraphics.lineAlpha = segmentationOutlineAlpha
+                // }
                 this.stage.addChild(segmentationData.outlineGraphics)
             }
 
@@ -796,7 +799,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                         stage.addChild(regionGraphics)
                     }
 
-                    const outlineGraphics = selectedPopulation.segmentGraphics
+                    const outlineGraphics = selectedPopulation.segmentOutline
                     if (outlineGraphics != null) {
                         outlineGraphics.alpha = outlineAlpha
                         stage.addChild(outlineGraphics)
@@ -808,16 +811,15 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Generates and adds segments highlighted/moused over on the graph.
     private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
-        this.stage.removeChild(this.highlightedSegmentGraphics)
+        this.stage.removeChild(this.highlightedSegmentOutline)
         if (this.segmentationData && highlightedSegments && highlightedSegments.length > 0) {
-            this.highlightedSegmentGraphics.clear()
-            this.segmentationData.generateOutlineGraphics(
-                this.highlightedSegmentGraphics,
+            this.highlightedSegmentOutline.clear()
+            this.segmentationData.generateOutlines(
+                this.highlightedSegmentOutline,
                 HighlightedSegmentOutlineColor,
-                SelectedSegmentOutlineWidth,
                 highlightedSegments,
             )
-            this.stage.addChild(this.highlightedSegmentGraphics)
+            this.stage.addChild(this.highlightedSegmentOutline)
         }
     }
 

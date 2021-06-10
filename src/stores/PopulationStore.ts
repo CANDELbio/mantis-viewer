@@ -8,12 +8,12 @@ import * as fs from 'fs'
 import { ImageSetStore } from './ImageSetStore'
 import { randomHexColor } from '../lib/ColorHelper'
 import { pixelIndexesToSprite } from '../lib/GraphicsUtils'
-import { SelectedSegmentOutlineWidth } from '../definitions/UIDefinitions'
 import { Db } from '../lib/Db'
 
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
 import { TiffWriter } from '../lib/TiffWriter'
+import { Line } from '../lib/pixi/Line'
 
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'
@@ -30,7 +30,7 @@ export interface SelectedPopulation {
     // The IDs of the selected segments
     selectedSegments: number[]
     regionGraphics?: PIXI.Sprite
-    segmentGraphics?: PIXI.Graphics
+    segmentOutline?: Line
 }
 
 export class PopulationStore {
@@ -160,7 +160,7 @@ export class PopulationStore {
             const color = population.color
             // Clear out the old graphics.
             const destroyOptions = { children: true, texture: true, baseTexture: true }
-            population.segmentGraphics?.destroy(destroyOptions)
+            population.segmentOutline?.destroy(destroyOptions)
             population.regionGraphics?.destroy(destroyOptions)
             // If this selection has pixel indexes (i.e. a region selected on the image)
             // Then we want to refresh the region graphics
@@ -177,16 +177,11 @@ export class PopulationStore {
             if (segmentationData) {
                 // If segmentation data is present then refresh the outline graphics for the segments in this selection
                 // Separate from the above region selected block for selections/populations loaded from csv
-                population.segmentGraphics = new PIXI.Graphics()
-                segmentationData.generateOutlineGraphics(
-                    population.segmentGraphics,
-                    color,
-                    SelectedSegmentOutlineWidth,
-                    population.selectedSegments,
-                )
+                population.segmentOutline = new Line()
+                segmentationData.generateOutlines(population.segmentOutline, color, population.selectedSegments)
             } else {
                 // If there isn't segmentation data present then delete the segment graphics for this selection.
-                delete population.segmentGraphics
+                delete population.segmentOutline
             }
         }
         return population

@@ -5,19 +5,15 @@ import { Mesh, DRAW_MODES, Renderer } from 'pixi.js'
 import LineGeometry, { ShapeData } from './LineGeometry'
 import LineShader from './LineShader'
 
-export interface LineOptions {
-    color: number
-}
-
 export interface PointData {
     x: number
     y: number
 }
 
 export class Line extends Mesh {
-    constructor(options: LineOptions) {
+    constructor() {
         const geometry = new LineGeometry()
-        const shader = new LineShader(options)
+        const shader = new LineShader()
 
         // @ts-ignore
         super(geometry, shader, null, DRAW_MODES.TRIANGLE_STRIP)
@@ -30,6 +26,10 @@ export class Line extends Mesh {
 
     addShape(shape: ShapeData): void {
         ;(this.geometry as LineGeometry).addShape(shape)
+    }
+
+    clear(): void {
+        ;(this.geometry as LineGeometry).clear()
     }
 
     update(): void {}
