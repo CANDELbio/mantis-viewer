@@ -231,7 +231,7 @@ export default class LineGeometry extends Geometry {
         doubleUpArray[index * 4 + 2] = point.x
         doubleUpArray[index * 4 + 3] = point.y
 
-        const length = joint ? 0 : 1
+        const length = joint ? 0 : 1.25
 
         directionArray[index * 2] = -length
         directionArray[index * 2 + 1] = length
