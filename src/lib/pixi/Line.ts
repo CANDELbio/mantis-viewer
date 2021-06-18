@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
 //import * as PIXI from 'pixi.js'
 import { Mesh, DRAW_MODES, Renderer } from 'pixi.js'
 import LineGeometry, { ShapeData } from './LineGeometry'
 import LineShader from './LineShader'
+
+export interface LineOptions {
+    color: number
+}
 
 export interface PointData {
     x: number
@@ -15,7 +18,7 @@ export class Line extends Mesh {
         const geometry = new LineGeometry()
         const shader = new LineShader()
 
-        // @ts-ignore
+        //@ts-ignore
         super(geometry, shader, null, DRAW_MODES.TRIANGLE_STRIP)
 
         this.state.depthTest = false
@@ -32,12 +35,14 @@ export class Line extends Mesh {
         ;(this.geometry as LineGeometry).clear()
     }
 
-    update(): void {}
+    updateColor(): void {
+        ;(this.geometry as LineGeometry).updateColor()
+    }
 
     render(renderer: Renderer): void {
         ;(this.geometry as LineGeometry).update()
 
-        // @ts-ignore
+        //@ts-ignore
         this.size = this.geometry.size
 
         //this.visible = points.length > 2;
@@ -51,7 +56,7 @@ export class Line extends Mesh {
 
     reset(): void {
         // TODO reset!
-        // @ts-ignore
+        //@ts-ignore
         this.geometry.reset()
     }
 }

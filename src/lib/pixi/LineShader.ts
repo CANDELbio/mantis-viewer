@@ -3,19 +3,19 @@ import frag from './line-shader.frag'
 import vert from './line-shader.vert'
 
 export default class LineShader extends Shader {
-    get alpha(): number {
-        return this.uniforms.alpha
+    constructor() {
+        super(Program.from(vert, frag), {
+            tint: [1, 1, 1, 1],
+            uDivisor: 2,
+            thickness: 0.5,
+            uAlpha: 1,
+        })
     }
 
     set alpha(value: number) {
-        this.uniforms.alpha = value
+        this.uniforms.uAlpha = value
     }
-
-    constructor() {
-        super(Program.from(vert, frag), {
-            uDivisor: 2,
-            thickness: 2,
-            alpha: 1,
-        })
+    get alpha(): number {
+        return this.uniforms.uAlpha
     }
 }

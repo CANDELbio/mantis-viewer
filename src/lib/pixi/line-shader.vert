@@ -17,6 +17,7 @@ uniform float uDivisor;
 void main()
 {
 	vColor = color;
+	vColor.rgb *= vColor.a;
 	
 	vec2 nextScreen = next; 
     vec2 posScreen = position;

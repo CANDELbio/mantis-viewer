@@ -1,7 +1,7 @@
 varying vec2 uv;
 varying vec4 vColor;
 varying float vThickness;
-uniform float alpha;
+uniform float uAlpha;
 
 uniform sampler2D target;
 
@@ -19,6 +19,5 @@ void main()
 	featherValue = smoothstep(0., 1., featherValue);
 	featherValue *= step(thing, edge);
 
-    gl_FragColor = vec4(1., 1., 1., 1.-featherValue) * vColor;
-	gl_FragColor *= alpha;
+    gl_FragColor = vec4(1., 1., 1., 1) * vColor * uAlpha;
 }

@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
-import { Geometry, DRAW_MODES, Buffer, TYPES } from 'pixi.js'
-// @ts-ignore
-import { hex2rgb } from '../../../node_modules/@pixi/utils'
+import { Buffer, DRAW_MODES, Geometry, TYPES, utils } from 'pixi.js'
+
 import { PointData } from './Line'
 
 export interface ShapeData {
@@ -28,6 +26,8 @@ export default class LineGeometry extends Geometry {
     shapes: ShapeData[]
     private _dirty: boolean
     private _colorDirty: boolean
+    private _size = -1
+    private _session: RenderData
 
     constructor() {
         super()
@@ -41,12 +41,13 @@ export default class LineGeometry extends Geometry {
             .addAttribute('color', [], 4, true, TYPES.UNSIGNED_BYTE, 0, 0)
         //	.addIndex([]);
 
-        // @ts-ignore
+        //@ts-ignore
         this.drawMode = DRAW_MODES.TRIANGLE_STRIP
 
         this.shapes = []
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     init(): void {}
 
     addShape(shape: ShapeData): void {
@@ -56,6 +57,10 @@ export default class LineGeometry extends Geometry {
 
     clear(): void {
         this.shapes = []
+    }
+
+    updateShape(): void {
+        this._dirty = true
     }
 
     updateColor(): void {
@@ -88,43 +93,39 @@ export default class LineGeometry extends Geometry {
         for (let i = 0; i < this.shapes.length; i++) {
             const shape = this.shapes[i]
 
-            if (
-                shape._start &&
-                shape._size &&
-                (shape._colorCache !== shape.color || shape._alphaCache !== shape.alpha)
-            ) {
+            if (shape._colorCache !== shape.color || shape._alphaCache !== shape.alpha) {
                 shape._colorCache = shape.color
                 shape._alphaCache = shape.alpha
+
+                //@ts-ignore
                 let index = shape._start * 4 * 2
 
-                const color = hex2rgb(shape.color, tempRGB)
+                const color = utils.hex2rgb(shape.color, tempRGB)
 
-                console.log(color)
-
+                //@ts-ignore
                 for (let j = 0; j < shape._size; j++) {
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[0] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[1] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[2] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = shape.alpha * 255
 
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[0] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[1] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = color[2] * 255
-                    /* @ts-ignore */
+                    //@ts-ignore
                     colorArray[index++] = shape.alpha * 255
                 }
             }
         }
 
         colorBuffer.update()
-        console.log(colorArray)
     }
 
     private _buildLine(): void {
@@ -134,12 +135,19 @@ export default class LineGeometry extends Geometry {
 
         const size = this._calculateBufferSize()
 
-        const session: RenderData = {
-            doubleUpArray: new Float32Array(size * 4),
-            directionArray: new Float32Array(size * 2),
-            colors: new Uint8Array(size * 4 * 2),
-            index: 0,
+        if (this._size !== size) {
+            this._size = size
+            this._session = {
+                doubleUpArray: new Float32Array(size * 4),
+                directionArray: new Float32Array(size * 2),
+                colors: new Uint8Array(size * 4 * 2),
+                index: 0,
+            }
         }
+
+        const session = this._session
+
+        session.index = 0
 
         let lastPoint = null
 
@@ -152,7 +160,7 @@ export default class LineGeometry extends Geometry {
 
             shape._start = session.index
 
-            hex2rgb(shape.color, color)
+            utils.hex2rgb(shape.color, color)
 
             if (lastPoint) {
                 // join!
@@ -190,16 +198,16 @@ export default class LineGeometry extends Geometry {
             shape._size = session.index - shape._start
         }
 
-        /* @ts-ignore */
+        //@ts-ignore
         this._addPoint(lastPoint, color, session, false)
 
         buffer.update(session.doubleUpArray)
         directionBuffer.update(session.directionArray)
         colorBuffer.update(session.colors)
 
-        /* @ts-ignore */
+        //@ts-ignore
         this.start = 2
-        /* @ts-ignore */
+        //@ts-ignore
         this.size = size * 2 - 4 - 2
     }
 
@@ -223,7 +231,7 @@ export default class LineGeometry extends Geometry {
         doubleUpArray[index * 4 + 2] = point.x
         doubleUpArray[index * 4 + 3] = point.y
 
-        const length = joint ? 0 : 0.5
+        const length = joint ? 0 : 1
 
         directionArray[index * 2] = -length
         directionArray[index * 2 + 1] = length
