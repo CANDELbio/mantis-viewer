@@ -308,14 +308,16 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
-                if (region.id == id) {
-                    region.selectedSegments = segments
-                    return region
-                } else {
-                    return region
-                }
-            })
+            this.selectedPopulations = this.selectedPopulations.slice().map(
+                (region): SelectedPopulation => {
+                    if (region.id == id) {
+                        region.selectedSegments = segments
+                        return this.refreshGraphics(region)
+                    } else {
+                        return region
+                    }
+                },
+            )
         }
     }
 
