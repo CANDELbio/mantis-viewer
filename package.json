@@ -34,7 +34,15 @@
             "allowElevation": false
         },
         "linux": {
-            "target": "AppImage",
+            "target": [
+                {
+                    "target": "AppImage"
+                },
+                {
+                    "target": "deb"
+                }
+            ],
+            "maintainer": "engineering@parkerici.org",
             "category": "Development"
         }
     },
