@@ -88,7 +88,6 @@ export const SelectedRegionAlpha = 0.4
 export const HighlightedSelectedRegionAlpha = 0.6
 export const SelectedSegmentOutlineAlpha = 0.7
 export const HighlightedSelectedSegmentOutlineAlpha = 1.0
-export const SelectedSegmentOutlineWidth = 2.0
 export const SegmentOutlineWidth = 1.0 // For all segments
 export const DefaultSegmentOutlineAlpha = 0.7
 export const DefaultSegmentFillAlpha = 0.0

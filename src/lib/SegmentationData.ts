@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { drawOutlines } from './GraphicsUtils'
-import { UnselectedCentroidColor, SegmentOutlineColor, SegmentOutlineWidth } from '../definitions/UIDefinitions'
+import { UnselectedCentroidColor, SegmentOutlineColor } from '../definitions/UIDefinitions'
 import { drawCentroids } from './GraphicsUtils'
 import {
     SegmentationDataWorkerResult,
@@ -9,6 +9,7 @@ import {
     SegmentationDataWorkerError,
 } from '../workers/SegmentationDataWorker'
 import { submitSegmentationDataJob } from '../workers/SegmentationDataWorkerPool'
+import { Line } from './pixi/Line'
 
 export class SegmentationData {
     public width: number
@@ -24,7 +25,7 @@ export class SegmentationData {
     public centroidMap: Record<number, Coordinate>
     // PIXI Sprite of random colored fills for the segments
     public fillSprite: PIXI.Sprite
-    public outlineGraphics: PIXI.Graphics
+    public outlineGraphics: Line
     public centroidGraphics: PIXI.Graphics
 
     public errorMessage: string | null
@@ -32,12 +33,7 @@ export class SegmentationData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (segmentationData: SegmentationData) => void
 
-    public generateOutlineGraphics(
-        outlineGraphics: PIXI.Graphics,
-        color: number,
-        width: number,
-        segments?: number[],
-    ): void {
+    public generateOutlines(line: Line, color: number, segments?: number[]): void {
         const outlines = []
         for (const segment in this.segmentOutlineMap) {
             const segmentId = Number(segment)
@@ -47,7 +43,7 @@ export class SegmentationData {
                 outlines.push(this.segmentOutlineMap[segmentId])
             }
         }
-        drawOutlines(outlineGraphics, outlines, color, width)
+        drawOutlines(line, outlines, color)
     }
 
     public segmentsInRegion(regionPixelIndexes: number[]): number[] {
@@ -81,8 +77,14 @@ export class SegmentationData {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         this.fillSprite = PIXI.Sprite.from(fData.fillBitmap)
-        this.outlineGraphics = new PIXI.Graphics()
-        this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
+
+        // Comment/uncomment following four lines to switch between graphics and line
+        this.outlineGraphics = new Line()
+        this.generateOutlines(this.outlineGraphics, SegmentOutlineColor)
+
+        // Comment/uncomment following two lines to switch between graphics and line
+        // this.outlineGraphics = new PIXI.Graphics()
+        // this.generateOutlineGraphics(this.outlineGraphics, SegmentOutlineColor, SegmentOutlineWidth)
         this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)
         this.onReady(this)
     }

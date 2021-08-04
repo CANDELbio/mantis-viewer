@@ -52,6 +52,10 @@ module.exports = {
                 loader: 'file-loader',
             },
             {
+                test: /\.(vert|frag)$/i,
+                use: 'raw-loader',
+            },
+            {
                 enforce: 'pre',
                 test: /\.js?$/,
                 loader: 'source-map-loader',

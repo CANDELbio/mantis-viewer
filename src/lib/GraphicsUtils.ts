@@ -6,6 +6,7 @@ import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
+import { Line, PointData } from './pixi/Line'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
@@ -105,26 +106,15 @@ export function findSegmentsInSelection(
 // Expects an array containing arrays of pixel locations.
 // Each array of pixel locations should be the coordinates of the outline.
 // The easiest way to get these is from the SegmentationData segmentOutlineMap
-export function drawOutlines(
-    outlineGraphics: PIXI.Graphics,
-    outlines: Coordinate[][],
-    color: number,
-    width: number,
-    alignment = 0.5,
-): void {
-    // Always set the alpha to 1.0 and adjust it elsewhere
-    // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
-    outlineGraphics.lineStyle(width, color, 1, alignment)
+export function drawOutlines(line: Line, outlines: Coordinate[][], color: number): void {
     for (const outline of outlines) {
-        const start = outline[0]
-        outlineGraphics.moveTo(start.x, start.y)
-        for (let i = 1; i < outline.length; i++) {
-            const point = outline[i]
-            outlineGraphics.lineTo(point.x, point.y)
-        }
+        // Always set the alpha to 1.0 and adjust it elsewhere
+        // Otherwise PIXI is funny with calculating alpha, and it becomes difficult to set to 1.0 later
+        line.addShape({ points: outline as PointData[], color: color, alpha: 1 })
     }
 }
 
+// TODO: move this to a .frag file and load with raw-loader like line-shader.frag
 // Generating brightness filter code for the passed in channel.
 export function generateBrightnessFilterCode(): string {
     const filterCode = `
