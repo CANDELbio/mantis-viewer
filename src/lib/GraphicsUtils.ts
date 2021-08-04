@@ -114,6 +114,7 @@ export function drawOutlines(line: Line, outlines: Coordinate[][], color: number
     }
 }
 
+// TODO: move this to a .frag file and load with raw-loader like line-shader.frag
 // Generating brightness filter code for the passed in channel.
 export function generateBrightnessFilterCode(): string {
     const filterCode = `

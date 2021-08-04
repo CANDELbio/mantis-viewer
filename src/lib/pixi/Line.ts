@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-ignore */
+// TODO: Move this into it's own library.
 //import * as PIXI from 'pixi.js'
 import { Mesh, DRAW_MODES, Renderer } from 'pixi.js'
 import LineGeometry, { ShapeData } from './LineGeometry'

@@ -762,10 +762,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Add segmentation outlines
             if (segmentationData.outlineGraphics) {
                 segmentationData.outlineGraphics.alpha = segmentationOutlineAlpha
-
-                // if ('lineAlpha' in segmentationData.outlineGraphics) {
-                //     segmentationData.outlineGraphics.lineAlpha = segmentationOutlineAlpha
-                // }
                 this.stage.addChild(segmentationData.outlineGraphics)
             }
 
