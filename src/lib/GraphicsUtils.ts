@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import * as d3Scale from 'd3-scale'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
@@ -114,29 +115,6 @@ export function drawOutlines(line: Line, outlines: Coordinate[][], color: number
     }
 }
 
-// TODO: move this to a .frag file and load with raw-loader like line-shader.frag
-// Generating brightness filter code for the passed in channel.
-export function generateBrightnessFilterCode(): string {
-    const filterCode = `
-    varying vec2 vTextureCoord;
-    varying vec4 vColor;
-
-    uniform sampler2D uSampler;
-    uniform vec4 uTextureClamp;
-    uniform vec4 uColor;
-
-    uniform float b;
-    uniform float m;
-
-    void main(void)
-    {
-        gl_FragColor = texture2D(uSampler, vTextureCoord);
-        gl_FragColor.rgb = min((gl_FragColor.rgb * m) + b, 1.0);
-    }`
-
-    return filterCode
-}
-
 export function generateBrightnessFilterUniforms(
     channelName: ChannelName,
     imcData: ImageData,
@@ -151,15 +129,18 @@ export function generateBrightnessFilterUniforms(
     if (marker) {
         const channelMinMax = imcData.minmax[marker]
         if (channelMinMax) {
-            const channelMax = channelMinMax.max
+            const intensityScale = d3Scale
+                .scaleLinear()
+                .domain([channelMinMax.min, channelMinMax.max])
+                .range([0.0, 1.0])
 
-            // Using slider values to generate m and b for a linear transformation (y = mx + b).
-            const b = curChannelDomain[0] === 0 ? 0 : curChannelDomain[0] / channelMax
-            const m = curChannelDomain[1] === 0 ? 0 : channelMax / (curChannelDomain[1] - curChannelDomain[0])
+            // Convert from MinMax domain to 0,1
+            const transformMin = intensityScale(curChannelDomain[0])
+            const transformMax = intensityScale(curChannelDomain[1])
 
             return {
-                m: m,
-                b: b,
+                transformMin: transformMin,
+                transformMax: transformMax,
             }
         }
     }

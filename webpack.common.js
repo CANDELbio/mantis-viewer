@@ -52,7 +52,7 @@ module.exports = {
                 loader: 'file-loader',
             },
             {
-                test: /\.(vert|frag)$/i,
+                test: /\.(vert|frag|glsl)$/i,
                 use: 'raw-loader',
             },
             {

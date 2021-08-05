@@ -22,6 +22,7 @@ import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { Line } from '../lib/pixi/Line'
+import brightnessFilter from '../lib/brightness-filter.glsl'
 
 export interface ImageProps {
     imageData: ImageData | null
@@ -712,7 +713,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const imcData = this.imageData
         if (imcData) {
             const channelMarker = this.channelMarker
-            const filterCode = GraphicsHelper.generateBrightnessFilterCode()
             const curMarker = channelMarker[curChannel]
             if (curMarker != null) {
                 const sprite = imcData.sprites[curMarker]
@@ -723,12 +723,12 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                     channelDomain,
                 )
                 if (sprite && uniforms) {
-                    const brightnessFilter = new PIXI.Filter(undefined, filterCode, uniforms)
+                    const filter = new PIXI.Filter(undefined, brightnessFilter, uniforms)
                     // Delete sprite filters so they get cleared from memory before adding new ones
                     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     //@ts-ignore
                     sprite.filters = null
-                    sprite.filters = [brightnessFilter, this.channelFilters[curChannel]]
+                    sprite.filters = [filter, this.channelFilters[curChannel]]
                     this.stage.addChild(sprite)
                 }
             }
