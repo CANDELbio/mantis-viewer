@@ -12,6 +12,7 @@ import {
     exportPopulationsToFCS,
     parseActivePopulationCSV,
     parseProjectPopulationCSV,
+    parseGateCSV,
     writeToCSV,
 } from '../lib/IO'
 
@@ -550,6 +551,59 @@ export class ProjectStore {
             }
         }
         writeToCSV(projectPopulationArray, filePath, null)
+    }
+
+    public importGatesFromCSV = (filePath: string): void => {
+        const gates = parseGateCSV(filePath)
+        // Mapping of population name to colors to be used for gates with that name.
+        const gateColorMap: Record<string, number> = {}
+        // Iterate through all of the gates
+        for (const gateName in gates) {
+            const gateFeatures = gates[gateName]
+            // Iterate through all of the image sets in the project.
+            // Need to create each gate as a population for each image set.
+            for (const imageSetPath of this.imageSetPaths) {
+                const imageSet = this.imageSets[imageSetPath]
+                const imageSetName = path.basename(imageSetPath)
+                let gateSegmentIds: number[] | undefined = undefined
+                // Iterate through all the features in the current gate.
+                for (const feature in gateFeatures) {
+                    const featureRange = gateFeatures[feature]
+                    // Find the segments in the range for the feature and min/max values for the gate
+                    const featureSegmentIds = this.segmentFeatureStore.segmentsInRange(
+                        imageSetName,
+                        feature,
+                        featureRange.min,
+                        featureRange.max,
+                    )
+                    // Create/update the set of segment ids for this gate and features.
+                    if (gateSegmentIds == undefined) {
+                        gateSegmentIds = featureSegmentIds
+                    } else {
+                        gateSegmentIds = gateSegmentIds.filter(function (x) {
+                            // checking second array contains the element "x"
+                            if (featureSegmentIds.indexOf(x) != -1) {
+                                return true
+                            } else {
+                                return false
+                            }
+                        })
+                    }
+                }
+                // If the gate segment id set was created, create a population from it.
+                if (gateSegmentIds) {
+                    const populationStore = imageSet.populationStore
+                    const populationColor = gateColorMap[gateName]
+                    const newPopulation = populationStore.createPopulationFromSegments(
+                        gateSegmentIds,
+                        gateName,
+                        populationColor,
+                    )
+                    // Store the color of the created population in the color map if we haven't already
+                    if (!(gateName in gateColorMap)) gateColorMap[gateName] = newPopulation.color
+                }
+            }
+        }
     }
 
     @action clearImportingSegmentFeaturesValues = (): void => {

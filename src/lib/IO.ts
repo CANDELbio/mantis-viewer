@@ -5,6 +5,7 @@ import * as parseCSV from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
+import { MinMax } from '../interfaces/ImageInterfaces'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -170,6 +171,31 @@ export function parseProjectPopulationCSV(filename: string): Record<string, Reco
     }
 
     return populations
+}
+
+// Returns a map of gates parsed from CSV
+// The first map is gate names to features
+// The second map is feature name to min/max values for that feature.
+export function parseGateCSV(filename: string): Record<string, Record<string, MinMax>> {
+    const input = fs.readFileSync(filename, 'utf8')
+
+    const gates: Record<string, Record<string, MinMax>> = {}
+    const records: string[][] = parseCSV(input, { columns: false })
+
+    for (const row of records) {
+        const featureName = row[0].trim()
+        const featureMin = Number(row[1])
+        const featureMax = Number(row[2])
+        let gateName = row[3]
+        // Check to make sure imageSetName is not empty, segmentId is a proper number and populationName is not empty.
+        if (featureName && !isNaN(featureMin) && !isNaN(featureMax)) {
+            gateName = gateName ? gateName : featureName + ' ' + featureMin.toString() + ' - ' + featureMax.toString()
+            if (!(gateName in gates)) gates[gateName] = {}
+            gates[gateName][featureName] = { min: featureMin, max: featureMax }
+        }
+    }
+
+    return gates
 }
 
 // Expects input CSV at file path to have a header.

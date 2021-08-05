@@ -275,6 +275,16 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                 },
                             ],
                         },
+                        {
+                            label: 'Gates from CSV',
+                            enabled: imageLoaded && segmentationLoaded,
+                            click: showOpenFileDialogCallback(
+                                'add-gates-csv',
+                                'Select Gates CSV',
+                                activeImageDirectory,
+                                ['csv', 'txt'],
+                            ),
+                        },
                     ],
                 },
                 {

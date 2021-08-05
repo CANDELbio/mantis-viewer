@@ -33,6 +33,10 @@ ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: strin
     projectStore.setSegmentationBasename(filePath, true)
 })
 
+ipcRenderer.on('add-gates-csv', (event: Electron.Event, filePath: string): void => {
+    projectStore.importGatesFromCSV(filePath)
+})
+
 ipcRenderer.on('add-populations-csv', (event: Electron.Event, filePath: string): void => {
     projectStore.importActivePopulationsFromCSV(filePath)
 })
