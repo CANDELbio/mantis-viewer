@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.0-beta.1",
+    "version": "1.2.0-beta.3",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
@@ -126,6 +126,7 @@
         "electron-devtools-installer": "^3.1.1",
         "electron-is-dev": "^1.2.0",
         "electron-store": "^5.2.0",
+        "geotiff": "^1.0.4",
         "jquery": "^3.4.1",
         "mobx": "^5.15.7",
         "mobx-react": "^5.4.4",
