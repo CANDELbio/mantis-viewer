@@ -181,7 +181,10 @@ export class SegmentFeatureStore {
     activeFeatureMinMaxes(feature: string | null): MinMax | null {
         const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName && feature) {
-            const minMaxes = get(this.minMaxes, activeImageSetName)
+            let minMaxes = get(this.minMaxes, activeImageSetName)
+            if (!minMaxes) {
+                minMaxes = this.db?.minMaxValues([activeImageSetName], feature)
+            }
             return minMaxes[feature]
         } else {
             return null
