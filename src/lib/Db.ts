@@ -1,7 +1,6 @@
 import sqlite3 = require('better-sqlite3')
 
 import * as path from 'path'
-import { result } from 'underscore'
 
 import { DbFilename } from '../definitions/FileDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
