@@ -63,7 +63,7 @@ You will also need to edit the file `package.json` and change the postinstall sc
 Now we can actually install the packages. Navigate to the project directory on the command line and run the following commands.
 
 ```shell
-rm package-lock.json
+npm install better-sqlite3 --no-save
 npm install
 xcopy .\node_modules\better-sqlite3\build\Release .\Release\ /E/H
 ```
@@ -71,7 +71,6 @@ xcopy .\node_modules\better-sqlite3\build\Release .\Release\ /E/H
 Once you've done this you can build the application and then package it for distribution.
 
 ```shell
-npm run build
 npm run dist-win
 ```
 
