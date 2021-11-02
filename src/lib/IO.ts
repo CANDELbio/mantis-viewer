@@ -152,21 +152,26 @@ export function parseActivePopulationCSV(filename: string): Record<string, numbe
 // Returns a map of populations parsed from CSV
 // The first map is image to populations
 // The second map is population name to segment ids.
-export function parseProjectPopulationCSV(filename: string): Record<string, Record<string, number[]>> {
+export function parseProjectPopulationCSV(
+    filename: string,
+): Record<string, Record<string, { segments: number[]; color: number | null }>> {
     const input = fs.readFileSync(filename, 'utf8')
 
-    const populations: Record<string, Record<string, number[]>> = {}
+    const populations: Record<string, Record<string, { segments: number[]; color: number | null }>> = {}
     const records: string[][] = parseCSV(input, { columns: false })
 
     for (const row of records) {
         const imageSetName = row[0]
         const segmentId = Number(row[1])
         const populationName = row[2]
+        const populationColor = Number(row[3])
         // Check to make sure imageSetName is not empty, segmentId is a proper number and populationName is not empty.
         if (imageSetName && !isNaN(segmentId) && populationName) {
             if (!(imageSetName in populations)) populations[imageSetName] = {}
-            if (!(populationName in populations[imageSetName])) populations[imageSetName][populationName] = []
-            populations[imageSetName][populationName].push(segmentId)
+            if (!(populationName in populations[imageSetName]))
+                populations[imageSetName][populationName] = { segments: [], color: null }
+            if (populationColor != NaN) populations[imageSetName][populationName].color = populationColor
+            populations[imageSetName][populationName].segments.push(segmentId)
         }
     }
 

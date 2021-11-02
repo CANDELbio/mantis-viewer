@@ -511,9 +511,12 @@ export class ProjectStore {
                 if (imageSet) {
                     const populationStore = imageSet.populationStore
                     for (const populationName in imageSetPopulations) {
-                        const populationColor = populationColorMap[populationName]
+                        const currentPopulation = imageSetPopulations[populationName]
+                        const populationColor = currentPopulation.color
+                            ? currentPopulation.color
+                            : populationColorMap[populationName]
                         const newPopulation = populationStore.createPopulationFromSegments(
-                            imageSetPopulations[populationName],
+                            currentPopulation.segments,
                             populationName,
                             populationColor,
                         )
