@@ -40,6 +40,7 @@ export interface ImageProps {
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
     highlightedSegmentsFromPlot: number[]
+    highlightedSegmentsFromImage: number[]
     exportPath: string | null
     onExportComplete: () => void
     channelLegendVisible: boolean
@@ -49,6 +50,7 @@ export interface ImageProps {
     onWebGLContextLoss: () => void
     setHighlightedPixel: (location: Coordinate | null) => void
     highlightedSegmentFeatures: Record<number, Record<string, number>>
+    highlightedSegmentPopulations: Record<number, string[]>
     featureLegendVisible: boolean
 }
 
@@ -95,7 +97,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     private highlightedSegmentOutline: Line
 
+    private highlightedSegmentsFromImage: number[]
     private highlightedSegmentFeatures: Record<number, Record<string, number>>
+    private highlightedSegmentPopulations: Record<number, string[]>
     private featureLegendVisible: boolean
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
@@ -204,7 +208,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.initializeSelectState()
         this.initializePanState()
         this.fullScreen = false
+        this.highlightedSegmentsFromImage = []
         this.highlightedSegmentFeatures = {}
+        this.highlightedSegmentPopulations = []
     }
 
     private removeWebGLContextLostListener = (el: HTMLDivElement): void => {
@@ -845,7 +851,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 this.populationLegendVisible,
                 this.selectedPopulations,
                 this.featureLegendVisible,
+                this.highlightedSegmentsFromImage,
                 this.highlightedSegmentFeatures,
+                this.highlightedSegmentPopulations,
             )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -996,7 +1004,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         selectedPopulations: SelectedPopulation[] | null,
         highlightedPopulations: string[],
         highlightedSegmentsFromGraph: number[],
+        highlightedSegmentsFromImage: number[],
         highlightedSegmentFeatures: Record<number, Record<string, number>>,
+        highlightedSegmentPopulations: Record<number, string[]>,
         exportPath: string | null,
         channelLegendVisible: boolean,
         populationLegendVisible: boolean,
@@ -1058,13 +1068,19 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
 
         // Load graphics for any highlighted segments
-        const highlightedSegments = highlightedSegmentsFromGraph.concat(
-            Object.keys(highlightedSegmentFeatures).map(Number.parseInt),
-        )
+        const highlightedSegments = highlightedSegmentsFromGraph.concat(highlightedSegmentsFromImage)
         this.loadHighlightedSegmentGraphics(highlightedSegments)
+
+        if (this.highlightedSegmentsFromImage != highlightedSegmentsFromImage) {
+            this.highlightedSegmentsFromImage = highlightedSegmentsFromImage
+        }
 
         if (this.highlightedSegmentFeatures != highlightedSegmentFeatures) {
             this.highlightedSegmentFeatures = highlightedSegmentFeatures
+        }
+
+        if (this.highlightedSegmentPopulations != highlightedSegmentPopulations) {
+            this.highlightedSegmentPopulations = highlightedSegmentPopulations
         }
         // Create the legend for which markers are being displayed
         this.channelLegendVisible = channelLegendVisible
@@ -1135,8 +1151,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         const highlightedPopulations = this.props.highlightedPopulations
 
         const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
-
+        const highlightedSegmentsFromImage = this.props.highlightedSegmentsFromImage
         const highlightedSegmentFeatures = this.props.highlightedSegmentFeatures
+        const highlightedSegmentPopulations = this.props.highlightedSegmentPopulations
         const featureLegendVisible = this.props.featureLegendVisible
 
         const exportPath = this.props.exportPath
@@ -1170,7 +1187,9 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                                     selectedPopulations,
                                     highlightedPopulations,
                                     highlightedSegmentsFromGraph,
+                                    highlightedSegmentsFromImage,
                                     highlightedSegmentFeatures,
+                                    highlightedSegmentPopulations,
                                     exportPath,
                                     channelLegendVisible,
                                     populationLegendVisible,

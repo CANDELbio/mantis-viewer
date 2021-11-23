@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { observable, action, autorun } from 'mobx'
+import { observable, action, autorun, computed } from 'mobx'
 import * as shortId from 'shortid'
 import * as _ from 'underscore'
 import * as path from 'path'
@@ -61,6 +61,26 @@ export class PopulationStore {
             this.selectedPopulations = this.db.getSelections(imageSetName)
             this.refreshAllGraphics()
         }
+    }
+
+    // Computed function that gets the populations for any segments that are being moused over on the image.
+    // Returns a map of segment id to a list of the population ids that it belongs to.
+    @computed get activeHighlightedSegmentPopulations(): Record<number, string[]> {
+        const highlightedPopulations: Record<number, string[]> = {}
+        const imageSetStore = this.imageSetStore
+        const segmentationStore = imageSetStore.segmentationStore
+        const highlightedSegments = segmentationStore.activeHighlightedSegments
+        if (highlightedSegments) {
+            for (const highlightedSegment of highlightedSegments) {
+                highlightedPopulations[highlightedSegment] = []
+                for (const population of this.selectedPopulations) {
+                    if (population.selectedSegments.includes(highlightedSegment)) {
+                        highlightedPopulations[highlightedSegment].push(population.id)
+                    }
+                }
+            }
+        }
+        return highlightedPopulations
     }
 
     // Automatically imports a region tiff file if it's set on the setting store.

@@ -191,7 +191,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedPopulations={populationStore.selectedPopulations}
                 highlightedPopulations={populationStore.highlightedPopulations}
                 highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                highlightedSegmentsFromImage={segmentationStore.activeHighlightedSegments}
                 highlightedSegmentFeatures={segmentFeatureStore.activeHighlightedSegmentFeatures}
+                highlightedSegmentPopulations={populationStore.activeHighlightedSegmentPopulations}
                 exportPath={imageStore.imageExportFilename}
                 onExportComplete={imageStore.clearImageExportFilePath}
                 channelLegendVisible={settingStore.channelLegendVisible}

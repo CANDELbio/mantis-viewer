@@ -97,7 +97,7 @@ export class ImageControls extends React.Component<ImageControlsProps, {}> {
                 />
                 <Checkbox
                     checked={this.props.featureLegendVisible}
-                    label="Show Segment Feature Legend"
+                    label="Show Segment Summary Legend"
                     onChange={this.onFeatureLegendVisibilityChange}
                 />
                 <Checkbox

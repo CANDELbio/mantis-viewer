@@ -1,9 +1,10 @@
-import { observable, action, autorun } from 'mobx'
+import { observable, action, autorun, computed } from 'mobx'
 import * as path from 'path'
 import * as fs from 'fs'
 
 import { SegmentationData } from '../lib/SegmentationData'
 import { ImageSetStore } from './ImageSetStore'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 
 export class SegmentationStore {
     public constructor(imageSetStore: ImageSetStore) {
@@ -38,6 +39,22 @@ export class SegmentationStore {
             }
         }
     })
+
+    // Computed function that gets the segment features selected on the plot for any segments that are being moused over on the image.
+    // Used to display a segment summary of the plotted features for moused over segments
+    @computed get activeHighlightedSegments(): number[] {
+        const imageSetStore = this.imageSetStore
+        const projectStore = imageSetStore.projectStore
+        const segmentationStore = imageSetStore.segmentationStore
+        const highlightedPixel = projectStore.highlightedPixel
+        const segmentationData = segmentationStore.segmentationData
+        if (highlightedPixel && segmentationData) {
+            const highlightedPixelMapKey = generatePixelMapKey(highlightedPixel.x, highlightedPixel.y)
+            const highlightedSegments = segmentationData.pixelMap[highlightedPixelMapKey]
+            if (highlightedSegments) return highlightedSegments
+        }
+        return []
+    }
 
     @action private initialize = (): void => {
         this.segmentationDataLoading = false

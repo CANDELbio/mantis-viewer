@@ -226,8 +226,10 @@ export function drawLegend(
     channelVisibility: Record<ChannelName, boolean>,
     populationsOnLegend: boolean,
     populations: SelectedPopulation[] | null,
-    segmentFeaturesOnLegend: boolean,
+    segmentSummaryOnLegend: boolean,
+    highlightedSegments: number[],
     highlightedSegmentFeatures: Record<number, Record<string, number>>,
+    highlightedSegmentPopulations: Record<number, string[]>,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -292,12 +294,20 @@ export function drawLegend(
             }
         }
     }
-    const highlightedSegments = Object.keys(highlightedSegmentFeatures)
-    if (segmentFeaturesOnLegend && highlightedSegments.length > 0) {
+
+    if (segmentSummaryOnLegend && highlightedSegments.length > 0) {
         if (legendText.length > 0) textHeight += spacerHeight
-        for (const segmentIdStr of highlightedSegments) {
-            addText('Segment ' + segmentIdStr, 0xffffff)
-            const segmentId = Number.parseInt(segmentIdStr)
+        for (const segmentId of highlightedSegments) {
+            addText('Segment ' + segmentId, 0xffffff)
+            // Create population names for populations that the highlighted segment belongs to.
+            if (populations != null) {
+                const segmentPopulations = highlightedSegmentPopulations[segmentId]
+                for (const population of populations) {
+                    if (segmentPopulations.includes(population.id)) {
+                        addText(population.name, population.color)
+                    }
+                }
+            }
             const segmentFeatures = highlightedSegmentFeatures[segmentId]
             for (const segmentFeature of Object.keys(segmentFeatures)) {
                 const segmentFeatureValue = segmentFeatures[segmentFeature]

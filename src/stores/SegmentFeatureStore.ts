@@ -5,7 +5,6 @@ import { observable, action, autorun, set, get, computed, runInAction } from 'mo
 import { computedFn } from 'mobx-utils'
 
 import { SegmentFeatureGenerator } from '../lib/SegmentFeatureGenerator'
-import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { Db } from '../lib/Db'
 import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
@@ -134,12 +133,10 @@ export class SegmentFeatureStore {
         const imageSetStore = projectStore.activeImageSetStore
         const activeImageSetName = imageSetStore.name
         const segmentationStore = imageSetStore.segmentationStore
-        const highlightedPixel = projectStore.highlightedPixel
         const segmentationData = segmentationStore.segmentationData
-        if (highlightedPixel && segmentationData) {
+        const highlightedSegments = segmentationStore.activeHighlightedSegments
+        if (segmentationData && highlightedSegments.length > 0) {
             const activeValues: Record<string, Record<number, number>> = get(this.values, activeImageSetName)
-            const highlightedPixelMapKey = generatePixelMapKey(highlightedPixel.x, highlightedPixel.y)
-            const highlightedSegments = segmentationData.pixelMap[highlightedPixelMapKey]
             const featuresToFetch = this.selectedPlotFeatures()
             if (activeValues && highlightedSegments) {
                 for (const segment of highlightedSegments) {
