@@ -58,6 +58,11 @@ export class ProjectStore {
     // Used to show segment stats and pixel stats.
     @observable public highlightedPixel: Coordinate | null
 
+    // Used when a user right clicks a segment and requests to edit the populations.
+    // When set to a number opens a modal where the populations can be edited.
+    // When set to null closes the editing modal.
+    @observable public editingPopulationsSegmentId: number | null
+
     // Used when a user requests to cancel a long running process
     // (e.g. importing, generating, and exporting segment features for multiple images)
     @observable public cancelTask: boolean
@@ -348,6 +353,14 @@ export class ProjectStore {
 
     @action setHighlightedPixel = (location: Coordinate | null): void => {
         this.highlightedPixel = location
+    }
+
+    @action setEditingPopulationsSegmentId = (segmentId: number | null): void => {
+        this.editingPopulationsSegmentId = segmentId
+    }
+
+    @action clearEditingPopulationSegmentId = (): void => {
+        this.editingPopulationsSegmentId = null
     }
 
     @action setCancelTask = (value: boolean): void => {

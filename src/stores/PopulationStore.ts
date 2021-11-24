@@ -439,4 +439,38 @@ export class PopulationStore {
     @action public setSelectedFeatureForNewPopulation = (feature: string | null): void => {
         this.selectedFeatureForNewPopulation = feature
     }
+
+    // TODO: DRY up all of the functions that use slice.map to update the populations
+    @action public removeSegmentFromPopulation = (segment: number, id: string): void => {
+        if (this.selectedPopulations != null) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(
+                (region): SelectedPopulation => {
+                    if (region.id == id) {
+                        const index = region.selectedSegments.indexOf(segment)
+                        if (index > -1) {
+                            region.selectedSegments.splice(index, 1)
+                        }
+                        return this.refreshGraphics(region)
+                    } else {
+                        return region
+                    }
+                },
+            )
+        }
+    }
+
+    @action public addSegmentToPopulation = (segment: number, id: string): void => {
+        if (this.selectedPopulations != null) {
+            this.selectedPopulations = this.selectedPopulations.slice().map(
+                (region): SelectedPopulation => {
+                    if (region.id == id) {
+                        region.selectedSegments.push(segment)
+                        return this.refreshGraphics(region)
+                    } else {
+                        return region
+                    }
+                },
+            )
+        }
+    }
 }

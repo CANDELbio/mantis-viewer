@@ -302,17 +302,21 @@ export function drawLegend(
             // Create population names for populations that the highlighted segment belongs to.
             if (populations != null) {
                 const segmentPopulations = highlightedSegmentPopulations[segmentId]
-                for (const population of populations) {
-                    if (segmentPopulations.includes(population.id)) {
-                        addText(population.name, population.color)
+                if (segmentPopulations) {
+                    for (const population of populations) {
+                        if (segmentPopulations.includes(population.id)) {
+                            addText(population.name, population.color)
+                        }
                     }
                 }
             }
             const segmentFeatures = highlightedSegmentFeatures[segmentId]
-            for (const segmentFeature of Object.keys(segmentFeatures)) {
-                const segmentFeatureValue = segmentFeatures[segmentFeature]
-                // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
-                addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
+            if (segmentFeatures) {
+                for (const segmentFeature of Object.keys(segmentFeatures)) {
+                    const segmentFeatureValue = segmentFeatures[segmentFeature]
+                    // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
+                    addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.0-beta.5",
+    "version": "1.2.0-beta.6",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
@@ -139,6 +139,7 @@
         "pretty-ms": "^5.0.0",
         "react": "^16.8.2",
         "react-color": "^2.17.3",
+        "react-contextmenu": "^2.14.0",
         "react-dom": "^16.8.2",
         "react-flexbox-grid": "^2.1.2",
         "react-icons": "^3.7.0",

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { observer } from 'mobx-react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Collapse, Spinner } from 'reactstrap'
+import { ContextMenuTrigger } from 'react-contextmenu'
 
 import * as bottomBar from '../assets/bottom_bar.png'
 import * as piciLogo from '../assets/pici_logo.png'
@@ -25,6 +26,8 @@ import { LoadingModal } from './modals/LoadingModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
 import { PlotControls } from './PlotControls'
 import { ImageMessage } from './ImageMessage'
+import { ImageContextMenu, ImageContextMenuId } from './ImageContextMenu'
+import { SegmentPopulationModal } from './modals/SegmentPopulationModal'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -175,35 +178,47 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if (imageMessage && windowHeight) windowHeight -= 20
 
         const imageViewer = (
-            <ImageViewer
-                imageData={imageStore.imageData}
-                segmentationData={segmentationStore.segmentationData}
-                segmentationFillAlpha={settingStore.segmentationFillAlpha}
-                segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
-                segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
-                channelDomain={imageStore.channelDomain}
-                channelVisibility={settingStore.channelVisibility}
-                channelMarker={settingStore.channelMarker}
-                position={imageStore.position}
-                scale={imageStore.scale}
-                setPositionAndScale={imageStore.setPositionAndScale}
-                addSelectedPopulation={populationStore.createPopulationFromPixels}
-                selectedPopulations={populationStore.selectedPopulations}
-                highlightedPopulations={populationStore.highlightedPopulations}
-                highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
-                highlightedSegmentsFromImage={segmentationStore.activeHighlightedSegments}
-                highlightedSegmentFeatures={segmentFeatureStore.activeHighlightedSegmentFeatures}
-                highlightedSegmentPopulations={populationStore.activeHighlightedSegmentPopulations}
-                exportPath={imageStore.imageExportFilename}
-                onExportComplete={imageStore.clearImageExportFilePath}
-                channelLegendVisible={settingStore.channelLegendVisible}
-                populationLegendVisible={settingStore.populationLegendVisible}
-                zoomInsetVisible={settingStore.zoomInsetVisible}
-                windowHeight={windowHeight}
-                onWebGLContextLoss={projectStore.onWebGLContextLoss}
-                setHighlightedPixel={projectStore.setHighlightedPixel}
-                featureLegendVisible={settingStore.featureLegendVisible}
-            />
+            <div>
+                <ContextMenuTrigger
+                    id={ImageContextMenuId}
+                    holdToDisplay={-1}
+                    disable={segmentationStore.activeHighlightedSegments.length == 0}
+                >
+                    <ImageViewer
+                        imageData={imageStore.imageData}
+                        segmentationData={segmentationStore.segmentationData}
+                        segmentationFillAlpha={settingStore.segmentationFillAlpha}
+                        segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
+                        segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
+                        channelDomain={imageStore.channelDomain}
+                        channelVisibility={settingStore.channelVisibility}
+                        channelMarker={settingStore.channelMarker}
+                        position={imageStore.position}
+                        scale={imageStore.scale}
+                        setPositionAndScale={imageStore.setPositionAndScale}
+                        addSelectedPopulation={populationStore.createPopulationFromPixels}
+                        selectedPopulations={populationStore.selectedPopulations}
+                        highlightedPopulations={populationStore.highlightedPopulations}
+                        highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
+                        highlightedSegmentsFromImage={segmentationStore.activeHighlightedSegments}
+                        highlightedSegmentFeatures={segmentFeatureStore.activeHighlightedSegmentFeatures}
+                        highlightedSegmentPopulations={populationStore.activeHighlightedSegmentPopulations}
+                        exportPath={imageStore.imageExportFilename}
+                        onExportComplete={imageStore.clearImageExportFilePath}
+                        channelLegendVisible={settingStore.channelLegendVisible}
+                        populationLegendVisible={settingStore.populationLegendVisible}
+                        zoomInsetVisible={settingStore.zoomInsetVisible}
+                        windowHeight={windowHeight}
+                        onWebGLContextLoss={projectStore.onWebGLContextLoss}
+                        setHighlightedPixel={projectStore.setHighlightedPixel}
+                        featureLegendVisible={settingStore.featureLegendVisible}
+                    />
+                </ContextMenuTrigger>
+                <ImageContextMenu
+                    segmentIds={segmentationStore.activeHighlightedSegments}
+                    setEditingPopulations={projectStore.setEditingPopulationsSegmentId}
+                />
+            </div>
         )
 
         imageSetSelector = (
@@ -385,6 +400,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return (
             <div>
                 <WelcomeModal displayModal={displayWelcomeModal} />
+                <SegmentPopulationModal
+                    segmentId={projectStore.editingPopulationsSegmentId}
+                    populations={populationStore.selectedPopulations}
+                    closeModal={projectStore.clearEditingPopulationSegmentId}
+                    addSegmentToPopulation={populationStore.addSegmentToPopulation}
+                    removeSegmentFromPopulation={populationStore.removeSegmentFromPopulation}
+                ></SegmentPopulationModal>
                 <LoadingModal
                     numToCalculate={numToCalculate}
                     numCalculated={numCalculated}
