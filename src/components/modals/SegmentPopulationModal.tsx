@@ -14,7 +14,7 @@ export interface SegmentPopulationModalProps {
 }
 
 interface SegmentPopulationModalState {
-    segmentId: number
+    segmentId?: number
     segmentPopulations: string[]
 }
 
@@ -24,24 +24,28 @@ export class SegmentPopulationModal extends React.Component<SegmentPopulationMod
         super(props)
     }
 
-    private onSegmentPopulationsSelect = (selected: SelectOption[] | null): void => {
-        const curSegment = this.state.segmentId
-        const segmentPopulations = this.state.segmentPopulations
-        const selectedPopulationOptions = selected ? selected : []
-        const updatedPopulations = selectedPopulationOptions.map((p) => {
-            return p.value
-        })
-        const removedPopulations = segmentPopulations.filter((p) => {
-            return !updatedPopulations.includes(p)
-        })
-        const newPopulations = updatedPopulations.filter((p) => {
-            return !segmentPopulations.includes(p)
-        })
-        removedPopulations.forEach((p) => this.props.removeSegmentFromPopulation(curSegment, p))
-        newPopulations.forEach((p) => this.props.addSegmentToPopulation(curSegment, p))
+    public state: SegmentPopulationModalState = {
+        segmentPopulations: [],
     }
 
-    public state: SegmentPopulationModalState
+    private onSegmentPopulationsSelect = (selected: SelectOption[] | null): void => {
+        const curSegment = this.state.segmentId
+        if (curSegment) {
+            const segmentPopulations = this.state.segmentPopulations
+            const selectedPopulationOptions = selected ? selected : []
+            const updatedPopulations = selectedPopulationOptions.map((p) => {
+                return p.value
+            })
+            const removedPopulations = segmentPopulations.filter((p) => {
+                return !updatedPopulations.includes(p)
+            })
+            const newPopulations = updatedPopulations.filter((p) => {
+                return !segmentPopulations.includes(p)
+            })
+            removedPopulations.forEach((p) => this.props.removeSegmentFromPopulation(curSegment, p))
+            newPopulations.forEach((p) => this.props.addSegmentToPopulation(curSegment, p))
+        }
+    }
 
     public static getDerivedStateFromProps(props: SegmentPopulationModalProps): SegmentPopulationModalState | null {
         const segmentId = props.segmentId

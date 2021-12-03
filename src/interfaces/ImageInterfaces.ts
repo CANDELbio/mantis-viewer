@@ -1,3 +1,5 @@
+import { ChannelName } from '../definitions/UIDefinitions'
+
 export interface Coordinate {
     x: number
     y: number
@@ -28,4 +30,8 @@ export interface RGBColor {
 
 export interface RGBColorCollection {
     [key: string]: RGBColor
+}
+
+export type ChannelMarkerMapping = {
+    [key in ChannelName]: string | null
 }

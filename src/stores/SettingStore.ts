@@ -1,4 +1,7 @@
-import { observable, action, autorun, toJS } from 'mobx'
+// TODO: Would probably be best to refactor this setting store into appropriate existing
+// stores or new stores and then create a util that saves and loads to/from db to
+// the appropriate store
+import { action, autorun, computed, observable, toJS } from 'mobx'
 
 import { ImageStore } from '../stores/ImageStore'
 import { Db } from '../lib/Db'
@@ -22,13 +25,14 @@ import {
     PlotNormalizationOptions,
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
-import { MinMax } from '../interfaces/ImageInterfaces'
+import { MinMax, ChannelMarkerMapping } from '../interfaces/ImageInterfaces'
 
 type SettingStoreData = {
     activeImageSet?: string | null
     imageSubdirectory?: string | null
-    channelMarker?: Record<ChannelName, string | null> | null
+    channelMarker?: ChannelMarkerMapping | null
     channelDomainValue?: Record<ChannelName, [number, number]> | null
+    markerDomainValue?: Record<string, [number, number]>
     channelVisibility?: Record<ChannelName, boolean> | null
     segmentationBasename?: string | null
     autoLoadSegmentation?: boolean
@@ -59,6 +63,7 @@ type SettingStoreData = {
     featureLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
+    channelMarkerMappings?: Record<string, ChannelMarkerMapping>
 }
 
 export class SettingStore {
@@ -82,6 +87,8 @@ export class SettingStore {
     @observable public channelMarker: Record<ChannelName, string | null>
     // channelDomain stored here as raw values or percentages depending on what the user has set in settings.
     @observable public channelDomainValue: Record<ChannelName, [number, number]>
+    // channelDomain values but stored by marker to remember brightness values for a marker when switching.
+    @observable public markerDomainValue: Record<string, [number, number]>
     // Which channels are visible
     @observable public channelVisibility: Record<ChannelName, boolean>
     // segmentation file basename when a segmentation file is selected for the whole project
@@ -99,6 +106,8 @@ export class SettingStore {
     @observable public featureLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
+    // Saves ChannelMarkerMappings with names so that the user can quickly switch between different mappings.
+    @observable public channelMarkerMappings: Record<string, ChannelMarkerMapping>
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
@@ -187,6 +196,8 @@ export class SettingStore {
 
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
         this.channelDomainValue = this.projectStore.preferencesStore.getChannelDomainPercentage()
+        this.markerDomainValue = {}
+        this.channelMarkerMappings = {}
     }
 
     @action public setBasePath = (path: string): void => {
@@ -343,6 +354,10 @@ export class SettingStore {
             // Otherwise just store the raw values
             this.channelDomainValue[name] = value
         }
+        const curMarker = this.channelMarker[name]
+        if (curMarker) {
+            this.markerDomainValue[curMarker] = this.channelDomainValue[name]
+        }
     }
 
     @action public setChannelVisibilityCallback = (name: ChannelName): ((value: boolean) => void) => {
@@ -447,17 +462,67 @@ export class SettingStore {
     }
 
     @action private setDefaultChannelDomainValue = (channelName: ChannelName, markerMinMax?: MinMax): void => {
-        const preferencesStore = this.projectStore.preferencesStore
-        const domains = preferencesStore.getChannelDomainPercentage()
-        const domainPercentage = domains[channelName]
-        if (!preferencesStore.scaleChannelDomainValues && markerMinMax) {
-            this.channelDomainValue[channelName] = [
-                domainPercentage[0] * markerMinMax.max,
-                domainPercentage[1] * markerMinMax.max,
-            ]
-        } else {
-            this.channelDomainValue[channelName] = domainPercentage
+        let valueSet = false
+        const curMarker = this.channelMarker[channelName]
+        if (curMarker) {
+            const markerDomainValue = this.markerDomainValue[curMarker]
+            if (markerDomainValue) {
+                this.channelDomainValue[channelName] = [...markerDomainValue]
+                valueSet = true
+            }
         }
+        if (!valueSet) {
+            const preferencesStore = this.projectStore.preferencesStore
+
+            const domains = preferencesStore.getChannelDomainPercentage()
+            const domainPercentage = domains[channelName]
+            if (!preferencesStore.scaleChannelDomainValues && markerMinMax) {
+                this.channelDomainValue[channelName] = [
+                    domainPercentage[0] * markerMinMax.max,
+                    domainPercentage[1] * markerMinMax.max,
+                ]
+            } else {
+                this.channelDomainValue[channelName] = domainPercentage
+            }
+        }
+    }
+
+    @action public saveChannelMarkerMapping = (name: string): void => {
+        if (this.channelMarker) {
+            const activeMappingName = this.activeChannelMarkerMapping
+            if (activeMappingName) delete this.channelMarkerMappings[activeMappingName]
+            this.channelMarkerMappings[name] = JSON.parse(JSON.stringify(this.channelMarker))
+        }
+    }
+
+    @action public deleteChannelMarkerMapping = (name: string): void => {
+        delete this.channelMarkerMappings[name]
+    }
+
+    @action public loadChannelMarkerMapping = (name: string): void => {
+        const selectedChannelMarkerMapping = this.channelMarkerMappings[name]
+        if (selectedChannelMarkerMapping) {
+            this.channelMarker = JSON.parse(JSON.stringify(selectedChannelMarkerMapping))
+        }
+        this.resetChannelDomainValues()
+    }
+
+    @computed public get activeChannelMarkerMapping(): string | null {
+        const activeMapping = this.channelMarker
+        const mappings = this.channelMarkerMappings
+        for (const name in mappings) {
+            const curMapping = mappings[name]
+            let allTheSame = true
+            for (const s in curMapping) {
+                const curChannel = s as ChannelName
+                if (curMapping[curChannel] != activeMapping[curChannel]) {
+                    allTheSame = false
+                    break
+                }
+            }
+            if (allTheSame) return name
+        }
+        return null
     }
 
     private exportSettings = autorun(() => {
@@ -468,6 +533,7 @@ export class SettingStore {
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainValue: this.channelDomainValue,
+                markerDomainValue: this.markerDomainValue,
                 segmentationBasename: this.segmentationBasename,
                 autoLoadSegmentation: this.autoLoadSegmentation,
                 autoCalculateSegmentFeatures: this.autoCalculateSegmentFeatures,
@@ -497,6 +563,7 @@ export class SettingStore {
                 featureLegendVisible: this.featureLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
+                channelMarkerMappings: this.channelMarkerMappings,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -516,6 +583,7 @@ export class SettingStore {
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
                 if (importingSettings.channelDomainValue) this.channelDomainValue = importingSettings.channelDomainValue
+                if (importingSettings.markerDomainValue) this.markerDomainValue = importingSettings.markerDomainValue
                 if (importingSettings.segmentationBasename)
                     this.segmentationBasename = importingSettings.segmentationBasename
                 if (importingSettings.autoLoadSegmentation != null)
@@ -563,6 +631,8 @@ export class SettingStore {
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
                 if (importingSettings.transformCoefficient)
                     this.transformCoefficient = importingSettings.transformCoefficient
+                if (importingSettings.channelMarkerMappings)
+                    this.channelMarkerMappings = importingSettings.channelMarkerMappings
             } catch (e) {
                 console.log('Error importing settings from db:')
                 console.log(e)

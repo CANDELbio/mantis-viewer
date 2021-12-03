@@ -253,8 +253,8 @@ export class Db {
         db.close()
     }
 
-    public getSettings(): Record<string, string | object | number | boolean> {
-        const results: Record<string, string | object | number | boolean> = {}
+    public getSettings(): Record<string, string | object | number | boolean | object[]> {
+        const results: Record<string, string | object | number | boolean | object[]> = {}
         const db = this.getConnection()
         const stmt = db.prepare(`SELECT setting, value
                                  FROM settings`)

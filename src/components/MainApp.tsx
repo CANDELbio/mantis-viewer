@@ -17,7 +17,7 @@ import {
 } from '../definitions/UIDefinitions'
 import { ChannelControls } from './ChannelControls'
 import { ImageViewer } from './ImageViewer'
-import { ImageSetSelector } from './ImageSetSelector'
+import { ImageSelector } from './image-selector/Component'
 import { ImageControls } from './ImageControls'
 import { Plot } from './Plot'
 import { SelectedPopulations } from './populations/SelectedPopulations'
@@ -223,12 +223,17 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         imageSetSelector = (
             <div className="grey-card">
-                <ImageSetSelector
-                    selectedImageSet={projectStore.activeImageSetPath}
-                    imageSets={projectStore.imageSetPaths}
-                    setSelectedImageSet={projectStore.setActiveImageSet}
-                    previousImageSet={projectStore.setPreviousImageSet}
-                    nextImageSet={projectStore.setNextImageSet}
+                <ImageSelector
+                    selectedImage={projectStore.activeImageSetPath}
+                    images={projectStore.imageSetPaths}
+                    setSelectedImage={projectStore.setActiveImageSet}
+                    previousImage={projectStore.setPreviousImageSet}
+                    nextImage={projectStore.setNextImageSet}
+                    selectedChannelMapping={settingStore.activeChannelMarkerMapping}
+                    channelMarkerMappings={settingStore.channelMarkerMappings}
+                    saveChannelMarkerMapping={settingStore.saveChannelMarkerMapping}
+                    loadChannelMarkerMapping={settingStore.loadChannelMarkerMapping}
+                    deleteChannelMarkerMapping={settingStore.deleteChannelMarkerMapping}
                 />
             </div>
         )
