@@ -28,18 +28,21 @@ export class ImageSelector extends React.Component<ImageSelectorProps, {}> {
     }
 
     public render(): React.ReactNode {
-        let arrowControls = null
+        let controls = null
+        const channelMappingControls = (
+            <ChannelMappingControls
+                selectedChannelMapping={this.props.selectedChannelMapping}
+                channelMarkerMappings={this.props.channelMarkerMappings}
+                saveChannelMarkerMapping={this.props.saveChannelMarkerMapping}
+                deleteChannelMarkerMapping={this.props.deleteChannelMarkerMapping}
+                loadChannelMarkerMapping={this.props.loadChannelMarkerMapping}
+                iconStyle={{ position: 'absolute', top: '0.5em', left: '-1em' }}
+            />
+        )
         if (this.props.images.length > 1) {
-            arrowControls = (
+            controls = (
                 <div>
-                    <ChannelMappingControls
-                        selectedChannelMapping={this.props.selectedChannelMapping}
-                        channelMarkerMappings={this.props.channelMarkerMappings}
-                        saveChannelMarkerMapping={this.props.saveChannelMarkerMapping}
-                        deleteChannelMarkerMapping={this.props.deleteChannelMarkerMapping}
-                        loadChannelMarkerMapping={this.props.loadChannelMarkerMapping}
-                        iconStyle={{ position: 'absolute', top: '0.5em', left: '-1em' }}
-                    />
+                    {channelMappingControls}
                     <a href="#" onClick={this.props.previousImage}>
                         <IoIosArrowBack size="1.5em" style={{ position: 'absolute', top: '0.5em', left: '0.25em' }} />
                     </a>
@@ -48,6 +51,8 @@ export class ImageSelector extends React.Component<ImageSelectorProps, {}> {
                     </a>
                 </div>
             )
+        } else {
+            controls = <div>{channelMappingControls}</div>
         }
 
         // Sorts the images in a human readable order (numbers first, numbers in number line order)
@@ -79,7 +84,7 @@ export class ImageSelector extends React.Component<ImageSelectorProps, {}> {
                         />
                     </Col>
                     <Col xs={2} sm={2} md={2} lg={2}>
-                        {arrowControls}
+                        {controls}
                     </Col>
                 </Row>
             </Grid>

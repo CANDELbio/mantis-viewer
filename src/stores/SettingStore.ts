@@ -6,7 +6,7 @@ import { action, autorun, computed, observable, toJS } from 'mobx'
 import { ImageStore } from '../stores/ImageStore'
 import { Db } from '../lib/Db'
 import { randomHexColor } from '../lib/ColorHelper'
-
+import { parseChannelMarkerMappingCSV, writeChannelMarkerMappingsCSV } from '../lib/IO'
 import {
     ImageChannels,
     ChannelName,
@@ -505,6 +505,15 @@ export class SettingStore {
             this.channelMarker = JSON.parse(JSON.stringify(selectedChannelMarkerMapping))
         }
         this.resetChannelDomainValues()
+    }
+
+    @action public importChannelMarkerMappingsFromCSV = (filename: string): void => {
+        const importing = parseChannelMarkerMappingCSV(filename)
+        this.channelMarkerMappings = { ...this.channelMarkerMappings, ...importing }
+    }
+
+    public exportChannelMarkerMappingsToCSV = (filename: string): void => {
+        writeChannelMarkerMappingsCSV(this.channelMarkerMappings, filename)
     }
 
     @computed public get activeChannelMarkerMapping(): string | null {

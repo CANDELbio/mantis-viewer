@@ -276,6 +276,16 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                             ],
                         },
                         {
+                            label: 'Channel Marker Mappings from CSV',
+                            enabled: segmentationLoaded,
+                            click: showOpenFileDialogCallback(
+                                'import-channel-marker-mappings-csv',
+                                'Select Channel Marker Mappings CSV',
+                                projectDirectory,
+                                ['csv', 'txt'],
+                            ),
+                        },
+                        {
                             label: 'Gates from CSV',
                             enabled: imageLoaded && segmentationLoaded,
                             click: showOpenFileDialogCallback(
@@ -374,6 +384,11 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     }, projectDirectory),
                                 },
                             ],
+                        },
+                        {
+                            label: 'Channel Marker Mappings to CSV',
+                            enabled: imageLoaded && segmentationLoaded,
+                            click: showSaveFileIpcDialog('export-channel-marker-mappings-csv', projectDirectory, 'csv'),
                         },
                     ],
                 },

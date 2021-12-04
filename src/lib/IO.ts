@@ -5,7 +5,8 @@ import * as parseCSV from 'csv-parse/lib/sync'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
-import { MinMax } from '../interfaces/ImageInterfaces'
+import { ChannelMarkerMapping, MinMax } from '../interfaces/ImageInterfaces'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -258,4 +259,46 @@ export function parseSegmentDataCSV(
             invalidFeatureNames: invalidFeatureNames,
         },
     }
+}
+
+export function parseChannelMarkerMappingCSV(filename: string): Record<string, ChannelMarkerMapping> {
+    const input = fs.readFileSync(filename, 'utf8')
+
+    const mappings: Record<string, ChannelMarkerMapping> = {}
+    const records: string[][] = parseCSV(input, { columns: false })
+
+    for (const row of records) {
+        const mappingName = row[0]
+        const channelName = row[1] as ChannelName
+        const markerName = row[2]
+        // Check to make sure imageSetName is not empty, segmentId is a proper number and populationName is not empty.
+        if (mappingName && channelName && markerName) {
+            if (!(mappingName in mappings))
+                mappings[mappingName] = {
+                    rChannel: null,
+                    gChannel: null,
+                    bChannel: null,
+                    cChannel: null,
+                    mChannel: null,
+                    yChannel: null,
+                    kChannel: null,
+                }
+            mappings[mappingName][channelName] = markerName
+        }
+    }
+
+    return mappings
+}
+
+export function writeChannelMarkerMappingsCSV(mappings: Record<string, ChannelMarkerMapping>, filename: string): void {
+    const output: string[][] = []
+    for (const name in mappings) {
+        const curMapping = mappings[name]
+        for (const s in curMapping) {
+            const curChannel = s as ChannelName
+            const channelMarker = curMapping[curChannel]
+            if (channelMarker) output.push([name, curChannel, channelMarker])
+        }
+    }
+    writeToCSV(output, filename, null)
 }

@@ -40,7 +40,10 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
 
     private onDelete = (): void => {
         const selectedMappingName = this.props.selectedChannelMapping
-        if (selectedMappingName) this.props.deleteChannelMarkerMapping(selectedMappingName)
+        if (selectedMappingName) {
+            this.setState({ channelMappingName: '' })
+            this.props.deleteChannelMarkerMapping(selectedMappingName)
+        }
     }
 
     private onNameInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -52,6 +55,15 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
             ? this.state.channelMappingName
             : this.props.selectedChannelMapping
         if (mappingName) this.props.saveChannelMarkerMapping(mappingName)
+    }
+
+    private onSelectedMappingChange = (channelMappingName: string): void => {
+        this.setState({ channelMappingName: channelMappingName })
+        this.props.loadChannelMarkerMapping(channelMappingName)
+    }
+
+    public componentWillReceiveProps = (props: ChannelMappingControlsProps): void => {
+        if (props.selectedChannelMapping) this.setState({ channelMappingName: props.selectedChannelMapping })
     }
 
     private togglePopover = (): void => this.setState({ popoverOpen: !this.state.popoverOpen })
@@ -97,7 +109,7 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
                                         <Select
                                             value={selectedValue}
                                             options={channelMappingOptions}
-                                            onChange={onSelectChange(this.props.loadChannelMarkerMapping)}
+                                            onChange={onSelectChange(this.onSelectedMappingChange)}
                                             isClearable={false}
                                             styles={SelectStyle}
                                             theme={SelectTheme}
@@ -109,14 +121,18 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
                                     <td>Mapping Name</td>
                                     <td>
                                         <Input
-                                            defaultValue={selectedMappingName ? selectedMappingName : ''}
+                                            value={this.state.channelMappingName}
                                             onChange={this.onNameInputChange}
                                         />
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <Button onClick={this.onSaveMapping} size="sm">
+                                        <Button
+                                            onClick={this.onSaveMapping}
+                                            disabled={this.state.channelMappingName.length == 0}
+                                            size="sm"
+                                        >
                                             {saveButtonLabel}
                                         </Button>
                                     </td>

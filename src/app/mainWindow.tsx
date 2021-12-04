@@ -307,6 +307,13 @@ ipcRenderer.on('cancel-response', (event: Electron.Event, cancel: boolean): void
     projectStore.notificationStore.setCancellationRequested(false)
 })
 
+ipcRenderer.on('export-channel-marker-mappings-csv', (event: Electron.Event, filename: string): void => {
+    projectStore.settingStore.exportChannelMarkerMappingsToCSV(filename)
+})
+
+ipcRenderer.on('import-channel-marker-mappings-csv', (event: Electron.Event, filename: string): void => {
+    projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
+})
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 Mousetrap.bind(['command+left', 'alt+left'], function (): void {
