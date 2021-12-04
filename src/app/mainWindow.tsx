@@ -352,23 +352,30 @@ hotkeys('alt+down, command+down', function (): void {
     }
 })
 
-const channelKeys: Record<string, ChannelName> = {
-    '1': 'rChannel',
-    '2': 'gChannel',
-    '3': 'bChannel',
-    '4': 'cChannel',
-    '5': 'mChannel',
-    '6': 'yChannel',
-    '7': 'kChannel',
+const channelKeys: Record<ChannelName, string[]> = {
+    rChannel: ['1', 'q'],
+    gChannel: ['2', 'w'],
+    bChannel: ['3', 'e'],
+    cChannel: ['4', 'r'],
+    mChannel: ['5', 't'],
+    yChannel: ['6', 'y'],
+    kChannel: ['7', 'u'],
 }
 
-for (const s in channelKeys) {
-    const channel = channelKeys[s]
-    hotkeys(s + '+up', function (): void {
-        projectStore.settingStore.increaseChannelDomainValue(channel)
+for (const c in channelKeys) {
+    const channel = c as ChannelName
+    const curKeys = channelKeys[channel]
+    hotkeys(curKeys[0] + '+up', function (): void {
+        projectStore.settingStore.increaseMaxChannelDomainValue(channel)
     })
-    hotkeys(s + '+down', function (): void {
-        projectStore.settingStore.decreaseChannelDomainValue(channel)
+    hotkeys(curKeys[0] + '+down', function (): void {
+        projectStore.settingStore.decreaseMaxChannelDomainValue(channel)
+    })
+    hotkeys(curKeys[1] + '+up', function (): void {
+        projectStore.settingStore.increaseMinChannelDomainValue(channel)
+    })
+    hotkeys(curKeys[1] + '+down', function (): void {
+        projectStore.settingStore.decreaseMinChannelDomainValue(channel)
     })
 }
 

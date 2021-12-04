@@ -362,7 +362,7 @@ export class SettingStore {
 
     @action private incrementChannelDomainValue = (
         name: ChannelName,
-        incrementFn: (v: number, m: number) => number,
+        incrementFn: (v: [number, number], minMax: MinMax) => [number, number],
     ): void => {
         const curMarker = this.channelMarker[name]
         const minMaxes = this.projectStore.activeImageSetStore.imageStore.imageData?.minmax
@@ -370,27 +370,44 @@ export class SettingStore {
             const curMinMax = minMaxes[curMarker]
             const curValue = this.channelDomainValue[name]
             if (curMarker) {
-                let newValue = incrementFn(curValue[1], curMinMax.max)
-                if (newValue > curMinMax.max) newValue = curMinMax.max
-                if (newValue < curMinMax.min) newValue = curMinMax.min
-                this.channelDomainValue[name] = [curValue[0], newValue]
+                const newValues = incrementFn(curValue, curMinMax)
+                const checkValue = (v: number): number => {
+                    if (v > curMinMax.max) return curMinMax.max
+                    if (v < curMinMax.min) return curMinMax.min
+                    return v
+                }
+                this.channelDomainValue[name] = newValues.map(checkValue) as [number, number]
                 this.markerDomainValue[curMarker] = this.channelDomainValue[name]
             }
         }
     }
 
-    public increaseChannelDomainValue = (name: ChannelName): void => {
-        const increaseFn = (curValue: number, max: number): number => {
-            return curValue + max * 0.01
+    public increaseMaxChannelDomainValue = (name: ChannelName): void => {
+        const increaseFn = (curValues: [number, number], minMax: MinMax): [number, number] => {
+            return [curValues[0], curValues[1] + minMax.max * 0.01]
         }
         this.incrementChannelDomainValue(name, increaseFn)
     }
 
-    public decreaseChannelDomainValue = (name: ChannelName): void => {
-        const increaseFn = (curValue: number, max: number): number => {
-            return curValue - max * 0.01
+    public decreaseMaxChannelDomainValue = (name: ChannelName): void => {
+        const decreaseFn = (curValues: [number, number], minMax: MinMax): [number, number] => {
+            return [curValues[0], curValues[1] - minMax.max * 0.01]
+        }
+        this.incrementChannelDomainValue(name, decreaseFn)
+    }
+
+    public increaseMinChannelDomainValue = (name: ChannelName): void => {
+        const increaseFn = (curValues: [number, number], minMax: MinMax): [number, number] => {
+            return [curValues[0] + minMax.max * 0.01, curValues[1]]
         }
         this.incrementChannelDomainValue(name, increaseFn)
+    }
+
+    public decreaseMinChannelDomainValue = (name: ChannelName): void => {
+        const decreaseFn = (curValues: [number, number], minMax: MinMax): [number, number] => {
+            return [curValues[0] - minMax.max * 0.01, curValues[1]]
+        }
+        this.incrementChannelDomainValue(name, decreaseFn)
     }
 
     @action public setChannelVisibilityCallback = (name: ChannelName): ((value: boolean) => void) => {
