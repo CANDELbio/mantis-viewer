@@ -507,6 +507,40 @@ export class SettingStore {
         this.resetChannelDomainValues()
     }
 
+    private get sortedChannelMappingNames(): string[] {
+        const collator = new Intl.Collator(undefined, {
+            numeric: true,
+            sensitivity: 'base',
+        })
+        const sortedChannelMappingNames = Object.keys(this.channelMarkerMappings).slice().sort(collator.compare)
+        return sortedChannelMappingNames
+    }
+
+    // TODO: Dry these two functions up by making a clever nextIndex callback function
+    private incrementChannelMarkerMapping = (incIndexFn: (curIndex: number, sortedNames: string[]) => number): void => {
+        const activeChannelMarkerMapping = this.activeChannelMarkerMapping
+        if (activeChannelMarkerMapping) {
+            const sortedChannelMappingNames = this.sortedChannelMappingNames
+            const activeChannelMarkerMappingIndex = sortedChannelMappingNames.indexOf(activeChannelMarkerMapping)
+            const nextIndex = incIndexFn(activeChannelMarkerMappingIndex, sortedChannelMappingNames)
+            this.loadChannelMarkerMapping(sortedChannelMappingNames[nextIndex])
+        }
+    }
+
+    public nextChannelMarkerMapping = (): void => {
+        const nextIndexFn = (curIndex: number, sortedNames: string[]): number => {
+            return curIndex == sortedNames.length - 1 ? 0 : curIndex + 1
+        }
+        this.incrementChannelMarkerMapping(nextIndexFn)
+    }
+
+    public previousChannelMarkerMapping = (): void => {
+        const prevIndexFn = (curIndex: number, sortedNames: string[]): number => {
+            return curIndex == 0 ? sortedNames.length - 1 : curIndex - 1
+        }
+        this.incrementChannelMarkerMapping(prevIndexFn)
+    }
+
     @action public importChannelMarkerMappingsFromCSV = (filename: string): void => {
         const importing = parseChannelMarkerMappingCSV(filename)
         this.channelMarkerMappings = { ...this.channelMarkerMappings, ...importing }

@@ -338,6 +338,20 @@ Mousetrap.bind(['command+right', 'alt+right'], function (): void {
     }
 })
 
+Mousetrap.bind(['command+up', 'alt+up'], function (): void {
+    const settingStore = projectStore.settingStore
+    if (settingStore.activeChannelMarkerMapping) {
+        settingStore.nextChannelMarkerMapping()
+    }
+})
+
+Mousetrap.bind(['command+down', 'alt+down'], function (): void {
+    const settingStore = projectStore.settingStore
+    if (settingStore.activeChannelMarkerMapping) {
+        settingStore.previousChannelMarkerMapping()
+    }
+})
+
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {
     const imageSet = projectStore.activeImageSetStore
