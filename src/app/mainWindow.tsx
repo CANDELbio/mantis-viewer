@@ -3,9 +3,8 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Mobx from 'mobx'
+import hotkeys from 'hotkeys-js'
 import { ipcRenderer, remote } from 'electron'
-import * as Mousetrap from 'mousetrap'
-
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelName } from '../definitions/UIDefinitions'
@@ -314,9 +313,10 @@ ipcRenderer.on('export-channel-marker-mappings-csv', (event: Electron.Event, fil
 ipcRenderer.on('import-channel-marker-mappings-csv', (event: Electron.Event, filename: string): void => {
     projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
 })
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
-Mousetrap.bind(['command+left', 'alt+left'], function (): void {
+hotkeys('command+left, alt+left', function (): void {
     const imageSetStore = projectStore.activeImageSetStore
     if (
         !imageSetStore.imageStore.imageDataLoading &&
@@ -327,7 +327,7 @@ Mousetrap.bind(['command+left', 'alt+left'], function (): void {
     }
 })
 
-Mousetrap.bind(['command+right', 'alt+right'], function (): void {
+hotkeys('command+right, alt+right', function (): void {
     const imageSetStore = projectStore.activeImageSetStore
     if (
         !imageSetStore.imageStore.imageDataLoading &&
@@ -338,19 +338,39 @@ Mousetrap.bind(['command+right', 'alt+right'], function (): void {
     }
 })
 
-Mousetrap.bind(['command+up', 'alt+up'], function (): void {
+hotkeys('alt+up, command+up', function (): void {
     const settingStore = projectStore.settingStore
     if (settingStore.activeChannelMarkerMapping) {
         settingStore.nextChannelMarkerMapping()
     }
 })
 
-Mousetrap.bind(['command+down', 'alt+down'], function (): void {
+hotkeys('alt+down, command+down', function (): void {
     const settingStore = projectStore.settingStore
     if (settingStore.activeChannelMarkerMapping) {
         settingStore.previousChannelMarkerMapping()
     }
 })
+
+const channelKeys: Record<string, ChannelName> = {
+    '1': 'rChannel',
+    '2': 'gChannel',
+    '3': 'bChannel',
+    '4': 'cChannel',
+    '5': 'mChannel',
+    '6': 'yChannel',
+    '7': 'kChannel',
+}
+
+for (const s in channelKeys) {
+    const channel = channelKeys[s]
+    hotkeys(s + '+up', function (): void {
+        projectStore.settingStore.increaseChannelDomainValue(channel)
+    })
+    hotkeys(s + '+down', function (): void {
+        projectStore.settingStore.decreaseChannelDomainValue(channel)
+    })
+}
 
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {

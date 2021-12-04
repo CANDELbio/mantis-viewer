@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import * as _ from 'underscore'
-import * as Mousetrap from 'mousetrap'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -23,6 +22,7 @@ import { SelectedPopulation } from '../stores/PopulationStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { Line } from '../lib/pixi/Line'
 import brightnessFilter from '../lib/brightness-filter.glsl'
+import hotkeys from 'hotkeys-js'
 
 export interface ImageProps {
     imageData: ImageData | null
@@ -629,11 +629,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
     // Adds fullscreen shortcut and event listeners
     private addFullscreen(el: HTMLDivElement): void {
-        Mousetrap.bind(['command+f', 'alt+f'], () => {
+        hotkeys('command+f, alt+f', () => {
             const rendererParent = el.parentElement
             if (rendererParent) rendererParent.requestFullscreen()
         })
-
         document.addEventListener('fullscreenchange', this.handleFullscreenChange)
     }
 
@@ -676,7 +675,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
                 // Development shortcut to simulate the canvas losing WebGL2 context.
                 // TODO: Probably want to disable in production builds at some point.
-                Mousetrap.bind(['command+w', 'alt+w'], () => {
+                hotkeys('command+w, alt+w', () => {
                     const webgl2Context = canvas.getContext('webgl2', {})
                     if (webgl2Context) {
                         console.log(`Simulating WebGL Context loss.`)

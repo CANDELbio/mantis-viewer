@@ -360,6 +360,39 @@ export class SettingStore {
         }
     }
 
+    @action private incrementChannelDomainValue = (
+        name: ChannelName,
+        incrementFn: (v: number, m: number) => number,
+    ): void => {
+        const curMarker = this.channelMarker[name]
+        const minMaxes = this.projectStore.activeImageSetStore.imageStore.imageData?.minmax
+        if (curMarker && minMaxes) {
+            const curMinMax = minMaxes[curMarker]
+            const curValue = this.channelDomainValue[name]
+            if (curMarker) {
+                let newValue = incrementFn(curValue[1], curMinMax.max)
+                if (newValue > curMinMax.max) newValue = curMinMax.max
+                if (newValue < curMinMax.min) newValue = curMinMax.min
+                this.channelDomainValue[name] = [curValue[0], newValue]
+                this.markerDomainValue[curMarker] = this.channelDomainValue[name]
+            }
+        }
+    }
+
+    public increaseChannelDomainValue = (name: ChannelName): void => {
+        const increaseFn = (curValue: number, max: number): number => {
+            return curValue + max * 0.01
+        }
+        this.incrementChannelDomainValue(name, increaseFn)
+    }
+
+    public decreaseChannelDomainValue = (name: ChannelName): void => {
+        const increaseFn = (curValue: number, max: number): number => {
+            return curValue - max * 0.01
+        }
+        this.incrementChannelDomainValue(name, increaseFn)
+    }
+
     @action public setChannelVisibilityCallback = (name: ChannelName): ((value: boolean) => void) => {
         return action((value: boolean) => {
             this.setChannelVisibility(name, value)
