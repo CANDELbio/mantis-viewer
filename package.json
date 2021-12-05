@@ -127,7 +127,7 @@
         "electron-store": "^5.2.0",
         "geotiff": "^1.0.4",
         "hotkeys-js": "^3.8.7",
-        "jquery": "^3.4.1",
+        "jquery": "^3.5.0",
         "mobx": "^5.15.7",
         "mobx-react": "^5.4.4",
         "mobx-utils": "^5.6.1",
