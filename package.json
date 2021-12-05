@@ -150,7 +150,7 @@
         "react-transition-group": "^2.5.0",
         "reactstrap": "^8.9.0",
         "shortid": "^2.2.13",
-        "underscore": "^1.9.1",
+        "underscore": "^1.12.1",
         "xml2js": "^0.4.23"
     },
     "optionalDependencies": {
