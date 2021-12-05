@@ -352,30 +352,33 @@ hotkeys('alt+down, command+down', function (): void {
     }
 })
 
-const channelKeys: Record<ChannelName, string[]> = {
-    rChannel: ['1', 'q'],
-    gChannel: ['2', 'w'],
-    bChannel: ['3', 'e'],
-    cChannel: ['4', 'r'],
-    mChannel: ['5', 't'],
-    yChannel: ['6', 'y'],
-    kChannel: ['7', 'u'],
+const channelKeys: Record<ChannelName, string> = {
+    rChannel: 'q',
+    gChannel: 'w',
+    bChannel: 'e',
+    cChannel: 'r',
+    mChannel: 'a',
+    yChannel: 's',
+    kChannel: 'd',
 }
 
 for (const c in channelKeys) {
     const channel = c as ChannelName
-    const curKeys = channelKeys[channel]
-    hotkeys(curKeys[0] + '+up', function (): void {
+    const curKey = channelKeys[channel]
+    hotkeys(curKey + '+up', function (): void {
         projectStore.settingStore.increaseMaxChannelDomainValue(channel)
     })
-    hotkeys(curKeys[0] + '+down', function (): void {
+    hotkeys(curKey + '+down', function (): void {
         projectStore.settingStore.decreaseMaxChannelDomainValue(channel)
     })
-    hotkeys(curKeys[1] + '+up', function (): void {
+    hotkeys(curKey + '+right', function (): void {
         projectStore.settingStore.increaseMinChannelDomainValue(channel)
     })
-    hotkeys(curKeys[1] + '+down', function (): void {
+    hotkeys(curKey + '+left', function (): void {
         projectStore.settingStore.decreaseMinChannelDomainValue(channel)
+    })
+    hotkeys(curKey + '+space', function (): void {
+        projectStore.settingStore.toggleChannelVisibility(channel)
     })
 }
 

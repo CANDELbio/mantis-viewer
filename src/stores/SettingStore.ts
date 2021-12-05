@@ -420,6 +420,10 @@ export class SettingStore {
         this.channelVisibility[name] = visible
     }
 
+    @action public toggleChannelVisibility = (name: ChannelName): void => {
+        this.channelVisibility[name] = !this.channelVisibility[name]
+    }
+
     @action public setChannelMarkerCallback = (name: ChannelName): ((marker: string | null) => void) => {
         return action((marker: string | null) => {
             // If the SelectOption has a value.
