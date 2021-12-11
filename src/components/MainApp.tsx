@@ -411,6 +411,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     closeModal={projectStore.clearEditingPopulationSegmentId}
                     addSegmentToPopulation={populationStore.addSegmentToPopulation}
                     removeSegmentFromPopulation={populationStore.removeSegmentFromPopulation}
+                    createPopulationFromSegments={populationStore.createPopulationFromSegments}
                 ></SegmentPopulationModal>
                 <LoadingModal
                     numToCalculate={numToCalculate}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
 import { Modal, ModalHeader, ModalBody } from 'reactstrap'
-import Select from 'react-select'
+import Creatable from 'react-select/creatable'
 import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../../lib/SelectUtils'
 import { SelectedPopulation } from '../../stores/PopulationStore'
 
@@ -11,6 +11,7 @@ export interface SegmentPopulationModalProps {
     closeModal: () => void
     removeSegmentFromPopulation: (segment: number, population: string) => void
     addSegmentToPopulation: (segment: number, population: string) => void
+    createPopulationFromSegments: (segments: number[], name?: string) => void
 }
 
 interface SegmentPopulationModalState {
@@ -47,6 +48,10 @@ export class SegmentPopulationModal extends React.Component<SegmentPopulationMod
         }
     }
 
+    private onSegmentPopulationsCreate = (created: string): void => {
+        if (this.state.segmentId) this.props.createPopulationFromSegments([this.state.segmentId], created)
+    }
+
     public static getDerivedStateFromProps(props: SegmentPopulationModalProps): SegmentPopulationModalState | null {
         const segmentId = props.segmentId
         if (segmentId) {
@@ -78,15 +83,19 @@ export class SegmentPopulationModal extends React.Component<SegmentPopulationMod
                         Edit Populations for Segment {this.props.segmentId}
                     </ModalHeader>
                     <ModalBody>
-                        <Select
+                        <Creatable
                             value={selectedOptions}
                             options={selectOptions}
                             onChange={this.onSegmentPopulationsSelect}
+                            onCreateOption={this.onSegmentPopulationsCreate}
                             isMulti={true}
                             placeholder={'Select populations...'}
                             styles={SelectStyle}
                             theme={SelectTheme}
                         />
+                        <div style={{ paddingLeft: '0.1em', color: 'grey' }}>
+                            Select Populations or Type to Create a New Population
+                        </div>
                     </ModalBody>
                 </Modal>
             )
