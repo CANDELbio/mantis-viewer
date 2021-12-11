@@ -48,6 +48,8 @@ export class NotificationStore {
     // Set this flag to true if we've encountered an error and need to reload
     @observable public reloadMainWindow: boolean
 
+    @observable public showShortcutModal: boolean
+
     public constructor() {
         this.initialize()
     }
@@ -66,6 +68,7 @@ export class NotificationStore {
         this.checkImportProject = false
         this.reloadMainWindow = false
         this.cancellationRequested = false
+        this.showShortcutModal = false
     }
 
     @action public setInfoMessage = (message: string): void => {
@@ -158,5 +161,9 @@ export class NotificationStore {
 
     @action setCancellationRequested = (value: boolean): void => {
         this.cancellationRequested = value
+    }
+
+    @action toggleShortcutModal = (): void => {
+        this.showShortcutModal = !this.showShortcutModal
     }
 }

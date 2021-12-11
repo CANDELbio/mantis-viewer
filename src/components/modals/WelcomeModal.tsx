@@ -32,14 +32,6 @@ export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
                                 <b>Command/Window</b> and clicking and drawing a region on the image.
                             </li>
                             <li>
-                                You can quickly switch between images in a project by holding <b>Alt</b> or{' '}
-                                <b>Command/Windows</b> and then pressing the left or right arrow key.
-                            </li>
-                            <li>
-                                You can fullscreen the renderer by pressing <b>Alt</b> or <b>Command/Window</b> and F.
-                                You can exit fullscreen by pressing escape.
-                            </li>
-                            <li>
                                 You can select populations on the plot by using the <b>Lasso Select</b> or{' '}
                                 <b>Box Select</b> tool in the menu at the top of the plot.
                             </li>
@@ -47,6 +39,7 @@ export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
                                 You can break the plot out into a larger window by clicking <b>Window</b> and then{' '}
                                 <b>Open Plot Window</b>
                             </li>
+                            <li>You can view a list of tips and keyboard shortcuts at anytime by typing ?</li>
                         </ul>
                     </ModalBody>
                 </Modal>

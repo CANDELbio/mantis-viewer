@@ -23,6 +23,7 @@ import { Plot } from './Plot'
 import { SelectedPopulations } from './populations/SelectedPopulations'
 import { WelcomeModal } from './modals/WelcomeModal'
 import { LoadingModal } from './modals/LoadingModal'
+import { ShortcutModal } from './modals/ShortcutModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
 import { PlotControls } from './PlotControls'
 import { ImageMessage } from './ImageMessage'
@@ -164,7 +165,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const displayWelcomeModal =
             imageStore.imageData == null && !imageStore.imageDataLoading && !displayProjectImportModal
 
-        const modalOpen = displayWelcomeModal || displayLoadingModal || displayProjectImportModal
+        const displayShortcutModal =
+            !(displayWelcomeModal || displayLoadingModal || displayProjectImportModal) &&
+            notificationStore.showShortcutModal
+
+        const modalOpen =
+            displayWelcomeModal || displayLoadingModal || displayProjectImportModal || displayShortcutModal
 
         let windowHeight = projectStore.windowHeight
         const imageMessage = (
@@ -405,6 +411,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         return (
             <div>
                 <WelcomeModal displayModal={displayWelcomeModal} />
+                <ShortcutModal
+                    displayModal={displayShortcutModal}
+                    toggleModal={notificationStore.toggleShortcutModal}
+                />
                 <SegmentPopulationModal
                     segmentId={projectStore.editingPopulationsSegmentId}
                     populations={populationStore.selectedPopulations}

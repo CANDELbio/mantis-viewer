@@ -352,6 +352,10 @@ hotkeys('alt+down, command+down', function (): void {
     }
 })
 
+hotkeys('shift+/', function (): void {
+    projectStore.notificationStore.toggleShortcutModal()
+})
+
 const channelKeys: Record<ChannelName, string> = {
     rChannel: 'q',
     gChannel: 'w',
