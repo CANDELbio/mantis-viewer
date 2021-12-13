@@ -26,9 +26,11 @@ import {
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
 import { MinMax, ChannelMarkerMapping } from '../interfaces/ImageInterfaces'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 
 type SettingStoreData = {
     activeImageSet?: string | null
+    imagePositionAndScales?: Record<string, { position: Coordinate; scale: Coordinate }>
     imageSubdirectory?: string | null
     channelMarker?: ChannelMarkerMapping | null
     channelDomainValue?: Record<ChannelName, [number, number]> | null
@@ -80,6 +82,8 @@ export class SettingStore {
     // Storing the active image set so we can reload it.
     // TODO: DRY up with activeImageSet in project store.
     @observable public activeImageSet: string | null
+    // The position and scale for all images so they persist between reloads
+    @observable public imagePositionAndScales: Record<string, { position: Coordinate; scale: Coordinate }>
     // Storing the subdirectory name where images are stored in an ImageSet. Blank if not used.
     @observable public imageSubdirectory: string | null
     // Image settings below
@@ -139,6 +143,8 @@ export class SettingStore {
         this.db = null
         this.imageSubdirectory = null
         this.activeImageSet = null
+
+        this.imagePositionAndScales = {}
 
         this.channelMarker = {
             rChannel: null,
@@ -622,11 +628,30 @@ export class SettingStore {
         return null
     }
 
+    @action public setActivePositionAndScale = (position: Coordinate, scale: Coordinate): void => {
+        const activeImageSet = this.activeImageSet
+        if (activeImageSet) {
+            this.imagePositionAndScales[activeImageSet] = { position: position, scale: scale }
+        }
+    }
+
+    @computed public get activePositionAndScale(): {
+        position: Coordinate
+        scale: Coordinate
+    } | null {
+        const activeImageSet = this.activeImageSet
+        if (activeImageSet) {
+            return this.imagePositionAndScales[activeImageSet]
+        }
+        return null
+    }
+
     private exportSettings = autorun(() => {
         if (this.db != null) {
             const exporting: SettingStoreData = {
                 imageSubdirectory: this.imageSubdirectory,
                 activeImageSet: this.activeImageSet,
+                imagePositionAndScales: this.imagePositionAndScales,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainValue: this.channelDomainValue,
@@ -677,6 +702,8 @@ export class SettingStore {
                 const importingSettings: SettingStoreData = this.db.getSettings()
                 if (importingSettings.imageSubdirectory) this.imageSubdirectory = importingSettings.imageSubdirectory
                 if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
+                if (importingSettings.imagePositionAndScales)
+                    this.imagePositionAndScales = importingSettings.imagePositionAndScales
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
                 if (importingSettings.channelDomainValue) this.channelDomainValue = importingSettings.channelDomainValue

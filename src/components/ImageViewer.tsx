@@ -33,8 +33,7 @@ export interface ImageProps {
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
     channelMarker: Record<ChannelName, string | null>
-    position: Coordinate | null
-    scale: Coordinate | null
+    positionAndScale: { position: Coordinate; scale: Coordinate } | null
     setPositionAndScale: (position: Coordinate, scale: Coordinate) => void
     selectedPopulations: SelectedPopulation[] | null
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
@@ -310,7 +309,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     }
 
     // Checks if an x y coordinate is within the image bounds
-    private positionInBounds(position: { x: number; y: number }): boolean {
+    private positionInBounds(position: Coordinate): boolean {
         if (this.imageData) {
             const maxX = this.imageData.width
             const maxY = this.imageData.height
@@ -890,7 +889,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         }
     }
 
-    private setStagePositionAndScale(position: { x: number; y: number }, scale: { x: number; y: number }): void {
+    private setStagePositionAndScale(position: Coordinate, scale: Coordinate): void {
         this.stage.position.x = position.x
         this.stage.position.y = position.y
         this.stage.scale.x = scale.x
@@ -991,8 +990,8 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private renderImage(
         el: HTMLDivElement | null,
         imcData: ImageData | null,
-        position: { x: number; y: number } | null,
-        scale: { x: number; y: number } | null,
+        position: Coordinate | null,
+        scale: Coordinate | null,
         channelMarker: Record<ChannelName, string | null>,
         channelDomain: Record<ChannelName, [number, number]>,
         channelVisibility: Record<ChannelName, boolean>,
@@ -1135,10 +1134,13 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
 
         const imcData = this.props.imageData
 
-        let position: { x: number; y: number } | null = null
-        if (this.props.position) position = { x: this.props.position.x, y: this.props.position.y }
-        let scale: { x: number; y: number } | null = null
-        if (this.props.scale) scale = { x: this.props.scale.x, y: this.props.scale.y }
+        let position: Coordinate | null = null
+        let scale: Coordinate | null = null
+        const positionAndScale = this.props.positionAndScale
+        if (positionAndScale) {
+            position = positionAndScale.position
+            scale = positionAndScale.scale
+        }
 
         const segmentationData = this.props.segmentationData
         const segmentationFillAlpha = this.props.segmentationFillAlpha
