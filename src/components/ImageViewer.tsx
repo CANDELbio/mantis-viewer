@@ -67,7 +67,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
     private channelVisibility: Record<ChannelName, boolean>
 
     // Color filters to use so that the sprites display as the desired color
-    private channelFilters: Record<ChannelName, PIXI.filters.ColorMatrixFilter>
+    private channelFilters: Record<ChannelName, PIXI.Filter>
 
     // The actual width and height of the stage
     private rendererWidth: number
