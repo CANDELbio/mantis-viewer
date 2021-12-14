@@ -220,8 +220,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu
-                    segmentIds={segmentationStore.activeHighlightedSegments}
+                    segmentIds={projectStore.contextMenuSegmentIds}
+                    hideMenu={projectStore.editingPopulationsSegmentId != null}
                     setEditingPopulations={projectStore.setEditingPopulationsSegmentId}
+                    onImageContextMenuOpen={projectStore.lockContextMenuSegmentIds}
+                    onImageContextMenuClose={projectStore.unlockContextMenuSegmentIds}
                 />
             </div>
         )

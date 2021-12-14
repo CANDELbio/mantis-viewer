@@ -62,6 +62,8 @@ export class ProjectStore {
     // When set to a number opens a modal where the populations can be edited.
     // When set to null closes the editing modal.
     @observable public editingPopulationsSegmentId: number | null
+    // Used to lock the context menu to a specific segment ID to prevent it from changing when the user moves the mouse.
+    @observable private lockedContextMenuSegmentIds: number[] | null
 
     // Used when a user requests to cancel a long running process
     // (e.g. importing, generating, and exporting segment features for multiple images)
@@ -71,6 +73,17 @@ export class ProjectStore {
 
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
+    }
+
+    // Gets the Segment IDs for the segment context menu.
+    // We want to return the highlighted segments that get locked when the menu is opened
+    // to prevent the segment ids in the menu from changing as the mouse is moved.
+    // On first render we need to return the active highlighted segments instead as the
+    // locked segment ids will be null until after the menu has been rendered.
+    @computed public get contextMenuSegmentIds(): number[] {
+        const lockedSegmentIds = this.lockedContextMenuSegmentIds
+        if (lockedSegmentIds) return lockedSegmentIds
+        return this.activeImageSetStore.segmentationStore.activeHighlightedSegments
     }
 
     public constructor(appVersion: string) {
@@ -363,7 +376,16 @@ export class ProjectStore {
         this.editingPopulationsSegmentId = null
     }
 
-    @action setCancelTask = (value: boolean): void => {
+    @action lockContextMenuSegmentIds = (): void => {
+        this.lockedContextMenuSegmentIds = this.activeImageSetStore.segmentationStore.activeHighlightedSegments
+    }
+
+    @action unlockContextMenuSegmentIds = (): void => {
+        this.lockedContextMenuSegmentIds = null
+    }
+
+    @action
+    setCancelTask = (value: boolean): void => {
         this.cancelTask = value
     }
 

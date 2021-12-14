@@ -4,7 +4,10 @@ import { observer } from 'mobx-react'
 
 export interface ImageContextMenuProps {
     segmentIds: number[]
+    hideMenu: boolean
     setEditingPopulations: (segmentId: number) => void
+    onImageContextMenuOpen: () => void
+    onImageContextMenuClose: () => void
 }
 
 export const ImageContextMenuId = 'image_viewer_context_menu'
@@ -49,11 +52,20 @@ export class ImageContextMenu extends React.Component<ImageContextMenuProps, Ima
     }
 
     public render(): React.ReactNode {
-        const contextMenu = (
-            <ContextMenu id={ImageContextMenuId} hideOnLeave={true}>
-                {this.segmentMenuEntries()}
-            </ContextMenu>
-        )
+        let contextMenu = null
+        if (!this.props.hideMenu) {
+            contextMenu = (
+                <ContextMenu
+                    id={ImageContextMenuId}
+                    hideOnLeave={true}
+                    onShow={this.props.onImageContextMenuOpen}
+                    onHide={this.props.onImageContextMenuClose}
+                >
+                    {this.segmentMenuEntries()}
+                </ContextMenu>
+            )
+        }
+
         return contextMenu
     }
 }
