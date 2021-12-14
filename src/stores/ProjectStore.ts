@@ -303,6 +303,15 @@ export class ProjectStore {
         this.segmentFeatureStore.deleteAllSegmentFeatures()
     }
 
+    private activeImageSetTiffPath = (): string | null => {
+        const activeImagePath = this.activeImageSetPath
+        const imageSubdirectory = this.settingStore.imageSubdirectory
+        if (activeImagePath && imageSubdirectory && imageSubdirectory.length > 0) {
+            return path.join(activeImagePath, imageSubdirectory)
+        }
+        return activeImagePath
+    }
+
     @action public setSegmentationBasename = (filePath: string, checkCalculateFeatures: boolean): void => {
         const settingStore = this.settingStore
         const dirname = path.dirname(filePath)
@@ -310,7 +319,7 @@ export class ProjectStore {
         // Clear segmentation if it's already been set
         if (settingStore.segmentationBasename != null) this.clearSegmentation()
         // Set the new segmentation file
-        if (dirname == this.activeImageSetPath) {
+        if (dirname == this.activeImageSetTiffPath()) {
             this.settingStore.setSegmentationBasename(basename)
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
@@ -326,7 +335,7 @@ export class ProjectStore {
     @action public importRegionTiff = (filePath: string): void => {
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
-        if (dirname == this.activeImageSetPath) {
+        if (dirname == this.activeImageSetTiffPath()) {
             this.settingStore.setRegionsBasename(basename)
         } else {
             this.activeImageSetStore.populationStore.importRegionsFromTiff(filePath)

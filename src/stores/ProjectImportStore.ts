@@ -34,7 +34,6 @@ export class ProjectImportStore {
     @observable public imageSetSegmentationFile: string | null
     @observable public imageSetRegionFile: string | null
     @observable public imageSubdirectory: string | null
-    @observable public subdirectoryTiffs: string[]
     @observable public autoCalculateFeatures: FeatureCalculationOption
 
     @observable public readyToImport: boolean
@@ -54,7 +53,6 @@ export class ProjectImportStore {
         this.projectDirectories = []
         this.projectCsvs = []
         this.imageSetTiffs = []
-        this.subdirectoryTiffs = []
         this.imageSetCsvs = []
         this.imageSetDirs = []
         this.autoCalculateFeatures = 'none'
@@ -64,7 +62,7 @@ export class ProjectImportStore {
     private autoSetReadyToImport = autorun(() => {
         const ready =
             this.directory != null &&
-            (this.imageSetTiffs.length > 0 || this.subdirectoryTiffs.length > 0) &&
+            this.imageSetTiffs.length > 0 &&
             !this.featuresFileError &&
             !this.populationsFileError
         this.setReadyToImport(ready)
@@ -152,11 +150,14 @@ export class ProjectImportStore {
     }
 
     @action public updateImageSetFiles = (): void => {
+        const directory = this.directory
+        const imageSet = this.imageSet
+        const imageSubdirectory = this.imageSubdirectory
         const tiffs = []
         const csvs = []
         const dirs = []
-        if (this.directory && this.imageSet) {
-            const imageSetPath = path.join(this.directory, this.imageSet)
+        if (directory && imageSet) {
+            const imageSetPath = path.join(directory, imageSet)
             const entries = fs.readdirSync(imageSetPath, { withFileTypes: true })
             for (const entry of entries) {
                 if (entry.isDirectory()) {
@@ -164,8 +165,19 @@ export class ProjectImportStore {
                     if (!directoryName.startsWith('.')) dirs.push(directoryName)
                 } else if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
-                    if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)
+                    if ((!imageSubdirectory && lowerFileName.endsWith('tif')) || lowerFileName.endsWith('tiff'))
+                        tiffs.push(entry.name)
                     if (lowerFileName.endsWith('csv') || lowerFileName.endsWith('txt')) csvs.push(entry.name)
+                }
+            }
+            if (imageSubdirectory) {
+                const imageSubdirectoryPath = path.join(directory, imageSet, imageSubdirectory)
+                const entries = fs.readdirSync(imageSubdirectoryPath, { withFileTypes: true })
+                for (const entry of entries) {
+                    if (entry.isFile()) {
+                        const lowerFileName = entry.name.toLowerCase()
+                        if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff')) tiffs.push(entry.name)
+                    }
                 }
             }
         }
@@ -291,20 +303,7 @@ export class ProjectImportStore {
 
     @action public setImageSubdirectory = (file: string | null): void => {
         this.imageSubdirectory = file
-        // Make sure the subdirectory has tiffs we can import
-        const subdirectoryTiffs = []
-        if (this.directory && this.imageSet && file) {
-            const imageSubdirectoryPath = path.join(this.directory, this.imageSet, file)
-            const entries = fs.readdirSync(imageSubdirectoryPath, { withFileTypes: true })
-            for (const entry of entries) {
-                if (entry.isFile()) {
-                    const lowerFileName = entry.name.toLowerCase()
-                    if (lowerFileName.endsWith('tif') || lowerFileName.endsWith('tiff'))
-                        subdirectoryTiffs.push(entry.name)
-                }
-            }
-        }
-        this.subdirectoryTiffs = subdirectoryTiffs
+        this.updateImageSetFiles()
     }
 
     public import = (): void => {
@@ -327,11 +326,13 @@ export class ProjectImportStore {
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public continueImport = (): void => {
         this.modalOpen = false
-        if (this.directory) {
+        const directory = this.directory
+        const imageSubdirectory = this.imageSubdirectory
+        if (directory) {
             const projectStore = this.projectStore
             // If we're importing through the project import wizard then this should be a new project or the user has agreed to reinitialize.
             this.eraseDbIfExists()
-            projectStore.openProject(this.directory, this.imageSubdirectory)
+            projectStore.openProject(directory, imageSubdirectory)
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore
             const activeSegmentationStore = activeImageSet.segmentationStore
@@ -345,7 +346,10 @@ export class ProjectImportStore {
                         if (this.autoCalculateFeatures == 'image') {
                             projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
                         }
-                        const segmentationPath = path.join(activeImageSetName, segmentationFile)
+                        const segmentationPath =
+                            imageSubdirectory && imageSubdirectory.length > 0
+                                ? path.join(activeImageSetName, imageSubdirectory, segmentationFile)
+                                : path.join(activeImageSetName, segmentationFile)
                         if (fs.existsSync(segmentationPath)) {
                             projectStore.setSegmentationBasename(segmentationPath, false)
                         } else {
