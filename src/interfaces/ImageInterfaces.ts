@@ -1,4 +1,5 @@
 import { ChannelName } from '../definitions/UIDefinitions'
+import * as PIXI from 'pixi.js'
 
 export interface Coordinate {
     x: number
