@@ -145,6 +145,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selectionGraphics = new PIXI.Graphics()
         this.selectionSegmentOutline?.destroy(destroyOptions)
         this.selectionSegmentOutline = new Line()
+
+        const ticker = PIXI.Ticker.shared
+        ticker.autoStart = false
+        ticker.stop()
     }
 
     public constructor(props: ImageProps) {
