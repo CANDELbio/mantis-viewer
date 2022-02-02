@@ -1,4 +1,4 @@
-/* eslint @typescript-eslint/camelcase: 0 */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
@@ -14,7 +14,7 @@ const DbFilename = '.mantisDb'
 
 import url = require('url')
 const openAboutWindow = require('about-window').default
-const contextMenu = require('electron-context-menu').default
+const contextMenu = require('electron-context-menu')
 // TODO: Figure out how to not use the eslint-disable for this import
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const isDev = require('electron-is-dev')
@@ -547,8 +547,9 @@ const closePreferencesWindow = (): void => {
     }
 }
 
-function registerDebuggingFinishLoadEventHandler(window: BrowserWindow): void {
-    window.webContents.on('did-frame-finish-load', () => {
+function registerOnReadyLoadEventHandler(window: BrowserWindow, readyFn?: (window: BrowserWindow) => void): void {
+    window.webContents.once('dom-ready', () => {
+        if (readyFn) readyFn(window)
         if (isDev) {
             contextMenu({ showInspectElement: true })
             window.webContents.openDevTools()
@@ -568,7 +569,7 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
             experimentalFeatures: true,
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
-            enableRemoteModule: true,
+            contextIsolation: false,
         },
     })
 
@@ -582,8 +583,13 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
             slashes: true,
         }),
     )
+
+    const readyFn = (window: BrowserWindow) => {
+        window.webContents.send('set-app-version', app.getVersion())
+    }
+
     // Open the DevTools.
-    registerDebuggingFinishLoadEventHandler(newWindow)
+    registerOnReadyLoadEventHandler(newWindow, readyFn)
     return newWindow
 }
 
@@ -621,7 +627,12 @@ const createPlotWindow = (): void => {
         width: 800,
         height: 800,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
+        webPreferences: {
+            experimentalFeatures: true,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: false,
+            contextIsolation: false,
+        },
     })
 
     plotWindow.loadURL(
@@ -632,7 +643,7 @@ const createPlotWindow = (): void => {
         }),
     )
 
-    registerDebuggingFinishLoadEventHandler(plotWindow)
+    registerOnReadyLoadEventHandler(plotWindow)
 
     // Use throttle so that when we resize we only send the window size every 333 ms
     plotWindow.on('resize', _.throttle(sendPlotWindowSize, 333))
@@ -654,7 +665,12 @@ function createPreferencesWindow(): void {
         height: 735,
         resizable: false,
         show: false,
-        webPreferences: { experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: false },
+        webPreferences: {
+            experimentalFeatures: true,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: false,
+            contextIsolation: false,
+        },
     })
 
     preferencesWindow.loadURL(
@@ -665,7 +681,7 @@ function createPreferencesWindow(): void {
         }),
     )
 
-    registerDebuggingFinishLoadEventHandler(preferencesWindow)
+    registerOnReadyLoadEventHandler(preferencesWindow)
 
     // Instead of destroying and recreating the plot window, we just hide/show it (unless the application is exited).
     preferencesWindow.on('close', function (event: Electron.Event): void {
@@ -838,8 +854,7 @@ ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
             buttons: ['Yes', 'No'],
             defaultId: 0,
             message: 'Do you want to calculate segment intensities for all images for the plot?',
-            detail:
-                'If you select no you will not be able to view data for all images on the plot. If you change your mind you can manually calculate the intensities from the menu.',
+            detail: 'If you select no you will not be able to view data for all images on the plot. If you change your mind you can manually calculate the intensities from the menu.',
         }
         dialog.showMessageBox(mainWindow, options).then((value: Electron.MessageBoxReturnValue): void => {
             if (value.response == 0) {

@@ -35,7 +35,7 @@ export interface ChannelControlsProps {
 }
 
 @observer
-export class ChannelControls extends React.Component<ChannelControlsProps, {}> {
+export class ChannelControls extends React.Component<ChannelControlsProps, Record<string, never>> {
     public constructor(props: ChannelControlsProps) {
         super(props)
     }

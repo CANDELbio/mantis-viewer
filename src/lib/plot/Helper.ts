@@ -30,9 +30,9 @@ export function buildTraceIdArray(
 }
 
 // Builds a map of populationId to the population it belongs to.
-export function buildSelectedPopulationMap(
-    selectedPopulation: SelectedPopulation[] | null,
-): { [key: string]: SelectedPopulation } {
+export function buildSelectedPopulationMap(selectedPopulation: SelectedPopulation[] | null): {
+    [key: string]: SelectedPopulation
+} {
     const map: { [key: string]: SelectedPopulation } = {}
     if (selectedPopulation != null) {
         for (const region of selectedPopulation) {

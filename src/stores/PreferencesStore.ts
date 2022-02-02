@@ -196,22 +196,23 @@ export class PreferencesStore {
     private loadFromStore(): void {
         const store = this.store
         const maxImageSetsInMemory = store.get('maxImageSetsInMemory')
-        if (maxImageSetsInMemory) this.maxImageSetsInMemory = maxImageSetsInMemory
+        if (maxImageSetsInMemory) this.maxImageSetsInMemory = maxImageSetsInMemory as number
         const blurPixels = store.get('blurPixels')
-        if (blurPixels) this.blurPixels = blurPixels
+        if (blurPixels) this.blurPixels = blurPixels as boolean
         const defaultChannelMarkers = store.get('defaultChannelMarkers')
-        if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers
+        if (defaultChannelMarkers) this.defaultChannelMarkers = defaultChannelMarkers as Record<ChannelName, string[]>
         const defaultChannelDomains = store.get('defaultChannelDomains')
-        if (defaultChannelDomains) this.defaultChannelDomains = defaultChannelDomains
+        if (defaultChannelDomains)
+            this.defaultChannelDomains = defaultChannelDomains as Record<ChannelName, [number, number]>
         const useAnyMarkerIfNoMatch = store.get('useAnyMarkerIfNoMatch')
-        if (useAnyMarkerIfNoMatch) this.useAnyMarkerIfNoMatch = useAnyMarkerIfNoMatch
+        if (useAnyMarkerIfNoMatch) this.useAnyMarkerIfNoMatch = useAnyMarkerIfNoMatch as Record<ChannelName, boolean>
         const defaultSegmentationBasename = store.get('defaultSegmentationBasename')
-        if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename
+        if (defaultSegmentationBasename) this.defaultSegmentationBasename = defaultSegmentationBasename as string
         const scale = store.get('scaleChannelDomainValues')
-        if (scale) this.scaleChannelDomainValues = scale
+        if (scale) this.scaleChannelDomainValues = scale as boolean
         const optimize = store.get('optimizeSegmentation')
-        if (optimize != null) this.optimizeSegmentation = optimize
+        if (optimize != null) this.optimizeSegmentation = optimize as boolean
         const reload = store.get('reloadOnError')
-        if (reload != null) this.reloadOnError = reload
+        if (reload != null) this.reloadOnError = reload as boolean
     }
 }

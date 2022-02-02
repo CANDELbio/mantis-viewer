@@ -86,8 +86,7 @@ export class ProjectStore {
         return this.activeImageSetStore.segmentationStore.activeHighlightedSegments
     }
 
-    public constructor(appVersion: string) {
-        this.appVersion = appVersion
+    public constructor() {
         this.initialize()
     }
 
@@ -130,6 +129,10 @@ export class ProjectStore {
         this.lastActiveImageSetPath = null
 
         this.settingStore.initialize()
+    }
+
+    public setAppVersion = (appVersion: string): void => {
+        this.appVersion = appVersion
     }
 
     // Set the imageSetPaths and initialize all the stores with empty stores.

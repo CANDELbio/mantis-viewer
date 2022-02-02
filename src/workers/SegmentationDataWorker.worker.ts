@@ -75,7 +75,7 @@ function getPixelColor(segmentId: number, colors: RGBColorCollection): { r: numb
     return colors[segmentId]
 }
 
-function drawPixel(segmentId: number, colors: {}, pixel: number, canvasData: Uint8ClampedArray): void {
+function drawPixel(segmentId: number, colors: RGBColorCollection, pixel: number, canvasData: Uint8ClampedArray): void {
     // Tiff data is an array with one index per pixel whereas canvasas have four indexes per pixel (r, g, b, a)
     // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
     const canvasIndex = pixel << 2
@@ -104,6 +104,8 @@ async function generateFillBitmap(
     width: number,
     height: number,
 ): Promise<ImageBitmap> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
     const offScreen = new OffscreenCanvas(width, height)
 
     // Hash to store the segmentID to randomly generated color mapping

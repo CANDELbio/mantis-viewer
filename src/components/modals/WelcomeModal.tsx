@@ -7,7 +7,7 @@ export interface WelcomeModalProps {
 }
 
 @observer
-export class WelcomeModal extends React.Component<WelcomeModalProps, {}> {
+export class WelcomeModal extends React.Component<WelcomeModalProps, Record<string, never>> {
     public constructor(props: WelcomeModalProps) {
         super(props)
     }

@@ -12,7 +12,7 @@ import { Line, PointData } from './pixi/Line'
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
     if (!blurPixels) spriteOptions.scaleMode = PIXI.SCALE_MODES.NEAREST
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const sprite = PIXI.Sprite.from(bitmap, spriteOptions)
     if (!blurPixels) sprite.roundPixels = false

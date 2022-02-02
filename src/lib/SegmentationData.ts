@@ -74,7 +74,7 @@ export class SegmentationData {
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.fillSprite = PIXI.Sprite.from(fData.fillBitmap)
 

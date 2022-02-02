@@ -5,7 +5,6 @@
         "module": "commonjs",
         "target": "es2018",
         "jsx": "react",
-        "moduleResolution": "node",
         "alwaysStrict": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
@@ -15,7 +14,11 @@
         // "noUnusedParameters": true,
         "strictNullChecks": true,
         "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "paths": {
+            "*": ["node_modules/*"]
+          }
     },
     "include": [
         "main.ts",

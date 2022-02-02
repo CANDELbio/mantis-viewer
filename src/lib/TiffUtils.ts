@@ -1,6 +1,6 @@
 // Importing from a file for now. This package is available on npm, but hasn't been updated in a few months.
 // The newest version on github supports a compression format that a user requested support for.
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import GeoTIFF = require('geotiff')
 
