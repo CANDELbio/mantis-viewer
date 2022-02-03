@@ -26,6 +26,9 @@ export class NotificationStore {
     @observable public numToImport: number
     @observable public numImported: number
 
+    // Set to true to trigger segment feature choice modal:
+    @observable public chooseSegmentFeatures: boolean
+
     @observable public checkCalculateSegmentFeatures: boolean
     // Gets set to true when segmentation features have already been calculated
     // So that we can ask the user if they want to overwrite the old ones
@@ -97,6 +100,10 @@ export class NotificationStore {
 
     @action public setClearSegmentationRequested = (value: boolean): void => {
         this.clearSegmentationRequested = value
+    }
+
+    @action public setChooseSegFeaturesModal = (value: boolean): void => {
+        this.chooseSegmentFeatures = value
     }
 
     @action public setNumToCalculate = (value: number): void => {

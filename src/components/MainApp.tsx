@@ -29,6 +29,7 @@ import { PlotControls } from './PlotControls'
 import { ImageMessage } from './ImageMessage'
 import { ImageContextMenu, ImageContextMenuId } from './ImageContextMenu'
 import { SegmentPopulationModal } from './modals/SegmentPopulationModal'
+import { ChooseSegmentFeaturesModal } from './modals/ChooseSegmentFeaturesModal'
 
 export interface MainAppProps {
     projectStore: ProjectStore
@@ -169,8 +170,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             !(displayWelcomeModal || displayLoadingModal || displayProjectImportModal) &&
             notificationStore.showShortcutModal
 
+        const displaySegmentFeaturesModal = notificationStore.chooseSegmentFeatures
+
         const modalOpen =
-            displayWelcomeModal || displayLoadingModal || displayProjectImportModal || displayShortcutModal
+            displayWelcomeModal ||
+            displayLoadingModal ||
+            displayProjectImportModal ||
+            displayShortcutModal ||
+            displaySegmentFeaturesModal
 
         let windowHeight = projectStore.windowHeight
         const imageMessage = (
@@ -417,6 +424,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     displayModal={displayShortcutModal}
                     toggleModal={notificationStore.toggleShortcutModal}
                 />
+                <ChooseSegmentFeaturesModal displayModal={displaySegmentFeaturesModal} />
                 <SegmentPopulationModal
                     segmentId={projectStore.editingPopulationsSegmentId}
                     populations={populationStore.selectedPopulations}

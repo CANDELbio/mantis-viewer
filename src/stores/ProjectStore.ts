@@ -712,7 +712,14 @@ export class ProjectStore {
         this.settingStore.setPlotAllImageSets(value)
     }
 
+    // Called when segment feature calculation is requested
+    // Should open a modal for the user to choose which features
     public calculateAllSegmentFeatures = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(true)
+    }
+
+    // Kick off the calculation based on the choosen features
+    public runFeatureCalculations = (): void => {
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         this.calculateImageSetFeatures(this.imageSetPaths, true, false)
     }
