@@ -424,7 +424,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     displayModal={displayShortcutModal}
                     toggleModal={notificationStore.toggleShortcutModal}
                 />
-                <ChooseSegmentFeaturesModal displayModal={displaySegmentFeaturesModal} />
+                <ChooseSegmentFeaturesModal
+                    displayModal={displaySegmentFeaturesModal}
+                    chooseSum={projectStore.calculateSum}
+                    setChooseSum={projectStore.setCalculateSum}
+                    closeModal={projectStore.cancelSegFeatureCalculation}
+                    calculate={projectStore.runFeatureCalculations}
+                />
                 <SegmentPopulationModal
                     segmentId={projectStore.editingPopulationsSegmentId}
                     populations={populationStore.selectedPopulations}

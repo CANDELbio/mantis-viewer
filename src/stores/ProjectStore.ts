@@ -71,6 +71,11 @@ export class ProjectStore {
     // Used to keep track of which image sets we're calculating features for in case we have to break in the middle.
     private imageSetFeaturesToCalculate: string[]
 
+    // Used to specify which features the user has requested to calculate
+    @observable public calculateSum: boolean
+    @observable public calculateMean: boolean
+    @observable public calculateMedian: boolean
+
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
     }
@@ -718,8 +723,23 @@ export class ProjectStore {
         this.notificationStore.setChooseSegFeaturesModal(true)
     }
 
+    @action public cancelSegFeatureCalculation = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(false)
+    }
+
+    @action public setCalculateSum = (value: boolean) => {
+        this.calculateSum = value
+    }
+    @action public setCalculateMean = (value: boolean) => {
+        this.calculateMean = value
+    }
+    @action public setCalculateMedian = (value: boolean) => {
+        this.calculateMedian = value
+    }
+
     // Kick off the calculation based on the choosen features
     public runFeatureCalculations = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(false)
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         this.calculateImageSetFeatures(this.imageSetPaths, true, false)
     }
