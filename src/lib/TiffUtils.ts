@@ -23,16 +23,20 @@ export interface TiffData {
 function scaleWidthAndHeight(
     width: number,
     height: number,
-): { scaled: boolean; rasterOptions: { width: number; height: number } } {
+): { scaled: boolean; rasterOptions: { width: number; height: number; interleave: boolean } } {
     const maxDimension = width > height ? width : height
     if (maxDimension > maxWidthHeight) {
         const scaleFactor = maxDimension / scaledWidthHeight
         return {
             scaled: true,
-            rasterOptions: { width: Math.round(width / scaleFactor), height: Math.round(height / scaleFactor) },
+            rasterOptions: {
+                width: Math.round(width / scaleFactor),
+                height: Math.round(height / scaleFactor),
+                interleave: true,
+            },
         }
     }
-    return { scaled: false, rasterOptions: { width: width, height: height } }
+    return { scaled: false, rasterOptions: { width: width, height: height, interleave: true } }
 }
 
 export async function readTiffData(filepath: string, imageNumber: number): Promise<TiffData> {
@@ -49,9 +53,9 @@ export async function readTiffData(filepath: string, imageNumber: number): Promi
     tiff.close()
 
     return {
-        data: data[0],
-        width: data.width,
-        height: data.height,
+        data: data,
+        width: scaleResults.rasterOptions.width,
+        height: scaleResults.rasterOptions.height,
         scaled: scaleResults.scaled,
         numImages: numImages,
         imageDescription: imageDescription,
