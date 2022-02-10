@@ -1,4 +1,3 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentationDataWorker.worker')
 import { Coordinate } from '../interfaces/ImageInterfaces'
 
 export interface SegmentationDataWorkerInput {
@@ -37,7 +36,7 @@ export class SegmentationDataWorker {
     private worker: Worker
 
     public constructor(onComplete: OnSegmentationDataWorkerComplete) {
-        this.worker = new Worker()
+        this.worker = new Worker(new URL('../workers/SegmentationDataWorker.worker.ts', import.meta.url))
         this.worker.addEventListener(
             'message',
             function (e: { data: SegmentationDataWorkerResult | SegmentationDataWorkerError }) {

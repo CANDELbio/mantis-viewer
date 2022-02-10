@@ -1,4 +1,4 @@
-import sqlite3 = require('better-sqlite3')
+import * as sqlite3 from 'better-sqlite3'
 
 import * as path from 'path'
 

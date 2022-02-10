@@ -4,8 +4,8 @@ import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Collapse, Spinner } from 'reactstrap'
 import { ContextMenuTrigger } from 'react-contextmenu'
 
-import * as bottomBar from '../assets/bottom_bar.png'
-import * as piciLogo from '../assets/pici_logo.png'
+import bottomBar from '../assets/bottom_bar.png'
+import piciLogo from '../assets/pici_logo.png'
 
 import { ProjectStore } from '../stores/ProjectStore'
 import {

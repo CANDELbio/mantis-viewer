@@ -12,7 +12,7 @@ import * as fs from 'fs'
 // Would be ideal to import instead of duplicating.
 const DbFilename = '.mantisDb'
 
-import url = require('url')
+import * as url from 'url'
 const openAboutWindow = require('about-window').default
 const contextMenu = require('electron-context-menu')
 // TODO: Figure out how to not use the eslint-disable for this import

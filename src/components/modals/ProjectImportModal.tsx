@@ -12,7 +12,7 @@ import {
     onClearableSelectChange,
 } from '../../lib/SelectUtils'
 import { FeatureCalculationOption, FeatureCalculationOptions } from '../../definitions/UIDefinitions'
-import path = require('path')
+import * as path from 'path'
 
 export interface ProjectImportModalProps {
     open: boolean

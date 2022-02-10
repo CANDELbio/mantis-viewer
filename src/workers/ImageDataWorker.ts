@@ -1,6 +1,5 @@
 // Not sure if there is a way to DRY up this and the other worker class definitions while keeping type safety of inputs
 // (i.e. an ImageDataWorker should only accept OnImageDataWorkerComplete as an input for the constructor.)
-import Worker = require('worker-loader?name=dist/[name].js!../workers/ImageDataWorker.worker')
 import { MinMax } from '../interfaces/ImageInterfaces'
 
 export interface ImageDataWorkerInput {
@@ -33,7 +32,10 @@ export class ImageDataWorker {
     private worker: Worker
 
     public constructor(onComplete: OnImageDataWorkerComplete) {
-        this.worker = new Worker()
+        this.worker = new Worker(new URL('../workers/ImageDataWorker.worker.ts', import.meta.url))
+        // this.worker.onmessage = (e: { data: ImageDataWorkerResult | ImageDataWorkerError }) => {
+        //     onComplete(e.data)
+        // }
         this.worker.addEventListener(
             'message',
             function (e: { data: ImageDataWorkerResult | ImageDataWorkerError }) {

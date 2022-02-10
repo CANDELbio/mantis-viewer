@@ -1,4 +1,3 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureDbWorker.worker')
 import * as shortId from 'shortid'
 import { MinMax } from '../interfaces/ImageInterfaces'
 
@@ -84,7 +83,7 @@ class SegmentFeatureDbWorker {
     private worker: Worker
 
     public constructor(onComplete: OnSegmentFeatureDbRequestComplete) {
-        this.worker = new Worker()
+        this.worker = new Worker(new URL('../workers/SegmentFeatureDbWorker.worker.ts', import.meta.url))
 
         this.worker.addEventListener(
             'message',

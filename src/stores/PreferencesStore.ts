@@ -7,7 +7,9 @@ import * as Store from 'electron-store'
 export class PreferencesStore {
     public constructor(projectStore: ProjectStore) {
         this.projectStore = projectStore
-        this.store = new Store()
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        this.store = new Store({ projectName: 'mantis-viewer' })
         this.initialize()
         this.loadFromStore()
     }
