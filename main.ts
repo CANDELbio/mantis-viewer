@@ -563,7 +563,7 @@ function registerOnReadyLoadEventHandler(window: BrowserWindow, readyFn?: (windo
 function initializeMainWindow(width?: number, height?: number): BrowserWindow {
     const newWindow = new BrowserWindow({
         width: width ? width : 1540,
-        height: height ? height : 860,
+        height: height ? height : 865,
         show: false,
         webPreferences: {
             experimentalFeatures: true,

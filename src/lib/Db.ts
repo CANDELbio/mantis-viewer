@@ -168,6 +168,14 @@ export class Db {
         db.close()
     }
 
+    public deleteAllFeaturesForImageSet(imageSet: string): void {
+        const db = this.getConnection()
+        const stmt = db.prepare(`DELETE FROM features
+                                 WHERE image_set = ?`)
+        stmt.run(imageSet)
+        db.close()
+    }
+
     public minMaxValues(imageSets: string[], feature: string): Record<string, MinMax> {
         const results: Record<string, MinMax> = {}
         const db = this.getConnection()
