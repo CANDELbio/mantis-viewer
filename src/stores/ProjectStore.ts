@@ -119,6 +119,10 @@ export class ProjectStore {
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
 
+        this.calculateSum = false
+        this.calculateMean = false
+        this.calculateMedian = false
+
         this.cancelTask = false
 
         this.imageSetHistory = []
@@ -741,7 +745,12 @@ export class ProjectStore {
     public runFeatureCalculations = (): void => {
         this.notificationStore.setChooseSegFeaturesModal(false)
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
-        this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+        when(
+            (): boolean => !this.notificationStore.chooseSegmentFeatures,
+            (): void => {
+                this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+            },
+        )
     }
 
     // TODO: Some duplication here with exportImageSetFeatures. Should DRY it up.
@@ -770,6 +779,7 @@ export class ProjectStore {
                                 (): boolean => !segmentationStore.segmentationDataLoading,
                                 (): void => {
                                     const featuresCalculating = this.segmentFeatureStore.calculateSegmentFeatures(
+                                        // TODO: pass the args (what features to calc) here
                                         imageSetStore,
                                         checkOverwrite,
                                         overwriteFeatures,

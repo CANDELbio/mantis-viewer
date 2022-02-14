@@ -10,6 +10,7 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
 import { parseSegmentDataCSV } from '../lib/IO'
+import { AreaStatistic, PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 import {
     ImageSetFeatureRequest,
@@ -192,6 +193,8 @@ export class SegmentFeatureStore {
         imageSetStore: ImageSetStore,
         checkOverwrite: boolean,
         overwriteFeatures: boolean,
+        // todo - add args (features to calc) here
+        // markerStats: PlotStatistic[]
     ): boolean => {
         const imageSetName = imageSetStore.name
         const imageStore = imageSetStore.imageStore
@@ -201,14 +204,17 @@ export class SegmentFeatureStore {
         const notificationStore = projectStore.notificationStore
         const basePath = this.projectStore.settingStore.basePath
         const segmentationData = segmentationStore.segmentationData
+        const markerStats: PlotStatistic[] = ['mean']
 
         if (imageData && basePath && imageSetName && segmentationData) {
             this.setSegmentFeatureLoadingStatus(imageSetName, true)
             const generator = new SegmentFeatureGenerator(
+                // todo pass features list here
                 basePath,
                 imageSetName,
                 imageData,
                 segmentationData,
+                markerStats,
                 submitSegmentFeatureDbRequest,
                 this.onSegmentFeaturesGenerated,
             )

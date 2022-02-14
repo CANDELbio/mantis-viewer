@@ -53,7 +53,7 @@ export class ChooseSegmentFeaturesModal extends React.Component<ChooseSegmentFea
                                     </Button>
                                 </Col>
                                 <Col xs={6}>
-                                    <Button type="button" size="sm" onClick={this.props.import}>
+                                    <Button type="button" size="sm" onClick={this.props.calculate}>
                                         Calculate
                                     </Button>
                                 </Col>
