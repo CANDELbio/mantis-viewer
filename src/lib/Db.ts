@@ -1,4 +1,4 @@
-import sqlite3 = require('better-sqlite3')
+import * as sqlite3 from 'better-sqlite3'
 
 import * as path from 'path'
 
@@ -165,6 +165,14 @@ export class Db {
                                  WHERE image_set = ? AND
                                  feature = ?`)
         stmt.run(imageSet, feature)
+        db.close()
+    }
+
+    public deleteAllFeaturesForImageSet(imageSet: string): void {
+        const db = this.getConnection()
+        const stmt = db.prepare(`DELETE FROM features
+                                 WHERE image_set = ?`)
+        stmt.run(imageSet)
         db.close()
     }
 

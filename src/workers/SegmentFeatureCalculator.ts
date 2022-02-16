@@ -1,4 +1,3 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/SegmentFeatureCalculator.worker')
 import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 
 export type SegmentFeatureCalculatorInput = SegmentStatisticRequest | SegmentAreaRequest
@@ -42,7 +41,8 @@ export class SegmentFeatureCalculator {
     private worker: Worker
 
     public constructor(onComplete: OnSegmentFeatureCalculatorComplete) {
-        this.worker = new Worker()
+        this.worker = new Worker(new URL('../workers/SegmentFeatureCalculator.worker.ts', import.meta.url))
+
         this.worker.addEventListener(
             'message',
             function (e: { data: SegmentFeatureCalculatorResult }) {

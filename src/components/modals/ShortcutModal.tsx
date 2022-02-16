@@ -8,7 +8,7 @@ export interface ShortcutModalProps {
 }
 
 @observer
-export class ShortcutModal extends React.Component<ShortcutModalProps, {}> {
+export class ShortcutModal extends React.Component<ShortcutModalProps, Record<string, never>> {
     public constructor(props: ShortcutModalProps) {
         super(props)
     }

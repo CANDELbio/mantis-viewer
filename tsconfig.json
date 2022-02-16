@@ -2,10 +2,10 @@
     "compilerOptions": {
         "outDir": "./",
         "sourceMap": true,
-        "module": "commonjs",
-        "target": "es2018",
-        "jsx": "react",
+        "module": "es2020",
         "moduleResolution": "node",
+        "target": "es2020",
+        "jsx": "react",
         "alwaysStrict": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
@@ -15,7 +15,11 @@
         // "noUnusedParameters": true,
         "strictNullChecks": true,
         "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "paths": {
+            "*": ["node_modules/*"]
+          }
     },
     "include": [
         "main.ts",

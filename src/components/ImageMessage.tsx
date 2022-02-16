@@ -10,7 +10,7 @@ export interface ImageMessageProps {
 }
 
 @observer
-export class ImageMessage extends React.Component<ImageMessageProps, {}> {
+export class ImageMessage extends React.Component<ImageMessageProps, Record<string, never>> {
     public constructor(props: ImageMessageProps) {
         super(props)
     }

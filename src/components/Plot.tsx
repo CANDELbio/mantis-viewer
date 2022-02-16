@@ -22,8 +22,12 @@ interface PlotProps {
     downsample: boolean
 }
 
+interface PlotState {
+    popoverOpen: boolean
+}
+
 @observer
-export class Plot extends React.Component<PlotProps, {}> {
+export class Plot extends React.Component<PlotProps, PlotState> {
     public container: Plotly.PlotlyHTMLElement | null = null
 
     public constructor(props: PlotProps) {
@@ -72,7 +76,7 @@ export class Plot extends React.Component<PlotProps, {}> {
                     // Sometimes plotly returns incorrect selected points if there are multiple selections
                     // and the point being hovered/highlighted isn't in some of those selections.
                     if (pointRegionName == ActiveImageSetTraceName) {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
                         const pointText = point.text
                         if (pointText) {
@@ -120,17 +124,15 @@ export class Plot extends React.Component<PlotProps, {}> {
             const layoutWithSize = plotData.layout
             const config: Partial<Plotly.Config> = {}
             // Setting any hidden populations as hidden, and all visible as visible.
-            plotData.data.forEach(
-                (curve: Partial<Plotly.Data>): Partial<Plotly.Data> => {
-                    const populationName = curve.name
-                    if (populationName && hiddenPopulations.includes(populationName)) {
-                        curve.visible = 'legendonly'
-                    } else {
-                        curve.visible = true
-                    }
-                    return curve
-                },
-            )
+            plotData.data.forEach((curve: Partial<Plotly.Data>): Partial<Plotly.Data> => {
+                const populationName = curve.name
+                if (populationName && hiddenPopulations.includes(populationName)) {
+                    curve.visible = 'legendonly'
+                } else {
+                    curve.visible = true
+                }
+                return curve
+            })
 
             if (width != null && height != null) {
                 layoutWithSize.width = width

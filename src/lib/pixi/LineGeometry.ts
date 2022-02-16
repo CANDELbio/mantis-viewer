@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Buffer, DRAW_MODES, Geometry, TYPES, utils } from 'pixi.js'
 
 import { PointData } from './Line'

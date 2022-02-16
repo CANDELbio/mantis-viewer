@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
@@ -54,7 +55,7 @@ export interface ImageProps {
 }
 
 @observer
-export class ImageViewer extends React.Component<ImageProps, {}> {
+export class ImageViewer extends React.Component<ImageProps, Record<string, never>> {
     private el: HTMLDivElement | null = null
 
     private renderer: PIXI.Renderer
@@ -145,6 +146,10 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.selectionGraphics = new PIXI.Graphics()
         this.selectionSegmentOutline?.destroy(destroyOptions)
         this.selectionSegmentOutline = new Line()
+
+        const ticker = PIXI.Ticker.shared
+        ticker.autoStart = false
+        ticker.stop()
     }
 
     public constructor(props: ImageProps) {
@@ -538,7 +543,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             this.renderer.render(this.rootContainer)
 
             // Get the pixels for the current selection in RGBA format and convert to pixel locations
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
             const rawPixels = this.renderer.extract.pixels()
             pixelIndexes = GraphicsHelper.RGBAtoPixelIndexes(
@@ -699,7 +703,7 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         this.renderer = new PIXI.Renderer({
             width: this.rendererWidth,
             height: this.rendererHeight,
-            transparent: true,
+            backgroundAlpha: 0,
         })
         this.renderer.reset()
         this.el.appendChild(this.renderer.view)
@@ -729,7 +733,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 if (sprite && uniforms) {
                     const filter = new PIXI.Filter(undefined, brightnessFilter, uniforms)
                     // Delete sprite filters so they get cleared from memory before adding new ones
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     //@ts-ignore
                     sprite.filters = null
                     sprite.filters = [filter, this.channelFilters[curChannel]]
@@ -751,7 +754,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
                 // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
                 if (this.segmentationData) {
                     const segmentationTexture = this.segmentationData.fillSprite.texture
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     // @ts-ignore
                     if (segmentationTexture) this.renderer.texture.destroyTexture(segmentationTexture)
                 }
@@ -943,7 +945,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
             // Get the source canvas that we are exporting from pixi
             // Need to use ts-ignore for this for some reason it expects an input
             // with the v5 ts types
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
             const sourceCanvas = this.renderer.extract.canvas()
 
@@ -980,7 +981,6 @@ export class ImageViewer extends React.Component<ImageProps, {}> {
         if (imageData) {
             const markerSprites = Object.values(imageData.sprites)
             for (const sprite of markerSprites) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                 // @ts-ignore
                 this.renderer.texture.destroyTexture(sprite.texture)
             }

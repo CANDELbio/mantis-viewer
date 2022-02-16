@@ -56,7 +56,7 @@ export class ProjectStore {
     // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
 
-    // The pixel being higlighted/moused over by the user on the image.
+    // The pixel being highlighted/moused over by the user on the image.
     // Used to show segment stats and pixel stats.
     @observable public highlightedPixel: Coordinate | null
 
@@ -91,8 +91,7 @@ export class ProjectStore {
         return this.activeImageSetStore.segmentationStore.activeHighlightedSegments
     }
 
-    public constructor(appVersion: string) {
-        this.appVersion = appVersion
+    public constructor() {
         this.initialize()
     }
 
@@ -137,6 +136,10 @@ export class ProjectStore {
         this.lastActiveImageSetPath = null
 
         this.settingStore.initialize()
+    }
+
+    public setAppVersion = (appVersion: string): void => {
+        this.appVersion = appVersion
     }
 
     // Set the imageSetPaths and initialize all the stores with empty stores.
@@ -296,7 +299,9 @@ export class ProjectStore {
         }
     }
 
-    // Gets called when the user clicks the 'Clear Segmentation' button and approves.
+    // Clears segmentation when it's been set for the project via the setting store.
+    // Gets called when the user sets a new segmentation file from the menu and segmentation
+    // has already been set or when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = (): void => {
         this.settingStore.setSegmentationBasename(null)
         this.settingStore.clearSelectedPlotFeatures()
@@ -324,13 +329,19 @@ export class ProjectStore {
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
         // Clear segmentation if it's already been set
-        if (settingStore.segmentationBasename != null) this.clearSegmentation()
         // Set the new segmentation file
         if (dirname == this.activeImageSetTiffPath()) {
+            if (settingStore.segmentationBasename != null) this.clearSegmentation()
             this.settingStore.setSegmentationBasename(basename)
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
             // Could result in weird behavior when switching between image sets.
+            const activeSegmentationStore = this.activeImageSetStore.segmentationStore
+            if (activeSegmentationStore.selectedSegmentationFile != null) {
+                activeSegmentationStore.clearSegmentationData()
+                this.activeImageSetStore.populationStore.deletePopulationsNotSelectedOnImage()
+                this.segmentFeatureStore.deleteActiveSegmentFeatures()
+            }
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
         // If Mantis isn't auto calculating features, ask the user
@@ -351,10 +362,10 @@ export class ProjectStore {
 
     public addPopulationFromPlotRange = (min: number, max: number): void => {
         const settingStore = this.settingStore
-        const plotTranform = settingStore.plotTransform
+        const plotTransform = settingStore.plotTransform
         const transformCoefficient = settingStore.transformCoefficient
-        const reverseMin = reverseTransform(min, plotTranform, transformCoefficient)
-        const reverseMax = reverseTransform(max, plotTranform, transformCoefficient)
+        const reverseMin = reverseTransform(min, plotTransform, transformCoefficient)
+        const reverseMax = reverseTransform(max, plotTransform, transformCoefficient)
         this.addPopulationFromRange(reverseMin, reverseMax)
     }
 
