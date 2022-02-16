@@ -20,6 +20,8 @@ import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
+import { PlotStatistic } from '../definitions/UIDefinitions'
+import { select } from 'underscore'
 
 export class ProjectStore {
     public appVersion: string
@@ -72,9 +74,7 @@ export class ProjectStore {
     private imageSetFeaturesToCalculate: string[]
 
     // Used to specify which features the user has requested to calculate
-    @observable public calculateSum: boolean
-    @observable public calculateMean: boolean
-    @observable public calculateMedian: boolean
+    @observable public selectedStatistics: string[]
 
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
@@ -119,9 +119,7 @@ export class ProjectStore {
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
 
-        this.calculateSum = false
-        this.calculateMean = false
-        this.calculateMedian = false
+        this.selectedStatistics = []
 
         this.cancelTask = false
 
@@ -455,7 +453,12 @@ export class ProjectStore {
                             (): void => {
                                 if (calculateFeatures) {
                                     // We only ask the user if we should calculate for images missing features, so we set overwrite to false and don't prompt.
-                                    this.segmentFeatureStore.calculateSegmentFeatures(imageSetStore, false, false)
+                                    this.segmentFeatureStore.calculateSegmentFeatures(
+                                        imageSetStore,
+                                        false,
+                                        false,
+                                        this.selectedStatistics,
+                                    )
                                 }
                                 const imageSetName = imageSetStore.name
                                 if (imageSetName) {
@@ -694,16 +697,31 @@ export class ProjectStore {
         if (this.imageSetFeaturesToCalculate.length > 0) {
             this.calculateImageSetFeatures(this.imageSetFeaturesToCalculate, false, overwrite)
         } else {
-            this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, overwrite)
+            this.segmentFeatureStore.calculateSegmentFeatures(
+                this.activeImageSetStore,
+                false,
+                overwrite,
+                this.selectedStatistics,
+            )
         }
     }
 
     public calculateActiveSegmentFeatures = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, false)
+        this.segmentFeatureStore.calculateSegmentFeatures(
+            this.activeImageSetStore,
+            false,
+            false,
+            this.selectedStatistics,
+        )
     }
 
     public calculateSegmentFeaturesFromMenu = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, true, false)
+        this.segmentFeatureStore.calculateSegmentFeatures(
+            this.activeImageSetStore,
+            true,
+            false,
+            this.selectedStatistics,
+        )
         const activeImageSetName = this.activeImageSetStore.name
         if (activeImageSetName) {
             when(
@@ -731,14 +749,8 @@ export class ProjectStore {
         this.notificationStore.setChooseSegFeaturesModal(false)
     }
 
-    @action public setCalculateSum = (value: boolean) => {
-        this.calculateSum = value
-    }
-    @action public setCalculateMean = (value: boolean) => {
-        this.calculateMean = value
-    }
-    @action public setCalculateMedian = (value: boolean) => {
-        this.calculateMedian = value
+    @action public setSelectedStatistics = (features: string[]): void => {
+        this.selectedStatistics = features
     }
 
     // Kick off the calculation based on the choosen features
@@ -779,10 +791,10 @@ export class ProjectStore {
                                 (): boolean => !segmentationStore.segmentationDataLoading,
                                 (): void => {
                                     const featuresCalculating = this.segmentFeatureStore.calculateSegmentFeatures(
-                                        // TODO: pass the args (what features to calc) here
                                         imageSetStore,
                                         checkOverwrite,
                                         overwriteFeatures,
+                                        this.selectedStatistics,
                                     )
                                     const imageSetName = imageSetStore.name
                                     if (imageSetName && featuresCalculating) {

@@ -426,8 +426,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 />
                 <ChooseSegmentFeaturesModal
                     displayModal={displaySegmentFeaturesModal}
-                    chooseSum={projectStore.calculateSum}
-                    setChooseSum={projectStore.setCalculateSum}
+                    setSelectedStatistics={projectStore.setSelectedStatistics}
+                    selectedStatistics={projectStore.selectedStatistics}
                     closeModal={projectStore.cancelSegFeatureCalculation}
                     calculate={projectStore.runFeatureCalculations}
                 />

@@ -1,13 +1,26 @@
 import * as React from 'react'
 import { observer } from 'mobx-react'
 import { Modal, ModalHeader, ModalBody, Button } from 'reactstrap'
+import Select from 'react-select'
 import { Checkbox } from '@blueprintjs/core'
 import { Grid, Row, Col } from 'react-flexbox-grid'
+import {
+    SelectOption,
+    SelectStyle,
+    SelectTheme,
+    getSelectedOptions,
+    generateSelectOptions,
+    onClearableSelectChange,
+} from '../../lib/SelectUtils'
+import { PlotStatistic, PlotStatisticOptions, PlotStatistics } from '../../definitions/UIDefinitions'
 
 export interface ChooseSegmentFeaturesModalProps {
     displayModal: boolean
-    chooseSum: boolean
-    setChooseSum: (x: boolean) => void
+    // chooseSum: boolean
+    //setChooseSum: (x: boolean) => void
+    selectedStatistics: string[]
+    setSelectedStatistics: (x: string[]) => void
+
     closeModal: () => void
     calculate: () => void
 }
@@ -18,17 +31,44 @@ export class ChooseSegmentFeaturesModal extends React.Component<ChooseSegmentFea
         super(props)
     }
 
+    private onStatisticSelect = (selected: SelectOption[] | null): void => {
+        let features: string[] = []
+        if (selected != null)
+            features = selected.map((o: SelectOption) => {
+                return o.value
+            })
+        this.props.setSelectedStatistics(features)
+    }
+
+    private featureOptions: { value: string; label: string }[]
+
     public render(): React.ReactNode {
-        const calcSum = (
-            <div>
-                <Checkbox
-                    checked={this.props.chooseSum}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
-                        this.props.setChooseSum(e.target.checked)
-                    }
-                    label="Calculate Sum"
-                />
-            </div>
+        // const calcSum = (
+        //    <div>
+        //       <Checkbox
+        //          checked={this.props.chooseSum}
+        //            onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+        //               this.props.setChooseSum(e.target.checked)
+        //           }
+        //           label="Calculate Sum"
+        //       />
+        //   </div>
+        // )
+
+        const allStats = generateSelectOptions(PlotStatistics)
+        const selectedStats = getSelectedOptions(this.props.selectedStatistics, PlotStatisticOptions)
+
+        const featureSelection = (
+            <Select
+                value={selectedStats}
+                options={allStats}
+                onChange={this.onStatisticSelect}
+                isClearable={true}
+                isMulti={true}
+                placeholder="Statistic"
+                styles={SelectStyle}
+                theme={SelectTheme}
+            />
         )
 
         let modal = null
@@ -40,9 +80,7 @@ export class ChooseSegmentFeaturesModal extends React.Component<ChooseSegmentFea
                         <Grid>
                             <Row middle="xs" center="xs">
                                 <Col xs={12}>
-                                    <ul>
-                                        <li>{calcSum}</li>
-                                    </ul>
+                                    <ul>{featureSelection}</ul>
                                 </Col>
                             </Row>
 

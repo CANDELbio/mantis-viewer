@@ -193,6 +193,7 @@ export class SegmentFeatureStore {
         imageSetStore: ImageSetStore,
         checkOverwrite: boolean,
         overwriteFeatures: boolean,
+        featuresToCalculate: string[],
         // todo - add args (features to calc) here
         // markerStats: PlotStatistic[]
     ): boolean => {
@@ -204,7 +205,7 @@ export class SegmentFeatureStore {
         const notificationStore = projectStore.notificationStore
         const basePath = this.projectStore.settingStore.basePath
         const segmentationData = segmentationStore.segmentationData
-        const markerStats: PlotStatistic[] = ['mean']
+        const markerStats: PlotStatistic[] = featuresToCalculate as PlotStatistic[]
 
         if (imageData && basePath && imageSetName && segmentationData) {
             this.setSegmentFeatureLoadingStatus(imageSetName, true)
@@ -353,7 +354,7 @@ export class SegmentFeatureStore {
             const imageSetName = imageSetStore.name
             const featuresGenerated = this.db?.featuresGeneratedForImageSet(imageSetName)
             if (calculate && !featuresGenerated) {
-                this.calculateSegmentFeatures(imageSetStore, true, false)
+                this.calculateSegmentFeatures(imageSetStore, true, false, PlotStatistics)
             } else {
                 // If we're not checking to calculate or calculating stuff
                 // then we need to refresh the selected features from the db
