@@ -18,7 +18,7 @@ export interface LoadingModalProps {
 }
 
 @observer
-export class LoadingModal extends React.Component<LoadingModalProps, {}> {
+export class LoadingModal extends React.Component<LoadingModalProps, Record<string, never>> {
     public constructor(props: LoadingModalProps) {
         super(props)
     }

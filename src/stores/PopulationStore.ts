@@ -283,32 +283,28 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(
-                (population): SelectedPopulation => {
-                    if (population.id == id) {
-                        population.color = color
-                        this.refreshGraphics(population)
-                        return population
-                    } else {
-                        return population
-                    }
-                },
-            )
+            this.selectedPopulations = this.selectedPopulations.slice().map((population): SelectedPopulation => {
+                if (population.id == id) {
+                    population.color = color
+                    this.refreshGraphics(population)
+                    return population
+                } else {
+                    return population
+                }
+            })
         }
     }
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(
-                (region): SelectedPopulation => {
-                    if (region.id == id) {
-                        region.visible = visible
-                        return region
-                    } else {
-                        return region
-                    }
-                },
-            )
+            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
+                if (region.id == id) {
+                    region.visible = visible
+                    return region
+                } else {
+                    return region
+                }
+            })
         }
     }
 
@@ -323,16 +319,14 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(
-                (region): SelectedPopulation => {
-                    if (region.id == id) {
-                        region.selectedSegments = segments
-                        return this.refreshGraphics(region)
-                    } else {
-                        return region
-                    }
-                },
-            )
+            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
+                if (region.id == id) {
+                    region.selectedSegments = segments
+                    return this.refreshGraphics(region)
+                } else {
+                    return region
+                }
+            })
         }
     }
 
@@ -443,34 +437,30 @@ export class PopulationStore {
     // TODO: DRY up all of the functions that use slice.map to update the populations
     @action public removeSegmentFromPopulation = (segment: number, id: string): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(
-                (region): SelectedPopulation => {
-                    if (region.id == id) {
-                        const index = region.selectedSegments.indexOf(segment)
-                        if (index > -1) {
-                            region.selectedSegments.splice(index, 1)
-                        }
-                        return this.refreshGraphics(region)
-                    } else {
-                        return region
+            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
+                if (region.id == id) {
+                    const index = region.selectedSegments.indexOf(segment)
+                    if (index > -1) {
+                        region.selectedSegments.splice(index, 1)
                     }
-                },
-            )
+                    return this.refreshGraphics(region)
+                } else {
+                    return region
+                }
+            })
         }
     }
 
     @action public addSegmentToPopulation = (segment: number, id: string): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map(
-                (region): SelectedPopulation => {
-                    if (region.id == id) {
-                        region.selectedSegments.push(segment)
-                        return this.refreshGraphics(region)
-                    } else {
-                        return region
-                    }
-                },
-            )
+            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
+                if (region.id == id) {
+                    region.selectedSegments.push(segment)
+                    return this.refreshGraphics(region)
+                } else {
+                    return region
+                }
+            })
         }
     }
 }

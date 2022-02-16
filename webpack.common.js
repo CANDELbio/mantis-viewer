@@ -13,24 +13,18 @@ module.exports = {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
     },
-    node: {
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
-        __dirname: false,
-        __filename: false,
-    },
+    node: false,
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: 'ts-loader',
+                use: ['ts-loader'],
                 exclude: /(node_modules)/,
             },
             // For Plotly https://github.com/plotly/plotly.js/blob/master/BUILDING.md
             {
                 test: /\.js$/,
-                loader: 'ify-loader',
+                use: ['ify-loader'],
             },
             /*
             {
@@ -44,21 +38,21 @@ module.exports = {
             },*/
             {
                 test: /\.css$/,
-                loader: 'style-loader!css-loader',
+                use: ['style-loader', 'css-loader'],
                 include: /flexboxgrid/,
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                loader: 'file-loader',
+                use: ['file-loader'],
             },
             {
                 test: /\.(vert|frag|glsl)$/i,
-                use: 'raw-loader',
+                use: ['raw-loader'],
             },
             {
                 enforce: 'pre',
                 test: /\.js?$/,
-                loader: 'source-map-loader',
+                use: ['source-map-loader'],
                 exclude: /(node_modules)/,
             },
             {

@@ -35,7 +35,7 @@ export interface ImageControlsProps {
 }
 
 @observer
-export class ImageControls extends React.Component<ImageControlsProps, {}> {
+export class ImageControls extends React.Component<ImageControlsProps, Record<string, never>> {
     public constructor(props: ImageControlsProps) {
         super(props)
     }

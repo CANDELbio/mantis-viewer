@@ -22,7 +22,7 @@ export interface ImageSelectorProps extends ChannelMappingControlsProps {
 }
 
 @observer
-export class ImageSelector extends React.Component<ImageSelectorProps, {}> {
+export class ImageSelector extends React.Component<ImageSelectorProps, Record<string, never>> {
     public constructor(props: ImageSelectorProps) {
         super(props)
     }

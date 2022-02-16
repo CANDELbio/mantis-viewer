@@ -641,4 +641,12 @@ export class SegmentFeatureStore {
             this.initialize()
         }
     }
+
+    public deleteActiveSegmentFeatures = (): void => {
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
+        if (this.db) {
+            this.db.deleteAllFeaturesForImageSet(activeImageSetName)
+            this.initialize()
+        }
+    }
 }

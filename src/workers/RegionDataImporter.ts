@@ -1,5 +1,3 @@
-import Worker = require('worker-loader?name=dist/[name].js!../workers/RegionDataImporter.worker')
-
 export interface RegionDataImporterInput {
     filePath: string
     width: number
@@ -21,7 +19,7 @@ class RegionDataImporter {
     private worker: Worker
 
     public constructor(onComplete: OnRegionDataImporterComplete) {
-        this.worker = new Worker()
+        this.worker = new Worker(new URL('../workers/RegionDataImporter.worker.ts', import.meta.url))
 
         const completeAndTerminate = (data: RegionDataImporterResult): void => {
             onComplete(data)

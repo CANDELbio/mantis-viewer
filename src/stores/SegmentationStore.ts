@@ -108,6 +108,6 @@ export class SegmentationStore {
     @action public setSegmentationFile = (fName: string): void => {
         this.selectedSegmentationFile = fName
         this.refreshSegmentationData()
-        this.imageSetStore.imageStore.removeSegmentationFileFromImageData()
+        this.imageSetStore.imageStore.removeSegmentationFileFromMarkers()
     }
 }

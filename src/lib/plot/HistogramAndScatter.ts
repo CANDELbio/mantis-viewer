@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as Plotly from 'plotly.js'
 
 import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
@@ -262,7 +263,6 @@ export function calculatePlotData(
             ],
             reversescale: true,
             showscale: false,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             //@ts-ignore
             type: 'histogram2dcontour',
         }
