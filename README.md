@@ -58,14 +58,10 @@ When this completes, you should have executables built for Mac and Linux in the 
 
 To generate executables you will first need to make sure all dependencies are installed. You will need to delete the file `package-lock.json` first because the checked in version specifies some Linux/Mac specific package versions.
 
-You will also need to edit the file `package.json` and change the postinstall script from `"electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release ."` to `"electron-builder install-app-deps"`. Long term we plan to provide a fix for this.
-
-Now we can actually install the packages. Navigate to the project directory on the command line and run the following commands.
+Now we can actually install the packages. Navigate to the project directory on the command line and run the following command.
 
 ```shell
-npm install better-sqlite3 --no-save
 npm install
-xcopy .\node_modules\better-sqlite3\build\Release .\Release\ /E/H
 ```
 
 Once you've done this you can build the application and then package it for distribution.

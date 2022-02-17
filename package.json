@@ -13,7 +13,7 @@
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
-        "postinstall": "husky install && electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release .",
+        "postinstall": "husky install && electron-builder install-app-deps",
         "prepare": "husky install"
     },
     "repository": "https://github.com/ParkerICI/imc-viewer-js",

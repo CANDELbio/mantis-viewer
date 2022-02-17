@@ -1,8 +1,4 @@
-// Importing from a file for now. This package is available on npm, but hasn't been updated in a few months.
-// The newest version on github supports a compression format that a user requested support for.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import GeoTIFF = require('geotiff')
+import * as GeoTIFF from 'geotiff'
 
 // If any dimension is over maxWidthHeight, we scale it proportionally so the max dimension is equal to scaledWidthHeight.
 // Images in the 10000-12000 width/height range seem to load fine, but GeoTiff returned a black image when attempting to
