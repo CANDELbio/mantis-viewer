@@ -270,7 +270,7 @@ export function drawLegend(
             const curChannel = s as ChannelName
             const curMarker = channelMarkers[curChannel]
             // If a marker is selected for the channel and the image data has a sprite for that marker
-            if (channelVisibility[curChannel] && curMarker && imcData.sprites[curMarker]) {
+            if (channelVisibility[curChannel] && curMarker && imcData.bitmaps[curMarker]) {
                 addText(curMarker, ChannelColorMap[curChannel])
             }
         }

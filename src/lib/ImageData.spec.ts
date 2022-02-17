@@ -19,7 +19,7 @@ import { ImageData } from './ImageData'
 test('loadFolder', function () {
     const folder = path.join(process.cwd(), 'test/files/project/set_one')
     const imageData = new ImageData()
-    imageData.loadFolder(folder, true, () => {
+    imageData.loadFolder(folder, () => {
         console.log('Ready!')
     })
 })

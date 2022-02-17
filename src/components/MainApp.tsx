@@ -217,6 +217,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setHighlightedPixel={projectStore.setHighlightedPixel}
                         featureLegendVisible={settingStore.featureLegendVisible}
+                        blurPixels={projectStore.preferencesStore.blurPixels}
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu

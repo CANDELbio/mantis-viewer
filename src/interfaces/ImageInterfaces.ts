@@ -23,6 +23,10 @@ export interface SpriteMap {
     [key: string]: PIXI.Sprite
 }
 
+export interface BitmapMap {
+    [key: string]: ImageBitmap
+}
+
 export interface RGBColor {
     r: number
     g: number

@@ -1,8 +1,7 @@
 import * as _ from 'underscore'
 import * as fs from 'fs'
 import * as path from 'path'
-import { TiffDataMap, MinMaxMap, SpriteMap } from '../interfaces/ImageInterfaces'
-import { imageBitmapToSprite } from './GraphicsUtils'
+import { TiffDataMap, MinMaxMap, BitmapMap } from '../interfaces/ImageInterfaces'
 import { ImageDataWorkerResult, ImageDataWorkerError } from '../workers/ImageDataWorker'
 import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
 
@@ -11,7 +10,7 @@ import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
 export class ImageData {
     public data: TiffDataMap
     public minmax: MinMaxMap
-    public sprites: SpriteMap
+    public bitmaps: BitmapMap
 
     public width: number
     public height: number
@@ -26,7 +25,7 @@ export class ImageData {
     public constructor() {
         this.data = {}
         this.minmax = {}
-        this.sprites = {}
+        this.bitmaps = {}
         this.errors = []
         this.scaled = false
         this.width = 0
@@ -53,13 +52,13 @@ export class ImageData {
         }
     }
 
-    private async loadImageWorkerResults(imageData: ImageDataWorkerResult, blurPixels: boolean): Promise<void> {
+    private async loadImageWorkerResults(imageData: ImageDataWorkerResult): Promise<void> {
         const markerName = imageData.markerName
         this.width = imageData.width
         this.height = imageData.height
         if (imageData.scaled) this.scaled = imageData.scaled
         this.data[markerName] = imageData.data
-        this.sprites[markerName] = imageBitmapToSprite(imageData.bitmap, blurPixels)
+        this.bitmaps[markerName] = imageData.bitmap
         this.minmax[markerName] = imageData.minmax
 
         // If the tiff that was just read contained multiple images, increase the number of markers we expect
@@ -68,7 +67,7 @@ export class ImageData {
         if (!imageData.input.imageNumber || imageData.input.imageNumber == 0) {
             this.numMarkers += numImages - 1
             for (let i = 1; i < numImages; ++i) {
-                this.loadImageInWorker(imageData.input.filepath, imageData.input.useExtInMarkerName, blurPixels, i)
+                this.loadImageInWorker(imageData.input.filepath, imageData.input.useExtInMarkerName, i)
             }
         }
         this.fileLoadComplete()
@@ -83,7 +82,6 @@ export class ImageData {
 
     private async loadImageWorkerResultsCallback(
         imageData: ImageDataWorkerResult | ImageDataWorkerError,
-        blurPixels: boolean,
     ): Promise<void> {
         if ('error' in imageData) {
             this.loadImageWorkerResultsError(imageData)
@@ -100,28 +98,23 @@ export class ImageData {
                 error: 'Data already loaded for marker.',
             })
         } else {
-            this.loadImageWorkerResults(imageData, blurPixels)
+            this.loadImageWorkerResults(imageData)
         }
     }
 
     public removeMarker(markerName: string): void {
         if (markerName in this.data) {
             this.numMarkers -= 1
-            this.sprites[markerName]?.destroy({ children: true, texture: true, baseTexture: true })
-            delete this.sprites[markerName]
+            // this.sprites[markerName]?.destroy({ children: true, texture: true, baseTexture: true })
+            delete this.bitmaps[markerName]
             delete this.data[markerName]
             delete this.minmax[markerName]
         }
     }
 
-    private loadImageInWorker(
-        filepath: string,
-        useExtInMarkerName: boolean,
-        blurPixels: boolean,
-        imageNumber?: number,
-    ): void {
+    private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber?: number): void {
         const onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
-            this.loadImageWorkerResultsCallback(data, blurPixels)
+            this.loadImageWorkerResultsCallback(data)
         }
         submitImageDataJob(
             { useExtInMarkerName: useExtInMarkerName, filepath: filepath, imageNumber: imageNumber },
@@ -130,7 +123,7 @@ export class ImageData {
     }
 
     // Loads a folder in the background using ImageDataWorkers
-    public loadFolder(dirName: string, blurPixels: boolean, onReady: (imageData: ImageData) => void): void {
+    public loadFolder(dirName: string, onReady: (imageData: ImageData) => void): void {
         this.onReady = onReady
 
         const files = fs.readdirSync(dirName)
@@ -152,7 +145,7 @@ export class ImageData {
             const useExtInMarkerName = baseNames.length !== new Set(baseNames).size
 
             tiffs.forEach((f) => {
-                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName, blurPixels)
+                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName)
             })
         }
     }
