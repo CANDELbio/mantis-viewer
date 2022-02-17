@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface

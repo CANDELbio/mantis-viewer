@@ -4,29 +4,27 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Mobx from 'mobx'
 import hotkeys from 'hotkeys-js'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelName } from '../definitions/UIDefinitions'
 
 Mobx.configure({ enforceActions: 'always' })
 
-const projectStore = new ProjectStore(remote.app.getVersion())
+const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
-ipcRenderer.on(
-    'open-image-set',
-    async (event: Electron.Event, dirName: string): Promise<void> => {
-        projectStore.openImageSet(dirName)
-    },
-)
+ipcRenderer.on('set-app-version', async (event: Electron.Event, version: string): Promise<void> => {
+    projectStore.setAppVersion(version)
+})
 
-ipcRenderer.on(
-    'open-project',
-    async (event: Electron.Event, dirName: string): Promise<void> => {
-        projectStore.openProject(dirName)
-    },
-)
+ipcRenderer.on('open-image-set', async (event: Electron.Event, dirName: string): Promise<void> => {
+    projectStore.openImageSet(dirName)
+})
+
+ipcRenderer.on('open-project', async (event: Electron.Event, dirName: string): Promise<void> => {
+    projectStore.openProject(dirName)
+})
 
 ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: string): void => {
     projectStore.setSegmentationBasename(filePath, true)

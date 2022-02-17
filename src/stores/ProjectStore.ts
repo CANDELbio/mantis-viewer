@@ -20,6 +20,8 @@ import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
+import { PlotStatistic } from '../definitions/UIDefinitions'
+import { select } from 'underscore'
 
 export class ProjectStore {
     public appVersion: string
@@ -54,7 +56,7 @@ export class ProjectStore {
     // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
 
-    // The pixel being higlighted/moused over by the user on the image.
+    // The pixel being highlighted/moused over by the user on the image.
     // Used to show segment stats and pixel stats.
     @observable public highlightedPixel: Coordinate | null
 
@@ -71,6 +73,9 @@ export class ProjectStore {
     // Used to keep track of which image sets we're calculating features for in case we have to break in the middle.
     private imageSetFeaturesToCalculate: string[]
 
+    // Used to specify which features the user has requested to calculate
+    @observable public selectedStatistics: string[]
+
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
     }
@@ -86,8 +91,7 @@ export class ProjectStore {
         return this.activeImageSetStore.segmentationStore.activeHighlightedSegments
     }
 
-    public constructor(appVersion: string) {
-        this.appVersion = appVersion
+    public constructor() {
         this.initialize()
     }
 
@@ -114,6 +118,8 @@ export class ProjectStore {
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
 
+        this.selectedStatistics = []
+
         this.cancelTask = false
 
         this.imageSetHistory = []
@@ -130,6 +136,10 @@ export class ProjectStore {
         this.lastActiveImageSetPath = null
 
         this.settingStore.initialize()
+    }
+
+    public setAppVersion = (appVersion: string): void => {
+        this.appVersion = appVersion
     }
 
     // Set the imageSetPaths and initialize all the stores with empty stores.
@@ -289,7 +299,9 @@ export class ProjectStore {
         }
     }
 
-    // Gets called when the user clicks the 'Clear Segmentation' button and approves.
+    // Clears segmentation when it's been set for the project via the setting store.
+    // Gets called when the user sets a new segmentation file from the menu and segmentation
+    // has already been set or when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = (): void => {
         this.settingStore.setSegmentationBasename(null)
         this.settingStore.clearSelectedPlotFeatures()
@@ -317,13 +329,19 @@ export class ProjectStore {
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
         // Clear segmentation if it's already been set
-        if (settingStore.segmentationBasename != null) this.clearSegmentation()
         // Set the new segmentation file
         if (dirname == this.activeImageSetTiffPath()) {
+            if (settingStore.segmentationBasename != null) this.clearSegmentation()
             this.settingStore.setSegmentationBasename(basename)
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
             // Could result in weird behavior when switching between image sets.
+            const activeSegmentationStore = this.activeImageSetStore.segmentationStore
+            if (activeSegmentationStore.selectedSegmentationFile != null) {
+                activeSegmentationStore.clearSegmentationData()
+                this.activeImageSetStore.populationStore.deletePopulationsNotSelectedOnImage()
+                this.segmentFeatureStore.deleteActiveSegmentFeatures()
+            }
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
         // If Mantis isn't auto calculating features, ask the user
@@ -344,10 +362,10 @@ export class ProjectStore {
 
     public addPopulationFromPlotRange = (min: number, max: number): void => {
         const settingStore = this.settingStore
-        const plotTranform = settingStore.plotTransform
+        const plotTransform = settingStore.plotTransform
         const transformCoefficient = settingStore.transformCoefficient
-        const reverseMin = reverseTransform(min, plotTranform, transformCoefficient)
-        const reverseMax = reverseTransform(max, plotTranform, transformCoefficient)
+        const reverseMin = reverseTransform(min, plotTransform, transformCoefficient)
+        const reverseMax = reverseTransform(max, plotTransform, transformCoefficient)
         this.addPopulationFromRange(reverseMin, reverseMax)
     }
 
@@ -446,7 +464,12 @@ export class ProjectStore {
                             (): void => {
                                 if (calculateFeatures) {
                                     // We only ask the user if we should calculate for images missing features, so we set overwrite to false and don't prompt.
-                                    this.segmentFeatureStore.calculateSegmentFeatures(imageSetStore, false, false)
+                                    this.segmentFeatureStore.calculateSegmentFeatures(
+                                        imageSetStore,
+                                        false,
+                                        false,
+                                        this.selectedStatistics,
+                                    )
                                 }
                                 const imageSetName = imageSetStore.name
                                 if (imageSetName) {
@@ -685,16 +708,46 @@ export class ProjectStore {
         if (this.imageSetFeaturesToCalculate.length > 0) {
             this.calculateImageSetFeatures(this.imageSetFeaturesToCalculate, false, overwrite)
         } else {
-            this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, overwrite)
+            this.segmentFeatureStore.calculateSegmentFeatures(
+                this.activeImageSetStore,
+                false,
+                overwrite,
+                this.selectedStatistics,
+            )
         }
     }
 
+    private runCalcActiveSegFeatures = (): void => {
+        this.segmentFeatureStore.calculateSegmentFeatures(
+            this.activeImageSetStore,
+            false,
+            false,
+            this.selectedStatistics,
+        )
+    }
+
     public calculateActiveSegmentFeatures = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, false, false)
+        this.notificationStore.setChooseSegFeaturesModal(true)
+        when(
+            () => !this.notificationStore.chooseSegmentFeatures,
+            () => this.runCalcActiveSegFeatures(),
+        )
+
+        // this.segmentFeatureStore.calculateSegmentFeatures(
+        //     this.activeImageSetStore,
+        //     false,
+        //     false,
+        //     this.selectedStatistics,
+        // )
     }
 
     public calculateSegmentFeaturesFromMenu = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(this.activeImageSetStore, true, false)
+        this.segmentFeatureStore.calculateSegmentFeatures(
+            this.activeImageSetStore,
+            true,
+            false,
+            this.selectedStatistics,
+        )
         const activeImageSetName = this.activeImageSetStore.name
         if (activeImageSetName) {
             when(
@@ -718,10 +771,24 @@ export class ProjectStore {
         this.notificationStore.setChooseSegFeaturesModal(true)
     }
 
+    @action public cancelSegFeatureCalculation = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(false)
+    }
+
+    @action public setSelectedStatistics = (features: string[]): void => {
+        this.selectedStatistics = features
+    }
+
     // Kick off the calculation based on the choosen features
     public runFeatureCalculations = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(false)
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
-        this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+        when(
+            (): boolean => !this.notificationStore.chooseSegmentFeatures,
+            (): void => {
+                this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+            },
+        )
     }
 
     // TODO: Some duplication here with exportImageSetFeatures. Should DRY it up.
@@ -753,6 +820,7 @@ export class ProjectStore {
                                         imageSetStore,
                                         checkOverwrite,
                                         overwriteFeatures,
+                                        this.selectedStatistics,
                                     )
                                     const imageSetName = imageSetStore.name
                                     if (imageSetName && featuresCalculating) {

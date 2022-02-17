@@ -10,6 +10,7 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
 import { parseSegmentDataCSV } from '../lib/IO'
+import { AreaStatistic, PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 import {
     ImageSetFeatureRequest,
@@ -192,6 +193,9 @@ export class SegmentFeatureStore {
         imageSetStore: ImageSetStore,
         checkOverwrite: boolean,
         overwriteFeatures: boolean,
+        featuresToCalculate: string[],
+        // todo - add args (features to calc) here
+        // markerStats: PlotStatistic[]
     ): boolean => {
         const imageSetName = imageSetStore.name
         const imageStore = imageSetStore.imageStore
@@ -201,14 +205,17 @@ export class SegmentFeatureStore {
         const notificationStore = projectStore.notificationStore
         const basePath = this.projectStore.settingStore.basePath
         const segmentationData = segmentationStore.segmentationData
+        const markerStats: PlotStatistic[] = featuresToCalculate as PlotStatistic[]
 
         if (imageData && basePath && imageSetName && segmentationData) {
             this.setSegmentFeatureLoadingStatus(imageSetName, true)
             const generator = new SegmentFeatureGenerator(
+                // todo pass features list here
                 basePath,
                 imageSetName,
                 imageData,
                 segmentationData,
+                markerStats,
                 submitSegmentFeatureDbRequest,
                 this.onSegmentFeaturesGenerated,
             )
@@ -347,7 +354,7 @@ export class SegmentFeatureStore {
             const imageSetName = imageSetStore.name
             const featuresGenerated = this.db?.featuresGeneratedForImageSet(imageSetName)
             if (calculate && !featuresGenerated) {
-                this.calculateSegmentFeatures(imageSetStore, true, false)
+                this.calculateSegmentFeatures(imageSetStore, true, false, PlotStatistics)
             } else {
                 // If we're not checking to calculate or calculating stuff
                 // then we need to refresh the selected features from the db
@@ -631,6 +638,14 @@ export class SegmentFeatureStore {
     public deleteAllSegmentFeatures = (): void => {
         if (this.db) {
             this.db.deleteAllSegmentFeatures()
+            this.initialize()
+        }
+    }
+
+    public deleteActiveSegmentFeatures = (): void => {
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
+        if (this.db) {
+            this.db.deleteAllFeaturesForImageSet(activeImageSetName)
             this.initialize()
         }
     }

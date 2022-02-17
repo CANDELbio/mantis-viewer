@@ -75,7 +75,7 @@ export class ImageStore {
         // Segmentation data might have finished loading while image data was loading.
         // If this happens the segmentation file won't get removed from image data.
         // So we want to check and remove segmentation once image data is set.
-        this.removeSegmentationFileFromImageData()
+        this.removeSegmentationFileFromMarkers()
         this.setImageDataLoading(false)
     }
 
@@ -117,7 +117,7 @@ export class ImageStore {
         }
     }
 
-    @action public removeSegmentationFileFromImageData = (): void => {
+    @action public removeSegmentationFileFromMarkers = (): void => {
         const selectedSegmentationFile = this.imageSetStore.segmentationStore.selectedSegmentationFile
         if (selectedSegmentationFile) {
             const basename = path.parse(selectedSegmentationFile).name

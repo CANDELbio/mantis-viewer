@@ -4,8 +4,8 @@ import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Collapse, Spinner } from 'reactstrap'
 import { ContextMenuTrigger } from 'react-contextmenu'
 
-import * as bottomBar from '../assets/bottom_bar.png'
-import * as piciLogo from '../assets/pici_logo.png'
+import bottomBar from '../assets/bottom_bar.png'
+import piciLogo from '../assets/pici_logo.png'
 
 import { ProjectStore } from '../stores/ProjectStore'
 import {
@@ -424,7 +424,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     displayModal={displayShortcutModal}
                     toggleModal={notificationStore.toggleShortcutModal}
                 />
-                <ChooseSegmentFeaturesModal displayModal={displaySegmentFeaturesModal} />
+                <ChooseSegmentFeaturesModal
+                    displayModal={displaySegmentFeaturesModal}
+                    setSelectedStatistics={projectStore.setSelectedStatistics}
+                    selectedStatistics={projectStore.selectedStatistics}
+                    closeModal={projectStore.cancelSegFeatureCalculation}
+                    calculate={projectStore.runFeatureCalculations}
+                />
                 <SegmentPopulationModal
                     segmentId={projectStore.editingPopulationsSegmentId}
                     populations={populationStore.selectedPopulations}
