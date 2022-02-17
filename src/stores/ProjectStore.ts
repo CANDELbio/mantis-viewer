@@ -717,13 +717,28 @@ export class ProjectStore {
         }
     }
 
-    public calculateActiveSegmentFeatures = (): void => {
+    private runCalcActiveSegFeatures = (): void => {
         this.segmentFeatureStore.calculateSegmentFeatures(
             this.activeImageSetStore,
             false,
             false,
             this.selectedStatistics,
         )
+    }
+
+    public calculateActiveSegmentFeatures = (): void => {
+        this.notificationStore.setChooseSegFeaturesModal(true)
+        when(
+            () => !this.notificationStore.chooseSegmentFeatures,
+            () => this.runCalcActiveSegFeatures(),
+        )
+
+        // this.segmentFeatureStore.calculateSegmentFeatures(
+        //     this.activeImageSetStore,
+        //     false,
+        //     false,
+        //     this.selectedStatistics,
+        // )
     }
 
     public calculateSegmentFeaturesFromMenu = (): void => {
