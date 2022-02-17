@@ -343,6 +343,8 @@ export class SegmentFeatureStore {
         set(this.loadingStatuses, imageSetName, status)
     }
 
+    // TODO: De-jankify this. calculateSegmentFeatures should only calculate what the user selects.
+    // Need to figure out how to prompt the user, maybe only once?
     public autoCalculateSegmentFeatures = (imageSetStore: ImageSetStore): void => {
         const projectStore = this.projectStore
         const notificationStore = projectStore.notificationStore
