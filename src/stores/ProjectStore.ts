@@ -21,7 +21,6 @@ import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
 import { PlotStatistic } from '../definitions/UIDefinitions'
-import { select } from 'underscore'
 
 export class ProjectStore {
     public appVersion: string
@@ -74,7 +73,7 @@ export class ProjectStore {
     private imageSetFeaturesToCalculate: string[]
 
     // Used to specify which features the user has requested to calculate
-    @observable public selectedStatistics: string[]
+    @observable public selectedStatistics: PlotStatistic[]
 
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
@@ -732,29 +731,6 @@ export class ProjectStore {
             () => !this.notificationStore.chooseSegmentFeatures,
             () => this.runCalcActiveSegFeatures(),
         )
-
-        // this.segmentFeatureStore.calculateSegmentFeatures(
-        //     this.activeImageSetStore,
-        //     false,
-        //     false,
-        //     this.selectedStatistics,
-        // )
-    }
-
-    public calculateSegmentFeaturesFromMenu = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(
-            this.activeImageSetStore,
-            true,
-            false,
-            this.selectedStatistics,
-        )
-        const activeImageSetName = this.activeImageSetStore.name
-        if (activeImageSetName) {
-            when(
-                () => !this.segmentFeatureStore.featuresLoading(activeImageSetName),
-                () => this.notificationStore.setInfoMessage('Segment feature calculations complete.'),
-            )
-        }
     }
 
     public setPlotAllImageSets = (value: boolean): void => {
@@ -776,11 +752,13 @@ export class ProjectStore {
     }
 
     @action public setSelectedStatistics = (features: string[]): void => {
-        this.selectedStatistics = features
+        this.selectedStatistics = features as PlotStatistic[]
     }
 
     // Kick off the calculation based on the choosen features
     public runFeatureCalculations = (): void => {
+        // TODO need to check for active image set here if requested all vs. single
+
         this.notificationStore.setChooseSegFeaturesModal(false)
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         when(
