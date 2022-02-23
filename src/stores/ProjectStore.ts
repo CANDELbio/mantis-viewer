@@ -717,21 +717,8 @@ export class ProjectStore {
         }
     }
 
-    private runCalcActiveSegFeatures = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(
-            this.activeImageSetStore,
-            false,
-            false,
-            this.selectedStatistics,
-        )
-    }
-
     public calculateActiveSegmentFeatures = (): void => {
         this.notificationStore.setChooseSegFeaturesModal('one')
-        when(
-            () => !this.notificationStore.chooseSegmentFeatures,
-            () => this.runCalcActiveSegFeatures(),
-        )
     }
 
     public setPlotAllImageSets = (value: boolean): void => {
