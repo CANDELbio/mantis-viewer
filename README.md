@@ -12,7 +12,7 @@ If you just want to use the application head to the [releases](https://github.co
 
 ## Develop and Run Locally
 
-To get up and running for the first time first clone the repository and install the dependencies. You may need to install the build dependencies for [canvas](https://www.npmjs.com/package/canvas) first. If you're developing on Windows check out the `Generating Executables` section for some modifications you will have to make before you can install dependencies and build Mantis.
+To get up and running for the first time first clone the repository and install the dependencies. You may need to install the build dependencies for [canvas](https://www.npmjs.com/package/canvas) first.
 
 ```shell
 npm install
@@ -56,19 +56,15 @@ When this completes, you should have executables built for Mac and Linux in the 
 
 ### On Windows
 
-To generate executables you will first need to make sure all dependencies are installed. You will need to delete the file `package-lock.json` first because the checked in version specifies some Linux/Mac specific package versions.
-
-You will also need to edit the file `package.json` and change the postinstall script from `"electron-builder install-app-deps && cp -rf node_modules/better-sqlite3/build/Release ."` to `"electron-builder install-app-deps"`. Long term we plan to provide a fix for this.
-
-Now we can actually install the packages. Navigate to the project directory on the command line and run the following commands.
+To generate executables you will first need to make sure all dependencies are installed. Navigate to the project directory on the command line and run the following command.
 
 ```shell
-npm install better-sqlite3 --no-save
 npm install
-xcopy .\node_modules\better-sqlite3\build\Release .\Release\ /E/H
 ```
 
-Once you've done this you can build the application and then package it for distribution.
+If you run into any issues installing packages, you may need to delete the file `package-lock.json` first because the checked in version specifies some Linux/Mac specific package versions.
+
+Once you've done installed the dependencies you can build the application and then package it for distribution.
 
 ```shell
 npm run dist-win

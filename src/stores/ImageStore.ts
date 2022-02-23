@@ -94,13 +94,9 @@ export class ImageStore {
             this.setImageDataLoading(true)
             const imageData = new ImageData()
             // Load image data in the background and set on the image store once it's loaded.
-            imageData.loadFolder(
-                this.selectedDirectory,
-                this.imageSetStore.projectStore.preferencesStore.blurPixels,
-                (data) => {
-                    this.setImageData(data)
-                },
-            )
+            imageData.loadFolder(this.selectedDirectory, (data) => {
+                this.setImageData(data)
+            })
         }
     }
 

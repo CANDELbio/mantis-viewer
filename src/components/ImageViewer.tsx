@@ -52,6 +52,7 @@ export interface ImageProps {
     highlightedSegmentFeatures: Record<number, Record<string, number>>
     highlightedSegmentPopulations: Record<number, string[]>
     featureLegendVisible: boolean
+    blurPixels: boolean
 }
 
 @observer
@@ -65,7 +66,11 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private imageData: ImageData | null
 
     private channelMarker: Record<ChannelName, string | null>
+    private channelSprite: Record<ChannelName, PIXI.Sprite | null>
     private channelVisibility: Record<ChannelName, boolean>
+
+    // Whether or not pixels should be blurred for the channel sprites
+    private blurPixels: boolean | undefined
 
     // Color filters to use so that the sprites display as the desired color
     private channelFilters: Record<ChannelName, PIXI.Filter>
@@ -199,6 +204,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
 
         this.channelMarker = {
+            rChannel: null,
+            gChannel: null,
+            bChannel: null,
+            cChannel: null,
+            mChannel: null,
+            yChannel: null,
+            kChannel: null,
+        }
+
+        this.channelSprite = {
             rChannel: null,
             gChannel: null,
             bChannel: null,
@@ -717,26 +732,53 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.addWebGLContextLostListener(this.el)
     }
 
+    private destroySprite(sprite: PIXI.Sprite): void {
+        // @ts-ignore
+        this.renderer.texture.destroyTexture(sprite.texture)
+        sprite.destroy({ children: true, texture: true, baseTexture: true })
+    }
+
+    private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
+        if (this.imageData) {
+            for (const s in newChannelMarker) {
+                const channel = s as ChannelName
+                const newMarker = newChannelMarker[channel]
+                const curSprite = this.channelSprite[channel]
+                if (this.channelMarker[channel] != newMarker || (newMarker && !curSprite)) {
+                    if (curSprite) this.destroySprite(curSprite)
+                    if (newMarker) {
+                        const channelBitmap = this.imageData.bitmaps[newMarker]
+                        const blurPixels = this.blurPixels
+                        if (channelBitmap && blurPixels != undefined) {
+                            this.channelSprite[channel] = GraphicsHelper.imageBitmapToSprite(channelBitmap, blurPixels)
+                        }
+                    } else {
+                        this.channelSprite[channel] = null
+                    }
+                }
+            }
+        }
+        this.channelMarker = newChannelMarker
+    }
+
     private loadChannelGraphics(curChannel: ChannelName, channelDomain: Record<ChannelName, [number, number]>): void {
         const imcData = this.imageData
         if (imcData) {
             const channelMarker = this.channelMarker
-            const curMarker = channelMarker[curChannel]
-            if (curMarker != null) {
-                const sprite = imcData.sprites[curMarker]
+            const curSprite = this.channelSprite[curChannel]
+            if (curSprite) {
                 const uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
                     curChannel,
                     imcData,
                     channelMarker,
                     channelDomain,
                 )
-                if (sprite && uniforms) {
+                if (curSprite && uniforms) {
                     const filter = new PIXI.Filter(undefined, brightnessFilter, uniforms)
                     // Delete sprite filters so they get cleared from memory before adding new ones
-                    //@ts-ignore
-                    sprite.filters = null
-                    sprite.filters = [filter, this.channelFilters[curChannel]]
-                    this.stage.addChild(sprite)
+                    curSprite.filters = null
+                    curSprite.filters = [filter, this.channelFilters[curChannel]]
+                    this.stage.addChild(curSprite)
                 }
             }
         }
@@ -978,11 +1020,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // This should remove the image textures off of the graphics card to keep memory free.
     private destroyImageTextures(): void {
         const imageData = this.imageData
+        const channelSprite = this.channelSprite
         if (imageData) {
-            const markerSprites = Object.values(imageData.sprites)
-            for (const sprite of markerSprites) {
-                // @ts-ignore
-                this.renderer.texture.destroyTexture(sprite.texture)
+            for (const s in channelSprite) {
+                const channel = s as ChannelName
+                const sprite = channelSprite[channel]
+                if (sprite) this.destroySprite(sprite)
+                channelSprite[channel] = null
             }
         }
     }
@@ -1010,6 +1054,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         populationLegendVisible: boolean,
         featureLegendVisible: boolean,
         zoomInsetVisible: boolean,
+        blurPixels: boolean,
         parentElementSize: { width: number | null; height: number | null },
         windowHeight: number | null,
     ): void {
@@ -1045,7 +1090,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Clear the stage in preparation for rendering.
         this.stage.removeChildren()
 
-        this.channelMarker = channelMarker
+        this.blurPixels = blurPixels
+        this.setChannelMarkerAndSprite(channelMarker)
         this.channelVisibility = channelVisibility
         // For each channel setting the brightness and color filters
         for (const s of ImageChannels) {
@@ -1164,6 +1210,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
+        const blurPixels = this.props.blurPixels
+
         const windowHeight = this.props.windowHeight
 
         return (
@@ -1196,6 +1244,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     populationLegendVisible,
                                     featureLegendVisible,
                                     zoomInsetVisible,
+                                    blurPixels,
                                     size,
                                     windowHeight,
                                 )

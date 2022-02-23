@@ -24,7 +24,10 @@
     },
     "cSpell.words": [
         "autorun",
+        "glsl",
         "imcimage",
-        "pixi"
+        "pixi",
+        "sizeme",
+        "webglcontextlost"
     ]
 }

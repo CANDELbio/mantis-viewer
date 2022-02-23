@@ -20,8 +20,7 @@ import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
-import { PlotStatistic } from '../definitions/UIDefinitions'
-import { select } from 'underscore'
+import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 export class ProjectStore {
     public appVersion: string
@@ -74,7 +73,7 @@ export class ProjectStore {
     private imageSetFeaturesToCalculate: string[]
 
     // Used to specify which features the user has requested to calculate
-    @observable public selectedStatistics: string[]
+    @observable public selectedStatistics: PlotStatistic[]
 
     @computed public get imageSetNames(): string[] {
         return this.imageSetPaths.map((imageSetPath: string) => path.basename(imageSetPath))
@@ -435,6 +434,7 @@ export class ProjectStore {
     ): void => {
         // Setting num to export so we can have a loading bar.
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+        this.setSelectedStatistics(PlotStatistics as string[])
         this.exportImageSetFeatures(this.imageSetPaths, dirName, fcs, populations, calculateFeatures)
     }
 
@@ -718,28 +718,7 @@ export class ProjectStore {
     }
 
     public calculateActiveSegmentFeatures = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(
-            this.activeImageSetStore,
-            false,
-            false,
-            this.selectedStatistics,
-        )
-    }
-
-    public calculateSegmentFeaturesFromMenu = (): void => {
-        this.segmentFeatureStore.calculateSegmentFeatures(
-            this.activeImageSetStore,
-            true,
-            false,
-            this.selectedStatistics,
-        )
-        const activeImageSetName = this.activeImageSetStore.name
-        if (activeImageSetName) {
-            when(
-                () => !this.segmentFeatureStore.featuresLoading(activeImageSetName),
-                () => this.notificationStore.setInfoMessage('Segment feature calculations complete.'),
-            )
-        }
+        this.notificationStore.setChooseSegFeaturesModal('one')
     }
 
     public setPlotAllImageSets = (value: boolean): void => {
@@ -753,25 +732,36 @@ export class ProjectStore {
     // Called when segment feature calculation is requested
     // Should open a modal for the user to choose which features
     public calculateAllSegmentFeatures = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(true)
+        this.notificationStore.setChooseSegFeaturesModal('all')
     }
 
     @action public cancelSegFeatureCalculation = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(false)
+        this.notificationStore.setChooseSegFeaturesModal(null)
     }
 
     @action public setSelectedStatistics = (features: string[]): void => {
-        this.selectedStatistics = features
+        this.selectedStatistics = features as PlotStatistic[]
     }
 
     // Kick off the calculation based on the choosen features
     public runFeatureCalculations = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(false)
-        this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+        const setOrActive = this.notificationStore.chooseSegmentFeatures
+        this.notificationStore.setChooseSegFeaturesModal(null)
+
         when(
             (): boolean => !this.notificationStore.chooseSegmentFeatures,
             (): void => {
-                this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+                if (setOrActive == 'all') {
+                    this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+                    this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+                } else {
+                    const curImgPath: string[] = []
+                    if (this.activeImageSetPath) {
+                        curImgPath.push(this.activeImageSetPath)
+                    }
+                    this.notificationStore.setNumToCalculate(curImgPath.length)
+                    this.calculateImageSetFeatures(curImgPath, true, false)
+                }
             },
         )
     }
