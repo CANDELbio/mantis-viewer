@@ -19,3 +19,7 @@ export function calculateMean(input: number[]): number {
     }
     return sum / count
 }
+
+export function calculateSum(input: number[]): number {
+    return input.reduce((a: number, b: number) => a + b, 0)
+}

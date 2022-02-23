@@ -36,10 +36,11 @@ export type BrushEventHandler = (extent: D3BrushExtent) => void
 export const PlotStatisticOptions = [
     { label: 'Median', value: 'median' },
     { label: 'Mean', value: 'mean' },
+    { label: 'Sum', value: 'sum' },
 ]
 
-export type PlotStatistic = 'mean' | 'median'
-export const PlotStatistics: PlotStatistic[] = ['mean', 'median']
+export type PlotStatistic = 'mean' | 'median' | 'sum'
+export const PlotStatistics: PlotStatistic[] = ['mean', 'median', 'sum']
 export type AreaStatistic = 'area'
 
 export const PlotTypeOptions = [
