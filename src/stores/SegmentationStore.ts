@@ -70,6 +70,7 @@ export class SegmentationStore {
 
     @action private setSegmentationData = (data: SegmentationData): void => {
         this.segmentationData = data
+        // TODO: De-jankify the autoCalculate stuff when setting segmentation data.
         // Kick off calculating segment features after segmentation data has loaded
         this.imageSetStore.projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(this.imageSetStore)
         this.setSegmentationDataLoadingStatus(false)
@@ -89,6 +90,7 @@ export class SegmentationStore {
         this.segmentationData = null
     }
 
+    // TODO: De-jankify auto calculating segment features in setSegmentationData when automatically refreshing segmentation data.
     @action public refreshSegmentationData = (): void => {
         const imageData = this.imageSetStore.imageStore.imageData
         const preferencesStore = this.imageSetStore.projectStore.preferencesStore

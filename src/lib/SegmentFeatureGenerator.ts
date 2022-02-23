@@ -11,6 +11,7 @@ export class SegmentFeatureGenerator {
     private imageSetName: string
     private imageData: ImageData
     private segmentationData: SegmentationData
+    private chosenMarkerFeatures: PlotStatistic[]
 
     // Keep track of the number of markers to calculate features for and the number complete
     private numFeatures: number
@@ -27,6 +28,7 @@ export class SegmentFeatureGenerator {
         imageSetName: string,
         imageData: ImageData,
         segmentationData: SegmentationData,
+        chosenMarkerFeatures: PlotStatistic[],
         storeFeatures: (input: SegmentFeatureDbRequest, onComplete: OnSegmentFeatureDbRequestComplete) => void,
         onReady: (imageSetName: string) => void,
     ) {
@@ -34,6 +36,7 @@ export class SegmentFeatureGenerator {
         this.imageSetName = imageSetName
         this.imageData = imageData
         this.segmentationData = segmentationData
+        this.chosenMarkerFeatures = chosenMarkerFeatures
         this.numFeatures = 0
         this.numFeaturesComplete = 0
         this.storeFeatures = storeFeatures
@@ -66,7 +69,7 @@ export class SegmentFeatureGenerator {
 
         const markers = Object.keys(this.imageData.data)
         for (const marker of markers) {
-            for (const statistic of PlotStatistics) {
+            for (const statistic of this.chosenMarkerFeatures) {
                 featureNames.push(this.featureName(statistic, marker))
             }
         }
@@ -104,8 +107,8 @@ export class SegmentFeatureGenerator {
 
         const markers = Object.keys(imageData.data)
         // Keeping track of the number of features to calculate so we know when we're done
-        // For each marker we will be calculating all PlotStatistics
-        this.numFeatures = markers.length * PlotStatistics.length
+        // For each marker we will be calculating the stats chosen by the user
+        this.numFeatures = markers.length * this.chosenMarkerFeatures.length
         // We will also be calculating the segment area, so add an additional one
         this.numFeatures += 1
 
@@ -122,7 +125,7 @@ export class SegmentFeatureGenerator {
         for (const marker of markers) {
             const tiffData = imageData.data[marker]
 
-            for (const statistic of PlotStatistics) {
+            for (const statistic of this.chosenMarkerFeatures) {
                 const input = {
                     basePath: this.db.basePath,
                     imageSetName: this.imageSetName,

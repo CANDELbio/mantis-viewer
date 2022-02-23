@@ -1,5 +1,7 @@
 import { observable, action } from 'mobx'
 
+export type segFeatureChoice = 'one' | 'all' | null
+
 export class NotificationStore {
     @observable public infoMessage: string | null
 
@@ -25,6 +27,9 @@ export class NotificationStore {
     // where features can be simultaneously imported and calculated.
     @observable public numToImport: number
     @observable public numImported: number
+
+    // Set to true to trigger segment feature choice modal:
+    @observable public chooseSegmentFeatures: segFeatureChoice
 
     @observable public checkCalculateSegmentFeatures: boolean
     // Gets set to true when segmentation features have already been calculated
@@ -97,6 +102,10 @@ export class NotificationStore {
 
     @action public setClearSegmentationRequested = (value: boolean): void => {
         this.clearSegmentationRequested = value
+    }
+
+    @action public setChooseSegFeaturesModal = (value: segFeatureChoice): void => {
+        this.chooseSegmentFeatures = value
     }
 
     @action public setNumToCalculate = (value: number): void => {

@@ -284,7 +284,7 @@ ipcRenderer.on('continue-calculating-segment-features', (event: Electron.Event, 
 })
 
 ipcRenderer.on('calculate-segment-features', (): void => {
-    projectStore.calculateSegmentFeaturesFromMenu()
+    projectStore.calculateActiveSegmentFeatures()
 })
 
 ipcRenderer.on('set-project-import-modal-visibility', (event: Electron.Event, visibility: boolean): void => {

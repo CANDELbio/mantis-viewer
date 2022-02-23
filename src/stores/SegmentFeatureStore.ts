@@ -10,6 +10,7 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
 import { parseSegmentDataCSV } from '../lib/IO'
+import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 import {
     ImageSetFeatureRequest,
@@ -192,6 +193,7 @@ export class SegmentFeatureStore {
         imageSetStore: ImageSetStore,
         checkOverwrite: boolean,
         overwriteFeatures: boolean,
+        featuresToCalculate: PlotStatistic[],
     ): boolean => {
         const imageSetName = imageSetStore.name
         const imageStore = imageSetStore.imageStore
@@ -201,6 +203,7 @@ export class SegmentFeatureStore {
         const notificationStore = projectStore.notificationStore
         const basePath = this.projectStore.settingStore.basePath
         const segmentationData = segmentationStore.segmentationData
+        const markerStats: PlotStatistic[] = featuresToCalculate
 
         if (imageData && basePath && imageSetName && segmentationData) {
             this.setSegmentFeatureLoadingStatus(imageSetName, true)
@@ -209,6 +212,7 @@ export class SegmentFeatureStore {
                 imageSetName,
                 imageData,
                 segmentationData,
+                markerStats,
                 submitSegmentFeatureDbRequest,
                 this.onSegmentFeaturesGenerated,
             )
@@ -336,6 +340,8 @@ export class SegmentFeatureStore {
         set(this.loadingStatuses, imageSetName, status)
     }
 
+    // TODO: De-jankify this. calculateSegmentFeatures should only calculate what the user selects.
+    // Need to figure out how to prompt the user, maybe only once?
     public autoCalculateSegmentFeatures = (imageSetStore: ImageSetStore): void => {
         const projectStore = this.projectStore
         const notificationStore = projectStore.notificationStore
@@ -347,7 +353,8 @@ export class SegmentFeatureStore {
             const imageSetName = imageSetStore.name
             const featuresGenerated = this.db?.featuresGeneratedForImageSet(imageSetName)
             if (calculate && !featuresGenerated) {
-                this.calculateSegmentFeatures(imageSetStore, true, false)
+                // Prompt for feature selection for the newly active image:
+                this.projectStore.calculateActiveSegmentFeatures()
             } else {
                 // If we're not checking to calculate or calculating stuff
                 // then we need to refresh the selected features from the db
