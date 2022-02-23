@@ -20,7 +20,7 @@ import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
-import { PlotStatistic } from '../definitions/UIDefinitions'
+import { PlotStatistic, PlotStatisticOptions, PlotStatistics } from '../definitions/UIDefinitions'
 
 export class ProjectStore {
     public appVersion: string
@@ -434,6 +434,7 @@ export class ProjectStore {
     ): void => {
         // Setting num to export so we can have a loading bar.
         this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+        this.setSelectedStatistics(PlotStatistics as string[])
         this.exportImageSetFeatures(this.imageSetPaths, dirName, fcs, populations, calculateFeatures)
     }
 
