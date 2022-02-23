@@ -20,7 +20,7 @@ import { SegmentFeatureStore } from './SegmentFeatureStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
-import { PlotStatistic, PlotStatisticOptions, PlotStatistics } from '../definitions/UIDefinitions'
+import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 export class ProjectStore {
     public appVersion: string

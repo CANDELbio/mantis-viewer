@@ -690,6 +690,12 @@ function createPreferencesWindow(): void {
     })
 }
 
+const createWindows = (): void => {
+    createMainWindow()
+    createPlotWindow()
+    createPreferencesWindow()
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -701,14 +707,10 @@ app.on('ready', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS], options).then(() => {
-            createMainWindow()
-            createPlotWindow()
-            createPreferencesWindow()
+            createWindows()
         })
     } else {
-        createMainWindow()
-        createPlotWindow()
-        createPreferencesWindow()
+        createWindows()
     }
 })
 
