@@ -353,7 +353,8 @@ export class SegmentFeatureStore {
             const imageSetName = imageSetStore.name
             const featuresGenerated = this.db?.featuresGeneratedForImageSet(imageSetName)
             if (calculate && !featuresGenerated) {
-                this.calculateSegmentFeatures(imageSetStore, true, false, PlotStatistics)
+                // Prompt for feature selection for the newly active image:
+                this.projectStore.calculateActiveSegmentFeatures()
             } else {
                 // If we're not checking to calculate or calculating stuff
                 // then we need to refresh the selected features from the db
