@@ -726,7 +726,7 @@ export class ProjectStore {
     }
 
     public calculateActiveSegmentFeatures = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(true)
+        this.notificationStore.setChooseSegFeaturesModal('one')
         when(
             () => !this.notificationStore.chooseSegmentFeatures,
             () => this.runCalcActiveSegFeatures(),
@@ -744,11 +744,11 @@ export class ProjectStore {
     // Called when segment feature calculation is requested
     // Should open a modal for the user to choose which features
     public calculateAllSegmentFeatures = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(true)
+        this.notificationStore.setChooseSegFeaturesModal('all')
     }
 
     @action public cancelSegFeatureCalculation = (): void => {
-        this.notificationStore.setChooseSegFeaturesModal(false)
+        this.notificationStore.setChooseSegFeaturesModal(null)
     }
 
     @action public setSelectedStatistics = (features: string[]): void => {
@@ -757,14 +757,23 @@ export class ProjectStore {
 
     // Kick off the calculation based on the choosen features
     public runFeatureCalculations = (): void => {
-        // TODO need to check for active image set here if requested all vs. single
+        const setOrActive = this.notificationStore.chooseSegmentFeatures
+        this.notificationStore.setChooseSegFeaturesModal(null)
 
-        this.notificationStore.setChooseSegFeaturesModal(false)
-        this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
         when(
             (): boolean => !this.notificationStore.chooseSegmentFeatures,
             (): void => {
-                this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+                if (setOrActive == 'all') {
+                    this.notificationStore.setNumToCalculate(this.imageSetPaths.length)
+                    this.calculateImageSetFeatures(this.imageSetPaths, true, false)
+                } else {
+                    const curImgPath: string[] = []
+                    if (this.activeImageSetPath) {
+                        curImgPath.push(this.activeImageSetPath)
+                    }
+                    this.notificationStore.setNumToCalculate(curImgPath.length)
+                    this.calculateImageSetFeatures(curImgPath, true, false)
+                }
             },
         )
     }

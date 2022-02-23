@@ -170,7 +170,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             !(displayWelcomeModal || displayLoadingModal || displayProjectImportModal) &&
             notificationStore.showShortcutModal
 
-        const displaySegmentFeaturesModal = notificationStore.chooseSegmentFeatures
+        const displaySegmentFeaturesModal = notificationStore.chooseSegmentFeatures != null
 
         const modalOpen =
             displayWelcomeModal ||
