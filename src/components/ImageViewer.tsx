@@ -89,6 +89,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // 2) If segmentation data being passed in from store are different. If they are
     // We re-render the segmentationSprite and segmentationCentroidGraphics below.
     private segmentationData: SegmentationData | null
+    private segmentationFillSprite: PIXI.Sprite | null
 
     // Selected Populations stored locally for rendering the population names on the legend.
     private selectedPopulations: SelectedPopulation[] | null
@@ -794,17 +795,18 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         if (segmentationData) {
             if (this.segmentationData != segmentationData) {
                 // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
-                if (this.segmentationData) {
-                    const segmentationTexture = this.segmentationData.fillSprite.texture
-                    // @ts-ignore
-                    if (segmentationTexture) this.renderer.texture.destroyTexture(segmentationTexture)
-                }
+                if (this.segmentationFillSprite) this.destroySprite(this.segmentationFillSprite)
                 this.segmentationData = segmentationData
             }
+
+            if (!this.segmentationFillSprite)
+                this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
+
             // Add segmentation cells
-            if (segmentationData.fillSprite) {
-                segmentationData.fillSprite.alpha = segmentationFillAlpha
-                this.stage.addChild(segmentationData.fillSprite)
+            const fillSprite = this.segmentationFillSprite
+            if (fillSprite) {
+                fillSprite.alpha = segmentationFillAlpha
+                this.stage.addChild(fillSprite)
             }
 
             // Add segmentation outlines

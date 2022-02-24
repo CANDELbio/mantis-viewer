@@ -24,7 +24,7 @@ export class SegmentationData {
     // Mapping of segmentId to the pixel that represents the centroid
     public centroidMap: Record<number, Coordinate>
     // PIXI Sprite of random colored fills for the segments
-    public fillSprite: PIXI.Sprite
+    public fillBitmap: ImageBitmap
     public outlineGraphics: Line
     public centroidGraphics: PIXI.Graphics
 
@@ -74,9 +74,7 @@ export class SegmentationData {
         this.segmentOutlineMap = fData.segmentOutlineMap
         this.centroidMap = fData.centroidMap
         this.segmentIds = Object.keys(this.centroidMap).map((value) => parseInt(value))
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.fillSprite = PIXI.Sprite.from(fData.fillBitmap)
+        this.fillBitmap = fData.fillBitmap
 
         // Comment/uncomment following four lines to switch between graphics and line
         this.outlineGraphics = new Line()
@@ -117,7 +115,6 @@ export class SegmentationData {
 
     public destroyGraphics(): void {
         const destroyOptions = { children: true, texture: true, baseTexture: true }
-        this.fillSprite.destroy(destroyOptions)
         this.outlineGraphics.destroy(destroyOptions)
         this.centroidGraphics.destroy(destroyOptions)
     }
