@@ -59,10 +59,7 @@ export class SegmentationData {
         outlineMap: Record<number, Coordinate[]>,
     ): Coordinate[][] => {
         const coordinates = []
-        console.log(segmentIds)
-        console.log(outlineMap)
         for (const segmentId of segmentIds) {
-            if (!outlineMap[segmentId]) console.log(segmentId)
             coordinates.push(outlineMap[segmentId])
         }
         return coordinates

@@ -77,6 +77,15 @@ export default class LineGeometry extends Geometry {
         this._colorDirty = true
     }
 
+    updateDataSubset(data: Record<number, { color: number; alpha: number }>): void {
+        for (const idx of Object.keys(data)) {
+            const i = parseInt(idx)
+            this.shapes[i].color = data[i].color
+            this.shapes[i].alpha = data[i].alpha
+        }
+        this._colorDirty = true
+    }
+
     /*
 	convert points data to the mesh
 	TODO Optimize by adding a sleep parameter!

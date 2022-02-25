@@ -70,8 +70,7 @@ export class SegmentationStore {
 
             // Set the colors for the selected populations
             const selectedPopulations = imageSetStore.populationStore.selectedPopulations
-            for (let i = selectedPopulations.length - 1; i >= 0; i--) {
-                const selectedPopulation = selectedPopulations[i]
+            for (const selectedPopulation of selectedPopulations) {
                 if (selectedPopulation.visible) {
                     const selectedSegments = selectedPopulation.selectedSegments
                     for (const selectedSegmentId of selectedSegments) {

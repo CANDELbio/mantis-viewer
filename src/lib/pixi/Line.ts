@@ -40,6 +40,10 @@ export class Line extends Mesh {
         ;(this.geometry as LineGeometry).updateData(colors, alphas)
     }
 
+    updateDataSubset(data: Record<number, { color: number; alpha: number }>): void {
+        ;(this.geometry as LineGeometry).updateDataSubset(data)
+    }
+
     render(renderer: Renderer): void {
         ;(this.geometry as LineGeometry).update()
 

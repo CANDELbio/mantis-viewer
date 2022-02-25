@@ -503,10 +503,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         if (state.active) {
             const stage = this.stage
             const selectionGraphics = this.selectionGraphics
-            const selectionSegmentOutline = this.selectionSegmentOutline
             this.addPositionToSelection(state)
 
-            stage.removeChild(selectionGraphics, selectionSegmentOutline)
+            stage.removeChild(selectionGraphics, this.segmentationOutlines)
 
             GraphicsHelper.drawSelectedRegion(
                 selectionGraphics,
@@ -522,18 +521,17 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
             selectionGraphics.setTransform(0, 0, 1, 1)
 
-            // TODO: Figure out how to add this to the static outline graphic
-            // if (this.segmentationData != null) {
-            //     this.segmentationData.generateOutlines(
-            //         selectionSegmentOutline,
-            //         state.selectionColor,
-            //         state.selectedSegments,
-            //     )
-            //     // Not correctly setting the alpha for some reason.
-            //     selectionSegmentOutline.alpha = SelectedSegmentOutlineAlpha
-            // }
+            if (this.segmentationData != null && state.selectedSegments.length > 0) {
+                const lineUpdateData: Record<number, { color: number; alpha: number }> = {}
+                for (const segmentId of state.selectedSegments) {
+                    const segmentLineIndex = this.segmentationData.idIndexMap[segmentId]
+                    lineUpdateData[segmentLineIndex] = { color: state.selectionColor, alpha: 1 }
+                }
+                this.segmentationOutlines.updateDataSubset(lineUpdateData)
+            }
 
-            this.stage.addChild(selectionGraphics, selectionSegmentOutline)
+            // TODO: Need to add this.segmentationOutlines below the current regions drawn on the image.
+            this.stage.addChild(selectionGraphics, this.segmentationOutlines)
 
             // Re-draw the legend and zoom inset graphics in case the user is selecting a region under the legend or zoom inset
             // Otherwise the region and segments render over the legend and zoom inset
