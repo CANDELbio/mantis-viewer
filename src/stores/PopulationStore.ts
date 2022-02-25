@@ -13,7 +13,6 @@ import { Db } from '../lib/Db'
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
 import { TiffWriter } from '../lib/TiffWriter'
-import { Line } from '../lib/pixi/Line'
 
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'
@@ -30,7 +29,6 @@ export interface SelectedPopulation {
     // The IDs of the selected segments
     selectedSegments: number[]
     regionGraphics?: PIXI.Sprite
-    segmentOutline?: Line
 }
 
 export class PopulationStore {
@@ -65,22 +63,22 @@ export class PopulationStore {
 
     // Computed function that gets the populations for any segments that are being moused over on the image.
     // Returns a map of segment id to a list of the population ids that it belongs to.
-    @computed get activeHighlightedSegmentPopulations(): Record<number, string[]> {
-        const highlightedPopulations: Record<number, string[]> = {}
+    @computed get populationsForMousedOverSegments(): Record<number, string[]> {
+        const populationsForSegments: Record<number, string[]> = {}
         const imageSetStore = this.imageSetStore
         const segmentationStore = imageSetStore.segmentationStore
-        const highlightedSegments = segmentationStore.activeHighlightedSegments
-        if (highlightedSegments) {
-            for (const highlightedSegment of highlightedSegments) {
-                highlightedPopulations[highlightedSegment] = []
+        const mousedOverSegments = segmentationStore.mousedOverSegments
+        if (mousedOverSegments) {
+            for (const mousedOverSegment of mousedOverSegments) {
+                populationsForSegments[mousedOverSegment] = []
                 for (const population of this.selectedPopulations) {
-                    if (population.selectedSegments.includes(highlightedSegment)) {
-                        highlightedPopulations[highlightedSegment].push(population.id)
+                    if (population.selectedSegments.includes(mousedOverSegment)) {
+                        populationsForSegments[mousedOverSegment].push(population.id)
                     }
                 }
             }
         }
-        return highlightedPopulations
+        return populationsForSegments
     }
 
     // Automatically imports a region tiff file if it's set on the setting store.
@@ -180,7 +178,6 @@ export class PopulationStore {
             const color = population.color
             // Clear out the old graphics.
             const destroyOptions = { children: true, texture: true, baseTexture: true }
-            population.segmentOutline?.destroy(destroyOptions)
             population.regionGraphics?.destroy(destroyOptions)
             // If this selection has pixel indexes (i.e. a region selected on the image)
             // Then we want to refresh the region graphics
@@ -193,15 +190,6 @@ export class PopulationStore {
                     // Otherwise clear the segments selected
                     population.selectedSegments = []
                 }
-            }
-            if (segmentationData) {
-                // If segmentation data is present then refresh the outline graphics for the segments in this selection
-                // Separate from the above region selected block for selections/populations loaded from csv
-                population.segmentOutline = new Line()
-                segmentationData.generateOutlines(population.segmentOutline, color, population.selectedSegments)
-            } else {
-                // If there isn't segmentation data present then delete the segment graphics for this selection.
-                delete population.segmentOutline
             }
         }
         return population

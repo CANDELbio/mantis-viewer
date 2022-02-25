@@ -36,8 +36,8 @@ export class Line extends Mesh {
         ;(this.geometry as LineGeometry).clear()
     }
 
-    updateColor(): void {
-        ;(this.geometry as LineGeometry).updateColor()
+    updateData(colors: number[], alphas: number[]): void {
+        ;(this.geometry as LineGeometry).updateData(colors, alphas)
     }
 
     render(renderer: Renderer): void {

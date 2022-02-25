@@ -11,10 +11,8 @@ import {
     ChannelName,
     SelectedRegionAlpha,
     HighlightedSelectedRegionAlpha,
-    HighlightedSegmentOutlineColor,
-    SelectedSegmentOutlineAlpha,
-    HighlightedSelectedSegmentOutlineAlpha,
     ImageViewerHeightPadding,
+    SegmentOutlineColor,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsUtils'
@@ -24,13 +22,14 @@ import { Coordinate } from '../interfaces/ImageInterfaces'
 import { Line } from '../lib/pixi/Line'
 import brightnessFilter from '../lib/brightness-filter.glsl'
 import hotkeys from 'hotkeys-js'
+import { SegmentOutlineAttributes } from '../stores/SegmentationStore'
 
 export interface ImageProps {
     imageData: ImageData | null
     segmentationData: SegmentationData | null
     segmentationFillAlpha: number
-    segmentationOutlineAlpha: number
     segmentationCentroidsVisible: boolean
+    segmentOutlineAttributes: SegmentOutlineAttributes | null
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
     channelMarker: Record<ChannelName, string | null>
@@ -39,8 +38,7 @@ export interface ImageProps {
     selectedPopulations: SelectedPopulation[] | null
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
-    highlightedSegmentsFromPlot: number[]
-    highlightedSegmentsFromImage: number[]
+    mousedOverSegmentsFromImage: number[]
     exportPath: string | null
     onExportComplete: () => void
     channelLegendVisible: boolean
@@ -48,9 +46,9 @@ export interface ImageProps {
     zoomInsetVisible: boolean
     windowHeight: number | null
     onWebGLContextLoss: () => void
-    setHighlightedPixel: (location: Coordinate | null) => void
-    highlightedSegmentFeatures: Record<number, Record<string, number>>
-    highlightedSegmentPopulations: Record<number, string[]>
+    setMousedOverPixel: (location: Coordinate | null) => void
+    segmentFeaturesInLegend: Record<number, Record<string, number>>
+    segmentPopulationsInLegend: Record<number, string[]>
     featureLegendVisible: boolean
     blurPixels: boolean
 }
@@ -62,6 +60,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private renderer: PIXI.Renderer
     private rootContainer: PIXI.Container
     private stage: PIXI.Container
+    private destroyOptions: PIXI.IDestroyOptions
 
     private imageData: ImageData | null
 
@@ -89,6 +88,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // 2) If segmentation data being passed in from store are different. If they are
     // We re-render the segmentationSprite and segmentationCentroidGraphics below.
     private segmentationData: SegmentationData | null
+    private segmentOutlineAttributes: SegmentOutlineAttributes | null
+    private segmentationOutlines: Line
     private segmentationFillSprite: PIXI.Sprite | null
 
     // Selected Populations stored locally for rendering the population names on the legend.
@@ -103,9 +104,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     private highlightedSegmentOutline: Line
 
-    private highlightedSegmentsFromImage: number[]
-    private highlightedSegmentFeatures: Record<number, Record<string, number>>
-    private highlightedSegmentPopulations: Record<number, string[]>
+    private mousedOverSegmentsFromImage: number[]
+    private segmentFeaturesForLegend: Record<number, Record<string, number>>
+    private segmentPopulationsForLegend: Record<number, string[]>
     private featureLegendVisible: boolean
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
@@ -140,10 +141,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.rootContainer.addChild(this.stage)
 
         const destroyOptions = { children: true, texture: true, baseTexture: true }
+
+        this.destroyOptions = destroyOptions
+
         this.legendGraphics?.destroy(destroyOptions)
         this.legendGraphics = new PIXI.Graphics()
         this.zoomInsetGraphics?.destroy(destroyOptions)
         this.zoomInsetGraphics = new PIXI.Graphics()
+
+        this.segmentationOutlines?.destroy(destroyOptions)
+        this.segmentationOutlines = new Line()
 
         this.highlightedSegmentOutline?.destroy(destroyOptions)
         this.highlightedSegmentOutline = new Line()
@@ -228,9 +235,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.initializeSelectState()
         this.initializePanState()
         this.fullScreen = false
-        this.highlightedSegmentsFromImage = []
-        this.highlightedSegmentFeatures = {}
-        this.highlightedSegmentPopulations = []
+        this.mousedOverSegmentsFromImage = []
+        this.segmentFeaturesForLegend = {}
+        this.segmentPopulationsForLegend = []
     }
 
     private removeWebGLContextLostListener = (el: HTMLDivElement): void => {
@@ -254,8 +261,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             el.removeEventListener('mousedown', this.selectMouseDownHandler)
             el.removeEventListener('mousemove', this.selectMouseMoveHandler)
             el.removeEventListener('mouseup', this.selectMouseUpHandler)
-            el.removeEventListener('mousemove', this.highlightedPixelMouseMoveHandler)
-            el.removeEventListener('mouseout', this.highlightedPixelMouseOutHandler)
+            el.removeEventListener('mousemove', this.mousedOverPixelMoveHandler)
+            el.removeEventListener('mouseout', this.mousedOverPixelMoveOutHandler)
             this.removeWebGLContextLostListener(el)
         }
     }
@@ -515,15 +522,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
             selectionGraphics.setTransform(0, 0, 1, 1)
 
-            if (this.segmentationData != null) {
-                this.segmentationData.generateOutlines(
-                    selectionSegmentOutline,
-                    state.selectionColor,
-                    state.selectedSegments,
-                )
-                // Not correctly setting the alpha for some reason.
-                selectionSegmentOutline.alpha = SelectedSegmentOutlineAlpha
-            }
+            // TODO: Figure out how to add this to the static outline graphic
+            // if (this.segmentationData != null) {
+            //     this.segmentationData.generateOutlines(
+            //         selectionSegmentOutline,
+            //         state.selectionColor,
+            //         state.selectedSegments,
+            //     )
+            //     // Not correctly setting the alpha for some reason.
+            //     selectionSegmentOutline.alpha = SelectedSegmentOutlineAlpha
+            // }
 
             this.stage.addChild(selectionGraphics, selectionSegmentOutline)
 
@@ -667,23 +675,23 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.props.onWebGLContextLoss()
     }
 
-    private highlightedPixelMouseMoveHandler = (): void => {
+    private mousedOverPixelMoveHandler = (): void => {
         if (this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
             const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             const xPosition = Math.round(position.x)
             const yPosition = Math.round(position.y)
-            this.props.setHighlightedPixel({ x: xPosition, y: yPosition })
+            this.props.setMousedOverPixel({ x: xPosition, y: yPosition })
         }
     }
 
-    private highlightedPixelMouseOutHandler = (): void => {
-        if (this.featureLegendVisible) this.props.setHighlightedPixel(null)
+    private mousedOverPixelMoveOutHandler = (): void => {
+        if (this.featureLegendVisible) this.props.setMousedOverPixel(null)
     }
 
     private addPixelMouseover(el: HTMLDivElement): void {
         // Need to throttle the mouse move so the renderer reacts more quickly for some reason
-        el.addEventListener('mousemove', _.throttle(this.highlightedPixelMouseMoveHandler, 100))
-        el.addEventListener('mouseout', this.highlightedPixelMouseOutHandler)
+        el.addEventListener('mousemove', _.throttle(this.mousedOverPixelMoveHandler, 100))
+        el.addEventListener('mouseout', this.mousedOverPixelMoveOutHandler)
     }
 
     private addWebGLContextLostListener(el: HTMLDivElement): void {
@@ -736,7 +744,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private destroySprite(sprite: PIXI.Sprite): void {
         // @ts-ignore
         this.renderer.texture.destroyTexture(sprite.texture)
-        sprite.destroy({ children: true, texture: true, baseTexture: true })
+        sprite.destroy(this.destroyOptions)
     }
 
     private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
@@ -788,8 +796,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // Add segmentation data to the stage.
     private loadSegmentationGraphics(
         segmentationData: SegmentationData | null,
+        segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
-        segmentationOutlineAlpha: number,
         centroidsVisible: boolean,
     ): void {
         if (segmentationData) {
@@ -797,8 +805,24 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
                 if (this.segmentationFillSprite) this.destroySprite(this.segmentationFillSprite)
                 this.segmentationData = segmentationData
+                this.segmentationOutlines.clear()
+                if (segmentationData) {
+                    GraphicsHelper.drawOutlines(
+                        this.segmentationOutlines,
+                        segmentationData.segmentCoordinates,
+                        SegmentOutlineColor,
+                    )
+                }
             }
 
+            if (this.segmentOutlineAttributes != segmentOutlineAttributes) {
+                this.segmentOutlineAttributes = segmentOutlineAttributes
+                if (segmentOutlineAttributes)
+                    this.segmentationOutlines.updateData(
+                        segmentOutlineAttributes.colors,
+                        segmentOutlineAttributes.alphas,
+                    )
+            }
             if (!this.segmentationFillSprite)
                 this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
 
@@ -810,10 +834,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             }
 
             // Add segmentation outlines
-            if (segmentationData.outlineGraphics) {
-                segmentationData.outlineGraphics.alpha = segmentationOutlineAlpha
-                this.stage.addChild(segmentationData.outlineGraphics)
-            }
+            this.stage.addChild(this.segmentationOutlines)
 
             // Add segmentation centroids
             if (segmentationData.centroidGraphics != null && centroidsVisible)
@@ -833,10 +854,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                     const regionId = selectedPopulation.id
                     // Set the alpha correctly for regions that need to be highlighted
                     let regionAlpha = SelectedRegionAlpha
-                    let outlineAlpha = SelectedSegmentOutlineAlpha
                     if (highlightedPopulations.indexOf(regionId) > -1) {
                         regionAlpha = HighlightedSelectedRegionAlpha
-                        outlineAlpha = HighlightedSelectedSegmentOutlineAlpha
                     }
 
                     const regionGraphics = selectedPopulation.regionGraphics
@@ -844,28 +863,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                         regionGraphics.alpha = regionAlpha
                         stage.addChild(regionGraphics)
                     }
-
-                    const outlineGraphics = selectedPopulation.segmentOutline
-                    if (outlineGraphics != null) {
-                        outlineGraphics.alpha = outlineAlpha
-                        stage.addChild(outlineGraphics)
-                    }
                 }
             }
-        }
-    }
-
-    // Generates and adds segments highlighted/moused over on the graph.
-    private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
-        this.stage.removeChild(this.highlightedSegmentOutline)
-        if (this.segmentationData && highlightedSegments && highlightedSegments.length > 0) {
-            this.highlightedSegmentOutline.clear()
-            this.segmentationData.generateOutlines(
-                this.highlightedSegmentOutline,
-                HighlightedSegmentOutlineColor,
-                highlightedSegments,
-            )
-            this.stage.addChild(this.highlightedSegmentOutline)
         }
     }
 
@@ -895,9 +894,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.populationLegendVisible,
                 this.selectedPopulations,
                 this.featureLegendVisible,
-                this.highlightedSegmentsFromImage,
-                this.highlightedSegmentFeatures,
-                this.highlightedSegmentPopulations,
+                this.mousedOverSegmentsFromImage,
+                this.segmentFeaturesForLegend,
+                this.segmentPopulationsForLegend,
             )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -1042,15 +1041,14 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         channelDomain: Record<ChannelName, [number, number]>,
         channelVisibility: Record<ChannelName, boolean>,
         segmentationData: SegmentationData | null,
+        segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
-        segmentationOutlineAlpha: number,
         segmentationCentroidsVisible: boolean,
         selectedPopulations: SelectedPopulation[] | null,
         highlightedPopulations: string[],
-        highlightedSegmentsFromGraph: number[],
-        highlightedSegmentsFromImage: number[],
-        highlightedSegmentFeatures: Record<number, Record<string, number>>,
-        highlightedSegmentPopulations: Record<number, string[]>,
+        mousedOverSegmentsFromImage: number[],
+        segmentFeaturesForLegend: Record<number, Record<string, number>>,
+        segmentPopulationsForLegend: Record<number, string[]>,
         exportPath: string | null,
         channelLegendVisible: boolean,
         populationLegendVisible: boolean,
@@ -1104,8 +1102,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         //Load segmentation graphics
         this.loadSegmentationGraphics(
             segmentationData,
+            segmentOutlineAttributes,
             segmentationFillAlpha,
-            segmentationOutlineAlpha,
             segmentationCentroidsVisible,
         )
 
@@ -1113,20 +1111,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.selectedPopulations = selectedPopulations
         this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
 
-        // Load graphics for any highlighted segments
-        const highlightedSegments = highlightedSegmentsFromGraph.concat(highlightedSegmentsFromImage)
-        this.loadHighlightedSegmentGraphics(highlightedSegments)
-
-        if (this.highlightedSegmentsFromImage != highlightedSegmentsFromImage) {
-            this.highlightedSegmentsFromImage = highlightedSegmentsFromImage
+        if (this.mousedOverSegmentsFromImage != mousedOverSegmentsFromImage) {
+            this.mousedOverSegmentsFromImage = mousedOverSegmentsFromImage
         }
 
-        if (this.highlightedSegmentFeatures != highlightedSegmentFeatures) {
-            this.highlightedSegmentFeatures = highlightedSegmentFeatures
+        if (this.segmentFeaturesForLegend != segmentFeaturesForLegend) {
+            this.segmentFeaturesForLegend = segmentFeaturesForLegend
         }
 
-        if (this.highlightedSegmentPopulations != highlightedSegmentPopulations) {
-            this.highlightedSegmentPopulations = highlightedSegmentPopulations
+        if (this.segmentPopulationsForLegend != segmentPopulationsForLegend) {
+            this.segmentPopulationsForLegend = segmentPopulationsForLegend
         }
         // Create the legend for which markers are being displayed
         this.channelLegendVisible = channelLegendVisible
@@ -1192,17 +1186,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const segmentationData = this.props.segmentationData
         const segmentationFillAlpha = this.props.segmentationFillAlpha
-        const segmentationOutlineAlpha = this.props.segmentationOutlineAlpha
         const segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
+        const segmentOutlineAttributes = this.props.segmentOutlineAttributes
 
         const selectedPopulations = this.props.selectedPopulations
 
         const highlightedPopulations = this.props.highlightedPopulations
 
-        const highlightedSegmentsFromGraph = this.props.highlightedSegmentsFromPlot
-        const highlightedSegmentsFromImage = this.props.highlightedSegmentsFromImage
-        const highlightedSegmentFeatures = this.props.highlightedSegmentFeatures
-        const highlightedSegmentPopulations = this.props.highlightedSegmentPopulations
+        const mousedOverSegmentsFromImage = this.props.mousedOverSegmentsFromImage
+        const segmentFeaturesInLegend = this.props.segmentFeaturesInLegend
+        const segmentPopulationsInLegend = this.props.segmentPopulationsInLegend
         const featureLegendVisible = this.props.featureLegendVisible
 
         const exportPath = this.props.exportPath
@@ -1232,15 +1225,14 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     channelDomain,
                                     channelVisibility,
                                     segmentationData,
+                                    segmentOutlineAttributes,
                                     segmentationFillAlpha,
-                                    segmentationOutlineAlpha,
                                     segmentationCentroidsVisible,
                                     selectedPopulations,
                                     highlightedPopulations,
-                                    highlightedSegmentsFromGraph,
-                                    highlightedSegmentsFromImage,
-                                    highlightedSegmentFeatures,
-                                    highlightedSegmentPopulations,
+                                    mousedOverSegmentsFromImage,
+                                    segmentFeaturesInLegend,
+                                    segmentPopulationsInLegend,
                                     exportPath,
                                     channelLegendVisible,
                                     populationLegendVisible,

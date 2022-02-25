@@ -1,7 +1,7 @@
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { Db } from './Db'
-import { AreaStatistic, PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
+import { AreaStatistic, PlotStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
 import { submitJob } from '../workers/SegmentFeatureCalculatorPool'
 import { SegmentFeatureDbRequest, OnSegmentFeatureDbRequestComplete } from '../workers/SegmentFeatureDbWorker'
@@ -116,7 +116,7 @@ export class SegmentFeatureGenerator {
         const input: SegmentFeatureCalculatorInput = {
             basePath: this.db.basePath,
             imageSetName: this.imageSetName,
-            segmentIndexMap: segmentationData.segmentIndexMap,
+            segmentIndexMap: segmentationData.pixelIndexMap,
             statistic: 'area',
         }
         submitJob(input, onComplete)
@@ -131,7 +131,7 @@ export class SegmentFeatureGenerator {
                     imageSetName: this.imageSetName,
                     marker: marker,
                     tiffData: tiffData,
-                    segmentIndexMap: segmentationData.segmentIndexMap,
+                    segmentIndexMap: segmentationData.pixelIndexMap,
                     statistic: statistic,
                 }
                 submitJob(input, onComplete)

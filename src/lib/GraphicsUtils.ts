@@ -227,9 +227,9 @@ export function drawLegend(
     populationsOnLegend: boolean,
     populations: SelectedPopulation[] | null,
     segmentSummaryOnLegend: boolean,
-    highlightedSegments: number[],
-    highlightedSegmentFeatures: Record<number, Record<string, number>>,
-    highlightedSegmentPopulations: Record<number, string[]>,
+    mousedOverSegments: number[],
+    segmentFeaturesForLegend: Record<number, Record<string, number>>,
+    segmentPopulationsForLegend: Record<number, string[]>,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -295,13 +295,13 @@ export function drawLegend(
         }
     }
 
-    if (segmentSummaryOnLegend && highlightedSegments.length > 0) {
+    if (segmentSummaryOnLegend && mousedOverSegments.length > 0) {
         if (legendText.length > 0) textHeight += spacerHeight
-        for (const segmentId of highlightedSegments) {
+        for (const segmentId of mousedOverSegments) {
             addText('Segment ' + segmentId, 0xffffff)
             // Create population names for populations that the highlighted segment belongs to.
             if (populations != null) {
-                const segmentPopulations = highlightedSegmentPopulations[segmentId]
+                const segmentPopulations = segmentPopulationsForLegend[segmentId]
                 if (segmentPopulations) {
                     for (const population of populations) {
                         if (segmentPopulations.includes(population.id)) {
@@ -310,7 +310,7 @@ export function drawLegend(
                     }
                 }
             }
-            const segmentFeatures = highlightedSegmentFeatures[segmentId]
+            const segmentFeatures = segmentFeaturesForLegend[segmentId]
             if (segmentFeatures) {
                 for (const segmentFeature of Object.keys(segmentFeatures)) {
                     const segmentFeatureValue = segmentFeatures[segmentFeature]

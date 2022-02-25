@@ -55,9 +55,9 @@ export class ProjectStore {
     // If we're importing segment features for a project or active image set
     @observable public importingSegmentFeaturesForProject: boolean | null
 
-    // The pixel being highlighted/moused over by the user on the image.
+    // The pixel being moused over by the user on the image.
     // Used to show segment stats and pixel stats.
-    @observable public highlightedPixel: Coordinate | null
+    @observable public mousedOverPixel: Coordinate | null
 
     // Used when a user right clicks a segment and requests to edit the populations.
     // When set to a number opens a modal where the populations can be edited.
@@ -87,7 +87,7 @@ export class ProjectStore {
     @computed public get contextMenuSegmentIds(): number[] {
         const lockedSegmentIds = this.lockedContextMenuSegmentIds
         if (lockedSegmentIds) return lockedSegmentIds
-        return this.activeImageSetStore.segmentationStore.activeHighlightedSegments
+        return this.activeImageSetStore.segmentationStore.mousedOverSegments
     }
 
     public constructor() {
@@ -390,8 +390,8 @@ export class ProjectStore {
         this.plotInMainWindow = inWindow
     }
 
-    @action setHighlightedPixel = (location: Coordinate | null): void => {
-        this.highlightedPixel = location
+    @action setMousedOverPixel = (location: Coordinate | null): void => {
+        this.mousedOverPixel = location
     }
 
     @action setEditingPopulationsSegmentId = (segmentId: number | null): void => {
@@ -403,7 +403,7 @@ export class ProjectStore {
     }
 
     @action lockContextMenuSegmentIds = (): void => {
-        this.lockedContextMenuSegmentIds = this.activeImageSetStore.segmentationStore.activeHighlightedSegments
+        this.lockedContextMenuSegmentIds = this.activeImageSetStore.segmentationStore.mousedOverSegments
     }
 
     @action unlockContextMenuSegmentIds = (): void => {

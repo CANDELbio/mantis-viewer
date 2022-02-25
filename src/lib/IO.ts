@@ -54,7 +54,7 @@ export function exportMarkerIntensities(filename: string, imageSetStore: ImageSe
         columns.push('Centroid Y')
         columns.push('Populations')
         // Iterate through the segments and get the intensity for each feature
-        const indexMap = segmentationData.segmentIndexMap
+        const indexMap = segmentationData.pixelIndexMap
         const centroidMap = segmentationData.centroidMap
         for (const s in indexMap) {
             const segmentId = parseInt(s)
@@ -97,7 +97,7 @@ export function exportToFCS(filePath: string, imageSetStore: ImageSetStore, segm
         const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const data = [] as number[][]
         // Iterate through the segments and calculate the intensity for each marker
-        const indexMap = segmentationData.segmentIndexMap
+        const indexMap = segmentationData.pixelIndexMap
         const centroidMap = segmentationData.centroidMap
         for (const s in indexMap) {
             const segmentId = parseInt(s)

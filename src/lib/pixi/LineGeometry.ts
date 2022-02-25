@@ -57,13 +57,23 @@ export default class LineGeometry extends Geometry {
 
     clear(): void {
         this.shapes = []
+        this._dirty = true
     }
 
     updateShape(): void {
         this._dirty = true
     }
 
-    updateColor(): void {
+    updateData(colors: number[], alphas: number[]): void {
+        if (colors.length != alphas.length) {
+            throw 'Length of colors and alphas must match'
+        } else if (colors.length != this.shapes.length) {
+            throw 'Length of update data and current data must match'
+        }
+        for (let i = 0; i < colors.length; i++) {
+            this.shapes[i].color = colors[i]
+            this.shapes[i].alpha = alphas[i]
+        }
         this._colorDirty = true
     }
 
