@@ -505,6 +505,17 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             const selectionGraphics = this.selectionGraphics
             this.addPositionToSelection(state)
 
+            // Remove the selected population region graphics so we can re-render them below
+            // Otherwise the outlines get rendered over the populations
+            if (this.selectedPopulations) {
+                for (const selectedPopulation of this.selectedPopulations) {
+                    const regionGraphics = selectedPopulation.regionGraphics
+                    if (selectedPopulation.visible && regionGraphics != null) {
+                        stage.removeChild(regionGraphics)
+                    }
+                }
+            }
+            // Remove the selection and outlines while we update them.
             stage.removeChild(selectionGraphics, this.segmentationOutlines)
 
             GraphicsHelper.drawSelectedRegion(
@@ -530,8 +541,20 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.segmentationOutlines.updateDataSubset(lineUpdateData)
             }
 
-            // TODO: Need to add this.segmentationOutlines below the current regions drawn on the image.
-            this.stage.addChild(selectionGraphics, this.segmentationOutlines)
+            // Add the recolored outlines
+            this.stage.addChild(this.segmentationOutlines)
+            // Add back the selected population regions
+            if (this.selectedPopulations) {
+                for (const selectedPopulation of this.selectedPopulations) {
+                    const regionGraphics = selectedPopulation.regionGraphics
+                    if (selectedPopulation.visible && regionGraphics != null) {
+                        regionGraphics.alpha = SelectedRegionAlpha
+                        stage.addChild(regionGraphics)
+                    }
+                }
+            }
+            // Add the new selection graphics.
+            this.stage.addChild(selectionGraphics)
 
             // Re-draw the legend and zoom inset graphics in case the user is selecting a region under the legend or zoom inset
             // Otherwise the region and segments render over the legend and zoom inset
