@@ -180,6 +180,7 @@ export default class LineGeometry extends Geometry {
             shape._start = session.index
 
             utils.hex2rgb(shape.color, color)
+            color[3] = shape.alpha
 
             if (lastPoint) {
                 // join!
