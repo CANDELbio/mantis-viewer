@@ -1,3 +1,5 @@
+import tinycolor from 'tinycolor2'
+
 export function randomHexColor(): number {
     return Math.round(0xffffff * Math.random())
 }
@@ -22,4 +24,13 @@ export function hexToString(hex: number): string {
     let str = hex.toString(16)
     str = '000000'.substr(0, 6 - str.length) + str
     return '#' + str
+}
+
+export function stringToHex(str: string): number {
+    return parseInt(str.replace(/^#/, ''), 16)
+}
+
+export function highlightColor(hex: number): number {
+    const tc = tinycolor(hexToString(hex))
+    return stringToHex(tc.brighten(30).saturate(30).toHexString())
 }

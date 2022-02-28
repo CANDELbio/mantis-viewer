@@ -6,6 +6,7 @@ import { SegmentationData } from '../lib/SegmentationData'
 import { ImageSetStore } from './ImageSetStore'
 import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { SegmentOutlineColor, HighlightedSegmentOutlineColor } from '../../src/definitions/UIDefinitions'
+import { highlightColor } from '../lib/ColorHelper'
 
 export interface SegmentOutlineAttributes {
     colors: number[]
@@ -69,14 +70,20 @@ export class SegmentationStore {
             )
 
             // Set the colors for the selected populations
-            const selectedPopulations = imageSetStore.populationStore.selectedPopulations
+            const populationStore = imageSetStore.populationStore
+            const selectedPopulations = populationStore.selectedPopulations
+            const highlightedPopulations = populationStore.highlightedPopulations
             for (const selectedPopulation of selectedPopulations) {
                 if (selectedPopulation.visible) {
+                    let color = selectedPopulation.color
+                    if (highlightedPopulations.indexOf(selectedPopulation.id) > -1) {
+                        color = highlightColor(color)
+                    }
                     const selectedSegments = selectedPopulation.selectedSegments
                     for (const selectedSegmentId of selectedSegments) {
                         const selectedSegmentIndex = segmentationData.idIndexMap[selectedSegmentId]
                         if (selectedSegmentIndex) {
-                            outlineColors[selectedSegmentIndex] = selectedPopulation.color
+                            outlineColors[selectedSegmentIndex] = color
                             outlineAlphas[selectedSegmentIndex] = 1
                         }
                     }

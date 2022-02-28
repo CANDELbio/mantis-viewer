@@ -107,6 +107,7 @@
     },
     "dependencies": {
         "@blueprintjs/core": "^3.40.1",
+        "@types/tinycolor2": "^1.4.3",
         "about-window": "^1.15.2",
         "better-sqlite3": "^7.5.0",
         "bindings": "^1.5.0",
@@ -144,6 +145,7 @@
         "react-transition-group": "^2.5.0",
         "reactstrap": "^8.9.0",
         "shortid": "^2.2.16",
+        "tinycolor2": "^1.4.2",
         "underscore": "^1.12.1",
         "xml2js": "^0.4.23"
     },
