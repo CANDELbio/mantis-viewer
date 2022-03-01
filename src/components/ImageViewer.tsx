@@ -824,7 +824,10 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         if (segmentationData) {
             if (this.segmentationData != segmentationData) {
                 // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
-                if (this.segmentationFillSprite) this.destroySprite(this.segmentationFillSprite)
+                if (this.segmentationFillSprite) {
+                    this.destroySprite(this.segmentationFillSprite)
+                    this.segmentationFillSprite = null
+                }
                 this.segmentationData = segmentationData
                 this.segmentationOutlines.clear()
                 if (segmentationData) {
@@ -833,6 +836,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                         segmentationData.segmentCoordinates,
                         SegmentOutlineColor,
                     )
+                    this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
                 }
             }
 
@@ -844,9 +848,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                         segmentOutlineAttributes.alphas,
                     )
             }
-            if (!this.segmentationFillSprite)
-                this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
-
             // Add segmentation cells
             const fillSprite = this.segmentationFillSprite
             if (fillSprite) {
