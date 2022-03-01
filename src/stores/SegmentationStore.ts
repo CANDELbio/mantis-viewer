@@ -148,8 +148,6 @@ export class SegmentationStore {
     // Used in clearSegmentationData
     // And when cleaning up memory in the projectStore.
     @action public deleteSegmentationData = (): void => {
-        const destroyOptions = { children: true, texture: true, baseTexture: true }
-        this.segmentationData?.destroyGraphics(destroyOptions)
         this.segmentationData = null
     }
 

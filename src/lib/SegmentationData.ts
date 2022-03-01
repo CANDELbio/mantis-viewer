@@ -1,7 +1,4 @@
-import * as PIXI from 'pixi.js'
 import { Coordinate } from '../interfaces/ImageInterfaces'
-import { UnselectedCentroidColor } from '../definitions/UIDefinitions'
-import { drawCentroids } from './GraphicsUtils'
 import {
     SegmentationDataWorkerResult,
     SegmentationDataWorkerInput,
@@ -26,7 +23,6 @@ export class SegmentationData {
     public centroidMap: Record<number, Coordinate>
     // PIXI Sprite of random colored fills for the segments
     public fillBitmap: ImageBitmap
-    public centroidGraphics: PIXI.Graphics
 
     // Used to surface any error messages that occur during importing segmentation data.
     public errorMessage: string | null
@@ -79,7 +75,6 @@ export class SegmentationData {
         })
         this.fillBitmap = fData.fillBitmap
 
-        this.centroidGraphics = drawCentroids(this.centroidMap, UnselectedCentroidColor)
         this.onReady(this)
     }
 
@@ -107,9 +102,5 @@ export class SegmentationData {
         onReady: (SegmentationData: SegmentationData) => void,
     ): void {
         this.loadInWorker({ filepath: fName, width: width, height: height, optimizeFile: optimize }, onReady)
-    }
-
-    public destroyGraphics(destroyOptions: PIXI.IDestroyOptions): void {
-        this.centroidGraphics.destroy(destroyOptions)
     }
 }

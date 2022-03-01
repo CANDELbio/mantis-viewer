@@ -201,7 +201,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         imageData={imageStore.imageData}
                         segmentationData={segmentationStore.segmentationData}
                         segmentationFillAlpha={settingStore.segmentationFillAlpha}
-                        segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
                         segmentOutlineAttributes={segmentationStore.outlineAttributes}
                         channelDomain={imageStore.channelDomain}
                         channelVisibility={settingStore.channelVisibility}
@@ -287,8 +286,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}
                         onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
-                        centroidsVisible={settingStore.segmentationCentroidsVisible}
-                        setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
                         onClearSegmentation={(): void => {
                             notificationStore.setClearSegmentationRequested(true)
                         }}

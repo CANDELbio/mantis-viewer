@@ -19,59 +19,6 @@ export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): P
     return sprite
 }
 
-// Draws a cross in the following order centered at X and Y
-//
-//       (2) *     * (3)
-//
-// (12)* (1) *     * (4) * (5)
-//
-// (11)* (10)*     * (7) * (6)
-//
-//      (9) *      * (8)
-//
-function drawCross(graphics: PIXI.Graphics, x: number, y: number, armLength: number, armHalfWidth: number): void {
-    graphics.drawPolygon([
-        x - armHalfWidth,
-        y + armHalfWidth, //1
-        x - armHalfWidth,
-        y + armHalfWidth + armLength,
-        x + armHalfWidth,
-        y + armHalfWidth + armLength,
-        x + armHalfWidth,
-        y + armHalfWidth,
-        x + (armHalfWidth + armLength),
-        y + armHalfWidth,
-        x + (armHalfWidth + armLength),
-        y - armHalfWidth,
-        x + armHalfWidth,
-        y - armHalfWidth,
-        x + armHalfWidth,
-        y - (armHalfWidth + armLength),
-        x - armHalfWidth,
-        y - (armHalfWidth + armLength),
-        x - armHalfWidth,
-        y - armHalfWidth,
-        x - (armHalfWidth + armLength),
-        y - armHalfWidth,
-        x - (armHalfWidth + armLength),
-        y + armHalfWidth, //12
-    ])
-}
-
-// When passed a map of segmentIds to their centroids
-export function drawCentroids(selectedCentroids: { [key: number]: Coordinate }, color: number): PIXI.Graphics {
-    const centroidGraphics = new PIXI.Graphics()
-
-    centroidGraphics.beginFill(color)
-    for (const segmentId in selectedCentroids) {
-        const centroid = selectedCentroids[segmentId]
-        drawCross(centroidGraphics, centroid.x, centroid.y, 2, 0.5)
-    }
-    centroidGraphics.endFill()
-
-    return centroidGraphics
-}
-
 // Draws a selected region of the format [x, y, x, y, ...] of the given color and alpha
 export function drawSelectedRegion(
     selectionGraphics: PIXI.Graphics,

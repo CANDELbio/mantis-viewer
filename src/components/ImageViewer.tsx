@@ -28,7 +28,6 @@ export interface ImageProps {
     imageData: ImageData | null
     segmentationData: SegmentationData | null
     segmentationFillAlpha: number
-    segmentationCentroidsVisible: boolean
     segmentOutlineAttributes: SegmentOutlineAttributes | null
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
@@ -85,8 +84,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     // Segmentation data stored locally for two reasons:
     // 1) Calculation of segments/centroids in selected regions
-    // 2) If segmentation data being passed in from store are different. If they are
-    // We re-render the segmentationSprite and segmentationCentroidGraphics below.
+    // 2) If segmentation data being passed in from store are different we need to
+    // re-render all of the graphics associated with the segmentation data.
     private segmentationData: SegmentationData | null
     private segmentOutlineAttributes: SegmentOutlineAttributes | null
     private segmentationOutlines: Line
@@ -819,7 +818,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         segmentationData: SegmentationData | null,
         segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
-        centroidsVisible: boolean,
     ): void {
         if (segmentationData) {
             if (this.segmentationData != segmentationData) {
@@ -857,10 +855,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
             // Add segmentation outlines
             this.stage.addChild(this.segmentationOutlines)
-
-            // Add segmentation centroids
-            if (segmentationData.centroidGraphics != null && centroidsVisible)
-                this.stage.addChild(segmentationData.centroidGraphics)
         }
     }
 
@@ -1065,7 +1059,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         segmentationData: SegmentationData | null,
         segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
-        segmentationCentroidsVisible: boolean,
         selectedPopulations: SelectedPopulation[] | null,
         highlightedPopulations: string[],
         mousedOverSegmentsFromImage: number[],
@@ -1122,12 +1115,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
 
         //Load segmentation graphics
-        this.loadSegmentationGraphics(
-            segmentationData,
-            segmentOutlineAttributes,
-            segmentationFillAlpha,
-            segmentationCentroidsVisible,
-        )
+        this.loadSegmentationGraphics(segmentationData, segmentOutlineAttributes, segmentationFillAlpha)
 
         // Load selected region graphics
         this.selectedPopulations = selectedPopulations
@@ -1208,7 +1196,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const segmentationData = this.props.segmentationData
         const segmentationFillAlpha = this.props.segmentationFillAlpha
-        const segmentationCentroidsVisible = this.props.segmentationCentroidsVisible
         const segmentOutlineAttributes = this.props.segmentOutlineAttributes
 
         const selectedPopulations = this.props.selectedPopulations
@@ -1249,7 +1236,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     segmentationData,
                                     segmentOutlineAttributes,
                                     segmentationFillAlpha,
-                                    segmentationCentroidsVisible,
                                     selectedPopulations,
                                     highlightedPopulations,
                                     mousedOverSegmentsFromImage,
