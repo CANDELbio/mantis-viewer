@@ -57,7 +57,7 @@ export class SegmentPopulationModal extends React.Component<SegmentPopulationMod
         if (segmentId) {
             const segmentPopulations = []
             for (const population of props.populations) {
-                if (!population.regionGraphics && population.selectedSegments.includes(segmentId)) {
+                if (!population.regionBitmap && population.selectedSegments.includes(segmentId)) {
                     segmentPopulations.push(population.id)
                 }
             }
@@ -72,7 +72,7 @@ export class SegmentPopulationModal extends React.Component<SegmentPopulationMod
         if (segmentId) {
             const selectOptions: SelectOption[] = []
             for (const population of this.props.populations) {
-                if (!population.regionGraphics) selectOptions.push({ value: population.id, label: population.name })
+                if (!population.regionBitmap) selectOptions.push({ value: population.id, label: population.name })
             }
 
             const selectedOptions = getSelectedOptions(this.state.segmentPopulations, selectOptions)

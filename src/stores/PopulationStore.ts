@@ -1,13 +1,12 @@
-import * as PIXI from 'pixi.js'
 import { observable, action, autorun, computed } from 'mobx'
-import * as shortId from 'shortid'
-import * as _ from 'underscore'
+import shortId from 'shortid'
+import _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
 
 import { ImageSetStore } from './ImageSetStore'
 import { randomHexColor } from '../lib/ColorHelper'
-import { pixelIndexesToSprite } from '../lib/GraphicsUtils'
+import { pixelIndexesToBitmap } from '../lib/GraphicsUtils'
 import { Db } from '../lib/Db'
 
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
@@ -28,7 +27,7 @@ export interface SelectedPopulation {
     pixelIndexes?: number[]
     // The IDs of the selected segments
     selectedSegments: number[]
-    regionGraphics?: PIXI.Sprite
+    regionBitmap?: ImageBitmap
 }
 
 export class PopulationStore {
@@ -56,8 +55,7 @@ export class PopulationStore {
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
-            this.selectedPopulations = this.db.getSelections(imageSetName)
-            this.refreshAllGraphics()
+            this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName))
         }
     }
 
@@ -108,7 +106,9 @@ export class PopulationStore {
         // Refresh all the graphics and selected segments if segmentation has changed
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
-        this.refreshAllGraphics()
+        const imageData = this.imageSetStore.imageStore.imageData
+        if (imageData && this.selectedPopulations.length > 0)
+            this.refreshGraphicsAndSetPopulations(this.selectedPopulations.slice())
     })
 
     // Automatically saves populations to the db when they change
@@ -124,19 +124,64 @@ export class PopulationStore {
         return name + renderOrder.toString()
     }
 
-    @action public setSelectedPopulations = (populations: SelectedPopulation[]): void => {
-        if (!_.isEqual(populations, this.selectedPopulations)) {
-            this.selectedPopulations = populations
-        }
-    }
-
     private getRenderOrder(): number {
         const renderOrders = _.pluck(this.selectedPopulations, 'renderOrder')
         if (renderOrders.length > 0) return Math.max(...renderOrders) + 1
         return 1
     }
 
-    @action public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
+    @action private setSelectedPopulations = (populations: SelectedPopulation[]): void => {
+        if (!_.isEqual(populations, this.selectedPopulations)) {
+            this.selectedPopulations = populations
+        }
+    }
+
+    @action private addToSelectedPopulations = (newPopulations: SelectedPopulation[]): void => {
+        this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
+    }
+
+    private refreshGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
+        const refreshedPopulations = []
+        const imageData = this.imageSetStore.imageStore.imageData
+        const segmentationData = this.imageSetStore.segmentationStore.segmentationData
+        for (const population of populations) {
+            const pixelIndexes = population.pixelIndexes
+            if (imageData) {
+                // If this selection has pixel indexes (i.e. a region selected on the image)
+                // Then we want to refresh the region graphics
+                if (pixelIndexes) {
+                    population.regionBitmap = await pixelIndexesToBitmap(
+                        pixelIndexes,
+                        imageData.width,
+                        imageData.height,
+                    )
+                    if (segmentationData) {
+                        // If segmentation data is loaded use the region to find the segments selected
+                        population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
+                    } else {
+                        // Otherwise clear the segments selected
+                        population.selectedSegments = []
+                    }
+                }
+            }
+            refreshedPopulations.push(population)
+        }
+        return refreshedPopulations
+    }
+
+    private refreshGraphicsAndAddToPopulations = (population: SelectedPopulation): void => {
+        this.refreshGraphics([population]).then((refreshedPopulation) =>
+            this.addToSelectedPopulations(refreshedPopulation),
+        )
+    }
+
+    public refreshGraphicsAndSetPopulations = (populations: SelectedPopulation[]): void => {
+        this.refreshGraphics(populations).then((refreshedPopulations) =>
+            this.setSelectedPopulations(refreshedPopulations),
+        )
+    }
+
+    public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
@@ -147,11 +192,11 @@ export class PopulationStore {
             color: color ? color : randomHexColor(),
             visible: true,
         }
-        this.refreshGraphics(newPopulation)
-        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
+        // Fancy stuff to get refresh to trigger from async block
+        this.refreshGraphicsAndAddToPopulations(newPopulation)
     }
 
-    @action public createPopulationFromSegments = (
+    public createPopulationFromSegments = (
         selectedSegments: number[],
         name?: string,
         color?: number,
@@ -165,45 +210,11 @@ export class PopulationStore {
             color: color ? color : randomHexColor(),
             visible: true,
         }
-        this.refreshGraphics(newPopulation)
-        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
+        this.addToSelectedPopulations([newPopulation])
         return newPopulation
     }
 
-    private refreshGraphics = (population: SelectedPopulation): SelectedPopulation => {
-        const imageData = this.imageSetStore.imageStore.imageData
-        const segmentationData = this.imageSetStore.segmentationStore.segmentationData
-        const pixelIndexes = population.pixelIndexes
-        if (imageData) {
-            const color = population.color
-            // Clear out the old graphics.
-            const destroyOptions = { children: true, texture: true, baseTexture: true }
-            population.regionGraphics?.destroy(destroyOptions)
-            // If this selection has pixel indexes (i.e. a region selected on the image)
-            // Then we want to refresh the region graphics
-            if (pixelIndexes) {
-                population.regionGraphics = pixelIndexesToSprite(pixelIndexes, imageData.width, imageData.height, color)
-                if (segmentationData) {
-                    // If segmentation data is loaded use the region to find the segments selected
-                    population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
-                } else {
-                    // Otherwise clear the segments selected
-                    population.selectedSegments = []
-                }
-            }
-        }
-        return population
-    }
-
-    @action public refreshAllGraphics = (): void => {
-        this.selectedPopulations = this.selectedPopulations.map(
-            (population: SelectedPopulation): SelectedPopulation => {
-                return this.refreshGraphics(population)
-            },
-        )
-    }
-
-    @action public addEmptyPopulation = (): void => {
+    public addEmptyPopulation = (): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
             id: shortId.generate(),
@@ -213,7 +224,7 @@ export class PopulationStore {
             color: randomHexColor(),
             visible: true,
         }
-        this.selectedPopulations = this.selectedPopulations.concat([newPopulation])
+        this.addToSelectedPopulations([newPopulation])
     }
 
     @action public deleteSelectedPopulation = (id: string): void => {
@@ -226,6 +237,9 @@ export class PopulationStore {
         }
     }
 
+    // Deletes populations that were not created by selecting a region on the image
+    // Used when the user changes the segmentation data so that old populations
+    // are not carried over to different segmentation data.
     @action public deletePopulationsNotSelectedOnImage = (): void => {
         if (this.selectedPopulations) {
             const deleting: string[] = []
@@ -254,66 +268,11 @@ export class PopulationStore {
         this.highlightedPopulations = this.highlightedPopulations.filter((regionId): boolean => regionId != id)
     }
 
-    @action public updateSelectedPopulationName = (id: string, newName: string): void => {
-        if (this.selectedPopulations) {
-            // Work around to trigger selectedPopulations change
-            // TODO: Try replacing selectedPopulations with non ref and use Mobx toJS to send values to plot window.
-            this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
-                if (region.id == id) {
-                    region.name = newName
-                    return region
-                } else {
-                    return region
-                }
-            })
-        }
-    }
-
-    @action public updateSelectedPopulationColor = (id: string, color: number): void => {
-        if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((population): SelectedPopulation => {
-                if (population.id == id) {
-                    population.color = color
-                    this.refreshGraphics(population)
-                    return population
-                } else {
-                    return population
-                }
-            })
-        }
-    }
-
-    @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
-        if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
-                if (region.id == id) {
-                    region.visible = visible
-                    return region
-                } else {
-                    return region
-                }
-            })
-        }
-    }
-
     @action public setAllSelectedPopulationVisibility = (visible: boolean): void => {
         if (this.selectedPopulations != null) {
             this.selectedPopulations = this.selectedPopulations.slice().map(function (region): SelectedPopulation {
                 region.visible = visible
                 return region
-            })
-        }
-    }
-
-    @action public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
-        if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
-                if (region.id == id) {
-                    region.selectedSegments = segments
-                    return this.refreshGraphics(region)
-                } else {
-                    return region
-                }
             })
         }
     }
@@ -376,14 +335,14 @@ export class PopulationStore {
                         color: randomHexColor(),
                         visible: true,
                     }
-                    this.refreshGraphics(newPopulation)
                     newPopulations.push(newPopulation)
                     order += 1
                 }
             }
-            this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
-            // Save the name of the tiff we loaded regions from so we don't try to load again.
-            this.markRegionsLoaded()
+            this.refreshGraphics(newPopulations).then((refreshedPopulation) => {
+                this.addToSelectedPopulations(refreshedPopulation)
+                this.markRegionsLoaded()
+            })
         }
     }
 
@@ -422,33 +381,71 @@ export class PopulationStore {
         this.selectedFeatureForNewPopulation = feature
     }
 
-    // TODO: DRY up all of the functions that use slice.map to update the populations
-    @action public removeSegmentFromPopulation = (segment: number, id: string): void => {
+    @action private updatePopulationById = (
+        id: string,
+        updateFn: (population: SelectedPopulation) => SelectedPopulation,
+    ): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
-                if (region.id == id) {
-                    const index = region.selectedSegments.indexOf(segment)
-                    if (index > -1) {
-                        region.selectedSegments.splice(index, 1)
-                    }
-                    return this.refreshGraphics(region)
+            this.selectedPopulations = this.selectedPopulations.slice().map((population): SelectedPopulation => {
+                if (population.id == id) {
+                    return updateFn(population)
                 } else {
-                    return region
+                    return population
                 }
             })
         }
     }
 
-    @action public addSegmentToPopulation = (segment: number, id: string): void => {
+    public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((region): SelectedPopulation => {
-                if (region.id == id) {
-                    region.selectedSegments.push(segment)
-                    return this.refreshGraphics(region)
-                } else {
-                    return region
-                }
-            })
+            const updateFn = (p: SelectedPopulation) => {
+                p.color = color
+                return p
+            }
+            this.updatePopulationById(id, updateFn)
         }
+    }
+
+    public updateSelectedPopulationSegments = (id: string, segments: number[]): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            p.selectedSegments = segments
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
+    }
+
+    public removeSegmentFromPopulation = (segment: number, id: string): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            const index = p.selectedSegments.indexOf(segment)
+            if (index > -1) {
+                p.selectedSegments.splice(index, 1)
+            }
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
+    }
+
+    public addSegmentToPopulation = (segment: number, id: string): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            p.selectedSegments.push(segment)
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
+    }
+
+    @action public updateSelectedPopulationName = (id: string, newName: string): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            p.name = newName
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
+    }
+
+    @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            p.visible = visible
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
     }
 }

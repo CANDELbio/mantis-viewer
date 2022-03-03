@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
-import * as _ from 'underscore'
+import _ from 'underscore'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -23,6 +23,7 @@ import { Line } from '../lib/pixi/Line'
 import brightnessFilter from '../lib/brightness-filter.glsl'
 import hotkeys from 'hotkeys-js'
 import { SegmentOutlineAttributes } from '../stores/SegmentationStore'
+import { IDestroyOptions } from 'pixi.js'
 
 export interface ImageProps {
     imageData: ImageData | null
@@ -34,7 +35,7 @@ export interface ImageProps {
     channelMarker: Record<ChannelName, string | null>
     positionAndScale: { position: Coordinate; scale: Coordinate } | null
     setPositionAndScale: (position: Coordinate, scale: Coordinate) => void
-    selectedPopulations: SelectedPopulation[] | null
+    selectedPopulations: SelectedPopulation[]
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
     mousedOverSegmentsFromImage: number[]
@@ -59,7 +60,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private renderer: PIXI.Renderer
     private rootContainer: PIXI.Container
     private stage: PIXI.Container
-    private destroyOptions: PIXI.IDestroyOptions
 
     private imageData: ImageData | null
 
@@ -92,7 +92,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private segmentationFillSprite: PIXI.Sprite | null
 
     // Selected Populations stored locally for rendering the population names on the legend.
-    private selectedPopulations: SelectedPopulation[] | null
+    private selectedPopulations: SelectedPopulation[]
+    private selectedPopulationRegionSprites: Record<string, PIXI.Sprite>
 
     private legendGraphics: PIXI.Graphics
     private channelLegendVisible: boolean
@@ -125,8 +126,19 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private selectionGraphics: PIXI.Graphics
     private selectionSegmentOutline: Line
 
+    private destroyOptions: IDestroyOptions = { children: true, texture: true, baseTexture: true }
+
     // If the renderer is full screened or not
     private fullScreen: boolean
+
+    private clearSpriteMap(toClear: Record<string, PIXI.Sprite | null> | null): void {
+        if (toClear) {
+            for (const key of Object.keys(toClear)) {
+                toClear[key]?.destroy(this.destroyOptions)
+                delete toClear[key]
+            }
+        }
+    }
 
     private initializePIXIGlobals(): void {
         // Need a root container to hold the stage so that we can call updateTransform on the stage.
@@ -139,10 +151,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.stage.interactive = true
         this.rootContainer.addChild(this.stage)
 
-        const destroyOptions = { children: true, texture: true, baseTexture: true }
-
-        this.destroyOptions = destroyOptions
-
+        const destroyOptions = this.destroyOptions
         this.legendGraphics?.destroy(destroyOptions)
         this.legendGraphics = new PIXI.Graphics()
         this.zoomInsetGraphics?.destroy(destroyOptions)
@@ -158,6 +167,22 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.selectionGraphics = new PIXI.Graphics()
         this.selectionSegmentOutline?.destroy(destroyOptions)
         this.selectionSegmentOutline = new Line()
+
+        this.clearSpriteMap(this.selectedPopulationRegionSprites)
+        if (!this.selectedPopulationRegionSprites) this.selectedPopulationRegionSprites = {}
+
+        this.clearSpriteMap(this.channelSprite)
+        if (!this.channelSprite) {
+            this.channelSprite = {
+                rChannel: null,
+                gChannel: null,
+                bChannel: null,
+                cChannel: null,
+                mChannel: null,
+                yChannel: null,
+                kChannel: null,
+            }
+        }
 
         const ticker = PIXI.Ticker.shared
         ticker.autoStart = false
@@ -220,20 +245,11 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             kChannel: null,
         }
 
-        this.channelSprite = {
-            rChannel: null,
-            gChannel: null,
-            bChannel: null,
-            cChannel: null,
-            mChannel: null,
-            yChannel: null,
-            kChannel: null,
-        }
-
         this.minScale = 1.0
         this.initializeSelectState()
         this.initializePanState()
         this.fullScreen = false
+        this.selectedPopulations = []
         this.mousedOverSegmentsFromImage = []
         this.segmentFeaturesForLegend = {}
         this.segmentPopulationsForLegend = []
@@ -508,7 +524,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             // Otherwise the outlines get rendered over the populations
             if (this.selectedPopulations) {
                 for (const selectedPopulation of this.selectedPopulations) {
-                    const regionGraphics = selectedPopulation.regionGraphics
+                    const regionGraphics = this.selectedPopulationRegionSprites[selectedPopulation.id]
                     if (selectedPopulation.visible && regionGraphics != null) {
                         stage.removeChild(regionGraphics)
                     }
@@ -545,7 +561,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             // Add back the selected population regions
             if (this.selectedPopulations) {
                 for (const selectedPopulation of this.selectedPopulations) {
-                    const regionGraphics = selectedPopulation.regionGraphics
+                    const regionGraphics = this.selectedPopulationRegionSprites[selectedPopulation.id]
                     if (selectedPopulation.visible && regionGraphics != null) {
                         regionGraphics.alpha = SelectedRegionAlpha
                         stage.addChild(regionGraphics)
@@ -813,31 +829,32 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
     }
 
+    private setSegmentationData(segmentationData: SegmentationData | null): void {
+        if (this.segmentationData != segmentationData) {
+            // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
+            if (this.segmentationFillSprite) {
+                this.destroySprite(this.segmentationFillSprite)
+                this.segmentationFillSprite = null
+            }
+            this.segmentationOutlines.clear()
+            if (segmentationData) {
+                GraphicsHelper.drawOutlines(
+                    this.segmentationOutlines,
+                    segmentationData.segmentCoordinates,
+                    SegmentOutlineColor,
+                )
+                this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
+            }
+            this.segmentationData = segmentationData
+        }
+    }
+
     // Add segmentation data to the stage.
     private loadSegmentationGraphics(
-        segmentationData: SegmentationData | null,
         segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
     ): void {
-        if (segmentationData) {
-            if (this.segmentationData != segmentationData) {
-                // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
-                if (this.segmentationFillSprite) {
-                    this.destroySprite(this.segmentationFillSprite)
-                    this.segmentationFillSprite = null
-                }
-                this.segmentationData = segmentationData
-                this.segmentationOutlines.clear()
-                if (segmentationData) {
-                    GraphicsHelper.drawOutlines(
-                        this.segmentationOutlines,
-                        segmentationData.segmentCoordinates,
-                        SegmentOutlineColor,
-                    )
-                    this.segmentationFillSprite = PIXI.Sprite.from(segmentationData.fillBitmap)
-                }
-            }
-
+        if (this.segmentationData) {
             if (this.segmentOutlineAttributes != segmentOutlineAttributes) {
                 this.segmentOutlineAttributes = segmentOutlineAttributes
                 if (segmentOutlineAttributes)
@@ -858,26 +875,68 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
     }
 
+    private setSelectedPopulations(selectedPopulations: SelectedPopulation[]): void {
+        if (this.selectedPopulations != selectedPopulations) {
+            // We need to iterate over all of the current region sprites and new
+            // populations to see which sprites need to be deleted.
+            const newSelectedPopulationMap = selectedPopulations.reduce(
+                (map: Record<string, SelectedPopulation>, obj: SelectedPopulation) => {
+                    map[obj.id] = obj
+                    return map
+                },
+                {},
+            )
+            // Iterate over the old populations and see what was deleted or updated.
+            for (const currentSpriteId of Object.keys(this.selectedPopulationRegionSprites)) {
+                const newPopulation = newSelectedPopulationMap[currentSpriteId]
+                if (!newPopulation) {
+                    // A population is present in the sprites but in the incoming populations.
+                    // Delete the sprite from the sprite map if it exists
+                    const oldSprite = this.selectedPopulationRegionSprites[currentSpriteId]
+                    if (oldSprite) this.destroySprite(oldSprite)
+
+                    delete this.selectedPopulationRegionSprites[currentSpriteId]
+                }
+            }
+            this.selectedPopulations = selectedPopulations
+        }
+    }
+
+    // Ideally we would be calling this from setSelectedPopulations when the selected populations change
+    // But the bitmaps are undefined for a bit even after being set for a bit. Some weirdness with async.
+    private updateSelectedRegionGraphics(): void {
+        if (this.selectedPopulations) {
+            // Iterate over the new populations and see what was added
+            for (const population of this.selectedPopulations) {
+                const newPopulationId = population.id
+                if (!this.selectedPopulationRegionSprites[newPopulationId]) {
+                    // The current population isn't present in the sprite map and needs to be created.
+                    const populationBitmap = population.regionBitmap
+                    if (populationBitmap)
+                        this.selectedPopulationRegionSprites[newPopulationId] = PIXI.Sprite.from(populationBitmap)
+                }
+            }
+        }
+    }
+
     // Adds the graphics for regions or segment/cell populations selected by users to the stage.
-    private loadSelectedPopulationsGraphics(
-        stage: PIXI.Container,
-        selectedPopulations: SelectedPopulation[] | null,
-        highlightedPopulations: string[],
-    ): void {
-        if (selectedPopulations) {
-            for (const selectedPopulation of selectedPopulations) {
+    private loadSelectedPopulationsGraphics(highlightedPopulations: string[]): void {
+        if (this.selectedPopulations) {
+            this.updateSelectedRegionGraphics()
+            for (const selectedPopulation of this.selectedPopulations) {
                 if (selectedPopulation.visible) {
-                    const regionId = selectedPopulation.id
+                    const populationId = selectedPopulation.id
                     // Set the alpha correctly for regions that need to be highlighted
-                    let regionAlpha = SelectedRegionAlpha
-                    if (highlightedPopulations.indexOf(regionId) > -1) {
-                        regionAlpha = HighlightedSelectedRegionAlpha
+                    let populationAlpha = SelectedRegionAlpha
+                    if (highlightedPopulations.indexOf(populationId) > -1) {
+                        populationAlpha = HighlightedSelectedRegionAlpha
                     }
 
-                    const regionGraphics = selectedPopulation.regionGraphics
+                    const regionGraphics = this.selectedPopulationRegionSprites[populationId]
                     if (regionGraphics != null) {
-                        regionGraphics.alpha = regionAlpha
-                        stage.addChild(regionGraphics)
+                        regionGraphics.alpha = populationAlpha
+                        regionGraphics.tint = selectedPopulation.color
+                        this.stage.addChild(regionGraphics)
                     }
                 }
             }
@@ -1059,7 +1118,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         segmentationData: SegmentationData | null,
         segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
-        selectedPopulations: SelectedPopulation[] | null,
+        selectedPopulations: SelectedPopulation[],
         highlightedPopulations: string[],
         mousedOverSegmentsFromImage: number[],
         segmentFeaturesForLegend: Record<number, Record<string, number>>,
@@ -1115,11 +1174,12 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
 
         //Load segmentation graphics
-        this.loadSegmentationGraphics(segmentationData, segmentOutlineAttributes, segmentationFillAlpha)
+        this.setSegmentationData(segmentationData)
+        this.loadSegmentationGraphics(segmentOutlineAttributes, segmentationFillAlpha)
 
         // Load selected region graphics
-        this.selectedPopulations = selectedPopulations
-        this.loadSelectedPopulationsGraphics(this.stage, selectedPopulations, highlightedPopulations)
+        this.setSelectedPopulations(selectedPopulations)
+        this.loadSelectedPopulationsGraphics(highlightedPopulations)
 
         if (this.mousedOverSegmentsFromImage != mousedOverSegmentsFromImage) {
             this.mousedOverSegmentsFromImage = mousedOverSegmentsFromImage

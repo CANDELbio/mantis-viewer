@@ -5,7 +5,6 @@ import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
 import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { Coordinate } from '../interfaces/ImageInterfaces'
-import { hexToRGB } from './ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Line, PointData } from './pixi/Line'
 
@@ -67,8 +66,7 @@ export function generateBrightnessFilterUniforms(
     imcData: ImageData,
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Record<string, any> | null {
+): Record<string, number> | null {
     const curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
@@ -187,7 +185,7 @@ export function drawLegend(
     const textPadding = 1 // Padding between the text and the inner edges of the legend
     const textSpacing = 1 // Spacing between the lines of text for each channel
     const innerBgXY = legendPadding + bgBorderWidth
-    const initialTextlXY = innerBgXY + textPadding
+    const initialTextXY = innerBgXY + textPadding
 
     let textWidth = 0
     let textHeight = 0
@@ -203,8 +201,8 @@ export function drawLegend(
             fill: color,
             align: 'center',
         })
-        const textY = initialTextlXY + textHeight
-        pixiText.setTransform(initialTextlXY, textY)
+        const textY = initialTextXY + textHeight
+        pixiText.setTransform(initialTextXY, textY)
         textHeight += pixiText.height
         textWidth = Math.max(textWidth, pixiText.width)
         legendText.push(pixiText)
@@ -297,6 +295,7 @@ export function drawLegend(
 // Expects an array from a PIXI pixel extract that has four entries per pixel (r, g, b, a) with flipped Y indexes.
 // Turns this into an array of pixel indexes of the pixels that have non-zero alpha values.
 // Uses min and max x and y values to constrain the region where it's looking for non-zero alpha values.
+// Used to get the pixels from a drawn selection to find the segments in that selection
 export function RGBAtoPixelIndexes(
     RGBAValues: Uint8Array | Uint8ClampedArray,
     width: number,
@@ -323,9 +322,8 @@ export function RGBAtoPixelIndexes(
     return Array.from(indexes)
 }
 
-// Generates a sprite of width and height with the pixels at the passed in indexes set to hexColor and 100% alpha.
-export function pixelIndexesToSprite(indexes: number[], width: number, height: number, hexColor: number): PIXI.Sprite {
-    const color = hexToRGB(hexColor)
+// Generates a sprite of width and height with the pixels at the passed in indexes set to 100% alpha.
+export async function pixelIndexesToBitmap(indexes: number[], width: number, height: number): Promise<ImageBitmap> {
     const canvas = document.createElement('canvas')
 
     canvas.width = width
@@ -340,14 +338,13 @@ export function pixelIndexesToSprite(indexes: number[], width: number, height: n
         for (const pixelIndex of indexes) {
             // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
             const canvasIndex = pixelIndex << 2
-            canvasData[canvasIndex] = color['r']
-            canvasData[canvasIndex + 1] = color['g']
-            canvasData[canvasIndex + 2] = color['b']
+            canvasData[canvasIndex] = 255
+            canvasData[canvasIndex + 1] = 255
+            canvasData[canvasIndex + 2] = 255
             canvasData[canvasIndex + 3] = 255
         }
         ctx.putImageData(imageData, 0, 0)
     }
 
-    const sprite = PIXI.Sprite.from(canvas)
-    return sprite
+    return await createImageBitmap(canvas)
 }
