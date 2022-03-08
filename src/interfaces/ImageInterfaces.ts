@@ -22,6 +22,15 @@ export interface BitmapMap {
     [key: string]: ImageBitmap
 }
 
+export interface FileInfo {
+    path: string
+    imageNumber?: number
+}
+
+export interface FileInfoMap {
+    [key: string]: FileInfo
+}
+
 export interface RGBColor {
     r: number
     g: number

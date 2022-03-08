@@ -3,7 +3,7 @@ import * as GeoTIFF from 'geotiff'
 // If any dimension is over maxWidthHeight, we scale it proportionally so the max dimension is equal to scaledWidthHeight.
 // Images in the 10000-12000 width/height range seem to load fine, but GeoTiff returned a black image when attempting to
 // scale to the 10k range. So dropped what we scale to down a bit below 10k.
-const maxWidthHeight = 10300.0
+const maxWidthHeight = 10000.0
 const scaledWidthHeight = 8000.0
 
 export interface TiffData {
@@ -35,7 +35,7 @@ function scaleWidthAndHeight(
     return { scaled: false, rasterOptions: { width: width, height: height, interleave: true } }
 }
 
-export async function readTiffData(filepath: string, imageNumber: number): Promise<TiffData> {
+export async function readTiffData(filepath: string, imageNumber = 0): Promise<TiffData> {
     const tiff = await GeoTIFF.fromFile(filepath)
 
     const numImages = await tiff.getImageCount()

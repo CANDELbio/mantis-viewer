@@ -20,11 +20,6 @@ export class ImageStore {
 
     @observable private selectedDirectory: string | null
 
-    @observable public currentSelection: {
-        x: [number, number]
-        y: [number, number]
-    } | null
-
     @computed public get channelDomain(): Record<ChannelName, [number, number]> {
         const results: Record<ChannelName, [number, number]> = {
             rChannel: [0, 100],
@@ -101,7 +96,7 @@ export class ImageStore {
     }
 
     @action public removeMarker = (markerName: string): void => {
-        if (this.imageData != null && markerName in this.imageData.data) {
+        if (this.imageData != null && markerName in this.imageData.markerNames) {
             const settingStore = this.imageSetStore.projectStore.settingStore
             // Unset the marker if it is being used
             for (const s of ImageChannels) {

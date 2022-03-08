@@ -3,6 +3,7 @@
 import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
 import { calculateMean, calculateMedian, calculateSum } from '../lib/StatsUtils'
+import { readTiffData } from '../lib/TiffUtils'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any
@@ -69,12 +70,14 @@ ctx.addEventListener(
                 statisticMap: statisticMap,
             })
         } else {
-            const statisticMap = generateFeatureMap(data.statistic, data.segmentIndexMap, data.tiffData)
-            ctx.postMessage({
-                jobId: data.jobId,
-                statistic: data.statistic,
-                statisticMap: statisticMap,
-                marker: data.marker,
+            readTiffData(data.tiffFileInfo.path, data.tiffFileInfo.imageNumber).then((tiffData) => {
+                const statisticMap = generateFeatureMap(data.statistic, data.segmentIndexMap, tiffData.data)
+                ctx.postMessage({
+                    jobId: data.jobId,
+                    statistic: data.statistic,
+                    statisticMap: statisticMap,
+                    marker: data.marker,
+                })
             })
         }
     },

@@ -67,7 +67,7 @@ export class SegmentFeatureGenerator {
         const featureNames = []
         featureNames.push(this.featureName('area'))
 
-        const markers = Object.keys(this.imageData.data)
+        const markers = this.imageData.markerNames
         for (const marker of markers) {
             for (const statistic of this.chosenMarkerFeatures) {
                 featureNames.push(this.featureName(statistic, marker))
@@ -105,7 +105,7 @@ export class SegmentFeatureGenerator {
             })
         }
 
-        const markers = Object.keys(imageData.data)
+        const markers = imageData.markerNames
         // Keeping track of the number of features to calculate so we know when we're done
         // For each marker we will be calculating the stats chosen by the user
         this.numFeatures = markers.length * this.chosenMarkerFeatures.length
@@ -123,14 +123,14 @@ export class SegmentFeatureGenerator {
 
         // Submit requests to calculate segment means and medians for all markers
         for (const marker of markers) {
-            const tiffData = imageData.data[marker]
+            const tiffFileInfo = imageData.fileInfo[marker]
 
             for (const statistic of this.chosenMarkerFeatures) {
                 const input = {
                     basePath: this.db.basePath,
                     imageSetName: this.imageSetName,
                     marker: marker,
-                    tiffData: tiffData,
+                    tiffFileInfo: tiffFileInfo,
                     segmentIndexMap: segmentationData.pixelIndexMap,
                     statistic: statistic,
                 }
