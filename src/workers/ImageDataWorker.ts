@@ -13,7 +13,6 @@ export interface ImageDataWorkerResult {
     markerName: string
     width: number
     height: number
-    data: Float32Array | Uint16Array | Uint8Array
     bitmap: ImageBitmap
     minmax: MinMax
     scaled: boolean

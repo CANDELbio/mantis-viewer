@@ -195,14 +195,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 <ContextMenuTrigger
                     id={ImageContextMenuId}
                     holdToDisplay={-1}
-                    disable={segmentationStore.activeHighlightedSegments.length == 0}
+                    disable={segmentationStore.mousedOverSegments.length == 0}
                 >
                     <ImageViewer
                         imageData={imageStore.imageData}
                         segmentationData={segmentationStore.segmentationData}
                         segmentationFillAlpha={settingStore.segmentationFillAlpha}
-                        segmentationOutlineAlpha={settingStore.segmentationOutlineAlpha}
-                        segmentationCentroidsVisible={settingStore.segmentationCentroidsVisible}
+                        segmentOutlineAttributes={segmentationStore.outlineAttributes}
                         channelDomain={imageStore.channelDomain}
                         channelVisibility={settingStore.channelVisibility}
                         channelMarker={settingStore.channelMarker}
@@ -211,10 +210,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         addSelectedPopulation={populationStore.createPopulationFromPixels}
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
-                        highlightedSegmentsFromPlot={plotStore.segmentsHoveredOnPlot}
-                        highlightedSegmentsFromImage={segmentationStore.activeHighlightedSegments}
-                        highlightedSegmentFeatures={segmentFeatureStore.activeHighlightedSegmentFeatures}
-                        highlightedSegmentPopulations={populationStore.activeHighlightedSegmentPopulations}
+                        mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
+                        segmentFeaturesInLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
+                        segmentPopulationsInLegend={populationStore.populationsForMousedOverSegments}
                         exportPath={imageStore.imageExportFilename}
                         onExportComplete={imageStore.clearImageExportFilePath}
                         channelLegendVisible={settingStore.channelLegendVisible}
@@ -222,7 +220,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         windowHeight={windowHeight}
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
-                        setHighlightedPixel={projectStore.setHighlightedPixel}
+                        setMousedOverPixel={projectStore.setMousedOverPixel}
                         featureLegendVisible={settingStore.featureLegendVisible}
                         blurPixels={projectStore.preferencesStore.blurPixels}
                     />
@@ -288,8 +286,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}
                         onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
-                        centroidsVisible={settingStore.segmentationCentroidsVisible}
-                        setCentroidsVisible={settingStore.setSegmentationCentroidsVisible}
                         onClearSegmentation={(): void => {
                             notificationStore.setClearSegmentationRequested(true)
                         }}

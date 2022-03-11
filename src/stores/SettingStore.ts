@@ -17,7 +17,6 @@ import {
     DefaultDotSize,
     DefaultSegmentOutlineAlpha,
     DefaultSegmentFillAlpha,
-    DefaultCentroidsVisible,
     DefaultNumHistogramBins,
     PlotStatisticOptions,
     PlotTransformOptions,
@@ -116,7 +115,6 @@ export class SettingStore {
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
-    @observable public segmentationCentroidsVisible: boolean
 
     // Plot settings below
     // Selected plot features to be copied
@@ -192,7 +190,6 @@ export class SettingStore {
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
-        this.segmentationCentroidsVisible = DefaultCentroidsVisible
 
         this.channelLegendVisible = true
         this.populationLegendVisible = false
@@ -320,10 +317,6 @@ export class SettingStore {
 
     @action public setSegmentationOutlineAlpha = (alpha: number): void => {
         this.segmentationOutlineAlpha = alpha
-    }
-
-    @action public setSegmentationCentroidsVisible = (visible: boolean): void => {
-        this.segmentationCentroidsVisible = visible
     }
 
     @action public setChannelLegendVisible = (visible: boolean): void => {
@@ -679,7 +672,6 @@ export class SettingStore {
                 plotHiddenPopulations: toJS(this.plotHiddenPopulations),
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
-                segmentationCentroidsVisible: this.segmentationCentroidsVisible,
                 channelLegendVisible: this.channelLegendVisible,
                 populationLegendVisible: this.populationLegendVisible,
                 featureLegendVisible: this.featureLegendVisible,
@@ -743,8 +735,6 @@ export class SettingStore {
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)
                     this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
-                if (importingSettings.segmentationCentroidsVisible != null)
-                    this.segmentationCentroidsVisible = importingSettings.segmentationCentroidsVisible
                 if (importingSettings.channelLegendVisible != null)
                     this.channelLegendVisible = importingSettings.channelLegendVisible
                 if (importingSettings.populationLegendVisible != null)

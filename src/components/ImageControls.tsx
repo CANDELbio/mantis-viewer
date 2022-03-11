@@ -23,9 +23,6 @@ export interface ImageControlsProps {
     featureLegendVisible: boolean
     setFeatureLegendVisible: (visible: boolean) => void
 
-    centroidsVisible: boolean
-    setCentroidsVisible: (visible: boolean) => void
-
     selectedSegmentationFile: string | null
     segmentationLoaded: boolean
     onClearSegmentation: () => void
@@ -46,9 +43,6 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
 
     private onOutlineAlphaSliderChange = (value: number): void =>
         this.props.onOutlineAlphaChange(value / this.sliderMax)
-
-    private onCentroidVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setCentroidsVisible(event.currentTarget.checked)
 
     private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setZoomInsetVisible(event.currentTarget.checked)
@@ -104,12 +98,6 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     checked={this.props.autoLoadSegmentation}
                     label="Automatically Load Segmentation When Switching Images"
                     onChange={this.onAutoLoadSegmentationChange}
-                />
-                <Checkbox
-                    checked={this.props.centroidsVisible}
-                    label="Show Segmentation Centroids"
-                    onChange={this.onCentroidVisibilityChange}
-                    disabled={!this.props.segmentationLoaded}
                 />
                 {this.selectedSegmentationFileLabel()}
                 Segmentation Outline Alpha

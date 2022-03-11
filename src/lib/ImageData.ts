@@ -1,14 +1,14 @@
-import * as _ from 'underscore'
 import * as fs from 'fs'
 import * as path from 'path'
-import { TiffDataMap, MinMaxMap, BitmapMap } from '../interfaces/ImageInterfaces'
+import { FileInfoMap, MinMaxMap, BitmapMap } from '../interfaces/ImageInterfaces'
 import { ImageDataWorkerResult, ImageDataWorkerError } from '../workers/ImageDataWorker'
 import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
 
 // Class to store ImageData
 // Needs to have loadFolder invoked after creation to actually load and store data.
 export class ImageData {
-    public data: TiffDataMap
+    public markerNames: string[]
+    public fileInfo: FileInfoMap
     public minmax: MinMaxMap
     public bitmaps: BitmapMap
 
@@ -23,7 +23,8 @@ export class ImageData {
     private numMarkers: number
 
     public constructor() {
-        this.data = {}
+        this.markerNames = []
+        this.fileInfo = {}
         this.minmax = {}
         this.bitmaps = {}
         this.errors = []
@@ -35,19 +36,14 @@ export class ImageData {
     // Callback function to call with the built ImageData once it has been loaded.
     private onReady: (imageData: ImageData) => void
 
-    public get markerNames(): string[] {
-        const markerNames = _.keys(this.data).sort()
-        return markerNames
-    }
-
     public clearErrors(): void {
         this.errors = []
     }
 
     private fileLoadComplete(): void {
-        const markersLoaded = _.keys(this.data)
         // If the number of markers loaded is equal to the total number of markers we are done!
-        if (markersLoaded.length == this.numMarkers) {
+        if (this.markerNames.length == this.numMarkers) {
+            this.markerNames = this.markerNames.sort()
             this.onReady(this)
         }
     }
@@ -57,7 +53,8 @@ export class ImageData {
         this.width = imageData.width
         this.height = imageData.height
         if (imageData.scaled) this.scaled = imageData.scaled
-        this.data[markerName] = imageData.data
+        this.markerNames.push(markerName)
+        this.fileInfo[markerName] = { path: imageData.input.filepath, imageNumber: imageData.input.imageNumber }
         this.bitmaps[markerName] = imageData.bitmap
         this.minmax[markerName] = imageData.minmax
 
@@ -91,7 +88,7 @@ export class ImageData {
                 markerName: imageData.markerName,
                 error: 'Image dimensions do not match.',
             })
-        } else if (this.data[imageData.markerName]) {
+        } else if (this.markerNames.indexOf(imageData.markerName) != -1) {
             this.loadImageWorkerResultsError({
                 input: imageData.input,
                 markerName: imageData.markerName,
@@ -103,12 +100,11 @@ export class ImageData {
     }
 
     public removeMarker(markerName: string): void {
-        if (markerName in this.data) {
+        if (markerName in this.markerNames) {
             this.numMarkers -= 1
-            // this.sprites[markerName]?.destroy({ children: true, texture: true, baseTexture: true })
             delete this.bitmaps[markerName]
-            delete this.data[markerName]
             delete this.minmax[markerName]
+            this.markerNames = this.markerNames.filter((curMarkerName) => curMarkerName !== markerName)
         }
     }
 

@@ -10,7 +10,7 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
 import { parseSegmentDataCSV } from '../lib/IO'
-import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
+import { PlotStatistic } from '../definitions/UIDefinitions'
 
 import {
     ImageSetFeatureRequest,
@@ -128,19 +128,19 @@ export class SegmentFeatureStore {
 
     // Computed function that gets the segment features selected on the plot for any segments that are being moused over on the image.
     // Used to display a segment summary of the plotted features for moused over segments
-    @computed get activeHighlightedSegmentFeatures(): Record<number, Record<string, number>> {
+    @computed get segmentFeaturesForMousedOverSegments(): Record<number, Record<string, number>> {
         const segmentFeatures: Record<number, Record<string, number>> = {}
         const projectStore = this.projectStore
         const imageSetStore = projectStore.activeImageSetStore
         const activeImageSetName = imageSetStore.name
         const segmentationStore = imageSetStore.segmentationStore
         const segmentationData = segmentationStore.segmentationData
-        const highlightedSegments = segmentationStore.activeHighlightedSegments
-        if (segmentationData && highlightedSegments.length > 0) {
+        const mousedOverSegments = segmentationStore.mousedOverSegments
+        if (segmentationData && mousedOverSegments.length > 0) {
             const activeValues: Record<string, Record<number, number>> = get(this.values, activeImageSetName)
             const featuresToFetch = this.selectedPlotFeatures()
-            if (activeValues && highlightedSegments) {
-                for (const segment of highlightedSegments) {
+            if (activeValues && mousedOverSegments) {
+                for (const segment of mousedOverSegments) {
                     segmentFeatures[segment] = {}
                     for (const feature of featuresToFetch) {
                         const activeFeatureValues = activeValues[feature]

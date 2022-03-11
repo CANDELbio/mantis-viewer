@@ -5,6 +5,13 @@ import * as fs from 'fs'
 import { SegmentationData } from '../lib/SegmentationData'
 import { ImageSetStore } from './ImageSetStore'
 import { generatePixelMapKey } from '../lib/SegmentationUtils'
+import { SegmentOutlineColor, HighlightedSegmentOutlineColor } from '../../src/definitions/UIDefinitions'
+import { highlightColor } from '../lib/ColorHelper'
+
+export interface SegmentOutlineAttributes {
+    colors: number[]
+    alphas: number[]
+}
 
 export class SegmentationStore {
     public constructor(imageSetStore: ImageSetStore) {
@@ -44,18 +51,72 @@ export class SegmentationStore {
         }
     })
 
+    // This generates an array of segment colors to use for updating the colors of the PIXI Line object.
+    // This gets recomputed when populations are changed or a segment is highlighted.
+    // Returns object of arrays instead of array of objects to improve performance with using fill
+    // instead of having to iterate over all segments or fill and duplicate objects.
+    @computed get outlineAttributes(): SegmentOutlineAttributes | null {
+        const segmentationData = this.segmentationData
+        if (segmentationData) {
+            const imageSetStore = this.imageSetStore
+
+            let outlineColors = []
+            let outlineAlphas = []
+            // Initialize the color array
+            const segmentIds = segmentationData.segmentIds
+            outlineColors = Array(segmentIds.length).fill(SegmentOutlineColor)
+            outlineAlphas = Array(segmentIds.length).fill(
+                imageSetStore.projectStore.settingStore.segmentationOutlineAlpha,
+            )
+
+            // Set the colors for the selected populations
+            const populationStore = imageSetStore.populationStore
+            const selectedPopulations = populationStore.selectedPopulations
+            const highlightedPopulations = populationStore.highlightedPopulations
+            for (const selectedPopulation of selectedPopulations) {
+                if (selectedPopulation.visible) {
+                    let color = selectedPopulation.color
+                    if (highlightedPopulations.indexOf(selectedPopulation.id) > -1) {
+                        color = highlightColor(color)
+                    }
+                    const selectedSegments = selectedPopulation.selectedSegments
+                    for (const selectedSegmentId of selectedSegments) {
+                        const selectedSegmentIndex = segmentationData.idIndexMap[selectedSegmentId]
+                        if (selectedSegmentIndex) {
+                            outlineColors[selectedSegmentIndex] = color
+                            outlineAlphas[selectedSegmentIndex] = 1
+                        }
+                    }
+                }
+            }
+
+            // Highlighting segments that need to be highlighted.
+            const plotStore = imageSetStore.plotStore
+            const segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
+            for (const highlightedSegmentId of segmentsToHighlight) {
+                const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
+                if (highlightedSegmentIndex) {
+                    outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
+                    outlineAlphas[highlightedSegmentIndex] = 1
+                }
+            }
+            return { colors: outlineColors, alphas: outlineAlphas }
+        }
+        return null
+    }
+
     // Computed function that gets the segment features selected on the plot for any segments that are being moused over on the image.
     // Used to display a segment summary of the plotted features for moused over segments
-    @computed get activeHighlightedSegments(): number[] {
+    @computed get mousedOverSegments(): number[] {
         const imageSetStore = this.imageSetStore
         const projectStore = imageSetStore.projectStore
         const segmentationStore = imageSetStore.segmentationStore
-        const highlightedPixel = projectStore.highlightedPixel
+        const mousedOverPixel = projectStore.mousedOverPixel
         const segmentationData = segmentationStore.segmentationData
-        if (highlightedPixel && segmentationData) {
-            const highlightedPixelMapKey = generatePixelMapKey(highlightedPixel.x, highlightedPixel.y)
-            const highlightedSegments = segmentationData.pixelMap[highlightedPixelMapKey]
-            if (highlightedSegments) return highlightedSegments
+        if (mousedOverPixel && segmentationData) {
+            const mousedOverPixelMapKey = generatePixelMapKey(mousedOverPixel.x, mousedOverPixel.y)
+            const mousedOverSegments = segmentationData.pixelMap[mousedOverPixelMapKey]
+            if (mousedOverSegments) return mousedOverSegments
         }
         return []
     }
@@ -69,10 +130,11 @@ export class SegmentationStore {
     }
 
     @action private setSegmentationData = (data: SegmentationData): void => {
-        this.segmentationData = data
         // TODO: De-jankify the autoCalculate stuff when setting segmentation data.
         // Kick off calculating segment features after segmentation data has loaded
         this.imageSetStore.projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(this.imageSetStore)
+
+        this.segmentationData = data
         this.setSegmentationDataLoadingStatus(false)
     }
 
@@ -86,7 +148,6 @@ export class SegmentationStore {
     // Used in clearSegmentationData
     // And when cleaning up memory in the projectStore.
     @action public deleteSegmentationData = (): void => {
-        this.segmentationData?.destroyGraphics()
         this.segmentationData = null
     }
 

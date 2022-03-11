@@ -1,5 +1,4 @@
 import { ChannelName } from '../definitions/UIDefinitions'
-import * as PIXI from 'pixi.js'
 
 export interface Coordinate {
     x: number
@@ -19,12 +18,17 @@ export interface MinMaxMap {
     [key: string]: MinMax
 }
 
-export interface SpriteMap {
-    [key: string]: PIXI.Sprite
-}
-
 export interface BitmapMap {
     [key: string]: ImageBitmap
+}
+
+export interface FileInfo {
+    path: string
+    imageNumber?: number
+}
+
+export interface FileInfoMap {
+    [key: string]: FileInfo
 }
 
 export interface RGBColor {

@@ -1,3 +1,4 @@
+import { FileInfo } from '../interfaces/ImageInterfaces'
 import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 
 export type SegmentFeatureCalculatorInput = SegmentStatisticRequest | SegmentAreaRequest
@@ -7,7 +8,7 @@ interface SegmentStatisticRequest {
     basePath: string
     imageSetName: string
     marker: string
-    tiffData: Float32Array | Uint16Array | Uint8Array
+    tiffFileInfo: FileInfo
     segmentIndexMap: Record<number, number[]>
     statistic: PlotStatistic
 }

@@ -126,7 +126,7 @@ export async function readFile(input: ImageDataWorkerInput): Promise<ImageDataWo
     const markerNameFromFilename = useExtInMarkerName ? parsed.base : parsed.name
     try {
         const imageNumber = input.imageNumber ? input.imageNumber : 0
-        const tiffData = await readTiffData(filepath, imageNumber)
+        const tiffData = await readTiffData(filepath, input.imageNumber)
         const { data, width, height, scaled, numImages, imageDescription } = tiffData
         const markerName = await generateMarkerName(imageDescription, markerNameFromFilename, numImages, imageNumber)
 
@@ -145,7 +145,6 @@ export async function readFile(input: ImageDataWorkerInput): Promise<ImageDataWo
             markerName: markerName,
             width: width,
             height: height,
-            data: data,
             bitmap: bitmap,
             minmax: minmax,
             scaled: scaled,
@@ -166,7 +165,7 @@ ctx.addEventListener(
             if ('error' in message) {
                 ctx.postMessage(message)
             } else {
-                ctx.postMessage(message, [message.data.buffer, message.bitmap])
+                ctx.postMessage(message, [message.bitmap])
             }
         })
     },
