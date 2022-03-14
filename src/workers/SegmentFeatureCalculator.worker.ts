@@ -2,7 +2,7 @@
 
 import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
-import { calculateMean, calculateMedian, calculateSum } from '../lib/StatsUtils'
+import { calculateMean, calculateMedian, calculateNumZero, calculateSum } from '../lib/StatsUtils'
 import { readTiffData } from '../lib/TiffUtils'
 
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
@@ -32,6 +32,14 @@ function sumSegmentIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, 
     return calculateSum(values)
 }
 
+function numZeroSegmentIntensity(tiffData: Float32Array | Uint16Array | Uint8Array, pixels: number[]): number {
+    const values = []
+    for (const curPixel of pixels) {
+        values.push(tiffData[curPixel])
+    }
+    return calculateNumZero(values)
+}
+
 function generateFeatureMap(
     statistic: PlotStatistic | AreaStatistic,
     segmentIndexMap: Record<number, number[]>,
@@ -46,6 +54,8 @@ function generateFeatureMap(
             curFeature = medianSegmentIntensity(tiffData, segmentIndexMap[segmentId])
         } else if (statistic == 'sum' && tiffData) {
             curFeature = sumSegmentIntensity(tiffData, segmentIndexMap[segmentId])
+        } else if (statistic == 'num0' && tiffData) {
+            curFeature = numZeroSegmentIntensity(tiffData, segmentIndexMap[segmentId])
         } else if (statistic == 'area') {
             curFeature = segmentIndexMap[segmentId].length
         } else {

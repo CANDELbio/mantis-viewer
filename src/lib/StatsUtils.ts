@@ -23,3 +23,7 @@ export function calculateMean(input: number[]): number {
 export function calculateSum(input: number[]): number {
     return input.reduce((a: number, b: number) => a + b, 0)
 }
+
+export function calculateNumZero(input: number[]): number {
+    return input.filter((c) => c === 0).length
+}
