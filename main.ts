@@ -4,15 +4,16 @@
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS } from 'electron-devtools-installer'
 
+import * as Store from 'electron-store'
 import * as _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as url from 'url'
 
 // TODO: Tried to import from FileDefinitions, but generates unwanted .js and .js.map files.
 // Would be ideal to import instead of duplicating.
 const DbFilename = '.mantisDb'
 
-import * as url from 'url'
 const openAboutWindow = require('about-window').default
 const contextMenu = require('electron-context-menu')
 // TODO: Figure out how to not use the eslint-disable for this import
@@ -27,6 +28,8 @@ app.commandLine.appendSwitch('max-decoded-image-size-mb', '1000')
 app.commandLine.appendSwitch('enable-zero-copy')
 
 app.disableDomainBlockingFor3DAPIs()
+
+Store.initRenderer()
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
