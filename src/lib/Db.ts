@@ -1,6 +1,6 @@
 import * as sqlite3 from 'better-sqlite3'
-
 import * as path from 'path'
+import shortId from 'shortid'
 
 import { DbFilename } from '../definitions/FileDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'
@@ -319,6 +319,21 @@ export class Db {
         }
         db.close()
         return results
+    }
+
+    public generateSelectionId(): string {
+        const db = this.getConnection()
+        let id = ''
+        let count = 1
+        while (count != 0) {
+            id = shortId.generate()
+            const stmt = db.prepare(`SELECT COUNT(*) as count
+                                     FROM selections
+                                     WHERE id = ?`)
+            count = stmt.get(id).count
+        }
+        db.close()
+        return id
     }
 
     public deleteSelection(imageSet: string, id: string): void {

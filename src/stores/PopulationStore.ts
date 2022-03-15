@@ -1,5 +1,4 @@
 import { observable, action, autorun, computed } from 'mobx'
-import shortId from 'shortid'
 import _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -37,7 +36,8 @@ export class PopulationStore {
     }
 
     private imageSetStore: ImageSetStore
-    @observable.ref db: Db | null
+    private db: Db
+    // Set to true when selected regions are loading from a labeled tiff.
     @observable.ref selectionsLoading: boolean
     // An array of the regions selected.
     @observable.ref public selectedPopulations: SelectedPopulation[]
@@ -113,10 +113,7 @@ export class PopulationStore {
 
     // Automatically saves populations to the db when they change
     private autoSavePopulations = autorun(() => {
-        if (this.db) {
-            const imageSetName = this.imageSetStore.name
-            this.db.upsertSelections(imageSetName, this.selectedPopulations)
-        }
+        this.db.upsertSelections(this.imageSetStore.name, this.selectedPopulations)
     })
 
     private newROIName(renderOrder: number, namePrefix: string | null): string {
@@ -184,7 +181,7 @@ export class PopulationStore {
     public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
-            id: shortId.generate(),
+            id: this.db.generateSelectionId(),
             renderOrder: order,
             pixelIndexes: regionPixelIndexes,
             selectedSegments: [],
@@ -203,7 +200,7 @@ export class PopulationStore {
     ): SelectedPopulation => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
-            id: shortId.generate(),
+            id: this.db.generateSelectionId(),
             renderOrder: order,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(order, GraphPopulationNamePrefix),
@@ -217,7 +214,7 @@ export class PopulationStore {
     public addEmptyPopulation = (): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
-            id: shortId.generate(),
+            id: this.db.generateSelectionId(),
             renderOrder: order,
             selectedSegments: [],
             name: this.newROIName(order, 'Empty'),
@@ -327,7 +324,7 @@ export class PopulationStore {
                 // TODO: Might get weird if user deletes regions loaded from tiff and then they get reloaded.
                 if (!this.regionPresent(regionPixels)) {
                     const newPopulation = {
-                        id: shortId.generate(),
+                        id: this.db.generateSelectionId(),
                         renderOrder: order,
                         pixelIndexes: regionPixels,
                         selectedSegments: [],
