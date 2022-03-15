@@ -37,10 +37,11 @@ export const PlotStatisticOptions = [
     { label: 'Median', value: 'median' },
     { label: 'Mean', value: 'mean' },
     { label: 'Sum', value: 'sum' },
+    { label: '# Zero', value: 'num0' },
 ]
 
-export type PlotStatistic = 'mean' | 'median' | 'sum'
-export const PlotStatistics: PlotStatistic[] = ['mean', 'median', 'sum']
+export type PlotStatistic = 'mean' | 'median' | 'sum' | 'num0'
+export const PlotStatistics: PlotStatistic[] = ['mean', 'median', 'sum', 'num0']
 export type AreaStatistic = 'area'
 
 export const PlotTypeOptions = [
