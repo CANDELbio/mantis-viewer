@@ -83,7 +83,7 @@
         "bubleify": "^2.0.0",
         "canvas": "^2.9.0",
         "css-loader": "^0.27.3",
-        "electron": "^11.5.0",
+        "electron": "^13.6.6",
         "electron-builder": "^22.5.1",
         "electron-connect": "^0.6.3",
         "electron-reload-webpack-plugin": "^2.0.4",
