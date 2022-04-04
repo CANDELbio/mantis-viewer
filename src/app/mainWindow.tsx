@@ -312,6 +312,10 @@ ipcRenderer.on('import-channel-marker-mappings-csv', (event: Electron.Event, fil
     projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
 })
 
+ipcRenderer.on('export-vitessce-segments', (event: Electron.Event, filename: string): void => {
+    projectStore.exportVitessceSegments(filename)
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 hotkeys('command+left, alt+left', function (): void {

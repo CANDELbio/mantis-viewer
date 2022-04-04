@@ -7,6 +7,7 @@ import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
 import { ChannelMarkerMapping, MinMax } from '../interfaces/ImageInterfaces'
 import { ChannelName } from '../definitions/UIDefinitions'
+import { SegmentationData } from './SegmentationData'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -301,4 +302,21 @@ export function writeChannelMarkerMappingsCSV(mappings: Record<string, ChannelMa
         }
     }
     writeToCSV(output, filename, null)
+}
+
+export function exportVitessceCellJSON(segmentationData: SegmentationData, filename: string): void {
+    const output: Record<string, { xy: number[]; poly: number[][] }> = {}
+    for (const segmentId of segmentationData.segmentIds) {
+        const curSegmentIndex = segmentationData.idIndexMap[segmentId]
+        const curSegmentOutline = segmentationData.segmentCoordinates[curSegmentIndex]
+        const curPoly: number[][] = []
+        for (let i = 0; i < curSegmentOutline.length; i++) {
+            const curPoint = curSegmentOutline[i]
+            curPoly.push([curPoint.x, curPoint.y])
+        }
+        const curCentroid = segmentationData.centroidMap[segmentId]
+        output[segmentId.toString()] = { xy: [curCentroid.x, curCentroid.y], poly: curPoly }
+    }
+    const outputJSON = JSON.stringify(output)
+    fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
 }

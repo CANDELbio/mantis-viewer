@@ -304,6 +304,29 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                     label: 'Export',
                     submenu: [
                         {
+                            label: 'Vitessce',
+                            submenu: [
+                                {
+                                    label: 'Segments',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-vitessce-segments',
+                                        activeImageDirectory,
+                                        'json',
+                                    ),
+                                },
+                                {
+                                    label: 'Populations',
+                                    enabled: imageLoaded && segmentationLoaded && populationsSelected,
+                                    click: showSaveFileIpcDialog(
+                                        'export-vitessce-populations',
+                                        activeImageDirectory,
+                                        'json',
+                                    ),
+                                },
+                            ],
+                        },
+                        {
                             label: 'Image and layers to PNG',
                             enabled: imageLoaded,
                             click: showSaveFileIpcDialog('export-image', imageExportDefaultFilePath(), 'png'),
