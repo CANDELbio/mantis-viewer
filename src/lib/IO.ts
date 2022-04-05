@@ -8,6 +8,7 @@ import { writeToFCS } from './FcsWriter'
 import { ChannelMarkerMapping, MinMax } from '../interfaces/ImageInterfaces'
 import { ChannelName } from '../definitions/UIDefinitions'
 import { SegmentationData } from './SegmentationData'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -316,6 +317,20 @@ export function exportVitessceCellJSON(segmentationData: SegmentationData, filen
         }
         const curCentroid = segmentationData.centroidMap[segmentId]
         output[segmentId.toString()] = { xy: [curCentroid.x, curCentroid.y], poly: curPoly }
+    }
+    const outputJSON = JSON.stringify(output)
+    fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
+}
+
+export function exportVitesscePopulationJSON(populations: SelectedPopulation[], filename: string): void {
+    const outputPopulations: { name: string; set: string[] }[] = []
+    for (const population of populations) {
+        outputPopulations.push({ name: population.name, set: population.selectedSegments.map(String) })
+    }
+    const output = {
+        datatype: 'cell',
+        version: '0.1.2',
+        tree: [{ name: 'Mantis Populations', children: outputPopulations }],
     }
     const outputJSON = JSON.stringify(output)
     fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })

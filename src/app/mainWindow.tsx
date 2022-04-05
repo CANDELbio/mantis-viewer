@@ -316,6 +316,10 @@ ipcRenderer.on('export-vitessce-segments', (event: Electron.Event, filename: str
     projectStore.exportVitessceSegments(filename)
 })
 
+ipcRenderer.on('export-vitessce-populations', (event: Electron.Event, filename: string): void => {
+    projectStore.exportVitesscePopulations(filename)
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 hotkeys('command+left, alt+left', function (): void {
