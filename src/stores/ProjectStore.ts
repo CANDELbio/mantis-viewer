@@ -15,6 +15,7 @@ import {
     parseGateCSV,
     exportVitessceCellJSON,
     exportVitesscePopulationJSON,
+    exportVitessceSegmentFeaturesJSON,
     writeToCSV,
 } from '../lib/IO'
 
@@ -686,6 +687,10 @@ export class ProjectStore {
     public exportVitesscePopulations = (filePath: string): void => {
         const activePopulations = this.activeImageSetStore.populationStore.selectedPopulations
         exportVitesscePopulationJSON(activePopulations, filePath)
+    }
+
+    public exportVitessceSegmentFeatures = (filePath: string): void => {
+        exportVitessceSegmentFeaturesJSON(this.activeImageSetStore, filePath)
     }
 
     @action clearImportingSegmentFeaturesValues = (): void => {

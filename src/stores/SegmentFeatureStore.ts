@@ -387,6 +387,20 @@ export class SegmentFeatureStore {
         return values
     }
 
+    // Gets the minMaxes of the features in the database for a given image set.
+    // Bypasses the cache of available features that are currently in use
+    // Should only be used if the data will not be reused soon, like exporting data from the DB
+    public getMinMaxes = (imageSetName: string, features: string[]): Record<string, MinMax> => {
+        const values: Record<string, MinMax> = {}
+        for (const feature of features) {
+            if (this.db && imageSetName) {
+                const imageSetMinMax = this.db.minMaxValues([imageSetName], feature)
+                values[feature] = imageSetMinMax[imageSetName]
+            }
+        }
+        return values
+    }
+
     // TODO: Clean this up. Use cached values in this.values if present before grabbing from DB.
     public segmentsInRange(imageSetName: string, feature: string, min: number, max: number): number[] {
         const segments = []

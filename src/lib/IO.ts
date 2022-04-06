@@ -2,6 +2,7 @@ import * as stringify from 'csv-stringify'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as parseCSV from 'csv-parse/lib/sync'
+import * as d3Scale from 'd3-scale'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
@@ -334,4 +335,44 @@ export function exportVitesscePopulationJSON(populations: SelectedPopulation[], 
     }
     const outputJSON = JSON.stringify(output)
     fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
+}
+
+export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, filename: string): void {
+    const projectStore = imageSetStore.projectStore
+    const imageSetName = imageSetStore.name
+    const imageStore = imageSetStore.imageStore
+    const imageData = imageStore.imageData
+    const segmentationStore = imageSetStore.segmentationStore
+    const segmentFeatureStore = projectStore.segmentFeatureStore
+    const segmentationData = segmentationStore.segmentationData
+
+    if (imageSetName && imageData != null && segmentationData != null) {
+        const matrix: number[][] = []
+        const segmentIds = segmentationData.segmentIds
+        const features = segmentFeatureStore.getFeatureNames(imageSetName)
+        const featureValues = segmentFeatureStore.getValues(imageSetName, features)
+        const featureMinMaxes = segmentFeatureStore.getMinMaxes(imageSetName, features)
+
+        for (const feature of features) {
+            const curRow: number[] = []
+            const curMinMax = featureMinMaxes[feature]
+
+            const featureScaleFn = d3Scale.scaleLinear().domain([curMinMax.min, curMinMax.max]).range([0.0, 1.0])
+
+            for (const segmentId of segmentIds) {
+                curRow.push(featureScaleFn(featureValues[feature][segmentId]))
+            }
+
+            matrix.push(curRow)
+        }
+
+        const output = {
+            rows: features,
+            cols: segmentIds.map(String),
+            matrix: matrix,
+        }
+
+        const outputJSON = JSON.stringify(output)
+        fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
+    }
 }

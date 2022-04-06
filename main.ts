@@ -316,6 +316,15 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                     ),
                                 },
                                 {
+                                    label: 'Segment Features',
+                                    enabled: imageLoaded && segmentationLoaded,
+                                    click: showSaveFileIpcDialog(
+                                        'export-vitessce-segment-features',
+                                        activeImageDirectory,
+                                        'json',
+                                    ),
+                                },
+                                {
                                     label: 'Populations',
                                     enabled: imageLoaded && segmentationLoaded && populationsSelected,
                                     click: showSaveFileIpcDialog(
