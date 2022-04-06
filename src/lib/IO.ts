@@ -337,6 +337,50 @@ export function exportVitesscePopulationJSON(populations: SelectedPopulation[], 
     fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
 }
 
+// Generates a clusters.json Vitessce output. Requires values to be between 0 and 1. Retired this function
+// in favor of the below one that generates a genes.json which allows any positive number as an expression
+// value.
+//
+// export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, filename: string): void {
+//     const projectStore = imageSetStore.projectStore
+//     const imageSetName = imageSetStore.name
+//     const imageStore = imageSetStore.imageStore
+//     const imageData = imageStore.imageData
+//     const segmentationStore = imageSetStore.segmentationStore
+//     const segmentFeatureStore = projectStore.segmentFeatureStore
+//     const segmentationData = segmentationStore.segmentationData
+
+//     if (imageSetName && imageData != null && segmentationData != null) {
+//         const matrix: number[][] = []
+//         const segmentIds = segmentationData.segmentIds
+//         const features = segmentFeatureStore.getFeatureNames(imageSetName)
+//         const featureValues = segmentFeatureStore.getValues(imageSetName, features)
+//         const featureMinMaxes = segmentFeatureStore.getMinMaxes(imageSetName, features)
+
+//         for (const feature of features) {
+//             const curRow: number[] = []
+//             const curMinMax = featureMinMaxes[feature]
+
+//             const featureScaleFn = d3Scale.scaleLinear().domain([curMinMax.min, curMinMax.max]).range([0.0, 1.0])
+
+//             for (const segmentId of segmentIds) {
+//                 curRow.push(featureScaleFn(featureValues[feature][segmentId]))
+//             }
+
+//             matrix.push(curRow)
+//         }
+
+//         const output = {
+//             rows: features,
+//             cols: segmentIds.map(String),
+//             matrix: matrix,
+//         }
+
+//         const outputJSON = JSON.stringify(output)
+//         fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
+//     }
+// }
+
 export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, filename: string): void {
     const projectStore = imageSetStore.projectStore
     const imageSetName = imageSetStore.name
@@ -347,29 +391,21 @@ export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, 
     const segmentationData = segmentationStore.segmentationData
 
     if (imageSetName && imageData != null && segmentationData != null) {
-        const matrix: number[][] = []
+        const output: Record<string, { max: number; cells: Record<string, number> }> = {}
         const segmentIds = segmentationData.segmentIds
         const features = segmentFeatureStore.getFeatureNames(imageSetName)
         const featureValues = segmentFeatureStore.getValues(imageSetName, features)
         const featureMinMaxes = segmentFeatureStore.getMinMaxes(imageSetName, features)
 
         for (const feature of features) {
-            const curRow: number[] = []
+            const curCells: Record<string, number> = {}
             const curMinMax = featureMinMaxes[feature]
 
-            const featureScaleFn = d3Scale.scaleLinear().domain([curMinMax.min, curMinMax.max]).range([0.0, 1.0])
-
             for (const segmentId of segmentIds) {
-                curRow.push(featureScaleFn(featureValues[feature][segmentId]))
+                curCells[String(segmentId)] = featureValues[feature][segmentId]
             }
 
-            matrix.push(curRow)
-        }
-
-        const output = {
-            rows: features,
-            cols: segmentIds.map(String),
-            matrix: matrix,
+            output[feature] = { max: curMinMax.max, cells: curCells }
         }
 
         const outputJSON = JSON.stringify(output)
