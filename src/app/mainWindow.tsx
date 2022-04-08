@@ -324,6 +324,10 @@ ipcRenderer.on('export-vitessce-segment-features', (event: Electron.Event, filen
     projectStore.exportVitessceSegmentFeatures(filename)
 })
 
+ipcRenderer.on('export-vitessce-segments-with-plot-data', (event: Electron.Event, filename: string): void => {
+    projectStore.exportVitessceSegmentsWithPlotData(filename)
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 hotkeys('command+left, alt+left', function (): void {

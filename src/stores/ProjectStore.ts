@@ -16,6 +16,7 @@ import {
     exportVitessceCellJSON,
     exportVitesscePopulationJSON,
     exportVitessceSegmentFeaturesJSON,
+    exportVitessceCellWithSelectedPlotMappingsJSON,
     writeToCSV,
 } from '../lib/IO'
 
@@ -693,6 +694,10 @@ export class ProjectStore {
         exportVitessceSegmentFeaturesJSON(this.activeImageSetStore, filePath)
     }
 
+    public exportVitessceSegmentsWithPlotData = (filePath: string): void => {
+        exportVitessceCellWithSelectedPlotMappingsJSON(this.activeImageSetStore, filePath)
+    }
+
     @action clearImportingSegmentFeaturesValues = (): void => {
         this.importingSegmentFeaturesPath = null
         this.importingSegmentFeaturesForProject = null
@@ -760,7 +765,7 @@ export class ProjectStore {
         this.selectedStatistics = features as PlotStatistic[]
     }
 
-    // Kick off the calculation based on the choosen features
+    // Kick off the calculation based on the chosen features
     public runFeatureCalculations = (): void => {
         const setOrActive = this.notificationStore.chooseSegmentFeatures
         this.notificationStore.setChooseSegFeaturesModal(null)

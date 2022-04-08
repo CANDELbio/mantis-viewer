@@ -2,7 +2,6 @@ import * as stringify from 'csv-stringify'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as parseCSV from 'csv-parse/lib/sync'
-import * as d3Scale from 'd3-scale'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
@@ -384,13 +383,11 @@ export function exportVitesscePopulationJSON(populations: SelectedPopulation[], 
 export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, filename: string): void {
     const projectStore = imageSetStore.projectStore
     const imageSetName = imageSetStore.name
-    const imageStore = imageSetStore.imageStore
-    const imageData = imageStore.imageData
     const segmentationStore = imageSetStore.segmentationStore
     const segmentFeatureStore = projectStore.segmentFeatureStore
     const segmentationData = segmentationStore.segmentationData
 
-    if (imageSetName && imageData != null && segmentationData != null) {
+    if (imageSetName && segmentationData != null) {
         const output: Record<string, { max: number; cells: Record<string, number> }> = {}
         const segmentIds = segmentationData.segmentIds
         const features = segmentFeatureStore.getFeatureNames(imageSetName)
@@ -408,6 +405,41 @@ export function exportVitessceSegmentFeaturesJSON(imageSetStore: ImageSetStore, 
             output[feature] = { max: curMinMax.max, cells: curCells }
         }
 
+        const outputJSON = JSON.stringify(output)
+        fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
+    }
+}
+
+export function exportVitessceCellWithSelectedPlotMappingsJSON(imageSetStore: ImageSetStore, filename: string): void {
+    const projectStore = imageSetStore.projectStore
+    const imageSetName = imageSetStore.name
+    const segmentationStore = imageSetStore.segmentationStore
+    const segmentFeatureStore = projectStore.segmentFeatureStore
+    const segmentationData = segmentationStore.segmentationData
+
+    if (segmentationData) {
+        const output: Record<string, { xy: number[]; poly: number[][]; mappings: Record<string, number[]> }> = {}
+        const plotFeatures = projectStore.settingStore.selectedPlotFeatures
+        const generateMappings = plotFeatures.length == 2
+        const plotFeatureValues = generateMappings ? segmentFeatureStore.getValues(imageSetName, plotFeatures) : {}
+        const plotName = generateMappings ? plotFeatures.join(' vs ') : null
+        for (const segmentId of segmentationData.segmentIds) {
+            const curSegmentIndex = segmentationData.idIndexMap[segmentId]
+            const curSegmentOutline = segmentationData.segmentCoordinates[curSegmentIndex]
+            const curPoly: number[][] = []
+            for (let i = 0; i < curSegmentOutline.length; i++) {
+                const curPoint = curSegmentOutline[i]
+                curPoly.push([curPoint.x, curPoint.y])
+            }
+            const curCentroid = segmentationData.centroidMap[segmentId]
+            const curMappings: Record<string, number[]> = {}
+            if (generateMappings && plotName) {
+                const mappingXValue = plotFeatureValues[plotFeatures[0]][segmentId]
+                const mappingYValue = plotFeatureValues[plotFeatures[1]][segmentId]
+                curMappings[plotName] = [mappingXValue, mappingYValue]
+            }
+            output[segmentId.toString()] = { xy: [curCentroid.x, curCentroid.y], poly: curPoly, mappings: curMappings }
+        }
         const outputJSON = JSON.stringify(output)
         fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
     }
