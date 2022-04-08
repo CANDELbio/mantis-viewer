@@ -418,7 +418,10 @@ export function exportVitessceCellWithSelectedPlotMappingsJSON(imageSetStore: Im
     const segmentationData = segmentationStore.segmentationData
 
     if (segmentationData) {
-        const output: Record<string, { xy: number[]; poly: number[][]; mappings: Record<string, number[]> }> = {}
+        const output: Record<
+            string,
+            { xy: number[]; poly: number[][]; mappings: Record<string, number[]>; factors: Record<string, string> }
+        > = {}
         const plotFeatures = projectStore.settingStore.selectedPlotFeatures
         const generateMappings = plotFeatures.length == 2
         const plotFeatureValues = generateMappings ? segmentFeatureStore.getValues(imageSetName, plotFeatures) : {}
@@ -433,12 +436,20 @@ export function exportVitessceCellWithSelectedPlotMappingsJSON(imageSetStore: Im
             }
             const curCentroid = segmentationData.centroidMap[segmentId]
             const curMappings: Record<string, number[]> = {}
+            const curFactors: Record<string, string> = {}
             if (generateMappings && plotName) {
                 const mappingXValue = plotFeatureValues[plotFeatures[0]][segmentId]
                 const mappingYValue = plotFeatureValues[plotFeatures[1]][segmentId]
+                curFactors[plotFeatures[0]] = mappingXValue.toString()
+                curFactors[plotFeatures[1]] = mappingYValue.toString()
                 curMappings[plotName] = [mappingXValue, mappingYValue]
             }
-            output[segmentId.toString()] = { xy: [curCentroid.x, curCentroid.y], poly: curPoly, mappings: curMappings }
+            output[segmentId.toString()] = {
+                xy: [curCentroid.x, curCentroid.y],
+                poly: curPoly,
+                mappings: curMappings,
+                factors: curFactors,
+            }
         }
         const outputJSON = JSON.stringify(output)
         fs.writeFileSync(filename, outputJSON, { encoding: 'utf8' })
