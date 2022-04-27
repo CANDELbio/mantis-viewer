@@ -381,11 +381,10 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
                 this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
             }
+            // Make sure we're still in bounds
             this.checkSetStageBounds()
-            this.stage.updateTransform()
-            this.resizeStaticGraphics(this.legendGraphics)
-            this.loadZoomInsetGraphics()
-            this.renderer.render(this.rootContainer)
+            // Sync to the store to trigger a rerender
+            this.syncPositionAndScale()
         }
     }
 
@@ -393,10 +392,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         e.stopPropagation()
         e.preventDefault()
         this.zoom(e.deltaY < 0)
-        // When the user is done scrolling, update the scale and position with the store.
-        _.debounce((): void => {
-            this.syncPositionAndScale()
-        }, 200)()
     }
 
     private addZoom(el: HTMLDivElement): void {
