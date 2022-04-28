@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.2-alpha.3",
+    "version": "1.2.2-rc.4",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
@@ -10,13 +10,15 @@
         "pack": "webpack --config webpack.prod.js && electron-builder --dir",
         "dist": "webpack --config webpack.prod.js && electron-builder -ml --x64",
         "dist-win": "webpack --config webpack.prod.js && electron-builder -w --x64",
+        "publish": "webpack --config webpack.prod.js && electron-builder -ml -p --x64",
+        "publish-win": "webpack --config webpack.prod.js && electron-builder -w -p --x64",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
         "postinstall": "husky install && electron-rebuild",
         "prepare": "husky install"
     },
-    "repository": "https://github.com/ParkerICI/imc-viewer-js",
+    "repository": "https://github.com/ParkerICI/mantis-viewer",
     "keywords": [
         "Electron",
         "Microscopy"
@@ -26,10 +28,12 @@
         "npmRebuild": false,
         "mac": {
             "category": "public.app-category.medical",
-            "target": "dmg"
+            "target": "dmg",
+            "publish": ["github"]
         },
         "win": {
-            "target": "nsis"
+            "target": "nsis",
+            "publish": ["github"]
         },
         "nsis": {
             "oneClick": false,
@@ -44,6 +48,7 @@
                     "target": "deb"
                 }
             ],
+            "publish": ["github"],
             "maintainer": "engineering@parkerici.org",
             "category": "Development"
         }
@@ -85,6 +90,7 @@
         "electron-connect": "^0.6.3",
         "electron-rebuild": "^3.2.7",
         "electron-reload-webpack-plugin": "^2.0.4",
+        "electron-updater": "^5.0.1",
         "eslint": "^8.8.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-prettier": "^4.0.0",

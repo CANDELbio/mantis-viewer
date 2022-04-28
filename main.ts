@@ -3,6 +3,7 @@
 
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS } from 'electron-devtools-installer'
+import { autoUpdater } from 'electron-updater'
 
 import * as Store from 'electron-store'
 import * as _ from 'underscore'
@@ -622,6 +623,7 @@ const createMainWindow = (): void => {
     registerMainWindowEvents()
     mainWindow.on('ready-to-show', (): void => {
         if (mainWindow != null) mainWindow.show()
+        autoUpdater.checkForUpdatesAndNotify()
     })
 }
 
