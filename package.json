@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.2-rc.4",
+    "version": "1.2.2-rc.1",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
@@ -10,8 +10,8 @@
         "pack": "webpack --config webpack.prod.js && electron-builder --dir",
         "dist": "webpack --config webpack.prod.js && electron-builder -ml --x64",
         "dist-win": "webpack --config webpack.prod.js && electron-builder -w --x64",
-        "publish": "webpack --config webpack.prod.js && electron-builder -ml -p --x64",
-        "publish-win": "webpack --config webpack.prod.js && electron-builder -w -p --x64",
+        "publish": "webpack --config webpack.prod.js && electron-builder -ml --x64 -p 'always'",
+        "publish-win": "webpack --config webpack.prod.js && electron-builder -w --x64 -p 'always'",
         "test": "jest",
         "eslint": "eslint --ext .tsx --ext .ts .",
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
@@ -86,7 +86,7 @@
         "canvas": "^2.9.0",
         "css-loader": "^0.27.3",
         "electron": "17.1.2",
-        "electron-builder": "^22.14.5",
+        "electron-builder": "^23.0.8",
         "electron-connect": "^0.6.3",
         "electron-rebuild": "^3.2.7",
         "electron-reload-webpack-plugin": "^2.0.4",
