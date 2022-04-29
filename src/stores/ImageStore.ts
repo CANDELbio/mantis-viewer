@@ -95,8 +95,9 @@ export class ImageStore {
         }
     }
 
-    @action public removeMarker = (markerName: string): void => {
-        if (this.imageData != null && markerName in this.imageData.markerNames) {
+    @action public removeMarker = (fileName: string): void => {
+        const markerName = path.parse(fileName).name
+        if (this.imageData != null && this.imageData.markerNames.includes(markerName)) {
             const settingStore = this.imageSetStore.projectStore.settingStore
             // Unset the marker if it is being used
             for (const s of ImageChannels) {
@@ -111,8 +112,7 @@ export class ImageStore {
     @action public removeSegmentationFileFromMarkers = (): void => {
         const selectedSegmentationFile = this.imageSetStore.segmentationStore.selectedSegmentationFile
         if (selectedSegmentationFile) {
-            const basename = path.parse(selectedSegmentationFile).name
-            this.removeMarker(basename)
+            this.removeMarker(selectedSegmentationFile)
         }
     }
 

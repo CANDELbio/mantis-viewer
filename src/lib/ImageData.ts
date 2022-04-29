@@ -100,7 +100,7 @@ export class ImageData {
     }
 
     public removeMarker(markerName: string): void {
-        if (markerName in this.markerNames) {
+        if (this.markerNames.includes(markerName)) {
             this.numMarkers -= 1
             delete this.bitmaps[markerName]
             delete this.minmax[markerName]

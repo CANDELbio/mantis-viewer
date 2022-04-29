@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed } from 'mobx'
+import { observable, action, autorun, computed, runInAction, when } from 'mobx'
 import _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -55,7 +55,10 @@ export class PopulationStore {
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
-            this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName))
+            when(
+                (): boolean => this.imageSetStore.imageStore.imageData != null,
+                (): void => this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName)),
+            )
         }
     }
 
@@ -85,18 +88,27 @@ export class PopulationStore {
         const imageSetStore = this.imageSetStore
         const imageSetDirectory = imageSetStore.directory
         const imageSetName = imageSetStore.name
-        const segmentationStore = imageSetStore.segmentationStore
-        const segmentationData = segmentationStore.segmentationData
+        const imageStore = imageSetStore.imageStore
+        // Unused reference to trigger autorun when the image data gets loaded.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const imageData = imageStore.imageData
+
         const settingStore = imageSetStore.projectStore.settingStore
+        const imageSubdirectory = settingStore.imageSubdirectory
         const regionsBasename = settingStore.regionsBasename
 
-        // Check if segmentation data has loaded
-        if (segmentationData && imageSetDirectory && regionsBasename) {
+        if (imageData != null && regionsBasename) {
             // If the regions basename is set in settings then import regions from that tiff if we haven't already
-            const regionsFile = path.join(imageSetDirectory, regionsBasename)
+            const regionsFile =
+                imageSubdirectory && imageSubdirectory.length > 0
+                    ? path.join(imageSetDirectory, imageSubdirectory, regionsBasename)
+                    : path.join(imageSetDirectory, regionsBasename)
             // If the file exists and we haven't already imported from it, import it.
-            if (fs.existsSync(regionsFile) && !settingStore.regionsFilesLoaded.includes(imageSetName)) {
-                this.importRegionsFromTiff(regionsFile)
+            if (fs.existsSync(regionsFile)) {
+                if (!settingStore.regionsFilesLoaded.includes(imageSetName)) {
+                    this.importRegionsFromTiff(regionsFile)
+                }
+                imageStore.removeMarker(regionsBasename)
             }
         }
     })
@@ -113,7 +125,10 @@ export class PopulationStore {
 
     // Automatically saves populations to the db when they change
     private autoSavePopulations = autorun(() => {
-        this.db.upsertSelections(this.imageSetStore.name, this.selectedPopulations)
+        const imageSetStore = this.imageSetStore
+        if (imageSetStore.directory) {
+            this.db.upsertSelections(this.imageSetStore.name, this.selectedPopulations)
+        }
     })
 
     private newROIName(renderOrder: number, namePrefix: string | null): string {
@@ -336,8 +351,8 @@ export class PopulationStore {
                     order += 1
                 }
             }
-            this.refreshGraphics(newPopulations).then((refreshedPopulation) => {
-                this.addToSelectedPopulations(refreshedPopulation)
+            this.refreshGraphics(newPopulations).then((refreshedPopulations) => {
+                this.addToSelectedPopulations(refreshedPopulations)
                 this.markRegionsLoaded()
             })
         }

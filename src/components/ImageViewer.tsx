@@ -915,7 +915,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     // Adds the graphics for regions or segment/cell populations selected by users to the stage.
-    private loadSelectedPopulationsGraphics(highlightedPopulations: string[]): void {
+    private loadSelectedRegionGraphics(highlightedPopulations: string[]): void {
         if (this.selectedPopulations) {
             this.updateSelectedRegionGraphics()
             for (const selectedPopulation of this.selectedPopulations) {
@@ -1174,7 +1174,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         // Load selected region graphics
         this.setSelectedPopulations(selectedPopulations)
-        this.loadSelectedPopulationsGraphics(highlightedPopulations)
+        this.loadSelectedRegionGraphics(highlightedPopulations)
 
         if (this.mousedOverSegmentsFromImage != mousedOverSegmentsFromImage) {
             this.mousedOverSegmentsFromImage = mousedOverSegmentsFromImage

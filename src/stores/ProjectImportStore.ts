@@ -322,6 +322,26 @@ export class ProjectImportStore {
         }
     }
 
+    private importRegionFile = (): void => {
+        const imageSubdirectory = this.imageSubdirectory
+        const projectStore = this.projectStore
+        const activeImageSetName = projectStore.activeImageSetPath
+        const regionFile = this.imageSetRegionFile
+
+        if (activeImageSetName && regionFile) {
+            const regionPath =
+                imageSubdirectory && imageSubdirectory.length > 0
+                    ? path.join(activeImageSetName, imageSubdirectory, regionFile)
+                    : path.join(activeImageSetName, regionFile)
+            if (fs.existsSync(regionPath)) {
+                projectStore.importRegionTiff(regionPath)
+            } else {
+                const msg = 'Unable to find region file ' + regionFile + ' in image ' + activeImageSetName
+                projectStore.notificationStore.setErrorMessage(msg)
+            }
+        }
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public continueImport = (): void => {
@@ -346,6 +366,7 @@ export class ProjectImportStore {
                         if (this.autoCalculateFeatures == 'image') {
                             projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
                         }
+                        // Import segmentation
                         const segmentationPath =
                             imageSubdirectory && imageSubdirectory.length > 0
                                 ? path.join(activeImageSetName, imageSubdirectory, segmentationFile)
@@ -364,21 +385,6 @@ export class ProjectImportStore {
                             (): boolean => !activeSegmentationStore.segmentationDataLoading,
                             (): void => {
                                 if (this.directory) {
-                                    const regionFile = this.imageSetRegionFile
-                                    if (regionFile) {
-                                        const regionPath = path.join(activeImageSetName, regionFile)
-                                        if (fs.existsSync(segmentationPath)) {
-                                            projectStore.importRegionTiff(regionPath)
-                                        } else {
-                                            const msg =
-                                                'Unable to find region file ' +
-                                                regionFile +
-                                                ' in image ' +
-                                                activeImageSetName
-                                            projectStore.notificationStore.setErrorMessage(msg)
-                                        }
-                                    }
-
                                     // Calculate segment features for the project if set
                                     if (this.autoCalculateFeatures == 'project') {
                                         projectStore.calculateAllSegmentFeatures()
@@ -403,11 +409,13 @@ export class ProjectImportStore {
                                         )
                                     }
                                 }
+                                this.importRegionFile()
                                 // Reinitialize when we're done loading if we have segmentation data to load
                                 this.initialize()
                             },
                         )
                     } else {
+                        this.importRegionFile()
                         // Reinitialize when we're done loading if we have don't segmentation data to load
                         this.initialize()
                     }
