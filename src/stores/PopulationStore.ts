@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed, runInAction, when } from 'mobx'
+import { observable, action, autorun, computed, when } from 'mobx'
 import _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
