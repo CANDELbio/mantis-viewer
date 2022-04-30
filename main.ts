@@ -27,7 +27,6 @@ app.commandLine.appendSwitch('force-gpu-mem-available-mb', '9999999')
 app.commandLine.appendSwitch('max-active-webgl-contexts', '32')
 app.commandLine.appendSwitch('max-decoded-image-size-mb', '1000')
 app.commandLine.appendSwitch('enable-zero-copy')
-app.commandLine.appendSwitch('disable-gesture-requirement-for-presentation')
 
 app.disableDomainBlockingFor3DAPIs()
 
@@ -440,7 +439,12 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                     label: 'Full Screen Viewer',
                     enabled: imageLoaded,
                     click: (): void => {
-                        if (mainWindow != null) mainWindow.webContents.send('request-fullscreen')
+                        if (mainWindow != null)
+                            mainWindow.webContents.sendInputEvent({
+                                keyCode: 'f',
+                                type: 'keyDown',
+                                modifiers: ['alt'],
+                            })
                     },
                 },
                 {

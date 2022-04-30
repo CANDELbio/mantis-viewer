@@ -304,10 +304,6 @@ ipcRenderer.on('cancel-response', (_event: Electron.Event, cancel: boolean): voi
     projectStore.notificationStore.setCancellationRequested(false)
 })
 
-ipcRenderer.on('request-fullscreen', (): void => {
-    projectStore.requestFullscreen(true)
-})
-
 ipcRenderer.on('export-channel-marker-mappings-csv', (_event: Electron.Event, filename: string): void => {
     projectStore.settingStore.exportChannelMarkerMappingsToCSV(filename)
 })

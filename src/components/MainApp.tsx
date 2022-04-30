@@ -227,8 +227,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
                         featureLegendVisible={settingStore.featureLegendVisible}
-                        fullscreenRequested={projectStore.fullscreenRequested}
-                        clearFullscreenRequested={() => projectStore.requestFullscreen(false)}
                         blurPixels={projectStore.preferencesStore.blurPixels}
                     />
                 </ContextMenuTrigger>

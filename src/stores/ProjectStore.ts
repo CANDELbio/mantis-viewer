@@ -70,9 +70,6 @@ export class ProjectStore {
     // (e.g. importing, generating, and exporting segment features for multiple images)
     @observable public cancelTask: boolean
 
-    // If the user has requested fullscreen from the menu
-    @observable public fullscreenRequested: boolean
-
     // Used to keep track of which image sets we're calculating features for in case we have to break in the middle.
     private imageSetFeaturesToCalculate: string[]
 
@@ -124,8 +121,6 @@ export class ProjectStore {
         this.selectedStatistics = []
 
         this.cancelTask = false
-
-        this.fullscreenRequested = false
 
         this.imageSetHistory = []
         this.imageSetFeaturesToCalculate = []
@@ -414,10 +409,6 @@ export class ProjectStore {
 
     @action unlockContextMenuSegmentIds = (): void => {
         this.lockedContextMenuSegmentIds = null
-    }
-
-    @action requestFullscreen = (value: boolean): void => {
-        this.fullscreenRequested = value
     }
 
     @action setCancelTask = (value: boolean): void => {
