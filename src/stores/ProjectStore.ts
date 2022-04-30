@@ -69,6 +69,10 @@ export class ProjectStore {
     // Used when a user requests to cancel a long running process
     // (e.g. importing, generating, and exporting segment features for multiple images)
     @observable public cancelTask: boolean
+
+    // If the user has requested fullscreen from the menu
+    @observable public fullscreenRequested: boolean
+
     // Used to keep track of which image sets we're calculating features for in case we have to break in the middle.
     private imageSetFeaturesToCalculate: string[]
 
@@ -120,6 +124,8 @@ export class ProjectStore {
         this.selectedStatistics = []
 
         this.cancelTask = false
+
+        this.fullscreenRequested = false
 
         this.imageSetHistory = []
         this.imageSetFeaturesToCalculate = []
@@ -410,8 +416,11 @@ export class ProjectStore {
         this.lockedContextMenuSegmentIds = null
     }
 
-    @action
-    setCancelTask = (value: boolean): void => {
+    @action requestFullscreen = (value: boolean): void => {
+        this.fullscreenRequested = value
+    }
+
+    @action setCancelTask = (value: boolean): void => {
         this.cancelTask = value
     }
 
@@ -743,7 +752,7 @@ export class ProjectStore {
         this.selectedStatistics = features as PlotStatistic[]
     }
 
-    // Kick off the calculation based on the choosen features
+    // Kick off the calculation based on the chosen features
     public runFeatureCalculations = (): void => {
         const setOrActive = this.notificationStore.chooseSegmentFeatures
         this.notificationStore.setChooseSegFeaturesModal(null)

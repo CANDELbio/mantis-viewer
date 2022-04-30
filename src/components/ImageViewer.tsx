@@ -49,6 +49,8 @@ export interface ImageProps {
     setMousedOverPixel: (location: Coordinate | null) => void
     segmentFeaturesInLegend: Record<number, Record<string, number>>
     segmentPopulationsInLegend: Record<number, string[]>
+    fullscreenRequested: boolean
+    clearFullscreenRequested: () => void
     featureLegendVisible: boolean
     blurPixels: boolean
 }
@@ -676,6 +678,12 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.stage.scale.y = this.minScale
     }
 
+    private enterFullscreen = (): void => {
+        const rendererParent = this.el?.parentElement
+        if (rendererParent) rendererParent.requestFullscreen()
+        this.props.clearFullscreenRequested()
+    }
+
     // Handles a change to and from fullscreen
     private handleFullscreenChange = (): void => {
         if (document.fullscreenElement) {
@@ -686,10 +694,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     // Adds fullscreen shortcut and event listeners
-    private addFullscreen(el: HTMLDivElement): void {
+    private addFullscreen(): void {
         hotkeys('command+f, alt+f', () => {
-            const rendererParent = el.parentElement
-            if (rendererParent) rendererParent.requestFullscreen()
+            this.enterFullscreen()
         })
         document.addEventListener('fullscreenchange', this.handleFullscreenChange)
     }
@@ -768,7 +775,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
-        this.addFullscreen(this.el)
+        this.addFullscreen()
         this.addWebGLContextLostListener(this.el)
     }
 
@@ -1123,6 +1130,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         populationLegendVisible: boolean,
         featureLegendVisible: boolean,
         zoomInsetVisible: boolean,
+        fullscreenRequested: boolean,
         blurPixels: boolean,
         parentElementSize: { width: number | null; height: number | null },
         windowHeight: number | null,
@@ -1155,6 +1163,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         ) {
             this.resizeGraphics(maxRendererSize)
         }
+
+        if (fullscreenRequested) this.enterFullscreen()
 
         // Clear the stage in preparation for rendering.
         this.stage.removeChildren()
@@ -1269,6 +1279,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
+        const fullscreenRequested = this.props.fullscreenRequested
+
         const blurPixels = this.props.blurPixels
 
         const windowHeight = this.props.windowHeight
@@ -1301,6 +1313,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     populationLegendVisible,
                                     featureLegendVisible,
                                     zoomInsetVisible,
+                                    fullscreenRequested,
                                     blurPixels,
                                     size,
                                     windowHeight,

@@ -27,6 +27,7 @@ app.commandLine.appendSwitch('force-gpu-mem-available-mb', '9999999')
 app.commandLine.appendSwitch('max-active-webgl-contexts', '32')
 app.commandLine.appendSwitch('max-decoded-image-size-mb', '1000')
 app.commandLine.appendSwitch('enable-zero-copy')
+app.commandLine.appendSwitch('disable-gesture-requirement-for-presentation')
 
 app.disableDomainBlockingFor3DAPIs()
 
@@ -436,7 +437,13 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
             label: 'View',
             submenu: [
                 {
-                    label: 'Pop-out Plot Window',
+                    label: 'Full Screen Viewer',
+                    click: (): void => {
+                        if (mainWindow != null) mainWindow.webContents.send('request-fullscreen')
+                    },
+                },
+                {
+                    label: 'Pop Out Plot Window',
                     enabled: segmentationLoaded,
                     click: (): void => {
                         if (plotWindow != null) {

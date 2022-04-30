@@ -14,60 +14,60 @@ Mobx.configure({ enforceActions: 'always' })
 const projectStore = new ProjectStore()
 
 // Listeners for menu items from the main thread.
-ipcRenderer.on('set-app-version', async (event: Electron.Event, version: string): Promise<void> => {
+ipcRenderer.on('set-app-version', async (_event: Electron.Event, version: string): Promise<void> => {
     projectStore.setAppVersion(version)
 })
 
-ipcRenderer.on('open-image-set', async (event: Electron.Event, dirName: string): Promise<void> => {
+ipcRenderer.on('open-image-set', async (_event: Electron.Event, dirName: string): Promise<void> => {
     projectStore.openImageSet(dirName)
 })
 
-ipcRenderer.on('open-project', async (event: Electron.Event, dirName: string): Promise<void> => {
+ipcRenderer.on('open-project', async (_event: Electron.Event, dirName: string): Promise<void> => {
     projectStore.openProject(dirName)
 })
 
-ipcRenderer.on('open-segmentation-file', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('open-segmentation-file', (_event: Electron.Event, filePath: string): void => {
     projectStore.setSegmentationBasename(filePath, true)
 })
 
-ipcRenderer.on('add-gates-csv', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('add-gates-csv', (_event: Electron.Event, filePath: string): void => {
     projectStore.importGatesFromCSV(filePath)
 })
 
-ipcRenderer.on('add-populations-csv', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('add-populations-csv', (_event: Electron.Event, filePath: string): void => {
     projectStore.importActivePopulationsFromCSV(filePath)
 })
 
-ipcRenderer.on('add-project-populations-csv', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('add-project-populations-csv', (_event: Electron.Event, filePath: string): void => {
     projectStore.importProjectPopulationsFromCSV(filePath)
 })
 
-ipcRenderer.on('add-region-tiff', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('add-region-tiff', (_event: Electron.Event, filePath: string): void => {
     projectStore.importRegionTiff(filePath)
 })
 
-ipcRenderer.on('export-populations-tiff', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-populations-tiff', (_event: Electron.Event, filePath: string): void => {
     projectStore.exportActivePopulationsToTIFF(filePath)
 })
 
-ipcRenderer.on('export-populations-csv', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-populations-csv', (_event: Electron.Event, filePath: string): void => {
     projectStore.exportActivePopulationsToCSV(filePath)
 })
 
-ipcRenderer.on('export-project-populations-csv', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-project-populations-csv', (_event: Electron.Event, filePath: string): void => {
     projectStore.exportProjectPopulationsToCSV(filePath)
 })
 
-ipcRenderer.on('export-image', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-image', (_event: Electron.Event, filePath: string): void => {
     projectStore.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
 })
 
-ipcRenderer.on('export-segment-features', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-segment-features', (_event: Electron.Event, filePath: string): void => {
     projectStore.exportActiveImageSetMarkerIntensities(filePath)
 })
 
 // Only the main thread can get window resize events. Listener for these events to resize various elements.
-ipcRenderer.on('window-size', (event: Electron.Event, width: number, height: number): void => {
+ipcRenderer.on('window-size', (_event: Electron.Event, width: number, height: number): void => {
     projectStore.setWindowDimensions(width, height)
 })
 
@@ -80,127 +80,127 @@ ipcRenderer.on('clear-segmentation', (): void => {
 })
 
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
-ipcRenderer.on('plot-in-main-window', (event: Electron.Event, inMain: boolean): void => {
+ipcRenderer.on('plot-in-main-window', (_event: Electron.Event, inMain: boolean): void => {
     projectStore.setPlotInMainWindow(inMain)
 })
 
 //Methods to get data from the preferencesWindow to the main thread
-ipcRenderer.on('set-max-image-sets', (event: Electron.Event, max: number): void => {
+ipcRenderer.on('set-max-image-sets', (_event: Electron.Event, max: number): void => {
     projectStore.preferencesStore.setMaxImageSetsInMemory(max)
 })
 
-ipcRenderer.on('set-blur-pixels', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-blur-pixels', (_event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setBlurPixels(value)
 })
 
-ipcRenderer.on('set-calculate-features', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-calculate-features', (_event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setAutoCalculateSegmentFeatures(value)
 })
 
-ipcRenderer.on('set-default-segmentation', (event: Electron.Event, segmentation: string): void => {
+ipcRenderer.on('set-default-segmentation', (_event: Electron.Event, segmentation: string): void => {
     projectStore.preferencesStore.setDefaultSegmentationBasename(segmentation)
 })
 
 ipcRenderer.on(
     'set-default-channel-domain',
-    (event: Electron.Event, channel: ChannelName, domain: [number, number]): void => {
+    (_event: Electron.Event, channel: ChannelName, domain: [number, number]): void => {
         projectStore.preferencesStore.setDefaultChannelDomain(channel, domain)
     },
 )
 
 ipcRenderer.on(
     'set-default-channel-markers',
-    (event: Electron.Event, channel: ChannelName, markers: string[]): void => {
+    (_event: Electron.Event, channel: ChannelName, markers: string[]): void => {
         projectStore.preferencesStore.setDefaultChannelMarkers(channel, markers)
     },
 )
 
-ipcRenderer.on('set-use-any-marker', (event: Electron.Event, channel: ChannelName, useAny: boolean): void => {
+ipcRenderer.on('set-use-any-marker', (_event: Electron.Event, channel: ChannelName, useAny: boolean): void => {
     projectStore.preferencesStore.setUseAnyMarker(channel, useAny)
 })
 
-ipcRenderer.on('set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-scale-channel-domain-values', (_event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setScaleChannelDomainValues(value)
 })
 
-ipcRenderer.on('set-optimize-segmentation', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-optimize-segmentation', (_event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setOptimizeSegmentation(value)
 })
 
-ipcRenderer.on('set-reload-on-error', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-reload-on-error', (_event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setReloadOnError(value)
 })
 
 // Methods to get data from the plotWindow relayed by the main thread
-ipcRenderer.on('set-plot-features', (event: Electron.Event, features: string[]): void => {
+ipcRenderer.on('set-plot-features', (_event: Electron.Event, features: string[]): void => {
     projectStore.settingStore.setSelectedPlotFeatures(features)
 })
 
-ipcRenderer.on('set-plot-statistic', (event: Electron.Event, statistic: any): void => {
+ipcRenderer.on('set-plot-statistic', (_event: Electron.Event, statistic: any): void => {
     projectStore.settingStore.setPlotStatistic(statistic)
 })
 
-ipcRenderer.on('set-plot-transform', (event: Electron.Event, transform: any): void => {
+ipcRenderer.on('set-plot-transform', (_event: Electron.Event, transform: any): void => {
     projectStore.settingStore.setPlotTransform(transform)
 })
 
-ipcRenderer.on('set-plot-type', (event: Electron.Event, type: any): void => {
+ipcRenderer.on('set-plot-type', (_event: Electron.Event, type: any): void => {
     projectStore.settingStore.setPlotType(type)
 })
 
-ipcRenderer.on('set-plot-normalization', (event: Electron.Event, normalization: any): void => {
+ipcRenderer.on('set-plot-normalization', (_event: Electron.Event, normalization: any): void => {
     projectStore.settingStore.setPlotNormalization(normalization)
 })
 
-ipcRenderer.on('set-plot-dot-size', (event: Electron.Event, size: number): void => {
+ipcRenderer.on('set-plot-dot-size', (_event: Electron.Event, size: number): void => {
     projectStore.settingStore.setPlotDotSize(size)
 })
 
-ipcRenderer.on('set-plot-coefficient', (event: Electron.Event, coefficient: number): void => {
+ipcRenderer.on('set-plot-coefficient', (_event: Electron.Event, coefficient: number): void => {
     projectStore.settingStore.setTransformCoefficient(coefficient)
 })
 
-ipcRenderer.on('set-plot-all-image-sets', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-plot-all-image-sets', (_event: Electron.Event, value: boolean): void => {
     projectStore.setPlotAllImageSets(value)
 })
 
-ipcRenderer.on('set-collapse-all-image-sets', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-collapse-all-image-sets', (_event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setPlotCollapseAllImageSets(value)
 })
 
-ipcRenderer.on('set-plot-downsample', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-plot-downsample', (_event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setPlotDownsample(value)
 })
 
-ipcRenderer.on('set-plot-downsample-percent', (event: Electron.Event, value: number): void => {
+ipcRenderer.on('set-plot-downsample-percent', (_event: Electron.Event, value: number): void => {
     projectStore.settingStore.setPlotDownsamplePercent(value)
 })
 
-ipcRenderer.on('set-plot-num-histogram-bins', (event: Electron.Event, value: number): void => {
+ipcRenderer.on('set-plot-num-histogram-bins', (_event: Electron.Event, value: number): void => {
     projectStore.settingStore.setPlotNumHistogramBins(value)
 })
 
-ipcRenderer.on('set-plot-x-log-scale', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-plot-x-log-scale', (_event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setPlotXLogScale(value)
 })
 
-ipcRenderer.on('set-plot-y-log-scale', (event: Electron.Event, value: boolean): void => {
+ipcRenderer.on('set-plot-y-log-scale', (_event: Electron.Event, value: boolean): void => {
     projectStore.settingStore.setPlotYLogScale(value)
 })
 
-ipcRenderer.on('update-plot-hidden-population', (event: Electron.Event, value: string): void => {
+ipcRenderer.on('update-plot-hidden-population', (_event: Electron.Event, value: string): void => {
     projectStore.settingStore.updateHiddenPopulation(value)
 })
 
-ipcRenderer.on('add-plot-selected-population', (event: Electron.Event, segmentIds: number[]): void => {
+ipcRenderer.on('add-plot-selected-population', (_event: Electron.Event, segmentIds: number[]): void => {
     projectStore.activeImageSetStore.populationStore.createPopulationFromSegments(segmentIds)
 })
 
-ipcRenderer.on('set-plot-hovered-segments', (event: Electron.Event, segmentIds: number[]): void => {
+ipcRenderer.on('set-plot-hovered-segments', (_event: Electron.Event, segmentIds: number[]): void => {
     projectStore.activeImageSetStore.plotStore.setSegmentsHoveredOnPlot(segmentIds)
 })
 
-ipcRenderer.on('add-plot-population-from-range', (event: Electron.Event, min: number, max: number): void => {
+ipcRenderer.on('add-plot-population-from-range', (_event: Electron.Event, min: number, max: number): void => {
     projectStore.addPopulationFromPlotRange(min, max)
 })
 
@@ -218,7 +218,7 @@ const checkIfFeaturesExportable = (channel: string, dir: string, calculateFeatur
 
 ipcRenderer.on(
     'export-project-segment-features',
-    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+    (_event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
         const exportFeatures = checkIfFeaturesExportable('export-project-segment-features', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
@@ -227,13 +227,13 @@ ipcRenderer.on(
     },
 )
 
-ipcRenderer.on('export-populations-fcs', (event: Electron.Event, dirName: string): void => {
+ipcRenderer.on('export-populations-fcs', (_event: Electron.Event, dirName: string): void => {
     projectStore.exportActiveImageSetPopulationsToFCS(dirName)
 })
 
 ipcRenderer.on(
     'export-project-populations-fcs',
-    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+    (_event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
         const exportFeatures = checkIfFeaturesExportable('export-project-populations-fcs', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
@@ -242,13 +242,13 @@ ipcRenderer.on(
     },
 )
 
-ipcRenderer.on('export-segments-to-fcs', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('export-segments-to-fcs', (_event: Electron.Event, filePath: string): void => {
     projectStore.exportActiveImageSetToFCS(filePath)
 })
 
 ipcRenderer.on(
     'export-project-segments-to-fcs',
-    (event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
+    (_event: Electron.Event, dir: string, calculateFeatures?: boolean): void => {
         const exportFeatures = checkIfFeaturesExportable('export-project-segments-to-fcs', dir, calculateFeatures)
         if (exportFeatures) {
             if (calculateFeatures == undefined) calculateFeatures = false
@@ -257,20 +257,20 @@ ipcRenderer.on(
     },
 )
 
-ipcRenderer.on('import-active-segment-features', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('import-active-segment-features', (_event: Electron.Event, filePath: string): void => {
     projectStore.setImportingSegmentFeaturesValues(filePath, false, true)
 })
 
-ipcRenderer.on('import-project-segment-features', (event: Electron.Event, filePath: string): void => {
+ipcRenderer.on('import-project-segment-features', (_event: Electron.Event, filePath: string): void => {
     projectStore.setImportingSegmentFeaturesValues(filePath, true, true)
 })
 
-ipcRenderer.on('continue-segment-feature-import', (event: Electron.Event, overwrite: boolean): void => {
+ipcRenderer.on('continue-segment-feature-import', (_event: Electron.Event, overwrite: boolean): void => {
     // TODO: Wire into notification store checkOverwriteImportingSegmentFeatures
     projectStore.continueImportingSegmentFeatures(overwrite)
 })
 
-ipcRenderer.on('set-auto-calculate-segment-features', (event: Electron.Event, autoCalculate: boolean): void => {
+ipcRenderer.on('set-auto-calculate-segment-features', (_event: Electron.Event, autoCalculate: boolean): void => {
     projectStore.settingStore.setAutoCalculateSegmentFeatures(autoCalculate)
     projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(projectStore.activeImageSetStore)
 })
@@ -279,7 +279,7 @@ ipcRenderer.on('calculate-project-segment-features', (): void => {
     projectStore.calculateAllSegmentFeatures()
 })
 
-ipcRenderer.on('continue-calculating-segment-features', (event: Electron.Event, overwrite: boolean): void => {
+ipcRenderer.on('continue-calculating-segment-features', (_event: Electron.Event, overwrite: boolean): void => {
     projectStore.continueCalculatingSegmentFeatures(overwrite)
 })
 
@@ -287,11 +287,11 @@ ipcRenderer.on('calculate-segment-features', (): void => {
     projectStore.calculateActiveSegmentFeatures()
 })
 
-ipcRenderer.on('set-project-import-modal-visibility', (event: Electron.Event, visibility: boolean): void => {
+ipcRenderer.on('set-project-import-modal-visibility', (_event: Electron.Event, visibility: boolean): void => {
     projectStore.projectImportStore.setModalOpen(visibility)
 })
 
-ipcRenderer.on('project-import-set-directory', (event: Electron.Event, directory: string): void => {
+ipcRenderer.on('project-import-set-directory', (_event: Electron.Event, directory: string): void => {
     projectStore.projectImportStore.setDirectory(directory)
 })
 
@@ -299,16 +299,20 @@ ipcRenderer.on('continue-project-import', (): void => {
     projectStore.projectImportStore.continueImport()
 })
 
-ipcRenderer.on('cancel-response', (event: Electron.Event, cancel: boolean): void => {
+ipcRenderer.on('cancel-response', (_event: Electron.Event, cancel: boolean): void => {
     if (cancel) projectStore.setCancelTask(cancel)
     projectStore.notificationStore.setCancellationRequested(false)
 })
 
-ipcRenderer.on('export-channel-marker-mappings-csv', (event: Electron.Event, filename: string): void => {
+ipcRenderer.on('request-fullscreen', (): void => {
+    projectStore.requestFullscreen(true)
+})
+
+ipcRenderer.on('export-channel-marker-mappings-csv', (_event: Electron.Event, filename: string): void => {
     projectStore.settingStore.exportChannelMarkerMappingsToCSV(filename)
 })
 
-ipcRenderer.on('import-channel-marker-mappings-csv', (event: Electron.Event, filename: string): void => {
+ipcRenderer.on('import-channel-marker-mappings-csv', (_event: Electron.Event, filename: string): void => {
     projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
 })
 
