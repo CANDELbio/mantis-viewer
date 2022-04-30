@@ -6,7 +6,6 @@ import * as Plotly from 'plotly.js'
 import { SizeMe } from 'react-sizeme'
 
 import { PlotData } from '../interfaces/DataInterfaces'
-import { ActiveImageSetTraceName } from '../definitions/PlotDataDefinitions'
 import { PlotType } from '../definitions/UIDefinitions'
 
 interface PlotProps {
@@ -70,21 +69,17 @@ export class Plot extends React.Component<PlotProps, PlotState> {
         const selectedSegments: number[] = []
         if (data != null) {
             if (data.points != null && data.points.length > 0) {
-                for (const point of data.points) {
-                    const pointRegionName = point.data.name
-                    // Check if the region name for the point is the default selection name
-                    // Sometimes plotly returns incorrect selected points if there are multiple selections
-                    // and the point being hovered/highlighted isn't in some of those selections.
-                    if (pointRegionName == ActiveImageSetTraceName) {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
-                        const pointText = point.text
-                        if (pointText) {
-                            const splitText: string[] = pointText.split(' ')
-                            const segmentId = Number(splitText[splitText.length - 1])
-                            selectedSegments.push(segmentId)
-                        }
-                    }
+                // Take the first data point. If there are multiple populations displayed
+                // plotly will try to return points from those populations even if they
+                // aren't being moused over.
+                const point = data.points[0]
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
+                const pointText = point.text
+                if (pointText) {
+                    const splitText: string[] = pointText.split(' ')
+                    const segmentId = Number(splitText[splitText.length - 1])
+                    if (!selectedSegments.includes(segmentId)) selectedSegments.push(segmentId)
                 }
             }
         }

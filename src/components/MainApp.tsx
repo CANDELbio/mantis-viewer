@@ -210,6 +210,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         addSelectedPopulation={populationStore.createPopulationFromPixels}
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
+                        highlightedSegments={plotStore.segmentsHoveredOnPlot}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
                         segmentFeaturesInLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsInLegend={populationStore.populationsForMousedOverSegments}

@@ -38,6 +38,7 @@ export interface ImageProps {
     selectedPopulations: SelectedPopulation[]
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
+    highlightedSegments: number[]
     mousedOverSegmentsFromImage: number[]
     exportPath: string | null
     onExportComplete: () => void
@@ -92,6 +93,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private segmentOutlineAttributes: SegmentOutlineAttributes | null
     private segmentationOutlines: Line
     private segmentationFillSprite: PIXI.Sprite | null
+    private highlightedSegmentGraphics: PIXI.Graphics
 
     // Selected Populations stored locally for rendering the population names on the legend.
     private selectedPopulations: SelectedPopulation[]
@@ -103,8 +105,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
-
-    private highlightedSegmentOutline: Line
 
     private mousedOverSegmentsFromImage: number[]
     private segmentFeaturesForLegend: Record<number, Record<string, number>>
@@ -162,13 +162,12 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.segmentationOutlines?.destroy(destroyOptions)
         this.segmentationOutlines = new Line()
 
-        this.highlightedSegmentOutline?.destroy(destroyOptions)
-        this.highlightedSegmentOutline = new Line()
-
         this.selectionGraphics?.destroy(destroyOptions)
         this.selectionGraphics = new PIXI.Graphics()
         this.selectionSegmentOutline?.destroy(destroyOptions)
         this.selectionSegmentOutline = new Line()
+        this.highlightedSegmentGraphics?.destroy(destroyOptions)
+        this.highlightedSegmentGraphics = new PIXI.Graphics()
 
         this.clearSpriteMap(this.selectedPopulationRegionSprites)
         if (!this.selectedPopulationRegionSprites) this.selectedPopulationRegionSprites = {}
@@ -945,6 +944,29 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
     }
 
+    private loadHighlightedSegmentGraphics(highlightedSegments: number[]): void {
+        const graphics = this.highlightedSegmentGraphics
+        graphics.clear()
+        graphics.removeChildren()
+        const imageData = this.imageData
+        if (imageData) {
+            for (const segmentId of highlightedSegments) {
+                const centroid = this.segmentationData?.centroidMap[segmentId]
+                if (imageData && centroid) {
+                    console.log('centroid: ' + centroid.x + ' ' + centroid.y)
+                    GraphicsHelper.highlightCoordinate(
+                        graphics,
+                        centroid.x,
+                        centroid.y,
+                        imageData.width,
+                        imageData.height,
+                    )
+                }
+            }
+        }
+        this.stage.addChild(graphics)
+    }
+
     private resizeStaticGraphics(graphics: PIXI.Graphics, xScaleCoefficient = 1, yScaleCoefficient = 1): void {
         this.stage.removeChild(graphics)
         const xScale = 1 / this.stage.scale.x
@@ -1122,6 +1144,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         segmentationFillAlpha: number,
         selectedPopulations: SelectedPopulation[],
         highlightedPopulations: string[],
+        highlightedSegments: number[],
         mousedOverSegmentsFromImage: number[],
         segmentFeaturesForLegend: Record<number, Record<string, number>>,
         segmentPopulationsForLegend: Record<number, string[]>,
@@ -1185,6 +1208,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Load selected region graphics
         this.setSelectedPopulations(selectedPopulations)
         this.loadSelectedRegionGraphics(highlightedPopulations)
+
+        this.loadHighlightedSegmentGraphics(highlightedSegments)
 
         if (this.mousedOverSegmentsFromImage != mousedOverSegmentsFromImage) {
             this.mousedOverSegmentsFromImage = mousedOverSegmentsFromImage
@@ -1267,6 +1292,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const highlightedPopulations = this.props.highlightedPopulations
 
+        const highlightedSegments = this.props.highlightedSegments
+
         const mousedOverSegmentsFromImage = this.props.mousedOverSegmentsFromImage
         const segmentFeaturesInLegend = this.props.segmentFeaturesInLegend
         const segmentPopulationsInLegend = this.props.segmentPopulationsInLegend
@@ -1305,6 +1332,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     segmentationFillAlpha,
                                     selectedPopulations,
                                     highlightedPopulations,
+                                    highlightedSegments,
                                     mousedOverSegmentsFromImage,
                                     segmentFeaturesInLegend,
                                     segmentPopulationsInLegend,

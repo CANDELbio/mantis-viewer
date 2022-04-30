@@ -18,6 +18,21 @@ export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): P
     return sprite
 }
 
+export function highlightCoordinate(
+    graphics: PIXI.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+): void {
+    graphics
+        .lineStyle({ width: 2, alpha: 1, color: 0xffffff })
+        .moveTo(x, 0)
+        .lineTo(x, height)
+        .moveTo(0, y)
+        .lineTo(width, y)
+}
+
 // Draws a selected region of the format [x, y, x, y, ...] of the given color and alpha
 export function drawSelectedRegion(
     selectionGraphics: PIXI.Graphics,
