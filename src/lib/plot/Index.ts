@@ -29,7 +29,7 @@ export function generatePlotData(
     let plotData: PlotData | null = null
     const filteredPopulations = selectedPopulations
         ? selectedPopulations.filter((p: SelectedPopulation): boolean => {
-              return p.selectedSegments.length > 0
+              return p.visible && p.selectedSegments.length > 0
           })
         : null
     if (plotType == 'histogram' && selectedFeatures.length > 0) {
