@@ -2,9 +2,13 @@ import * as React from 'react'
 import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import { Button } from 'reactstrap'
+import * as NumericInput from 'react-numeric-input'
 import * as path from 'path'
 
 export interface ImageControlsProps {
+    highlightedSegment: number | null
+    setHighlightedSegment: (value: number) => void
+
     fillAlpha: number
     outlineAlpha: number
 
@@ -74,6 +78,27 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
     public render(): React.ReactElement {
         return (
             <div>
+                Highlight Segment
+                <NumericInput
+                    value={this.props.highlightedSegment ? this.props.highlightedSegment : undefined}
+                    onChange={this.props.setHighlightedSegment}
+                    disabled={!this.props.segmentationLoaded}
+                    className="form-control"
+                />
+                Segmentation Outline Alpha
+                <Slider
+                    value={this.props.outlineAlpha * this.sliderMax}
+                    onChange={this.onOutlineAlphaSliderChange}
+                    max={this.sliderMax}
+                    disabled={!this.props.segmentationLoaded}
+                />
+                Segmentation Fill Alpha
+                <Slider
+                    value={this.props.fillAlpha * this.sliderMax}
+                    onChange={this.onFillAlphaSliderChange}
+                    max={this.sliderMax}
+                    disabled={!this.props.segmentationLoaded}
+                />
                 <Checkbox
                     checked={this.props.zoomInsetVisible}
                     label="Show Zoom Inset"
@@ -100,20 +125,6 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     onChange={this.onAutoLoadSegmentationChange}
                 />
                 {this.selectedSegmentationFileLabel()}
-                Segmentation Outline Alpha
-                <Slider
-                    value={this.props.outlineAlpha * this.sliderMax}
-                    onChange={this.onOutlineAlphaSliderChange}
-                    max={this.sliderMax}
-                    disabled={!this.props.segmentationLoaded}
-                />
-                Segmentation Fill Alpha
-                <Slider
-                    value={this.props.fillAlpha * this.sliderMax}
-                    onChange={this.onFillAlphaSliderChange}
-                    max={this.sliderMax}
-                    disabled={!this.props.segmentationLoaded}
-                />
                 <div style={{ textAlign: 'center' }}>
                     <Button
                         onClick={this.props.onClearSegmentation}

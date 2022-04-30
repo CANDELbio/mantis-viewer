@@ -438,6 +438,7 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
             submenu: [
                 {
                     label: 'Full Screen Viewer',
+                    enabled: imageLoaded,
                     click: (): void => {
                         if (mainWindow != null) mainWindow.webContents.send('request-fullscreen')
                     },

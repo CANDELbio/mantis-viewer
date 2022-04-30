@@ -191,6 +191,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         // Reduce windowHeight to account for the height of the message
         if (imageMessage && windowHeight) windowHeight -= 20
 
+        let highlightedSegments = plotStore.segmentsHoveredOnPlot
+        if (segmentationStore.highlightedSegment)
+            highlightedSegments = highlightedSegments.concat([segmentationStore.highlightedSegment])
         const imageViewer = (
             <div>
                 <ContextMenuTrigger
@@ -211,7 +214,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         addSelectedPopulation={populationStore.createPopulationFromPixels}
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
-                        highlightedSegments={plotStore.segmentsHoveredOnPlot}
+                        highlightedSegments={highlightedSegments}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
                         segmentFeaturesInLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsInLegend={populationStore.populationsForMousedOverSegments}
@@ -286,6 +289,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageControls = (
                 <div className="grey-card image-controls">
                     <ImageControls
+                        highlightedSegment={segmentationStore.highlightedSegment}
+                        setHighlightedSegment={segmentationStore.setHighlightedSegment}
                         fillAlpha={settingStore.segmentationFillAlpha}
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}

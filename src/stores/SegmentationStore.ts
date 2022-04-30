@@ -24,6 +24,7 @@ export class SegmentationStore {
     @observable public selectedSegmentationFile: string | null
     @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationData: SegmentationData | null
+    @observable public highlightedSegment: number | null
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
@@ -172,5 +173,9 @@ export class SegmentationStore {
         this.selectedSegmentationFile = fName
         this.refreshSegmentationData()
         this.imageSetStore.imageStore.removeSegmentationFileFromMarkers()
+    }
+
+    @action public setHighlightedSegment = (value: number | null): void => {
+        this.highlightedSegment = value
     }
 }
