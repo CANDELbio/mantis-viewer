@@ -83,9 +83,10 @@ export const FeatureCalculationOptions = [
 export type FeatureCalculationOption = 'none' | 'image' | 'project'
 
 export const ImageViewerHeightPadding = 90
-export const MainPlotHeightPadding = 400 // Amount of padding above and below the plot in the main window.
+export const MainPlotHeightPadding = 430 // Amount of padding above and below the plot in the main window.
 export const ExternalPlotHeightPadding = 80 // Amount of padding above and below the plot in the external window.
 export const SelectedPopulationsTableHeight = 200 // Height of the selected populations table
+export const MainWindowBottomHeight = 150
 export const SelectedRegionAlpha = 0.4
 export const HighlightedSelectedRegionAlpha = 0.6
 export const SelectedSegmentOutlineAlpha = 0.7

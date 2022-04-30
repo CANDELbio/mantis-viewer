@@ -9,7 +9,7 @@ import ReactTableContainer from 'react-table-container'
 
 import { hexToString } from '../../lib/ColorHelper'
 import { SelectedPopulation } from '../../stores/PopulationStore'
-import { SelectedPopulationsTableHeight, PopulationCreationOptions } from '../../definitions/UIDefinitions'
+import { PopulationCreationOptions } from '../../definitions/UIDefinitions'
 import { MinMax } from '../../interfaces/ImageInterfaces'
 import { CreatePopulation } from './CreatePopulation'
 
@@ -33,6 +33,7 @@ interface SelectedPopulationProps extends SelectedProps {
     selectedFeatureMinMax: MinMax | null
     createPopulationFromSegments: (segments: number[], name?: string) => void
     createPopulationFromRange: (min: number, max: number, marker: string) => void
+    tableHeight: number
 }
 
 interface SelectedDataRowProps extends SelectedProps {
@@ -328,7 +329,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
     public render(): React.ReactElement {
         const populations = this.props.populations
-        const tableHeight = SelectedPopulationsTableHeight + 'px'
+        const tableHeight = this.props.tableHeight + 'px'
         const theadClassName = populations && populations.length ? undefined : 'empty-table'
         return (
             <div>

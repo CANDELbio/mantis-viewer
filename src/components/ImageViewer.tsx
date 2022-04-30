@@ -669,6 +669,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.setScaleFactors(imcData, maxRendererSize)
         this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
+        this.syncPositionAndScale()
     }
 
     private resetZoom(): void {
@@ -953,7 +954,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             for (const segmentId of highlightedSegments) {
                 const centroid = this.segmentationData?.centroidMap[segmentId]
                 if (imageData && centroid) {
-                    console.log('centroid: ' + centroid.x + ' ' + centroid.y)
                     GraphicsHelper.highlightCoordinate(
                         graphics,
                         centroid.x,

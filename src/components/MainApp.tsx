@@ -14,6 +14,7 @@ import {
     ChannelControlsCombinedHeight,
     ImageChannels,
     SelectedPopulationsTableHeight,
+    MainWindowBottomHeight,
 } from '../definitions/UIDefinitions'
 import { ChannelControls } from './ChannelControls'
 import { ImageViewer } from './ImageViewer'
@@ -308,12 +309,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 </div>
             )
 
+            let maxPlotHeight = null
+            if (projectStore.windowHeight != null) maxPlotHeight = projectStore.windowHeight - MainPlotHeightPadding
+            if (maxPlotHeight && !this.state.regionsOpen) maxPlotHeight += SelectedPopulationsTableHeight
+
             if (segmentationStore.segmentationData != null) {
                 if (projectStore.plotInMainWindow) {
-                    let maxPlotHeight = null
-                    if (projectStore.windowHeight != null)
-                        maxPlotHeight = projectStore.windowHeight - MainPlotHeightPadding
-                    if (maxPlotHeight && !this.state.regionsOpen) maxPlotHeight += SelectedPopulationsTableHeight
                     plotControls = (
                         <div className="grey-card plot-controls">
                             <PlotControls
@@ -394,6 +395,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             }
         }
 
+        let populationsTableHeight = SelectedPopulationsTableHeight
+        if (!this.state.plotOpen && windowHeight) populationsTableHeight = windowHeight - MainWindowBottomHeight
         const selectedPopulations = (
             <SelectedPopulations
                 populations={populationStore.selectedPopulations}
@@ -414,8 +417,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedFeatureMinMax={segmentFeatureStore.activeFeatureMinMaxes(
                     populationStore.selectedFeatureForNewPopulation,
                 )}
+                tableHeight={populationsTableHeight}
             />
         )
+
+        const rightColWidth = this.state.regionsOpen || this.state.plotOpen ? 4 : 1
+        const centerColWidth = 10 - rightColWidth
 
         return (
             <div>
@@ -505,11 +512,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 <div>{imageControls}</div>
                             </Collapse>
                         </Col>
-                        <Col xs={6} sm={6} md={6} lg={6}>
+                        <Col xs={centerColWidth} sm={centerColWidth} md={centerColWidth} lg={centerColWidth}>
                             {imageMessage}
                             {imageViewer}
                         </Col>
-                        <Col xs={4} sm={4} md={4} lg={4}>
+                        <Col xs={rightColWidth} sm={rightColWidth} md={rightColWidth} lg={rightColWidth}>
                             <Button onClick={this.handleRegionsClick} style={fullWidthBottomSpaced} size="sm">
                                 {this.state.regionsOpen ? 'Hide' : 'Show'} Selected Populations
                             </Button>
