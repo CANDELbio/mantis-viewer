@@ -119,8 +119,7 @@ export class PopulationStore {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
         const imageData = this.imageSetStore.imageStore.imageData
-        if (imageData && this.selectedPopulations.length > 0)
-            this.refreshGraphicsAndSetPopulations(this.selectedPopulations.slice())
+        if (imageData && this.selectedPopulations.length > 0) this.refreshCurrentPopulationGraphics()
     })
 
     // Automatically saves populations to the db when they change
@@ -160,8 +159,8 @@ export class PopulationStore {
             const pixelIndexes = population.pixelIndexes
             if (imageData) {
                 // If this selection has pixel indexes (i.e. a region selected on the image)
-                // Then we want to refresh the region graphics
-                if (pixelIndexes) {
+                // but no bitmap we want to refresh the region graphics
+                if (!population.regionBitmap && pixelIndexes) {
                     population.regionBitmap = await pixelIndexesToBitmap(
                         pixelIndexes,
                         imageData.width,
@@ -191,6 +190,10 @@ export class PopulationStore {
         this.refreshGraphics(populations).then((refreshedPopulations) =>
             this.setSelectedPopulations(refreshedPopulations),
         )
+    }
+
+    public refreshCurrentPopulationGraphics = (): void => {
+        this.refreshGraphicsAndSetPopulations(this.selectedPopulations.slice())
     }
 
     public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
