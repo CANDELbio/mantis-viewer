@@ -186,6 +186,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 imageData={imageStore.imageData}
                 channelMarker={settingStore.channelMarker}
                 channelVisibility={settingStore.channelVisibility}
+                selectedPopulations={populationStore.selectedPopulations}
             ></ImageMessage>
         )
         // Reduce windowHeight to account for the height of the message

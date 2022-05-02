@@ -2,11 +2,13 @@ import * as React from 'react'
 import { observer } from 'mobx-react'
 import { ChannelName } from '../definitions/UIDefinitions'
 import { ImageData } from '../lib/ImageData'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export interface ImageMessageProps {
     channelMarker: Record<ChannelName, string | null>
     channelVisibility: Record<ChannelName, boolean>
     imageData: ImageData | null
+    selectedPopulations: SelectedPopulation[]
 }
 
 @observer
@@ -35,9 +37,14 @@ export class ImageMessage extends React.Component<ImageMessageProps, Record<stri
                 })
                 .filter(Boolean)
 
-            if (Object.values(channelMarker).filter(Boolean).length == 0) {
+            const noVisibleSelectedPopulations =
+                this.props.selectedPopulations.filter((pop: SelectedPopulation) => {
+                    return pop.visible
+                }).length == 0
+
+            if (noVisibleSelectedPopulations && Object.values(channelMarker).filter(Boolean).length == 0) {
                 markerMessage = 'No markers selected.'
-            } else if (channelMarkerVisibility.length == 0) {
+            } else if (noVisibleSelectedPopulations && channelMarkerVisibility.length == 0) {
                 visibilityMessage = 'No markers visible.'
             } else if (imageData.scaled) {
                 scaleMessage = 'This image has been downsampled to fit in memory.'
