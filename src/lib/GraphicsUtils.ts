@@ -363,3 +363,9 @@ export async function pixelIndexesToBitmap(indexes: number[], width: number, hei
 
     return await createImageBitmap(canvas)
 }
+
+export function drawBackgroundRect(graphics: PIXI.Graphics, width: number, height: number) {
+    graphics.clear()
+    graphics.removeChildren()
+    graphics.beginFill(0x000000).drawRect(0, 0, width, height).endFill()
+}

@@ -181,14 +181,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             displaySegmentFeaturesModal
 
         let windowHeight = projectStore.windowHeight
-        const imageMessage = (
-            <ImageMessage
-                imageData={imageStore.imageData}
-                channelMarker={settingStore.channelMarker}
-                channelVisibility={settingStore.channelVisibility}
-                selectedPopulations={populationStore.selectedPopulations}
-            ></ImageMessage>
-        )
+        const imageMessage = <ImageMessage imageData={imageStore.imageData}></ImageMessage>
         // Reduce windowHeight to account for the height of the message
         if (imageMessage && windowHeight) windowHeight -= 20
 

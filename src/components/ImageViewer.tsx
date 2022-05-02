@@ -61,6 +61,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private renderer: PIXI.Renderer
     private rootContainer: PIXI.Container
     private stage: PIXI.Container
+    private backgroundGraphics: PIXI.Graphics
 
     private imageData: ImageData | null
 
@@ -152,6 +153,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.rootContainer.addChild(this.stage)
 
         const destroyOptions = this.destroyOptions
+        this.backgroundGraphics?.destroy(destroyOptions)
+        this.backgroundGraphics = new PIXI.Graphics()
         this.legendGraphics?.destroy(destroyOptions)
         this.legendGraphics = new PIXI.Graphics()
         this.zoomInsetGraphics?.destroy(destroyOptions)
@@ -1169,6 +1172,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             this.imageData = imcData
             this.resizeGraphics(maxRendererSize)
             this.resetZoom()
+            if (imcData) {
+                GraphicsHelper.drawBackgroundRect(this.backgroundGraphics, imcData.width, imcData.height)
+            }
         }
 
         // Reload saved position and scale
@@ -1185,6 +1191,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         // Clear the stage in preparation for rendering.
         this.stage.removeChildren()
+
+        this.stage.addChild(this.backgroundGraphics)
 
         this.blurPixels = blurPixels
         this.setChannelMarkerAndSprite(channelMarker)
