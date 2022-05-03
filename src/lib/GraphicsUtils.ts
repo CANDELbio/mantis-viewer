@@ -3,10 +3,11 @@ import * as d3Scale from 'd3-scale'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
+import { ChannelName, ChannelColorMap, PlotTransform } from '../definitions/UIDefinitions'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Line, PointData } from './pixi/Line'
+import { applyTransform } from './plot/Helper'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
@@ -188,6 +189,8 @@ export function drawLegend(
     populations: SelectedPopulation[] | null,
     segmentSummaryOnLegend: boolean,
     mousedOverSegments: number[],
+    plotTransform: PlotTransform,
+    transformCoefficient: number | null,
     segmentFeaturesForLegend: Record<number, Record<string, number>>,
     segmentPopulationsForLegend: Record<number, string[]>,
 ): void {
@@ -272,8 +275,16 @@ export function drawLegend(
             }
             const segmentFeatures = segmentFeaturesForLegend[segmentId]
             if (segmentFeatures) {
+                if (plotTransform != 'none') {
+                    const transformLabel = plotTransform == 'log' ? 'Log10' : 'ArcSinh'
+                    addText(transformLabel + ' transformed values', 0xffffff)
+                }
                 for (const segmentFeature of Object.keys(segmentFeatures)) {
-                    const segmentFeatureValue = segmentFeatures[segmentFeature]
+                    const segmentFeatureValue = applyTransform(
+                        segmentFeatures[segmentFeature],
+                        plotTransform,
+                        transformCoefficient,
+                    )
                     // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
                     addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
                 }

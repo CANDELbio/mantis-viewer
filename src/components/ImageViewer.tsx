@@ -13,6 +13,7 @@ import {
     HighlightedSelectedRegionAlpha,
     ImageViewerHeightPadding,
     SegmentOutlineColor,
+    PlotTransform,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsUtils'
@@ -44,13 +45,15 @@ export interface ImageProps {
     onExportComplete: () => void
     channelLegendVisible: boolean
     populationLegendVisible: boolean
+    featureLegendVisible: boolean
+    plotTransform: PlotTransform
+    transformCoefficient: number | null
     zoomInsetVisible: boolean
     windowHeight: number | null
     onWebGLContextLoss: () => void
     setMousedOverPixel: (location: Coordinate | null) => void
     segmentFeaturesInLegend: Record<number, Record<string, number>>
     segmentPopulationsInLegend: Record<number, string[]>
-    featureLegendVisible: boolean
     blurPixels: boolean
 }
 
@@ -104,11 +107,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
+    private featureLegendVisible: boolean
+    private plotTransform: PlotTransform
+    private transformCoefficient: number | null
 
     private mousedOverSegmentsFromImage: number[]
     private segmentFeaturesForLegend: Record<number, Record<string, number>>
     private segmentPopulationsForLegend: Record<number, string[]>
-    private featureLegendVisible: boolean
 
     // Variables dealing with mouse movement. Either dragging dragging or selecting.
     private panState: { active: boolean; x?: number; y?: number }
@@ -994,6 +999,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.selectedPopulations,
                 this.featureLegendVisible,
                 this.mousedOverSegmentsFromImage,
+                this.plotTransform,
+                this.transformCoefficient,
                 this.segmentFeaturesForLegend,
                 this.segmentPopulationsForLegend,
             )
@@ -1152,6 +1159,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         channelLegendVisible: boolean,
         populationLegendVisible: boolean,
         featureLegendVisible: boolean,
+        plotTransform: PlotTransform,
+        transformCoefficient: number | null,
         zoomInsetVisible: boolean,
         blurPixels: boolean,
         parentElementSize: { width: number | null; height: number | null },
@@ -1228,6 +1237,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.channelLegendVisible = channelLegendVisible
         this.populationLegendVisible = populationLegendVisible
         this.featureLegendVisible = featureLegendVisible
+        this.plotTransform = plotTransform
+        this.transformCoefficient = transformCoefficient
         this.loadLegendGraphics()
         // Update whether or not the zoom inset is visible and then re-render it
         this.zoomInsetVisible = zoomInsetVisible
@@ -1305,6 +1316,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const channelLegendVisible = this.props.channelLegendVisible
         const populationLegendVisible = this.props.populationLegendVisible
+        const plotTransform = this.props.plotTransform
+        const transformCoefficient = this.props.transformCoefficient
 
         const zoomInsetVisible = this.props.zoomInsetVisible
 
@@ -1340,6 +1353,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     channelLegendVisible,
                                     populationLegendVisible,
                                     featureLegendVisible,
+                                    plotTransform,
+                                    transformCoefficient,
                                     zoomInsetVisible,
                                     blurPixels,
                                     size,

@@ -217,10 +217,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         channelLegendVisible={settingStore.channelLegendVisible}
                         populationLegendVisible={settingStore.populationLegendVisible}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
+                        featureLegendVisible={settingStore.featureLegendVisible}
+                        plotTransform={settingStore.plotTransform}
+                        transformCoefficient={settingStore.transformCoefficient}
                         windowHeight={windowHeight}
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
-                        featureLegendVisible={settingStore.featureLegendVisible}
                         blurPixels={projectStore.preferencesStore.blurPixels}
                     />
                 </ContextMenuTrigger>
