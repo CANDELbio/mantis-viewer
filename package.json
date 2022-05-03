@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.2-rc.1",
+    "version": "1.2.2-rc.2",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
@@ -29,11 +29,15 @@
         "mac": {
             "category": "public.app-category.medical",
             "target": "dmg",
-            "publish": ["github"]
+            "publish": [
+                "github"
+            ]
         },
         "win": {
             "target": "nsis",
-            "publish": ["github"]
+            "publish": [
+                "github"
+            ]
         },
         "nsis": {
             "oneClick": false,
@@ -48,7 +52,9 @@
                     "target": "deb"
                 }
             ],
-            "publish": ["github"],
+            "publish": [
+                "github"
+            ],
             "maintainer": "engineering@parkerici.org",
             "category": "Development"
         }
