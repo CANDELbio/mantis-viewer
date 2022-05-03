@@ -1,6 +1,7 @@
 import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
+import log from 'electron-log'
 import { ProjectStore } from './ProjectStore'
 import { DbFilename } from '../definitions/FileDefinitions'
 import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
@@ -207,8 +208,8 @@ export class ProjectImportStore {
             this.numImageSetsInFeaturesFile = imageSets.size
             this.numFeaturesInFeaturesFile = featureNames.size
         } catch (e) {
-            console.log('Error parsing project features file:')
-            console.log(e)
+            log.error('Error parsing project features file:')
+            log.error(e)
             this.numImageSetsInFeaturesFile = null
             this.numFeaturesInFeaturesFile = null
             this.featuresFileError = true
@@ -240,8 +241,8 @@ export class ProjectImportStore {
             this.numImageSetsInFeaturesFile = imageSets.size
             this.numFeaturesInFeaturesFile = featureNames.size
         } catch (e) {
-            console.log('Error parsing project features file:')
-            console.log(e)
+            log.error('Error parsing project features file:')
+            log.error(e)
             this.numImageSetsInFeaturesFile = null
             this.numFeaturesInFeaturesFile = null
             this.featuresFileError = true
@@ -272,8 +273,8 @@ export class ProjectImportStore {
                 this.numImageSetsInPopulationFile = imageSets.size
                 this.numPopulationsInPopulationsFile = populationNames.size
             } catch (e) {
-                console.log('Error parsing project population file:')
-                console.log(e)
+                log.error('Error parsing project population file:')
+                log.error(e)
                 this.numImageSetsInPopulationFile = null
                 this.numPopulationsInPopulationsFile = null
                 this.populationsFileError = true

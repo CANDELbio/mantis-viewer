@@ -2,6 +2,7 @@
 // stores or new stores and then create a util that saves and loads to/from db to
 // the appropriate store
 import { action, autorun, computed, observable, toJS } from 'mobx'
+import log from 'electron-log'
 
 import { ImageStore } from '../stores/ImageStore'
 import { Db } from '../lib/Db'
@@ -682,8 +683,8 @@ export class SettingStore {
             try {
                 this.db.upsertSettings(exporting)
             } catch (e) {
-                console.log('Error exporting settings to db:')
-                console.log(e)
+                log.error('Error exporting settings to db:')
+                log.error(e)
             }
         }
     })
@@ -748,8 +749,8 @@ export class SettingStore {
                 if (importingSettings.channelMarkerMappings)
                     this.channelMarkerMappings = importingSettings.channelMarkerMappings
             } catch (e) {
-                console.log('Error importing settings from db:')
-                console.log(e)
+                log.error('Error importing settings from db:')
+                log.error(e)
             }
         }
     }

@@ -4,6 +4,7 @@
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
 import installExtension, { REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS } from 'electron-devtools-installer'
 import { autoUpdater } from 'electron-updater'
+import log from 'electron-log'
 
 import * as Store from 'electron-store'
 import * as _ from 'underscore'
@@ -17,9 +18,9 @@ const DbFilename = '.mantisDb'
 
 const openAboutWindow = require('about-window').default
 const contextMenu = require('electron-context-menu')
-// TODO: Figure out how to not use the eslint-disable for this import
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const isDev = require('electron-is-dev')
+log.transports.file.level = 'debug'
+autoUpdater.logger = log
 
 app.commandLine.appendSwitch('disable-gpu-process-crash-limit')
 app.commandLine.appendSwitch('gpu-no-context-lost')

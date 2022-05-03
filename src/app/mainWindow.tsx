@@ -8,6 +8,8 @@ import { ipcRenderer } from 'electron'
 import { MainApp } from '../components/MainApp'
 import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelName } from '../definitions/UIDefinitions'
+// Require electron-log to get main notifications in renderer.
+import log from 'electron-log'
 
 Mobx.configure({ enforceActions: 'always' })
 

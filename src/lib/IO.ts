@@ -2,6 +2,7 @@ import * as stringify from 'csv-stringify'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as parseCSV from 'csv-parse/lib/sync'
+import log from 'electron-log'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
@@ -18,13 +19,13 @@ export function writeToCSV(data: string[][], filename: string, headerCols: strin
     }
     stringify(data, csvOptions, (err, output): void => {
         if (err) {
-            console.log('An error occurred while exporting to CSV:')
-            console.log(err)
+            log.error('An error occurred while exporting to CSV:')
+            log.error(err)
         }
         fs.writeFile(filename, output, (err): void => {
             if (err) {
-                console.log('An error occurred while exporting to CSV:')
-                console.log(err)
+                log.error('An error occurred while exporting to CSV:')
+                log.error(err)
             }
         })
     })

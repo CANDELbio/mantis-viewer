@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as PIXI from 'pixi.js'
 import * as fs from 'fs'
 import _ from 'underscore'
+import log from 'electron-log'
 import { observer } from 'mobx-react'
 import { SizeMe } from 'react-sizeme'
 import { ImageData } from '../lib/ImageData'
@@ -748,7 +749,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 hotkeys('command+w, alt+w', () => {
                     const webgl2Context = canvas.getContext('webgl2', {})
                     if (webgl2Context) {
-                        console.log(`Simulating WebGL Context loss.`)
+                        log.info(`Simulating WebGL Context loss.`)
                         webgl2Context.getExtension('WEBGL_lose_context')?.loseContext()
                     }
                 })

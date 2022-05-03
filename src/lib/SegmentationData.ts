@@ -1,3 +1,4 @@
+import log from 'electron-log'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import {
     SegmentationDataWorkerResult,
@@ -45,7 +46,7 @@ export class SegmentationData {
 
     private async loadFileError(fError: { error: string }): Promise<void> {
         const err = 'Error loading segmentation data: ' + fError.error
-        console.log(err)
+        log.error(err)
         this.errorMessage = err
         this.onReady(this)
     }
