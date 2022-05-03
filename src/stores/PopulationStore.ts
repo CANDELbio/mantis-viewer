@@ -11,6 +11,7 @@ import { Db } from '../lib/Db'
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
 import { TiffWriter } from '../lib/TiffWriter'
+import { savePopulationTiffExportLog } from '../lib/IO'
 
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'
@@ -329,6 +330,7 @@ export class PopulationStore {
         } else {
             const newPopulations: SelectedPopulation[] = []
             const newRegionMap = result.regionIndexMap
+            const newRegionNames = result.regionNames
             let order = this.getRenderOrder()
             for (const regionIdStr in newRegionMap) {
                 const regionId = parseInt(regionIdStr)
@@ -341,12 +343,15 @@ export class PopulationStore {
                 // track of the image sets that we've loaded regions from tiffs for.
                 // TODO: Might get weird if user deletes regions loaded from tiff and then they get reloaded.
                 if (!this.regionPresent(regionPixels)) {
+                    const regionName = newRegionNames[regionId]
+                        ? newRegionNames[regionId]
+                        : this.newROIName(regionId, ImportedPopulationNamePrefix)
                     const newPopulation = {
                         id: this.db.generateSelectionId(),
                         renderOrder: order,
                         pixelIndexes: regionPixels,
                         selectedSegments: [],
-                        name: this.newROIName(regionId, ImportedPopulationNamePrefix),
+                        name: regionName,
                         color: randomHexColor(),
                         visible: true,
                     }
@@ -379,8 +384,10 @@ export class PopulationStore {
             const height = imageData.height
             const length = width * height
             const populationData = new Uint8ClampedArray(length)
+            const populationNames: Record<number, string> = {}
             this.selectedPopulations.forEach((population: SelectedPopulation, idx: number): void => {
                 if (population.pixelIndexes) {
+                    populationNames[idx + 1] = population.name
                     for (const pixel of population.pixelIndexes) {
                         populationData[pixel] = idx + 1
                     }
@@ -389,6 +396,7 @@ export class PopulationStore {
             // TODO: arrayToFile creates an 8 bit tiff.
             // We should raise an error if there are more than 255 populations.
             TiffWriter.arrayToFile(populationData, width, height, filePath)
+            savePopulationTiffExportLog(filePath, populationNames)
         }
     }
 

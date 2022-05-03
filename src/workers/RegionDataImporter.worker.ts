@@ -2,6 +2,10 @@
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any
 
+import * as parseCSV from 'csv-parse/lib/sync'
+import * as path from 'path'
+import * as fs from 'fs'
+
 import { RegionDataImporterInput, RegionDataImporterResult, RegionDataImporterError } from './RegionDataImporter'
 import { readTiffData } from '../lib/TiffUtils'
 
@@ -19,6 +23,22 @@ function generateRegionMap(v: Float32Array | Uint16Array | Uint8Array): Record<n
     return regionIndexMap
 }
 
+// Reads in a csv with the same name as the region file
+// Parses it as region id, region name
+function generateRegionNameMap(filepath: string) {
+    const nameMap: Record<number, string> = {}
+    const parsedPath = path.parse(filepath)
+    const namePath = path.join(parsedPath.dir, parsedPath.name + '.csv')
+    if (fs.existsSync(namePath)) {
+        const input = fs.readFileSync(namePath, 'utf8')
+        const records: string[][] = parseCSV(input, { columns: false })
+        for (const row of records) {
+            nameMap[Number(row[0])] = row[1]
+        }
+    }
+    return nameMap
+}
+
 async function loadRegionsFromTIFF(
     filePath: string,
     imageWidth: number,
@@ -34,7 +54,8 @@ async function loadRegionsFromTIFF(
             }
         }
         const regionMap = generateRegionMap(tiffData.data)
-        return { filePath: filePath, regionIndexMap: regionMap }
+        const nameMap = generateRegionNameMap(filePath)
+        return { filePath: filePath, regionIndexMap: regionMap, regionNames: nameMap }
     } catch (err) {
         return { filePath: filePath, error: err.message }
     }

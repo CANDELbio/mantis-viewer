@@ -7,6 +7,7 @@ export interface RegionDataImporterInput {
 export interface RegionDataImporterResult {
     filePath: string
     regionIndexMap: Record<number, number[]>
+    regionNames: Record<number, string>
 }
 
 export interface RegionDataImporterError {

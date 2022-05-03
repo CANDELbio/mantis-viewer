@@ -310,7 +310,7 @@ export function saveImageExportLog(
     channelDomainValue: Record<ChannelName, [number, number]>,
 ): void {
     const parsedPath = path.parse(filepath)
-    const logPath = path.join(parsedPath.dir, parsedPath.name + '_export_info.csv')
+    const logPath = path.join(parsedPath.dir, parsedPath.name + '.csv')
     const output: string[][] = []
     const header = ['Channel', 'Marker', 'Low Threshold', 'High Threshold']
     for (const channel of ImageChannels) {
@@ -321,4 +321,14 @@ export function saveImageExportLog(
         }
     }
     writeToCSV(output, logPath, header)
+}
+
+export function savePopulationTiffExportLog(filepath: string, populationNames: Record<number, string>): void {
+    const parsedPath = path.parse(filepath)
+    const logPath = path.join(parsedPath.dir, parsedPath.name + '.csv')
+    const output: string[][] = []
+    for (const populationId in populationNames) {
+        output.push([populationId, populationNames[Number(populationId)]])
+    }
+    writeToCSV(output, logPath, null)
 }
