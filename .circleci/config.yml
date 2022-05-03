@@ -1,0 +1,44 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@4.1 # The Windows orb give you everything you need to start using the Windows executor.
+  macos: circleci/macos@2.1.0
+
+jobs: # a basic unit of work in a run
+  build_mac:
+    macos:
+      xcode: 12.5.1 # indicate your selected version of Xcode
+    steps:
+      - checkout
+      - run:
+          # build our application
+          name: Install Dependencies
+          command: npm install
+      - run:
+          # compress Xcode's build output so that it can be stored as an artifact
+          name: Build and Publish Application
+          command: npm run publish
+          environment:
+            GH_TOKEN: $GITHUB_TOKEN 
+  build_win: # name of your job
+    executor:
+      name: win/default # executor type
+    steps:
+      - checkout
+      - run:
+          # build our application
+          name: Install Dependencies
+          command: npm install
+      - run:
+          # compress Xcode's build output so that it can be stored as an artifact
+          name: Build and Publish Application
+          command: npm run publish
+          environment:
+            GH_TOKEN: $GITHUB_TOKEN 
+
+workflows:
+  version: 2
+  test_build:
+    jobs:
+      - build_mac
+      - build_win
