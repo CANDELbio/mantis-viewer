@@ -42,5 +42,11 @@ workflows:
   version: 2
   publish:
     jobs:
-      - publish_mac
-      - publish_win
+      - publish_mac:
+          filters:
+            tags:
+              only: /.*/
+      - publish_win:
+          filters:
+            tags:
+              only: /.*/
