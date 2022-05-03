@@ -5,7 +5,7 @@ orbs:
   macos: circleci/macos@2.1.0
 
 jobs: # a basic unit of work in a run
-  build_mac:
+  publish_mac:
     macos:
       xcode: 12.5.1 # indicate your selected version of Xcode
     steps:
@@ -17,10 +17,10 @@ jobs: # a basic unit of work in a run
       - run:
           # compress Xcode's build output so that it can be stored as an artifact
           name: Build and Publish Application
-          command: npm run publish
-          environment:
-            GH_TOKEN: $GITHUB_TOKEN 
-  build_win: # name of your job
+          command: |
+           GH_TOKEN=${GITHUB_TOKEN}
+           npm run publish
+  publish_win: # name of your job
     executor:
       name: win/default # executor type
     steps:
@@ -32,13 +32,15 @@ jobs: # a basic unit of work in a run
       - run:
           # compress Xcode's build output so that it can be stored as an artifact
           name: Build and Publish Application
-          command: npm run publish
+          command: |
+           $Env:GH_TOKEN = "${GITHUB_TOKEN}"
+           npm run publish-win
           environment:
             GH_TOKEN: $GITHUB_TOKEN 
 
 workflows:
   version: 2
-  test_build:
+  publish:
     jobs:
-      - build_mac
-      - build_win
+      - publish_mac
+      - publish_win
