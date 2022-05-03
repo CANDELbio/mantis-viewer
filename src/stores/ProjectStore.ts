@@ -7,6 +7,7 @@ import { PreferencesStore } from './PreferencesStore'
 import { NotificationStore } from './NotificationStore'
 import { ImageSetStore } from './ImageSetStore'
 import {
+    saveImageExportLog,
     exportMarkerIntensities,
     exportToFCS,
     exportPopulationsToFCS,
@@ -421,6 +422,16 @@ export class ProjectStore {
             return true
         }
         return false
+    }
+
+    public exportImage = (filePath: string): void => {
+        saveImageExportLog(
+            filePath,
+            this.settingStore.channelMarker,
+            this.settingStore.channelVisibility,
+            this.settingStore.channelDomainValue,
+        )
+        this.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
     }
 
     // Export project level summary stats to fcs if fcs is true or csv if fcs is false.

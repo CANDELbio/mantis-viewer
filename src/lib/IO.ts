@@ -6,7 +6,7 @@ import * as parseCSV from 'csv-parse/lib/sync'
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
 import { ChannelMarkerMapping, MinMax } from '../interfaces/ImageInterfaces'
-import { ChannelName } from '../definitions/UIDefinitions'
+import { ChannelName, ImageChannels } from '../definitions/UIDefinitions'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -301,4 +301,24 @@ export function writeChannelMarkerMappingsCSV(mappings: Record<string, ChannelMa
         }
     }
     writeToCSV(output, filename, null)
+}
+
+export function saveImageExportLog(
+    filepath: string,
+    channelMarker: Record<ChannelName, string | null>,
+    channelVisibility: Record<ChannelName, boolean>,
+    channelDomainValue: Record<ChannelName, [number, number]>,
+): void {
+    const parsedPath = path.parse(filepath)
+    const logPath = path.join(parsedPath.dir, parsedPath.name + '_export_info.csv')
+    const output: string[][] = []
+    const header = ['Channel', 'Marker', 'Low Threshold', 'High Threshold']
+    for (const channel of ImageChannels) {
+        const curMarker = channelMarker[channel]
+        if (curMarker && channelVisibility[channel]) {
+            const domainValue = channelDomainValue[channel]
+            output.push([channel, curMarker, domainValue[0].toString(), domainValue[1].toString()])
+        }
+    }
+    writeToCSV(output, logPath, header)
 }

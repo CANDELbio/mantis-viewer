@@ -59,7 +59,7 @@ ipcRenderer.on('export-project-populations-csv', (_event: Electron.Event, filePa
 })
 
 ipcRenderer.on('export-image', (_event: Electron.Event, filePath: string): void => {
-    projectStore.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
+    projectStore.exportImage(filePath)
 })
 
 ipcRenderer.on('export-segment-features', (_event: Electron.Event, filePath: string): void => {
