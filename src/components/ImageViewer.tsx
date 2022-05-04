@@ -324,10 +324,12 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private syncPositionAndScale = (): void => {
-        this.props.setPositionAndScale(
-            { x: this.stage.position.x, y: this.stage.position.y },
-            { x: this.stage.scale.x, y: this.stage.scale.y },
-        )
+        if (this.imageData) {
+            this.props.setPositionAndScale(
+                { x: this.stage.position.x, y: this.stage.position.y },
+                { x: this.stage.scale.x, y: this.stage.scale.y },
+            )
+        }
     }
 
     // Checks to make sure that we haven't panned past the bounds of the stage.

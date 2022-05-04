@@ -636,7 +636,6 @@ const createMainWindow = (): void => {
     registerMainWindowEvents()
     mainWindow.on('ready-to-show', (): void => {
         if (mainWindow != null) mainWindow.show()
-        autoUpdater.checkForUpdatesAndNotify()
     })
 }
 
@@ -730,6 +729,7 @@ app.on('ready', () => {
     } else {
         createWindows()
     }
+    autoUpdater.checkForUpdatesAndNotify()
 })
 
 // Quit when all windows are closed.
