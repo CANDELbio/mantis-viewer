@@ -678,7 +678,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.setScaleFactors(imcData, maxRendererSize)
         this.renderer.resize(this.rendererWidth, this.rendererHeight)
         this.checkScale()
-        this.syncPositionAndScale()
     }
 
     private resetZoom(): void {
@@ -1199,6 +1198,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             this.maxRendererSize.height != maxRendererSize.height
         ) {
             this.resizeGraphics(maxRendererSize)
+            this.syncPositionAndScale()
         }
 
         // Clear the stage in preparation for rendering.
