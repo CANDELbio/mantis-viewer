@@ -310,7 +310,7 @@ export class ProjectStore {
             const curSet = this.imageSets[imageSet]
             if (curSet) {
                 curSet.segmentationStore.clearSegmentationData()
-                curSet.populationStore.deletePopulationsNotSelectedOnImage()
+                curSet.populationStore.clearSegmentationDependentData()
             }
         }
         this.segmentFeatureStore.deleteAllSegmentFeatures()
@@ -340,7 +340,7 @@ export class ProjectStore {
             const activeSegmentationStore = this.activeImageSetStore.segmentationStore
             if (activeSegmentationStore.selectedSegmentationFile != null) {
                 activeSegmentationStore.clearSegmentationData()
-                this.activeImageSetStore.populationStore.deletePopulationsNotSelectedOnImage()
+                this.activeImageSetStore.populationStore.clearSegmentationDependentData()
                 this.segmentFeatureStore.deleteActiveSegmentFeatures()
             }
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
@@ -617,6 +617,16 @@ export class ProjectStore {
         writeToCSV(activePopulationArray, filePath, null)
     }
 
+    // Exports the populations for every image in the project to one CSV
+    // There's an edge case/bug in here where if a user imports regions
+    // from TIFFs for the whole project, only the regions for images
+    // that have been loaded will have segments associated with them
+    // that can be exported. This is because an automatically set region
+    // TIFF file only gets loaded when the image is first loaded, and segmentation
+    // data must be loaded to select segments for that region. To fix this
+    // we would need to load segmentation and then load the regions from the TIFFs
+    // for each image. Could probably optimize by only doing this if an auto-import
+    // region TIFF is selected.
     public exportProjectPopulationsToCSV = (filePath: string): void => {
         const projectPopulationArray: string[][] = []
         for (const imageSetPath of this.imageSetPaths) {

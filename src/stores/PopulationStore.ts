@@ -1,4 +1,4 @@
-import { observable, action, autorun, computed, when } from 'mobx'
+import { observable, action, autorun, computed } from 'mobx'
 import _ from 'underscore'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -53,15 +53,11 @@ export class PopulationStore {
         this.selectionsLoading = false
         this.selectedFeatureForNewPopulation = null
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
+        const imageSetName = this.imageSetStore.name
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
-            this.loadPopulationsFromDatabase()
+            this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName))
         }
-    }
-
-    @action private loadPopulationsFromDatabase = (): void => {
-        const imageSetName = this.imageSetStore.name
-        this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName))
     }
 
     // Computed function that gets the populations for any segments that are being moused over on the image.
@@ -159,22 +155,20 @@ export class PopulationStore {
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
         for (const population of populations) {
             const pixelIndexes = population.pixelIndexes
-            if (imageData) {
+            if (imageData && pixelIndexes) {
                 // If this selection has pixel indexes (i.e. a region selected on the image)
-                // but no bitmap we want to refresh the region graphics
-                if (!population.regionBitmap && pixelIndexes) {
+                if (!population.regionBitmap) {
+                    // If no bitmap we want to generate it from the pixel indexes
                     population.regionBitmap = await pixelIndexesToBitmap(
                         pixelIndexes,
                         imageData.width,
                         imageData.height,
                     )
-                    if (segmentationData) {
-                        // If segmentation data is loaded use the region to find the segments selected
-                        population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
-                    } else {
-                        // Otherwise clear the segments selected
-                        population.selectedSegments = []
-                    }
+                }
+                if (segmentationData && population.selectedSegments.length == 0) {
+                    // If segmentation data is loaded, and segments haven't been found
+                    // use the region to find the segments selected
+                    population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
                 }
             }
             refreshedPopulations.push(population)
@@ -255,12 +249,14 @@ export class PopulationStore {
     }
 
     // Deletes populations that were not created by selecting a region on the image
+    // Clears selected segments from populations that were selected on the image
     // Used when the user changes the segmentation data so that old populations
     // are not carried over to different segmentation data.
-    @action public deletePopulationsNotSelectedOnImage = (): void => {
+    @action public clearSegmentationDependentData = (): void => {
         if (this.selectedPopulations) {
             const deleting: string[] = []
-            this.selectedPopulations = this.selectedPopulations.filter((population): boolean => {
+            // Filter out populations not selected on the image
+            const refreshedPopulations = this.selectedPopulations.filter((population): boolean => {
                 if (population.pixelIndexes && population.pixelIndexes.length > 0) {
                     return true
                 } else {
@@ -268,6 +264,14 @@ export class PopulationStore {
                     return false
                 }
             })
+            // Clear the selected segments
+            this.selectedPopulations = refreshedPopulations.map((population: SelectedPopulation) => {
+                population.selectedSegments = []
+                return population
+            })
+            // Set the refreshed populations
+            this.selectedPopulations = refreshedPopulations
+            // Delete the removed populations from the db
             if (this.db) {
                 const imageSetName = this.imageSetStore.name
                 for (const id of deleting) {
