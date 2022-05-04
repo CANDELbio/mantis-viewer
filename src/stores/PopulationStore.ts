@@ -52,15 +52,16 @@ export class PopulationStore {
         this.highlightedPopulations = []
         this.selectionsLoading = false
         this.selectedFeatureForNewPopulation = null
-        const imageSetName = this.imageSetStore.name
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
-            when(
-                (): boolean => this.imageSetStore.imageStore.imageData != null,
-                (): void => this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName)),
-            )
+            this.loadPopulationsFromDatabase()
         }
+    }
+
+    @action private loadPopulationsFromDatabase = (): void => {
+        const imageSetName = this.imageSetStore.name
+        this.refreshGraphicsAndSetPopulations(this.db.getSelections(imageSetName))
     }
 
     // Computed function that gets the populations for any segments that are being moused over on the image.
