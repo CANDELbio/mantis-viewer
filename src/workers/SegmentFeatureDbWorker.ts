@@ -119,7 +119,7 @@ function startNextJob(): void {
     }
 }
 
-function onSegmentationDataComplete(data: SegmentFeatureDbResult): void {
+function onSegmentFeatureDbRequestComplete(data: SegmentFeatureDbResult): void {
     jobRunning = false
     const jobId = data.jobId
     if (jobId) {
@@ -137,7 +137,7 @@ export function submitSegmentFeatureDbRequest(
     queuedJobs.push({ input: input, onComplete: onComplete })
     if (!jobRunning) {
         if (segmentFeatureDbWorker == undefined)
-            segmentFeatureDbWorker = new SegmentFeatureDbWorker(onSegmentationDataComplete)
+            segmentFeatureDbWorker = new SegmentFeatureDbWorker(onSegmentFeatureDbRequestComplete)
         startNextJob()
     }
 }

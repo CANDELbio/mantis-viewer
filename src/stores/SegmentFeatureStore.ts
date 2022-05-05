@@ -56,36 +56,36 @@ export class SegmentFeatureStore {
         this.db = new Db(dbPath)
     }
 
-    private autoRefreshAvailableFeatures = autorun(() => {
-        const activeImageSetStore = this.projectStore.activeImageSetStore
-        const activeImageDataLoading = activeImageSetStore.imageStore.imageDataLoading
-        const activeImageSetName = activeImageSetStore.name
-        if (activeImageSetName && !activeImageDataLoading) this.refreshAvailableFeatures(activeImageSetName)
-    })
-
     private selectedPlotFeatures(): string[] {
         return this.projectStore.settingStore.selectedPlotFeatures.slice()
     }
 
-    // When the user changes the features selected for the plot we want to automatically refresh
-    // the feature statistics we have loaded from the database.
-    // TODO: This triggers multiple times when switching image sets. Not terrible, but would be good to look into.
     private autoRefreshFeatureStatistics = autorun(() => {
-        const features = this.selectedPlotFeatures()
-        const activeImageSetStore = this.projectStore.activeImageSetStore
-        const selectedFeatureForNewPopulation = activeImageSetStore.populationStore.selectedFeatureForNewPopulation
-        if (selectedFeatureForNewPopulation) features.push(selectedFeatureForNewPopulation)
-        const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
-        // Only want to auto calculate if we're not loading multiple.
-        if (notLoadingMultiple) {
-            const activeImageSetName = activeImageSetStore.name
-            // Want to refresh the features available first in case this gets kicked off before refreshing available features
-            // And the user is stuck with being told no features are available.
-            if (this.featuresAvailable(activeImageSetName).length == 0)
-                this.refreshAvailableFeatures(activeImageSetName)
-            this.setFeatureStatisticsForSelectedImageSets(features)
+        const activeImageSetName = this.projectStore.activeImageSetStore.name
+        if (activeImageSetName) {
+            let plotFeatures = this.projectStore.settingStore.selectedPlotFeatures.slice()
+            const selectedFeatureForNewPopulation =
+                this.projectStore.activeImageSetStore.populationStore.selectedFeatureForNewPopulation
+            if (selectedFeatureForNewPopulation) plotFeatures = plotFeatures.concat([selectedFeatureForNewPopulation])
+            this.refreshFeatureStatistics(activeImageSetName, plotFeatures)
         }
     })
+
+    // This isn't actually an action - it doesn't update any observables.
+    // For some reason if it isn't an action then autoRefreshFeatureStatistics
+    // will be repeatedly called.
+    @action private refreshFeatureStatistics = (imageSetName: string, features: string[]) => {
+        const notLoadingMultiple = this.projectStore.notificationStore.numToCalculate == 0
+        // Only want to refresh the feature statistics if we're not loading multiple.
+        // Later comment -- Multiple whats? I think this is referencing when we're exporting project features
+        // to a csv or fcs. Vague and unhelpful
+        if (notLoadingMultiple) {
+            // Want to refresh the features available first in case this gets kicked off before refreshing available features
+            // And the user is stuck with being told no features are available.
+            if (this.featuresAvailable(imageSetName).length == 0) this.refreshAvailableFeatures(imageSetName)
+            this.setFeatureStatisticsForSelectedImageSets(features)
+        }
+    }
 
     featuresLoading = computedFn(function getFeaturesLoading(this: SegmentFeatureStore, imageSetName: string): boolean {
         const featuresLoading = get(this.loadingStatuses, imageSetName)
@@ -258,7 +258,7 @@ export class SegmentFeatureStore {
 
     // Helper method that calls setFeatureStatisticsForSelectedImageSets with the selected features.
     private setStatisticsForSelectedFeatures = (): void => {
-        const features = this.projectStore.settingStore.selectedPlotFeatures
+        const features = this.selectedPlotFeatures()
         this.setFeatureStatisticsForSelectedImageSets(features)
     }
 

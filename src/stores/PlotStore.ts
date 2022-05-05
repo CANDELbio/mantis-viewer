@@ -60,7 +60,7 @@ export class PlotStore {
                                 const plotData = generatePlotData(
                                     imageSetName,
                                     settingStore.plotCollapseAllImageSets,
-                                    settingStore.selectedPlotFeatures,
+                                    settingStore.selectedPlotFeatures.slice(),
                                     featureValues,
                                     featureMinMaxes,
                                     segmentationStore.segmentationData,
