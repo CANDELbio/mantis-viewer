@@ -117,7 +117,7 @@ export class PopulationStore {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
         const imageData = this.imageSetStore.imageStore.imageData
-        if (imageData && this.selectedPopulations.length > 0) this.refreshCurrentPopulationGraphics()
+        if (imageData) this.refreshCurrentPopulationGraphics()
     })
 
     // Automatically saves populations to the db when they change

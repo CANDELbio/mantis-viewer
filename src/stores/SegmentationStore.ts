@@ -134,7 +134,6 @@ export class SegmentationStore {
         // TODO: De-jankify the autoCalculate stuff when setting segmentation data.
         // Kick off calculating segment features after segmentation data has loaded
         this.imageSetStore.projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(this.imageSetStore)
-
         this.segmentationData = data
         this.setSegmentationDataLoadingStatus(false)
     }

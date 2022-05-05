@@ -563,18 +563,11 @@ export class ProjectStore {
     public importActivePopulationsFromCSV = (filePath: string): void => {
         const populations = parseActivePopulationCSV(filePath)
         for (const populationName in populations) {
-            when(
-                (): boolean => this.notificationStore.numToCalculate > 0,
-                (): void => {
-                    this.activeImageSetStore.populationStore.createPopulationFromSegments(
-                        populations[populationName],
-                        populationName,
-                    )
-                    this.notificationStore.incrementNumCalculated()
-                },
+            this.activeImageSetStore.populationStore.createPopulationFromSegments(
+                populations[populationName],
+                populationName,
             )
         }
-        this.notificationStore.setNumToCalculate(Object.keys(populations).length)
     }
 
     public importProjectPopulationsFromCSV = (filePath: string): void => {
