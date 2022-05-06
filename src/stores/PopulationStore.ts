@@ -111,6 +111,14 @@ export class PopulationStore {
         }
     })
 
+    // Automatically saves populations to the db when they change
+    private autoSavePopulations = autorun(() => {
+        const imageSetStore = this.imageSetStore
+        if (imageSetStore.directory) {
+            this.db.upsertSelections(this.imageSetStore.name, this.selectedPopulations)
+        }
+    })
+
     // Automatically refreshes all of the graphics when segmentation data changes
     private autoRefreshGraphics = autorun(() => {
         // Refresh all the graphics and selected segments if segmentation has changed
@@ -120,13 +128,9 @@ export class PopulationStore {
         if (imageData) this.refreshCurrentPopulationGraphics()
     })
 
-    // Automatically saves populations to the db when they change
-    private autoSavePopulations = autorun(() => {
-        const imageSetStore = this.imageSetStore
-        if (imageSetStore.directory) {
-            this.db.upsertSelections(this.imageSetStore.name, this.selectedPopulations)
-        }
-    })
+    @action private refreshCurrentPopulationGraphics = (): void => {
+        this.refreshGraphicsAndSetPopulations(this.selectedPopulations.slice())
+    }
 
     private newROIName(renderOrder: number, namePrefix: string | null): string {
         const name = namePrefix ? namePrefix + ' Selection ' : 'Selection '
@@ -188,10 +192,6 @@ export class PopulationStore {
         )
     }
 
-    public refreshCurrentPopulationGraphics = (): void => {
-        this.refreshGraphicsAndSetPopulations(this.selectedPopulations.slice())
-    }
-
     public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {
@@ -210,7 +210,7 @@ export class PopulationStore {
     public createPopulationFromSegments = (
         selectedSegments: number[],
         name?: string,
-        color?: number,
+        color?: number | null,
     ): SelectedPopulation => {
         const order = this.getRenderOrder()
         const newPopulation: SelectedPopulation = {

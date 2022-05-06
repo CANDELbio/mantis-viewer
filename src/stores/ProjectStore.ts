@@ -564,8 +564,9 @@ export class ProjectStore {
         const populations = parseActivePopulationCSV(filePath)
         for (const populationName in populations) {
             this.activeImageSetStore.populationStore.createPopulationFromSegments(
-                populations[populationName],
+                populations[populationName].segments,
                 populationName,
+                populations[populationName].color,
             )
         }
     }

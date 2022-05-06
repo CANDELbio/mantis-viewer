@@ -132,19 +132,23 @@ export function exportPopulationsToFCS(dirName: string, imageSetStore: ImageSetS
     }
 }
 
-export function parseActivePopulationCSV(filename: string): Record<string, number[]> {
+export function parseActivePopulationCSV(
+    filename: string,
+): Record<string, { segments: number[]; color: number | null }> {
     const input = fs.readFileSync(filename, 'utf8')
 
-    const populations: Record<string, number[]> = {}
+    const populations: Record<string, { segments: number[]; color: number | null }> = {}
     const records: string[][] = parseCSV(input, { columns: false })
 
     for (const row of records) {
         const segmentId = Number(row[0])
         const populationName = row[1]
+        const populationColor = Number(row[2])
         // Check to make sure segmentId is a proper number and populationName is not empty or null.
         if (!isNaN(segmentId) && populationName) {
-            if (!(populationName in populations)) populations[populationName] = []
-            populations[populationName].push(segmentId)
+            if (!(populationName in populations)) populations[populationName] = { segments: [], color: null }
+            populations[populationName].segments.push(segmentId)
+            if (populationColor != NaN) populations[populationName].color = populationColor
         }
     }
 
