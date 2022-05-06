@@ -17,7 +17,7 @@
         "eslint-fix": "eslint --fix --ext .tsx --ext .ts .",
         "postinstall": "husky install && electron-rebuild",
         "prepare": "husky install",
-        "postversion": "git push --follow-tags"
+        "postversion": "git push && git push --tags"
     },
     "repository": "https://github.com/ParkerICI/mantis-viewer",
     "keywords": [
