@@ -440,9 +440,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.loadZoomInsetGraphics()
                 // Re-render!
                 this.renderer.render(this.rootContainer)
-            } else {
-                // If the user mouses off of the image, treat this as a mouseout.
-                this.panMouseOutHandler()
             }
         }
     }
@@ -469,6 +466,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         el.addEventListener('mousemove', this.panMouseMoveHandler)
         el.addEventListener('mouseup', this.panMouseUpHandler)
         el.addEventListener('mouseout', this.panMouseOutHandler)
+        el.addEventListener('pointerout', this.panMouseOutHandler)
     }
 
     private addPositionToSelection(state: {
