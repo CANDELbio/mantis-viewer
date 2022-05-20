@@ -1,13 +1,15 @@
 import * as PIXI from 'pixi.js'
 import * as d3Scale from 'd3-scale'
+import { ColorMatrix } from '@pixi/filter-color-matrix'
 
 import { SegmentationData } from './SegmentationData'
 import { ImageData } from './ImageData'
-import { ChannelName, ChannelColorMap, PlotTransform } from '../definitions/UIDefinitions'
-import { Coordinate } from '../interfaces/ImageInterfaces'
+import { ChannelName, PlotTransform } from '../definitions/UIDefinitions'
+import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { Line, PointData } from './pixi/Line'
 import { applyTransform } from './plot/Helper'
+import { hexToRGB } from './ColorHelper'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
@@ -17,6 +19,11 @@ export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): P
     const sprite = PIXI.Sprite.from(bitmap, spriteOptions)
     if (!blurPixels) sprite.roundPixels = false
     return sprite
+}
+
+export function hexToFilterMatrix(hex: number): ColorMatrix {
+    const rgbColor = hexToRGB(hex)
+    return [rgbColor.r / 255, 0, 0, 0, 0, 0, rgbColor.g / 255, 0, 0, 0, 0, 0, rgbColor.b / 255, 0, 0, 0, 0, 0, 1, 0]
 }
 
 export function highlightCoordinate(
@@ -183,7 +190,8 @@ export function drawLegend(
     legendGraphics: PIXI.Graphics,
     imcData: ImageData,
     channelsOnLegend: boolean,
-    channelMarkers: Record<ChannelName, string | null>,
+    channelMarkers: ChannelMarkerMapping,
+    channelColors: ChannelColorMapping,
     channelVisibility: Record<ChannelName, boolean>,
     populationsOnLegend: boolean,
     populations: SelectedPopulation[] | null,
@@ -234,7 +242,7 @@ export function drawLegend(
             const curMarker = channelMarkers[curChannel]
             // If a marker is selected for the channel and the image data has a sprite for that marker
             if (channelVisibility[curChannel] && curMarker && imcData.bitmaps[curMarker]) {
-                addText(curMarker, ChannelColorMap[curChannel])
+                addText(curMarker, channelColors[curChannel])
             }
         }
     }

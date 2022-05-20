@@ -202,6 +202,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         segmentOutlineAttributes={segmentationStore.outlineAttributes}
                         channelDomain={imageStore.channelDomain}
                         channelVisibility={settingStore.channelVisibility}
+                        channelColor={settingStore.channelColor}
                         channelMarker={settingStore.channelMarker}
                         positionAndScale={settingStore.activePositionAndScale}
                         setPositionAndScale={settingStore.setActivePositionAndScale}
@@ -244,11 +245,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setSelectedImage={projectStore.setActiveImageSet}
                     previousImage={projectStore.setPreviousImageSet}
                     nextImage={projectStore.setNextImageSet}
-                    selectedChannelMapping={settingStore.activeChannelMarkerMapping}
-                    channelMarkerMappings={settingStore.channelMarkerMappings}
-                    saveChannelMarkerMapping={settingStore.saveChannelMarkerMapping}
-                    loadChannelMarkerMapping={settingStore.loadChannelMarkerMapping}
-                    deleteChannelMarkerMapping={settingStore.deleteChannelMarkerMapping}
+                    selectedChannelMapping={settingStore.activeChannelMapping}
+                    channelMappings={settingStore.channelMappings}
+                    saveChannelMapping={settingStore.saveChannelMapping}
+                    loadChannelMapping={settingStore.loadChannelMarkerMapping}
+                    deleteChannelMapping={settingStore.deleteChannelMarkerMapping}
                 />
             </div>
         )
@@ -263,6 +264,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         <div className="grey-card channel-controls" key={s}>
                             <ChannelControls
                                 channel={s}
+                                channelColor={settingStore.channelColor[s]}
+                                setChannelColor={settingStore.setChannelColorCallback(s)}
                                 channelVisible={settingStore.channelVisibility[s]}
                                 setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
                                 channelMin={this.getChannelMin(s)}

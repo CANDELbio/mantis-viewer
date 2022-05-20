@@ -1,7 +1,9 @@
 import * as React from 'react'
 import * as _ from 'underscore'
-import { RangeSlider } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
+import { CompactPicker, ColorResult } from 'react-color'
+import { Popover, PopoverBody } from 'reactstrap'
+import { RangeSlider } from '@blueprintjs/core'
 import Select from 'react-select'
 import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import { Grid, Row, Col } from 'react-flexbox-grid'
@@ -15,12 +17,14 @@ import {
     onClearableSelectChange,
 } from '../lib/SelectUtils'
 import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../lib/SliderUtils'
-import { ChannelName, ChannelColorMap } from '../definitions/UIDefinitions'
 import { hexToString } from '../lib/ColorHelper'
 import { MinMax } from '../interfaces/ImageInterfaces'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 export interface ChannelControlsProps {
     channel: ChannelName
+    channelColor: number
+    setChannelColor: (value: number) => void
     channelVisible: boolean
     setChannelVisibility: (value: boolean) => void
     channelMin: number
@@ -34,25 +38,106 @@ export interface ChannelControlsProps {
     windowWidth: number | null
 }
 
+interface ChannelControlState {
+    popoverVisible: boolean
+}
+
 @observer
-export class ChannelControls extends React.Component<ChannelControlsProps, Record<string, never>> {
+export class ChannelControls extends React.Component<ChannelControlsProps, ChannelControlState> {
     public constructor(props: ChannelControlsProps) {
         super(props)
     }
 
-    private channelBadge(channel: ChannelName): JSX.Element {
+    public state = { popoverVisible: false }
+
+    private togglePopover = (): void => this.setState({ popoverVisible: !this.state.popoverVisible })
+
+    private handleColorChange = (color: ColorResult): void => {
+        this.props.setChannelColor(parseInt(color.hex.replace(/^#/, ''), 16))
+    }
+
+    private pickerColors = [
+        '#FFFFFF',
+        '#00FFFF',
+        '#FF0000',
+        '#F44E3B',
+        '#FE9200',
+        '#FCDC00',
+        '#DBDF00',
+        '#A4DD00',
+        '#68CCCA',
+        '#73D8FF',
+        '#AEA1FF',
+        '#FDA1FF',
+        '#808080',
+        '#FF00FF',
+        '#00FF00',
+        '#D33115',
+        '#E27300',
+        '#FCC400',
+        '#B0BC00',
+        '#68BC00',
+        '#16A5A5',
+        '#009CE0',
+        '#7B64FF',
+        '#FA28FF',
+        '#000000',
+        '#FFFF00',
+        '#0000FF',
+        '#9F0500',
+        '#C45100',
+        '#FB9E00',
+        '#808900',
+        '#194D33',
+        '#0C797D',
+        '#0062B1',
+        '#653294',
+        '#AB149E',
+    ]
+
+    private channelBadge(channel: ChannelName, color: number): JSX.Element {
         return (
-            <h5>
-                <Badge
-                    style={{
-                        backgroundColor: hexToString(ChannelColorMap[channel]),
-                        boxShadow: '0 0 0 0.1em #000000',
-                        color: '#000000',
-                    }}
+            <div>
+                <h5>
+                    <Badge
+                        id={channel + '-badge'}
+                        style={{
+                            backgroundColor: hexToString(color),
+                            boxShadow: '0 0 0 0.1em #000000',
+                            color: '#000000',
+                            width: '20px',
+                            height: '20px',
+                            verticalAlign: '-webkit-baseline-middle',
+                            cursor: 'pointer',
+                        }}
+                        onClick={this.togglePopover}
+                    >
+                        {' '}
+                    </Badge>
+                </h5>
+                <Popover
+                    placement="left"
+                    trigger="legacy"
+                    isOpen={this.state.popoverVisible}
+                    toggle={this.togglePopover}
+                    target={channel + '-badge'}
+                    style={{ backgroundColor: 'transparent' }}
                 >
-                    {channel[0].toUpperCase()}
-                </Badge>
-            </h5>
+                    {/* Compact picker is meant to be used as its own popover element, but doesn't work with ReactTableContainer */}
+                    {/* Instead we style the compact-picker element to have a box-shadow to mask its default box-shadow */}
+                    {/* And we set padding of PopoverBody to 6.8px to reduce the padding around compact picker and make it look natural */}
+                    <PopoverBody style={{ padding: '6.8px' }}>
+                        <div style={{ position: 'relative' }}>
+                            <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
+                            <CompactPicker
+                                color={hexToString(color)}
+                                onChangeComplete={this.handleColorChange}
+                                colors={this.pickerColors}
+                            />
+                        </div>
+                    </PopoverBody>
+                </Popover>
+            </div>
         )
     }
 
@@ -116,7 +201,7 @@ export class ChannelControls extends React.Component<ChannelControlsProps, Recor
             <Grid fluid={true}>
                 <Row between="xs">
                     <Col xs={2} sm={2} md={2} lg={2}>
-                        {this.channelBadge(this.props.channel)}
+                        {this.channelBadge(this.props.channel, this.props.channelColor)}
                     </Col>
                     <Col xs={10} sm={10} md={10} lg={10}>
                         <Select

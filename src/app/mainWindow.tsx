@@ -340,14 +340,14 @@ hotkeys('command+right, alt+right', function (): void {
 
 hotkeys('alt+up, command+up', function (): void {
     const settingStore = projectStore.settingStore
-    if (settingStore.activeChannelMarkerMapping) {
+    if (settingStore.activeChannelMapping) {
         settingStore.nextChannelMarkerMapping()
     }
 })
 
 hotkeys('alt+down, command+down', function (): void {
     const settingStore = projectStore.settingStore
-    if (settingStore.activeChannelMarkerMapping) {
+    if (settingStore.activeChannelMapping) {
         settingStore.previousChannelMarkerMapping()
     }
 })

@@ -32,10 +32,10 @@ export class ImageSelector extends React.Component<ImageSelectorProps, Record<st
         const channelMappingControls = (
             <ChannelMappingControls
                 selectedChannelMapping={this.props.selectedChannelMapping}
-                channelMarkerMappings={this.props.channelMarkerMappings}
-                saveChannelMarkerMapping={this.props.saveChannelMarkerMapping}
-                deleteChannelMarkerMapping={this.props.deleteChannelMarkerMapping}
-                loadChannelMarkerMapping={this.props.loadChannelMarkerMapping}
+                channelMappings={this.props.channelMappings}
+                saveChannelMapping={this.props.saveChannelMapping}
+                deleteChannelMapping={this.props.deleteChannelMapping}
+                loadChannelMapping={this.props.loadChannelMapping}
                 iconStyle={{ position: 'absolute', top: '0.5em', left: '-1em' }}
             />
         )

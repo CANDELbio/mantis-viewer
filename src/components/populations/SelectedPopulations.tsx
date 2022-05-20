@@ -178,7 +178,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             <div style={{ position: 'relative' }}>
                                 <style>{'.compact-picker {box-shadow:0 0 0 6px #FFFFFF;}'}</style>
                                 <CompactPicker
-                                    color={'#' + rowPopulation.color.toString(16)}
+                                    color={hexToString(rowPopulation.color)}
                                     onChangeComplete={this.handleColorChange}
                                 />
                             </div>

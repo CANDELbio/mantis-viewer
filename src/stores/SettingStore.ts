@@ -11,6 +11,7 @@ import { parseChannelMarkerMappingCSV, writeChannelMarkerMappingsCSV } from '../
 import {
     ImageChannels,
     ChannelName,
+    ChannelColorMap,
     PlotNormalization,
     PlotStatistic,
     PlotTransform,
@@ -25,13 +26,14 @@ import {
     PlotNormalizationOptions,
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
-import { MinMax, ChannelMarkerMapping } from '../interfaces/ImageInterfaces'
+import { MinMax, ChannelMappings, ChannelMarkerMapping, ChannelColorMapping } from '../interfaces/ImageInterfaces'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 
 type SettingStoreData = {
     activeImageSet?: string | null
     imagePositionAndScales?: Record<string, { position: Coordinate; scale: Coordinate }>
     imageSubdirectory?: string | null
+    channelColor?: ChannelColorMapping
     channelMarker?: ChannelMarkerMapping | null
     channelDomainValue?: Record<ChannelName, [number, number]> | null
     markerDomainValue?: Record<string, [number, number]>
@@ -65,7 +67,7 @@ type SettingStoreData = {
     featureLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
-    channelMarkerMappings?: Record<string, ChannelMarkerMapping>
+    channelMappings?: ChannelMappings
 }
 
 export class SettingStore {
@@ -95,6 +97,10 @@ export class SettingStore {
     @observable public markerDomainValue: Record<string, [number, number]>
     // Which channels are visible
     @observable public channelVisibility: Record<ChannelName, boolean>
+    // Mapping of channel to user selected colors.
+    // TODO: Eventually should be replaced with any number of markers with colors and combined with the marker mapping,
+    // but more work than we want to do before replacing the renderer.
+    @observable public channelColor: Record<ChannelName, number>
     // segmentation file basename when a segmentation file is selected for the whole project
     @observable public segmentationBasename: string | null
     // Whether or not segmentation is automatically loaded when switching between images
@@ -110,8 +116,8 @@ export class SettingStore {
     @observable public featureLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
-    // Saves ChannelMarkerMappings with names so that the user can quickly switch between different mappings.
-    @observable public channelMarkerMappings: Record<string, ChannelMarkerMapping>
+    // Saves ChannelMappings with names so that the user can quickly switch between different mappings.
+    @observable public channelMappings: ChannelMappings
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
@@ -165,6 +171,8 @@ export class SettingStore {
             kChannel: true,
         }
 
+        this.channelColor = ChannelColorMap
+
         this.segmentationBasename = null
         this.autoLoadSegmentation = true
         this.autoCalculateSegmentFeatures = false
@@ -201,7 +209,7 @@ export class SettingStore {
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
         this.channelDomainValue = this.projectStore.preferencesStore.getChannelDomainPercentage()
         this.markerDomainValue = {}
-        this.channelMarkerMappings = {}
+        this.channelMappings = {}
     }
 
     @action public setBasePath = (path: string): void => {
@@ -424,6 +432,16 @@ export class SettingStore {
         this.channelVisibility[name] = !this.channelVisibility[name]
     }
 
+    @action public setChannelColorCallback = (name: ChannelName): ((value: number) => void) => {
+        return action((value: number) => {
+            this.setChannelColor(name, value)
+        })
+    }
+
+    @action private setChannelColor = (name: ChannelName, color: number): void => {
+        this.channelColor[name] = color
+    }
+
     @action public setChannelMarkerCallback = (name: ChannelName): ((marker: string | null) => void) => {
         return action((marker: string | null) => {
             // If the SelectOption has a value.
@@ -541,22 +559,26 @@ export class SettingStore {
         }
     }
 
-    @action public saveChannelMarkerMapping = (name: string): void => {
+    @action public saveChannelMapping = (name: string): void => {
         if (this.channelMarker) {
-            const activeMappingName = this.activeChannelMarkerMapping
-            if (activeMappingName) delete this.channelMarkerMappings[activeMappingName]
-            this.channelMarkerMappings[name] = JSON.parse(JSON.stringify(this.channelMarker))
+            const activeMappingName = this.activeChannelMapping
+            if (activeMappingName) delete this.channelMappings[activeMappingName]
+            this.channelMappings[name] = {
+                markers: JSON.parse(JSON.stringify(this.channelMarker)),
+                colors: JSON.parse(JSON.stringify(this.channelColor)),
+            }
         }
     }
 
     @action public deleteChannelMarkerMapping = (name: string): void => {
-        delete this.channelMarkerMappings[name]
+        delete this.channelMappings[name]
     }
 
     @action public loadChannelMarkerMapping = (name: string): void => {
-        const selectedChannelMarkerMapping = this.channelMarkerMappings[name]
+        const selectedChannelMarkerMapping = this.channelMappings[name]
         if (selectedChannelMarkerMapping) {
-            this.channelMarker = JSON.parse(JSON.stringify(selectedChannelMarkerMapping))
+            this.channelMarker = JSON.parse(JSON.stringify(selectedChannelMarkerMapping.markers))
+            this.channelColor = JSON.parse(JSON.stringify(selectedChannelMarkerMapping.colors))
         }
         this.resetChannelDomainValues()
     }
@@ -566,13 +588,13 @@ export class SettingStore {
             numeric: true,
             sensitivity: 'base',
         })
-        const sortedChannelMappingNames = Object.keys(this.channelMarkerMappings).slice().sort(collator.compare)
+        const sortedChannelMappingNames = Object.keys(this.channelMappings).slice().sort(collator.compare)
         return sortedChannelMappingNames
     }
 
     // TODO: Dry these two functions up by making a clever nextIndex callback function
     private incrementChannelMarkerMapping = (incIndexFn: (curIndex: number, sortedNames: string[]) => number): void => {
-        const activeChannelMarkerMapping = this.activeChannelMarkerMapping
+        const activeChannelMarkerMapping = this.activeChannelMapping
         if (activeChannelMarkerMapping) {
             const sortedChannelMappingNames = this.sortedChannelMappingNames
             const activeChannelMarkerMappingIndex = sortedChannelMappingNames.indexOf(activeChannelMarkerMapping)
@@ -597,22 +619,25 @@ export class SettingStore {
 
     @action public importChannelMarkerMappingsFromCSV = (filename: string): void => {
         const importing = parseChannelMarkerMappingCSV(filename)
-        this.channelMarkerMappings = { ...this.channelMarkerMappings, ...importing }
+        this.channelMappings = { ...this.channelMappings, ...importing }
     }
 
     public exportChannelMarkerMappingsToCSV = (filename: string): void => {
-        writeChannelMarkerMappingsCSV(this.channelMarkerMappings, filename)
+        writeChannelMarkerMappingsCSV(this.channelMappings, filename)
     }
 
-    @computed public get activeChannelMarkerMapping(): string | null {
-        const activeMapping = this.channelMarker
-        const mappings = this.channelMarkerMappings
+    @computed public get activeChannelMapping(): string | null {
+        const activeMarkerMapping = this.channelMarker
+        const activeColorMapping = this.channelColor
+        const mappings = this.channelMappings
         for (const name in mappings) {
             const curMapping = mappings[name]
             let allTheSame = true
-            for (const s in curMapping) {
-                const curChannel = s as ChannelName
-                if (curMapping[curChannel] != activeMapping[curChannel]) {
+            for (const curChannel of ImageChannels) {
+                if (
+                    curMapping.markers[curChannel] != activeMarkerMapping[curChannel] ||
+                    curMapping.colors[curChannel] != activeColorMapping[curChannel]
+                ) {
                     allTheSame = false
                     break
                 }
@@ -646,6 +671,7 @@ export class SettingStore {
                 imageSubdirectory: this.imageSubdirectory,
                 activeImageSet: this.activeImageSet,
                 imagePositionAndScales: this.imagePositionAndScales,
+                channelColor: this.channelColor,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
                 channelDomainValue: this.channelDomainValue,
@@ -678,7 +704,7 @@ export class SettingStore {
                 featureLegendVisible: this.featureLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
-                channelMarkerMappings: this.channelMarkerMappings,
+                channelMappings: this.channelMappings,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -697,6 +723,7 @@ export class SettingStore {
                 if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
                 if (importingSettings.imagePositionAndScales)
                     this.imagePositionAndScales = importingSettings.imagePositionAndScales
+                if (importingSettings.channelColor) this.channelColor = importingSettings.channelColor
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility
                 if (importingSettings.channelDomainValue) this.channelDomainValue = importingSettings.channelDomainValue
@@ -746,8 +773,7 @@ export class SettingStore {
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
                 if (importingSettings.transformCoefficient)
                     this.transformCoefficient = importingSettings.transformCoefficient
-                if (importingSettings.channelMarkerMappings)
-                    this.channelMarkerMappings = importingSettings.channelMarkerMappings
+                if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
             } catch (e) {
                 log.error('Error importing settings from db:')
                 log.error(e)

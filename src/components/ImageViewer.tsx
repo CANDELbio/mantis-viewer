@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
 import * as PIXI from 'pixi.js'
+import { ColorMatrixFilter } from '@pixi/filter-color-matrix'
 import * as fs from 'fs'
 import _ from 'underscore'
 import log from 'electron-log'
@@ -20,7 +21,7 @@ import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsUtils'
 import { randomHexColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
-import { Coordinate } from '../interfaces/ImageInterfaces'
+import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
 import { Line } from '../lib/pixi/Line'
 import brightnessFilter from '../lib/brightness-filter.glsl'
 import hotkeys from 'hotkeys-js'
@@ -34,7 +35,8 @@ export interface ImageProps {
     segmentOutlineAttributes: SegmentOutlineAttributes | null
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
-    channelMarker: Record<ChannelName, string | null>
+    channelMarker: ChannelMarkerMapping
+    channelColor: ChannelColorMapping
     positionAndScale: { position: Coordinate; scale: Coordinate } | null
     setPositionAndScale: (position: Coordinate, scale: Coordinate) => void
     selectedPopulations: SelectedPopulation[]
@@ -77,7 +79,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private blurPixels: boolean | undefined
 
     // Color filters to use so that the sprites display as the desired color
-    private channelFilters: Record<ChannelName, PIXI.Filter>
+    private channelFilters: Record<ChannelName, ColorMatrixFilter>
 
     // The actual width and height of the stage
     private rendererWidth: number
@@ -815,7 +817,11 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.channelMarker = newChannelMarker
     }
 
-    private loadChannelGraphics(curChannel: ChannelName, channelDomain: Record<ChannelName, [number, number]>): void {
+    private loadChannelGraphics(
+        curChannel: ChannelName,
+        channelColor: number,
+        channelDomain: Record<ChannelName, [number, number]>,
+    ): void {
         const imcData = this.imageData
         if (imcData) {
             const channelMarker = this.channelMarker
@@ -830,7 +836,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 if (curSprite && uniforms) {
                     const filter = new PIXI.Filter(undefined, brightnessFilter, uniforms)
                     // Delete sprite filters so they get cleared from memory before adding new ones
+                    if (curSprite.filters && curSprite.filters.length > 0) curSprite.filters[0].destroy()
                     curSprite.filters = null
+                    this.channelFilters[curChannel].matrix = GraphicsHelper.hexToFilterMatrix(channelColor)
                     curSprite.filters = [filter, this.channelFilters[curChannel]]
                     this.stage.addChild(curSprite)
                 }
@@ -996,6 +1004,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 imcData,
                 this.channelLegendVisible,
                 this.channelMarker,
+                this.props.channelColor,
                 this.channelVisibility,
                 this.populationLegendVisible,
                 this.selectedPopulations,
@@ -1145,7 +1154,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         imcData: ImageData | null,
         position: Coordinate | null,
         scale: Coordinate | null,
-        channelMarker: Record<ChannelName, string | null>,
+        channelMarker: ChannelMarkerMapping,
+        channelColor: ChannelColorMapping,
         channelDomain: Record<ChannelName, [number, number]>,
         channelVisibility: Record<ChannelName, boolean>,
         segmentationData: SegmentationData | null,
@@ -1212,7 +1222,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // For each channel setting the brightness and color filters
         for (const s of ImageChannels) {
             const curChannel = s as ChannelName
-            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, channelDomain)
+            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
         }
 
         //Load segmentation graphics
@@ -1268,6 +1278,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             mChannel: this.props.channelMarker.mChannel,
             yChannel: this.props.channelMarker.yChannel,
             kChannel: this.props.channelMarker.kChannel,
+        }
+
+        const channelColor = {
+            rChannel: this.props.channelColor.rChannel,
+            gChannel: this.props.channelColor.gChannel,
+            bChannel: this.props.channelColor.bChannel,
+            cChannel: this.props.channelColor.cChannel,
+            mChannel: this.props.channelColor.mChannel,
+            yChannel: this.props.channelColor.yChannel,
+            kChannel: this.props.channelColor.kChannel,
         }
 
         const channelDomain = {
@@ -1341,6 +1361,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     position,
                                     scale,
                                     channelMarker,
+                                    channelColor,
                                     channelDomain,
                                     channelVisibility,
                                     segmentationData,

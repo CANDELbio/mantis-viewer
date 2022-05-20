@@ -11,14 +11,14 @@ import {
     generateSelectOptions,
     onSelectChange,
 } from '../../lib/SelectUtils'
-import { ChannelMarkerMapping } from '../../interfaces/ImageInterfaces'
+import { ChannelMappings } from '../../interfaces/ImageInterfaces'
 
 export interface ChannelMappingControlsProps {
     selectedChannelMapping: string | null
-    channelMarkerMappings: Record<string, ChannelMarkerMapping>
-    saveChannelMarkerMapping: (name: string) => void
-    deleteChannelMarkerMapping: (name: string) => void
-    loadChannelMarkerMapping: (name: string) => void
+    channelMappings: ChannelMappings
+    saveChannelMapping: (name: string) => void
+    deleteChannelMapping: (name: string) => void
+    loadChannelMapping: (name: string) => void
     iconStyle?: object
 }
 
@@ -38,11 +38,19 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
         popoverOpen: false,
     }
 
+    public static getDerivedStateFromProps(
+        props: ChannelMappingControlsProps,
+        state: ChannelMappingControlsState,
+    ): ChannelMappingControlsState | null {
+        const mappingName = props.selectedChannelMapping ? props.selectedChannelMapping : ''
+        return { channelMappingName: mappingName, popoverOpen: state.popoverOpen }
+    }
+
     private onDelete = (): void => {
         const selectedMappingName = this.props.selectedChannelMapping
         if (selectedMappingName) {
             this.setState({ channelMappingName: '' })
-            this.props.deleteChannelMarkerMapping(selectedMappingName)
+            this.props.deleteChannelMapping(selectedMappingName)
         }
     }
 
@@ -54,22 +62,18 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
         const mappingName = this.state.channelMappingName
             ? this.state.channelMappingName
             : this.props.selectedChannelMapping
-        if (mappingName) this.props.saveChannelMarkerMapping(mappingName)
+        if (mappingName) this.props.saveChannelMapping(mappingName)
     }
 
     private onSelectedMappingChange = (channelMappingName: string): void => {
         this.setState({ channelMappingName: channelMappingName })
-        this.props.loadChannelMarkerMapping(channelMappingName)
-    }
-
-    public componentWillReceiveProps = (props: ChannelMappingControlsProps): void => {
-        if (props.selectedChannelMapping) this.setState({ channelMappingName: props.selectedChannelMapping })
+        this.props.loadChannelMapping(channelMappingName)
     }
 
     private togglePopover = (): void => this.setState({ popoverOpen: !this.state.popoverOpen })
 
     public render(): React.ReactNode {
-        const channelMappingNames = Object.keys(this.props.channelMarkerMappings)
+        const channelMappingNames = Object.keys(this.props.channelMappings)
         const selectedMappingName = this.props.selectedChannelMapping
 
         // Sorts the images in a human readable order (numbers first, numbers in number line order)

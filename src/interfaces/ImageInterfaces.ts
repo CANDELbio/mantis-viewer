@@ -44,3 +44,9 @@ export interface RGBColorCollection {
 export type ChannelMarkerMapping = {
     [key in ChannelName]: string | null
 }
+
+export type ChannelColorMapping = {
+    [key in ChannelName]: number
+}
+
+export type ChannelMappings = Record<string, { markers: ChannelMarkerMapping; colors: ChannelColorMapping }>

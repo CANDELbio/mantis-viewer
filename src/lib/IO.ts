@@ -6,8 +6,8 @@ import log from 'electron-log'
 
 import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
-import { ChannelMarkerMapping, MinMax } from '../interfaces/ImageInterfaces'
-import { ChannelName, ImageChannels } from '../definitions/UIDefinitions'
+import { ChannelMappings, MinMax } from '../interfaces/ImageInterfaces'
+import { ChannelName, ImageChannels, ChannelColorMap } from '../definitions/UIDefinitions'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -266,43 +266,48 @@ export function parseSegmentDataCSV(
     }
 }
 
-export function parseChannelMarkerMappingCSV(filename: string): Record<string, ChannelMarkerMapping> {
+export function parseChannelMarkerMappingCSV(filename: string): ChannelMappings {
     const input = fs.readFileSync(filename, 'utf8')
 
-    const mappings: Record<string, ChannelMarkerMapping> = {}
+    const mappings: ChannelMappings = {}
     const records: string[][] = parseCSV(input, { columns: false })
 
     for (const row of records) {
         const mappingName = row[0]
         const channelName = row[1] as ChannelName
         const markerName = row[2]
+        const channelColor = Number(row[3])
         // Check to make sure imageSetName is not empty, segmentId is a proper number and populationName is not empty.
         if (mappingName && channelName && markerName) {
             if (!(mappingName in mappings))
                 mappings[mappingName] = {
-                    rChannel: null,
-                    gChannel: null,
-                    bChannel: null,
-                    cChannel: null,
-                    mChannel: null,
-                    yChannel: null,
-                    kChannel: null,
+                    markers: {
+                        rChannel: null,
+                        gChannel: null,
+                        bChannel: null,
+                        cChannel: null,
+                        mChannel: null,
+                        yChannel: null,
+                        kChannel: null,
+                    },
+                    colors: ChannelColorMap,
                 }
-            mappings[mappingName][channelName] = markerName
+            mappings[mappingName].markers[channelName] = markerName
+            if (!Number.isNaN(channelColor)) mappings[mappingName].colors[channelName] = channelColor
         }
     }
 
     return mappings
 }
 
-export function writeChannelMarkerMappingsCSV(mappings: Record<string, ChannelMarkerMapping>, filename: string): void {
+export function writeChannelMarkerMappingsCSV(mappings: ChannelMappings, filename: string): void {
     const output: string[][] = []
     for (const name in mappings) {
         const curMapping = mappings[name]
-        for (const s in curMapping) {
-            const curChannel = s as ChannelName
-            const channelMarker = curMapping[curChannel]
-            if (channelMarker) output.push([name, curChannel, channelMarker])
+        for (const curChannel of ImageChannels) {
+            const channelMarker = curMapping.markers[curChannel]
+            const channelColor = curMapping.colors[curChannel]?.toString()
+            if (channelMarker) output.push([name, curChannel, channelMarker, channelColor])
         }
     }
     writeToCSV(output, filename, null)
