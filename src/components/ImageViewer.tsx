@@ -81,7 +81,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private blurPixels: boolean | undefined
 
     // Color filters to use so that the sprites display as the desired color
-    private channelFilters: Record<ChannelName, ColorMatrixFilter>
+    private channelColorFilters: Record<ChannelName, ColorMatrixFilter>
+    private channelBrightnessFilters: Record<ChannelName, PIXI.Filter>
 
     // The actual width and height of the stage
     private rendererWidth: number
@@ -239,7 +240,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         blackFilter.matrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
         blackFilter.blendMode = PIXI.BLEND_MODES.ADD
 
-        this.channelFilters = {
+        this.channelColorFilters = {
             rChannel: redFilter,
             gChannel: greenFilter,
             bChannel: blueFilter,
@@ -247,6 +248,16 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             mChannel: magentaFilter,
             yChannel: yellowFilter,
             kChannel: blackFilter,
+        }
+
+        this.channelBrightnessFilters = {
+            rChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            gChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            bChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            cChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            mChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            yChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
+            kChannel: new PIXI.Filter(undefined, brightnessFilter, { transformMin: 0, transformMax: 1 }),
         }
 
         this.channelMarker = {
@@ -829,22 +840,28 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     ): void {
         const imcData = this.imageData
         if (imcData) {
-            const channelMarker = this.channelMarker
+            const brightnessFilters = this.channelBrightnessFilters
             const curSprite = this.channelSprite[curChannel]
             if (curSprite) {
-                const uniforms = GraphicsHelper.generateBrightnessFilterUniforms(
-                    curChannel,
-                    imcData,
-                    channelMarker,
-                    channelDomain,
-                )
-                if (curSprite && uniforms) {
-                    const filter = new PIXI.Filter(undefined, brightnessFilter, uniforms)
-                    // Delete sprite filters so they get cleared from memory before adding new ones
-                    if (curSprite.filters && curSprite.filters.length > 0) curSprite.filters[0].destroy()
+                if (curSprite) {
                     curSprite.filters = null
-                    this.channelFilters[curChannel].matrix = GraphicsHelper.hexToFilterMatrix(channelColor)
-                    curSprite.filters = [filter, this.channelFilters[curChannel]]
+
+                    const curBrightnessFilter = brightnessFilters[curChannel]
+                    const brightnessFilterUniforms = GraphicsHelper.generateBrightnessFilterUniforms(
+                        curChannel,
+                        imcData,
+                        this.channelMarker,
+                        channelDomain,
+                    )
+                    if (brightnessFilterUniforms) {
+                        curBrightnessFilter.uniforms.transformMin = brightnessFilterUniforms.transformMin
+                        curBrightnessFilter.uniforms.transformMax = brightnessFilterUniforms.transformMax
+                    }
+
+                    const curColorFilter = this.channelColorFilters[curChannel]
+                    curColorFilter.matrix = GraphicsHelper.hexToFilterMatrix(channelColor)
+
+                    curSprite.filters = [curBrightnessFilter, curColorFilter]
                     this.stage.addChild(curSprite)
                 }
             }
@@ -1225,9 +1242,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.setChannelMarkerAndSprite(channelMarker)
         this.channelVisibility = channelVisibility
         // For each channel setting the brightness and color filters
-        for (const s of ImageChannels) {
-            const curChannel = s as ChannelName
-            if (channelVisibility[s]) this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
+        for (const curChannel of ImageChannels) {
+            if (channelVisibility[curChannel])
+                this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
         }
 
         //Load segmentation graphics

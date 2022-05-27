@@ -89,7 +89,7 @@ export function generateBrightnessFilterUniforms(
     imcData: ImageData,
     channelMarker: Record<ChannelName, string | null>,
     channelDomain: Record<ChannelName, [number, number]>,
-): Record<string, number> | null {
+): { transformMin: number; transformMax: number } | null {
     const curChannelDomain = channelDomain[channelName]
 
     // Get the max value for the given channel.
