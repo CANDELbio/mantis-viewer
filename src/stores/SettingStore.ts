@@ -19,11 +19,13 @@ import {
     DefaultDotSize,
     DefaultSegmentOutlineAlpha,
     DefaultSegmentFillAlpha,
+    DefaultSelectedRegionAlpha,
     DefaultNumHistogramBins,
     PlotStatisticOptions,
     PlotTransformOptions,
     PlotTypeOptions,
     PlotNormalizationOptions,
+    MinZoomCoefficient,
 } from '../definitions/UIDefinitions'
 import { ProjectStore } from './ProjectStore'
 import { MinMax, ChannelMappings, ChannelMarkerMapping, ChannelColorMapping } from '../interfaces/ImageInterfaces'
@@ -61,6 +63,7 @@ type SettingStoreData = {
     plotHiddenPopulations?: string[]
     segmentationFillAlpha?: number | null
     segmentationOutlineAlpha?: number | null
+    selectedRegionAlpha?: number | null
     segmentationCentroidsVisible?: boolean | null
     channelLegendVisible?: boolean | null
     populationLegendVisible?: boolean | null
@@ -68,6 +71,7 @@ type SettingStoreData = {
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
+    zoomCoefficient?: number
 }
 
 export class SettingStore {
@@ -119,9 +123,12 @@ export class SettingStore {
     // Saves ChannelMappings with names so that the user can quickly switch between different mappings.
     @observable public channelMappings: ChannelMappings
 
+    @observable public zoomCoefficient: number
+
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
     @observable public segmentationOutlineAlpha: number
+    @observable public selectedRegionAlpha: number
 
     // Plot settings below
     // Selected plot features to be copied
@@ -199,6 +206,7 @@ export class SettingStore {
 
         this.segmentationFillAlpha = DefaultSegmentFillAlpha
         this.segmentationOutlineAlpha = DefaultSegmentOutlineAlpha
+        this.selectedRegionAlpha = DefaultSelectedRegionAlpha
 
         this.channelLegendVisible = true
         this.populationLegendVisible = false
@@ -210,6 +218,8 @@ export class SettingStore {
         this.channelDomainValue = this.projectStore.preferencesStore.getChannelDomainPercentage()
         this.markerDomainValue = {}
         this.channelMappings = {}
+
+        this.zoomCoefficient = MinZoomCoefficient
     }
 
     @action public setBasePath = (path: string): void => {
@@ -326,6 +336,14 @@ export class SettingStore {
 
     @action public setSegmentationOutlineAlpha = (alpha: number): void => {
         this.segmentationOutlineAlpha = alpha
+    }
+
+    @action public setSelectedRegionAlpha = (alpha: number): void => {
+        this.selectedRegionAlpha = alpha
+    }
+
+    @action public setZoomCoefficient = (value: number): void => {
+        this.zoomCoefficient = value
     }
 
     @action public setChannelLegendVisible = (visible: boolean): void => {
@@ -699,12 +717,14 @@ export class SettingStore {
                 plotHiddenPopulations: toJS(this.plotHiddenPopulations),
                 segmentationFillAlpha: this.segmentationFillAlpha,
                 segmentationOutlineAlpha: this.segmentationOutlineAlpha,
+                selectedRegionAlpha: this.selectedRegionAlpha,
                 channelLegendVisible: this.channelLegendVisible,
                 populationLegendVisible: this.populationLegendVisible,
                 featureLegendVisible: this.featureLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
+                zoomCoefficient: this.zoomCoefficient,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -763,6 +783,8 @@ export class SettingStore {
                     this.segmentationFillAlpha = importingSettings.segmentationFillAlpha
                 if (importingSettings.segmentationOutlineAlpha)
                     this.segmentationOutlineAlpha = importingSettings.segmentationOutlineAlpha
+                if (importingSettings.selectedRegionAlpha)
+                    this.selectedRegionAlpha = importingSettings.selectedRegionAlpha
                 if (importingSettings.channelLegendVisible != null)
                     this.channelLegendVisible = importingSettings.channelLegendVisible
                 if (importingSettings.populationLegendVisible != null)
@@ -774,6 +796,7 @@ export class SettingStore {
                 if (importingSettings.transformCoefficient)
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
+                if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
             } catch (e) {
                 log.error('Error importing settings from db:')
                 log.error(e)

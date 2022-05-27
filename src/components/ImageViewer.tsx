@@ -11,15 +11,15 @@ import { ImageData } from '../lib/ImageData'
 import {
     ImageChannels,
     ChannelName,
-    SelectedRegionAlpha,
-    HighlightedSelectedRegionAlpha,
     ImageViewerHeightPadding,
     SegmentOutlineColor,
     PlotTransform,
+    DefaultSelectedRegionAlpha,
+    MinZoomCoefficient,
 } from '../definitions/UIDefinitions'
 import { SegmentationData } from '../lib/SegmentationData'
 import * as GraphicsHelper from '../lib/GraphicsUtils'
-import { randomHexColor } from '../lib/ColorHelper'
+import { randomHexColor, highlightColor } from '../lib/ColorHelper'
 import { SelectedPopulation } from '../stores/PopulationStore'
 import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
 import { Line } from '../lib/pixi/Line'
@@ -32,11 +32,13 @@ export interface ImageProps {
     imageData: ImageData | null
     segmentationData: SegmentationData | null
     segmentationFillAlpha: number
+    selectedRegionAlpha: number
     segmentOutlineAttributes: SegmentOutlineAttributes | null
     channelDomain: Record<ChannelName, [number, number]>
     channelVisibility: Record<ChannelName, boolean>
     channelMarker: ChannelMarkerMapping
     channelColor: ChannelColorMapping
+    zoomCoefficient: number
     positionAndScale: { position: Coordinate; scale: Coordinate } | null
     setPositionAndScale: (position: Coordinate, scale: Coordinate) => void
     selectedPopulations: SelectedPopulation[]
@@ -89,6 +91,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     // The minimum scale for zooming. Based on the fixed width/image width
     private minScale: number
+    private zoomCoefficient: number
 
     // Segmentation data stored locally for two reasons:
     // 1) Calculation of segments/centroids in selected regions
@@ -99,6 +102,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private segmentationOutlines: Line
     private segmentationFillSprite: PIXI.Sprite | null
     private highlightedSegmentGraphics: PIXI.Graphics
+    private selectedRegionAlpha: number
 
     // Selected Populations stored locally for rendering the population names on the legend.
     private selectedPopulations: SelectedPopulation[]
@@ -263,6 +267,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.mousedOverSegmentsFromImage = []
         this.segmentFeaturesForLegend = {}
         this.segmentPopulationsForLegend = []
+
+        this.selectedRegionAlpha = DefaultSelectedRegionAlpha
+        this.zoomCoefficient = MinZoomCoefficient
     }
 
     private removeWebGLContextLostListener = (el: HTMLDivElement): void => {
@@ -379,7 +386,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Only zoom if the user is zooming on the image
         if (this.positionInBounds(beforeTransform)) {
             const direction = isZoomIn ? 1 : -1
-            const factor = 1 + direction * 0.05
+            const factor = 1 + direction * this.zoomCoefficient
             this.stage.scale.x *= factor
             this.stage.scale.y *= factor
 
@@ -542,7 +549,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 selectionGraphics,
                 state.selection,
                 state.selectionColor,
-                SelectedRegionAlpha,
+                this.selectedRegionAlpha,
             )
 
             this.resizeStaticGraphics(selectionGraphics)
@@ -568,7 +575,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 for (const selectedPopulation of this.selectedPopulations) {
                     const regionGraphics = this.selectedPopulationRegionSprites[selectedPopulation.id]
                     if (selectedPopulation.visible && regionGraphics != null) {
-                        regionGraphics.alpha = SelectedRegionAlpha
+                        regionGraphics.alpha = this.selectedRegionAlpha
                         stage.addChild(regionGraphics)
                     }
                 }
@@ -942,15 +949,15 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 if (selectedPopulation.visible) {
                     const populationId = selectedPopulation.id
                     // Set the alpha correctly for regions that need to be highlighted
-                    let populationAlpha = SelectedRegionAlpha
+                    let populationColor = selectedPopulation.color
                     if (highlightedPopulations.indexOf(populationId) > -1) {
-                        populationAlpha = HighlightedSelectedRegionAlpha
+                        populationColor = highlightColor(populationColor)
                     }
 
                     const regionGraphics = this.selectedPopulationRegionSprites[populationId]
                     if (regionGraphics != null) {
-                        regionGraphics.alpha = populationAlpha
-                        regionGraphics.tint = selectedPopulation.color
+                        regionGraphics.alpha = this.selectedRegionAlpha
+                        regionGraphics.tint = populationColor
                         this.stage.addChild(regionGraphics)
                     }
                 }
@@ -1327,6 +1334,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         const highlightedPopulations = this.props.highlightedPopulations
 
         const highlightedSegments = this.props.highlightedSegments
+
+        this.zoomCoefficient = this.props.zoomCoefficient
+        this.selectedRegionAlpha = this.props.selectedRegionAlpha
 
         const mousedOverSegmentsFromImage = this.props.mousedOverSegmentsFromImage
         const segmentFeaturesInLegend = this.props.segmentFeaturesInLegend

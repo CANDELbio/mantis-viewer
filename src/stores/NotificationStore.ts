@@ -13,9 +13,6 @@ export class NotificationStore {
     // Message to be shown if the user is being prompted to delete the active image set.
     @observable public removeMessage: string | null
 
-    // Gets set to true when the user requests to clear segmentation so that we can ask to confirm.
-    @observable public clearSegmentationRequested: boolean
-
     // Used to track progress when exporting FCS/Stats for whole project
     // or when calculating features for whole project
     @observable public numToCalculate: number
@@ -60,7 +57,6 @@ export class NotificationStore {
     }
 
     @action public initialize = (): void => {
-        this.clearSegmentationRequested = false
         this.numToCalculate = 0
         this.numCalculated = 0
         this.projectSegmentFeaturesCalculating = false
@@ -98,10 +94,6 @@ export class NotificationStore {
 
     @action public clearRemoveMessage = (): void => {
         this.removeMessage = null
-    }
-
-    @action public setClearSegmentationRequested = (value: boolean): void => {
-        this.clearSegmentationRequested = value
     }
 
     @action public setChooseSegFeaturesModal = (value: segFeatureChoice): void => {

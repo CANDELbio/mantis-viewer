@@ -87,8 +87,7 @@ export const MainPlotHeightPadding = 430 // Amount of padding above and below th
 export const ExternalPlotHeightPadding = 80 // Amount of padding above and below the plot in the external window.
 export const SelectedPopulationsTableHeight = 200 // Height of the selected populations table
 export const MainWindowBottomHeight = 150
-export const SelectedRegionAlpha = 0.4
-export const HighlightedSelectedRegionAlpha = 0.6
+export const DefaultSelectedRegionAlpha = 0.4
 export const SelectedSegmentOutlineAlpha = 0.7
 export const HighlightedSelectedSegmentOutlineAlpha = 1.0
 export const SegmentOutlineWidth = 1.0 // For all segments
@@ -102,7 +101,5 @@ export const PlotMaxDotSize = 10
 export const DefaultNumHistogramBins = 100
 export const PlotMinNumHistogramBins = 20
 export const PlotMaxNumHistogramBins = 250
-
-// Combined height of the leftmost panel when channel and segmentation are both open.
-// If this ends up being different on different OSes or we are restyling often, might be better to use sizeme instead
-export const ChannelControlsCombinedHeight = 1375
+export const MinZoomCoefficient = 0.05
+export const MaxZoomCoefficient = 0.6

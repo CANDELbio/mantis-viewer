@@ -489,14 +489,6 @@ Mobx.autorun((): void => {
     }
 })
 
-Mobx.autorun((): void => {
-    const notificationStore = projectStore.notificationStore
-    if (notificationStore.clearSegmentationRequested) {
-        ipcRenderer.send('mainWindow-show-remove-segmentation-dialog')
-        notificationStore.setClearSegmentationRequested(false)
-    }
-})
-
 // Update the main thread on whether or not an image store with image data loaded is selected.
 Mobx.autorun((): void => {
     ipcRenderer.send('set-image-loaded', projectStore.imageSetPaths.length > 0)

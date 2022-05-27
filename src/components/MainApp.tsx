@@ -11,7 +11,6 @@ import { ProjectStore } from '../stores/ProjectStore'
 import {
     ChannelName,
     MainPlotHeightPadding,
-    ChannelControlsCombinedHeight,
     ImageChannels,
     SelectedPopulationsTableHeight,
     MainWindowBottomHeight,
@@ -59,23 +58,17 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     // Reverse ImageChannels so that select order is RGBCMYK
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
-    private notEnoughSpaceForChannelAndControls = (): boolean => {
-        const windowHeight = this.props.projectStore.windowHeight
-        if (windowHeight && windowHeight < ChannelControlsCombinedHeight) return true
-        return false
-    }
-
     // If opening channels, close image controls
     private handleChannelClick = (): void => {
         const newChannelsOpenValue = !this.state.channelsOpen
         this.setState({ channelsOpen: newChannelsOpenValue })
-        if (newChannelsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ controlsOpen: false })
+        if (newChannelsOpenValue) this.setState({ controlsOpen: false })
     }
     // If opening image controls, close channels
     private handleControlsClick = (): void => {
         const newControlsOpenValue = !this.state.controlsOpen
         this.setState({ controlsOpen: newControlsOpenValue })
-        if (newControlsOpenValue && this.notEnoughSpaceForChannelAndControls()) this.setState({ channelsOpen: false })
+        if (newControlsOpenValue) this.setState({ channelsOpen: false })
     }
     private handleRegionsClick = (): void => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
@@ -100,16 +93,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             if (minmax) return imageStore.imageData.minmax[channelMarker].max
         }
         return 100
-    }
-
-    public static getDerivedStateFromProps(props: MainAppProps, state: MainAppState): Partial<MainAppState> | null {
-        const windowHeight = props.projectStore.windowHeight
-        // If window height is defined, and we are now too short for both image controls and channels to be open, close controls.
-        if (windowHeight && windowHeight < ChannelControlsCombinedHeight && state.channelsOpen && state.controlsOpen)
-            return {
-                controlsOpen: false,
-            }
-        return null
     }
 
     componentDidCatch(): void {
@@ -199,11 +182,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         imageData={imageStore.imageData}
                         segmentationData={segmentationStore.segmentationData}
                         segmentationFillAlpha={settingStore.segmentationFillAlpha}
+                        selectedRegionAlpha={settingStore.selectedRegionAlpha}
                         segmentOutlineAttributes={segmentationStore.outlineAttributes}
                         channelDomain={imageStore.channelDomain}
                         channelVisibility={settingStore.channelVisibility}
                         channelColor={settingStore.channelColor}
                         channelMarker={settingStore.channelMarker}
+                        zoomCoefficient={settingStore.zoomCoefficient}
                         positionAndScale={settingStore.activePositionAndScale}
                         setPositionAndScale={settingStore.setActivePositionAndScale}
                         addSelectedPopulation={populationStore.createPopulationFromPixels}
@@ -292,9 +277,10 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}
                         onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
-                        onClearSegmentation={(): void => {
-                            notificationStore.setClearSegmentationRequested(true)
-                        }}
+                        regionAlpha={settingStore.selectedRegionAlpha}
+                        onRegionAlphaChange={settingStore.setSelectedRegionAlpha}
+                        zoomCoefficient={settingStore.zoomCoefficient}
+                        onZoomCoefficientChange={settingStore.setZoomCoefficient}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         setZoomInsetVisible={settingStore.setZoomInsetVisible}
                         channelLegendVisible={settingStore.channelLegendVisible}

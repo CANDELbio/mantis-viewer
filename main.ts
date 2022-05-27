@@ -418,6 +418,33 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                     ],
                 },
                 {
+                    label: 'Clear',
+                    submenu: [
+                        {
+                            label: 'Segmentation',
+                            enabled: imageLoaded && segmentationLoaded,
+                            click: (): void => {
+                                if (mainWindow != null) {
+                                    const message =
+                                        "Warning: Clearing segmentation will delete all segment features from the database and remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
+                                    dialog
+                                        .showMessageBox(mainWindow, {
+                                            type: 'warning',
+                                            message: message,
+                                            buttons: ['No', 'Yes'],
+                                        })
+                                        .then((value: Electron.MessageBoxReturnValue): void => {
+                                            if (value.response == 1) {
+                                                if (mainWindow != null)
+                                                    mainWindow.webContents.send('clear-segmentation')
+                                            }
+                                        })
+                                }
+                            },
+                        },
+                    ],
+                },
+                {
                     label: 'Preferences',
                     click: (): void => {
                         if (preferencesWindow != null) {
@@ -590,7 +617,7 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
         },
     })
 
-    newWindow.setMinimumSize(1540, 860)
+    newWindow.setMinimumSize(1540, 865)
 
     // and load the index.html of the app.
     newWindow.loadURL(
@@ -805,21 +832,6 @@ ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, messag
                     if (mainWindow != null) mainWindow.webContents.send('delete-active-image-set')
                 }
             })
-})
-
-// Show a 'remove image' dialog and tell the main window to remove it if the user approves.
-ipcMain.on('mainWindow-show-remove-segmentation-dialog', (): void => {
-    if (mainWindow != null) {
-        const message =
-            "Warning: Clearing segmentation will delete all segment features from the database and remove any populations that weren't selected on the image for all images. Are you sure you want to do this?"
-        dialog
-            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
-            .then((value: Electron.MessageBoxReturnValue): void => {
-                if (value.response == 1) {
-                    if (mainWindow != null) mainWindow.webContents.send('clear-segmentation')
-                }
-            })
-    }
 })
 
 ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {

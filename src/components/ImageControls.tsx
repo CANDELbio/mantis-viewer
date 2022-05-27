@@ -1,9 +1,10 @@
 import * as React from 'react'
+import * as d3Scale from 'd3-scale'
 import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
-import { Button } from 'reactstrap'
 import * as NumericInput from 'react-numeric-input'
 import * as path from 'path'
+import { MinZoomCoefficient, MaxZoomCoefficient } from '../definitions/UIDefinitions'
 
 export interface ImageControlsProps {
     highlightedSegment: number | null
@@ -11,9 +12,13 @@ export interface ImageControlsProps {
 
     fillAlpha: number
     outlineAlpha: number
+    regionAlpha: number
+    zoomCoefficient: number
 
     onFillAlphaChange: (value: number) => void
     onOutlineAlphaChange: (value: number) => void
+    onRegionAlphaChange: (value: number) => void
+    onZoomCoefficientChange: (value: number) => void
 
     zoomInsetVisible: boolean
     setZoomInsetVisible: (visible: boolean) => void
@@ -29,7 +34,6 @@ export interface ImageControlsProps {
 
     selectedSegmentationFile: string | null
     segmentationLoaded: boolean
-    onClearSegmentation: () => void
 
     autoLoadSegmentation: boolean
     setAutoLoadSegmentation: (value: boolean) => void
@@ -41,12 +45,20 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
         super(props)
     }
 
+    private sliderToZoomScale = d3Scale.scaleLinear().domain([0, 10]).range([MinZoomCoefficient, MaxZoomCoefficient])
+    private zoomToSliderScale = d3Scale.scaleLinear().domain([MinZoomCoefficient, MaxZoomCoefficient]).range([0, 10])
+
     private sliderMax = 10
 
     private onFillAlphaSliderChange = (value: number): void => this.props.onFillAlphaChange(value / this.sliderMax)
 
     private onOutlineAlphaSliderChange = (value: number): void =>
         this.props.onOutlineAlphaChange(value / this.sliderMax)
+
+    private onRegionAlphaSliderChange = (value: number): void => this.props.onRegionAlphaChange(value / this.sliderMax)
+
+    private onZoomAlphaSliderChange = (value: number): void =>
+        this.props.onZoomCoefficientChange(this.sliderToZoomScale(value))
 
     private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
         this.props.setZoomInsetVisible(event.currentTarget.checked)
@@ -69,7 +81,9 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
             : 'No segmentation file loaded'
         return (
             <div style={{ paddingBottom: '10px' }}>
-                <div>Selected Segmentation File</div>
+                <div>
+                    <b>Selected Segmentation File</b>
+                </div>
                 <div>{segmentationFileName}</div>
             </div>
         )
@@ -99,6 +113,19 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     max={this.sliderMax}
                     disabled={!this.props.segmentationLoaded}
                 />
+                Region Fill Alpha
+                <Slider
+                    value={this.props.regionAlpha * this.sliderMax}
+                    onChange={this.onRegionAlphaSliderChange}
+                    max={this.sliderMax}
+                    disabled={!this.props.segmentationLoaded}
+                />
+                Zoom Speed
+                <Slider
+                    value={this.zoomToSliderScale(this.props.zoomCoefficient)}
+                    onChange={this.onZoomAlphaSliderChange}
+                    max={this.sliderMax}
+                />
                 <Checkbox
                     checked={this.props.zoomInsetVisible}
                     label="Show Zoom Inset"
@@ -125,16 +152,6 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     onChange={this.onAutoLoadSegmentationChange}
                 />
                 {this.selectedSegmentationFileLabel()}
-                <div style={{ textAlign: 'center' }}>
-                    <Button
-                        onClick={this.props.onClearSegmentation}
-                        color="danger"
-                        size="sm"
-                        disabled={!this.props.segmentationLoaded}
-                    >
-                        Clear Segmentation
-                    </Button>
-                </div>
             </div>
         )
     }
