@@ -72,6 +72,18 @@ npm run dist-win
 
 When this completes, you should have executables built for Windows in the `dist` directory.
 
+## Creating a New Release
+
+New releases are automatically built on CircleCI and then published to GitHub as drafts. [npm-version](https://docs.npmjs.com/cli/v8/commands/npm-version) is used to bump the version.
+
+For a prerelease version run the following command.
+
+```shell
+npm version prerelease --preid=rc
+```
+
+Preminor, minor, and major releases do not need any additional arguments for npm-version.
+
 ## Technologies
 
 Mantis Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
