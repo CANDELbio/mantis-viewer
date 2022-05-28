@@ -13,6 +13,7 @@ import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } f
 
 import { TiffWriter } from '../lib/TiffWriter'
 import { savePopulationTiffExportLog } from '../lib/IO'
+import { SettingStore } from './SettingStore'
 
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'
@@ -50,13 +51,17 @@ export class PopulationStore {
     @observable public selectedFeatureForNewPopulation: string | null
     @observable public pixelToRegionMapping: Record<string, string[]>
 
+    get settingStore(): SettingStore {
+        return this.imageSetStore.projectStore.settingStore
+    }
+
     @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
         this.selectionsLoading = false
         this.selectedFeatureForNewPopulation = null
         this.pixelToRegionMapping = {}
-        const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
+        const projectBasePath = this.settingStore.basePath
         const imageSetName = this.imageSetStore.name
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
@@ -143,13 +148,15 @@ export class PopulationStore {
         }
     })
 
-    // Automatically refreshes all of the graphics when segmentation data changes
+    // Automatically refreshes all of the graphics when the image becomes the active image
+    // or when the segmentation data changes
     private autoRefreshGraphics = autorun(() => {
         // Refresh all the graphics and selected segments if segmentation has changed
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
         const imageData = this.imageSetStore.imageStore.imageData
-        if (imageData) this.refreshCurrentPopulationGraphics()
+        const activeImageSet = this.imageSetStore.projectStore.activeImageSetStore
+        if (imageData && this.imageSetStore == activeImageSet) this.refreshCurrentPopulationGraphics()
     })
 
     @action private refreshCurrentPopulationGraphics = (): void => {
@@ -177,6 +184,21 @@ export class PopulationStore {
         this.selectedPopulations = this.selectedPopulations.concat(newPopulations)
     }
 
+    // Used to sync population visibility and color across images
+    // Really dirty and hacky way to do this. Long term need to update
+    // the db schema and population store. Doing this for now and will
+    // revisit when adding cross-image populations
+    private syncPopulationWithGlobalAttributes = (population: SelectedPopulation): SelectedPopulation => {
+        const curGlobalAttributes = this.settingStore.globalPopulationAttributes[population.name]
+        if (curGlobalAttributes) {
+            population.color = curGlobalAttributes.color
+            population.visible = curGlobalAttributes.visible
+        } else {
+            this.settingStore.updateGlobalPopulationAttributes(population.name, population.color, population.visible)
+        }
+        return population
+    }
+
     private refreshGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
         const refreshedPopulations = []
         const imageData = this.imageSetStore.imageStore.imageData
@@ -197,7 +219,9 @@ export class PopulationStore {
                     population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
                 }
             }
-            refreshedPopulations.push(population)
+
+            const syncedPopulation = this.syncPopulationWithGlobalAttributes(population)
+            refreshedPopulations.push(syncedPopulation)
         }
         return refreshedPopulations
     }
@@ -449,6 +473,7 @@ export class PopulationStore {
     public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
             const updateFn = (p: SelectedPopulation) => {
+                this.settingStore.updateGlobalPopulationAttributes(p.name, color, p.visible)
                 p.color = color
                 return p
             }
@@ -486,13 +511,14 @@ export class PopulationStore {
     @action public updateSelectedPopulationName = (id: string, newName: string): void => {
         const updateFn = (p: SelectedPopulation) => {
             p.name = newName
-            return p
+            return this.syncPopulationWithGlobalAttributes(p)
         }
         this.updatePopulationById(id, updateFn)
     }
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         const updateFn = (p: SelectedPopulation) => {
+            this.settingStore.updateGlobalPopulationAttributes(p.name, p.color, visible)
             p.visible = visible
             return p
         }

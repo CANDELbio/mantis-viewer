@@ -73,6 +73,7 @@ type SettingStoreData = {
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
+    globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
 }
 
 export class SettingStore {
@@ -152,6 +153,12 @@ export class SettingStore {
     @observable public plotYLogScale: boolean
     @observable public plotHiddenPopulations: string[]
 
+    // Used to sync population visibility and color across images
+    // Really dirty and hacky way to do this. Long term need to update
+    // the db schema and population store. Doing this for now and will
+    // revisit when adding cross-image populations
+    @observable public globalPopulationAttributes: Record<string, { color: number; visible: boolean }>
+
     @action public initialize = (): void => {
         this.basePath = null
         this.db = null
@@ -223,6 +230,8 @@ export class SettingStore {
         this.channelMappings = {}
 
         this.zoomCoefficient = MinZoomCoefficient
+
+        this.globalPopulationAttributes = {}
     }
 
     @action public setBasePath = (path: string): void => {
@@ -679,6 +688,15 @@ export class SettingStore {
         }
     }
 
+    @action public updateGlobalPopulationAttributes = (name: string, color: number, visible: boolean): void => {
+        this.globalPopulationAttributes[name] = { color: color, visible: visible }
+    }
+
+    @action public addToGlobalPopulationAttributes = (name: string, color: number, visible: boolean): void => {
+        if (!this.globalPopulationAttributes[name])
+            this.globalPopulationAttributes[name] = { color: color, visible: visible }
+    }
+
     @computed public get activePositionAndScale(): {
         position: Coordinate
         scale: Coordinate
@@ -733,6 +751,7 @@ export class SettingStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
+                globalPopulationAttributes: this.globalPopulationAttributes,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -807,6 +826,8 @@ export class SettingStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
+                if (importingSettings.globalPopulationAttributes)
+                    this.globalPopulationAttributes = importingSettings.globalPopulationAttributes
             } catch (e) {
                 log.error('Error importing settings from db:')
                 log.error(e)
