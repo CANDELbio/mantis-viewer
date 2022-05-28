@@ -196,12 +196,14 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         highlightedPopulations={populationStore.highlightedPopulations}
                         highlightedSegments={highlightedSegments}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
-                        segmentFeaturesInLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
-                        segmentPopulationsInLegend={populationStore.populationsForMousedOverSegments}
+                        segmentFeaturesForLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
+                        segmentPopulationsForLegend={populationStore.populationsForMousedOverSegments}
+                        regionsForLegend={populationStore.mousedOverRegions}
                         exportPath={imageStore.imageExportFilename}
                         onExportComplete={imageStore.clearImageExportFilePath}
                         channelLegendVisible={settingStore.channelLegendVisible}
                         populationLegendVisible={settingStore.populationLegendVisible}
+                        regionLegendVisible={settingStore.regionLegendVisible}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         featureLegendVisible={settingStore.featureLegendVisible}
                         plotTransform={settingStore.plotTransform}
@@ -288,6 +290,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         populationLegendVisible={settingStore.populationLegendVisible}
                         setPopulationLegendVisible={settingStore.setPopulationLegendVisible}
                         selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
+                        regionLegendVisible={settingStore.regionLegendVisible}
+                        setRegionLegendVisible={settingStore.setRegionLegendVisible}
                         segmentationLoaded={segmentationStore.segmentationData != null}
                         autoLoadSegmentation={settingStore.autoLoadSegmentation}
                         setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}

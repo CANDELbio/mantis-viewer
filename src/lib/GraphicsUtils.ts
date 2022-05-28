@@ -10,6 +10,7 @@ import { SelectedPopulation } from '../stores/PopulationStore'
 import { Line, PointData } from './pixi/Line'
 import { applyTransform } from './plot/Helper'
 import { hexToRGB } from './ColorHelper'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }
@@ -201,6 +202,8 @@ export function drawLegend(
     transformCoefficient: number | null,
     segmentFeaturesForLegend: Record<number, Record<string, number>>,
     segmentPopulationsForLegend: Record<number, string[]>,
+    regionsOnLegend: boolean,
+    regionsForLegend: string[],
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -269,7 +272,7 @@ export function drawLegend(
     if (segmentSummaryOnLegend && mousedOverSegments.length > 0) {
         if (legendText.length > 0) textHeight += spacerHeight
         for (const segmentId of mousedOverSegments) {
-            addText('Segment ' + segmentId, 0xffffff)
+            addText('Hovered: Segment ' + segmentId, 0xffffff)
             // Create population names for populations that the highlighted segment belongs to.
             if (populations != null) {
                 const segmentPopulations = segmentPopulationsForLegend[segmentId]
@@ -296,6 +299,14 @@ export function drawLegend(
                     // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
                     addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
                 }
+            }
+        }
+    } else if (populations != null && regionsOnLegend && regionsForLegend.length > 0) {
+        if (legendText.length > 0) textHeight += spacerHeight
+        addText('Hovered:', 0xffffff)
+        for (const population of populations) {
+            if (regionsForLegend.includes(population.id)) {
+                addText(population.name, population.color)
             }
         }
     }
@@ -357,7 +368,13 @@ export function RGBAtoPixelIndexes(
 }
 
 // Generates a sprite of width and height with the pixels at the passed in indexes set to 100% alpha.
-export async function pixelIndexesToBitmap(indexes: number[], width: number, height: number): Promise<ImageBitmap> {
+// Also builds a set that contains a string of x_y coordinates for pixels in the sprite/region
+export async function processPixelIndexes(
+    indexes: number[],
+    width: number,
+    height: number,
+): Promise<{ bitmap: ImageBitmap; set: Set<string> }> {
+    const set = new Set<string>()
     const canvas = document.createElement('canvas')
 
     canvas.width = width
@@ -370,6 +387,11 @@ export async function pixelIndexesToBitmap(indexes: number[], width: number, hei
         const canvasData = imageData.data
 
         for (const pixelIndex of indexes) {
+            // Convert the pixel index to x, y and add to the set.
+            const x = pixelIndex % width
+            const y = Math.floor(pixelIndex / width)
+            set.add(generatePixelMapKey(x, y))
+
             // Get the index on the canvas by multiplying by 4 (i.e. bitshifting by 2)
             const canvasIndex = pixelIndex << 2
             canvasData[canvasIndex] = 255
@@ -379,8 +401,9 @@ export async function pixelIndexesToBitmap(indexes: number[], width: number, hei
         }
         ctx.putImageData(imageData, 0, 0)
     }
+    const bitmap = await createImageBitmap(canvas)
 
-    return await createImageBitmap(canvas)
+    return { bitmap: bitmap, set: set }
 }
 
 export function drawBackgroundRect(graphics: PIXI.Graphics, width: number, height: number) {

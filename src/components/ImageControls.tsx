@@ -32,6 +32,9 @@ export interface ImageControlsProps {
     featureLegendVisible: boolean
     setFeatureLegendVisible: (visible: boolean) => void
 
+    regionLegendVisible: boolean
+    setRegionLegendVisible: (visible: boolean) => void
+
     selectedSegmentationFile: string | null
     segmentationLoaded: boolean
 
@@ -60,20 +63,11 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
     private onZoomAlphaSliderChange = (value: number): void =>
         this.props.onZoomCoefficientChange(this.sliderToZoomScale(value))
 
-    private onZoomInsetVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setZoomInsetVisible(event.currentTarget.checked)
-
-    private onChannelLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setChannelLegendVisible(event.currentTarget.checked)
-
-    private onPopulationLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setPopulationLegendVisible(event.currentTarget.checked)
-
-    private onFeatureLegendVisibilityChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setFeatureLegendVisible(event.currentTarget.checked)
-
-    private onAutoLoadSegmentationChange = (event: React.FormEvent<HTMLInputElement>): void =>
-        this.props.setAutoLoadSegmentation(event.currentTarget.checked)
+    private onCheckboxChange = (
+        callback: (value: boolean) => void,
+    ): ((event: React.FormEvent<HTMLInputElement>) => void) => {
+        return (event: React.FormEvent<HTMLInputElement>) => callback(event.currentTarget.checked)
+    }
 
     private selectedSegmentationFileLabel(): JSX.Element {
         const segmentationFileName = this.props.selectedSegmentationFile
@@ -129,27 +123,32 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                 <Checkbox
                     checked={this.props.zoomInsetVisible}
                     label="Show Zoom Inset"
-                    onChange={this.onZoomInsetVisibilityChange}
+                    onChange={this.onCheckboxChange(this.props.setZoomInsetVisible)}
                 />
                 <Checkbox
                     checked={this.props.channelLegendVisible}
-                    label="Show Channel Legend"
-                    onChange={this.onChannelLegendVisibilityChange}
+                    label="Show Channels In Legend"
+                    onChange={this.onCheckboxChange(this.props.setChannelLegendVisible)}
                 />
                 <Checkbox
                     checked={this.props.populationLegendVisible}
-                    label="Show Population Legend"
-                    onChange={this.onPopulationLegendVisibilityChange}
+                    label="Show Populations In Legend"
+                    onChange={this.onCheckboxChange(this.props.setPopulationLegendVisible)}
                 />
                 <Checkbox
                     checked={this.props.featureLegendVisible}
-                    label="Show Segment Summary Legend"
-                    onChange={this.onFeatureLegendVisibilityChange}
+                    label="Show Hovered Segment In Legend"
+                    onChange={this.onCheckboxChange(this.props.setFeatureLegendVisible)}
+                />
+                <Checkbox
+                    checked={this.props.regionLegendVisible}
+                    label="Show Hovered Region In Legend"
+                    onChange={this.onCheckboxChange(this.props.setRegionLegendVisible)}
                 />
                 <Checkbox
                     checked={this.props.autoLoadSegmentation}
                     label="Automatically Load Segmentation When Switching Images"
-                    onChange={this.onAutoLoadSegmentationChange}
+                    onChange={this.onCheckboxChange(this.props.setAutoLoadSegmentation)}
                 />
                 {this.selectedSegmentationFileLabel()}
             </div>

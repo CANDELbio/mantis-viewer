@@ -5,7 +5,8 @@ import * as fs from 'fs'
 
 import { ImageSetStore } from './ImageSetStore'
 import { randomHexColor } from '../lib/ColorHelper'
-import { pixelIndexesToBitmap } from '../lib/GraphicsUtils'
+import { processPixelIndexes } from '../lib/GraphicsUtils'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { Db } from '../lib/Db'
 
 import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
@@ -25,6 +26,7 @@ export interface SelectedPopulation {
     color: number
     visible: boolean
     pixelIndexes?: number[]
+    pixelSet?: Set<string>
     // The IDs of the selected segments
     selectedSegments: number[]
     regionBitmap?: ImageBitmap
@@ -39,19 +41,21 @@ export class PopulationStore {
     private imageSetStore: ImageSetStore
     private db: Db
     // Set to true when selected regions are loading from a labeled tiff.
-    @observable.ref selectionsLoading: boolean
+    @observable selectionsLoading: boolean
     // An array of the regions selected.
     @observable.ref public selectedPopulations: SelectedPopulation[]
     // ID of a region to be highlighted. Used when mousing over in list of selected regions.
     @observable.ref public highlightedPopulations: string[]
     // Name of feature selected by user in the selected populations -> create population tooltip for creating a new population from a feature and intensity range.
     @observable public selectedFeatureForNewPopulation: string | null
+    @observable public pixelToRegionMapping: Record<string, string[]>
 
     @action public initialize = (): void => {
         this.selectedPopulations = []
         this.highlightedPopulations = []
         this.selectionsLoading = false
         this.selectedFeatureForNewPopulation = null
+        this.pixelToRegionMapping = {}
         const projectBasePath = this.imageSetStore.projectStore.settingStore.basePath
         const imageSetName = this.imageSetStore.name
         if (projectBasePath) {
@@ -78,6 +82,26 @@ export class PopulationStore {
             }
         }
         return populationsForSegments
+    }
+
+    // Computed function that generates list of regions that are being moused over on the image.
+    @computed get mousedOverRegions(): string[] {
+        const regions = []
+        const imageSetStore = this.imageSetStore
+        const projectStore = imageSetStore.projectStore
+        const mousedOverPixel = projectStore.mousedOverPixel
+
+        if (mousedOverPixel) {
+            for (const population of this.selectedPopulations) {
+                if (
+                    population.pixelSet &&
+                    population.pixelSet.has(generatePixelMapKey(mousedOverPixel.x, mousedOverPixel.y))
+                ) {
+                    regions.push(population.id)
+                }
+            }
+        }
+        return regions
     }
 
     // Automatically imports a region tiff file if it's set on the setting store.
@@ -163,11 +187,9 @@ export class PopulationStore {
                 // If this selection has pixel indexes (i.e. a region selected on the image)
                 if (!population.regionBitmap) {
                     // If no bitmap we want to generate it from the pixel indexes
-                    population.regionBitmap = await pixelIndexesToBitmap(
-                        pixelIndexes,
-                        imageData.width,
-                        imageData.height,
-                    )
+                    const results = await processPixelIndexes(pixelIndexes, imageData.width, imageData.height)
+                    population.regionBitmap = results.bitmap
+                    population.pixelSet = results.set
                 }
                 if (segmentationData && population.selectedSegments.length == 0) {
                     // If segmentation data is loaded, and segments haven't been found

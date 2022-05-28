@@ -50,6 +50,7 @@ export interface ImageProps {
     onExportComplete: () => void
     channelLegendVisible: boolean
     populationLegendVisible: boolean
+    regionLegendVisible: boolean
     featureLegendVisible: boolean
     plotTransform: PlotTransform
     transformCoefficient: number | null
@@ -57,8 +58,9 @@ export interface ImageProps {
     windowHeight: number | null
     onWebGLContextLoss: () => void
     setMousedOverPixel: (location: Coordinate | null) => void
-    segmentFeaturesInLegend: Record<number, Record<string, number>>
-    segmentPopulationsInLegend: Record<number, string[]>
+    segmentFeaturesForLegend: Record<number, Record<string, number>>
+    segmentPopulationsForLegend: Record<number, string[]>
+    regionsForLegend: string[]
     blurPixels: boolean
 }
 
@@ -112,6 +114,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private legendGraphics: PIXI.Graphics
     private channelLegendVisible: boolean
     private populationLegendVisible: boolean
+    private regionLegendVisible: boolean
 
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
@@ -120,6 +123,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private transformCoefficient: number | null
 
     private mousedOverSegmentsFromImage: number[]
+    private regionsForLegend: string[]
     private segmentFeaturesForLegend: Record<number, Record<string, number>>
     private segmentPopulationsForLegend: Record<number, string[]>
 
@@ -210,6 +214,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.initializePIXIGlobals()
         this.channelLegendVisible = false
         this.populationLegendVisible = false
+        this.regionLegendVisible = false
         this.zoomInsetVisible = true
 
         const redFilter = new PIXI.filters.ColorMatrixFilter()
@@ -276,6 +281,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.fullScreen = false
         this.selectedPopulations = []
         this.mousedOverSegmentsFromImage = []
+        this.regionsForLegend = []
         this.segmentFeaturesForLegend = {}
         this.segmentPopulationsForLegend = []
 
@@ -1036,6 +1042,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.transformCoefficient,
                 this.segmentFeaturesForLegend,
                 this.segmentPopulationsForLegend,
+                this.regionLegendVisible,
+                this.regionsForLegend,
             )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -1179,24 +1187,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         channelMarker: ChannelMarkerMapping,
         channelColor: ChannelColorMapping,
         channelDomain: Record<ChannelName, [number, number]>,
-        channelVisibility: Record<ChannelName, boolean>,
         segmentationData: SegmentationData | null,
         segmentOutlineAttributes: SegmentOutlineAttributes | null,
         segmentationFillAlpha: number,
         selectedPopulations: SelectedPopulation[],
         highlightedPopulations: string[],
         highlightedSegments: number[],
-        mousedOverSegmentsFromImage: number[],
-        segmentFeaturesForLegend: Record<number, Record<string, number>>,
-        segmentPopulationsForLegend: Record<number, string[]>,
         exportPath: string | null,
-        channelLegendVisible: boolean,
-        populationLegendVisible: boolean,
-        featureLegendVisible: boolean,
-        plotTransform: PlotTransform,
-        transformCoefficient: number | null,
-        zoomInsetVisible: boolean,
-        blurPixels: boolean,
         parentElementSize: { width: number | null; height: number | null },
         windowHeight: number | null,
     ): void {
@@ -1238,12 +1235,10 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         this.stage.addChild(this.backgroundGraphics)
 
-        this.blurPixels = blurPixels
         this.setChannelMarkerAndSprite(channelMarker)
-        this.channelVisibility = channelVisibility
         // For each channel setting the brightness and color filters
         for (const curChannel of ImageChannels) {
-            if (channelVisibility[curChannel])
+            if (this.channelVisibility[curChannel])
                 this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
         }
 
@@ -1257,26 +1252,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         this.loadHighlightedSegmentGraphics(highlightedSegments)
 
-        if (this.mousedOverSegmentsFromImage != mousedOverSegmentsFromImage) {
-            this.mousedOverSegmentsFromImage = mousedOverSegmentsFromImage
-        }
-
-        if (this.segmentFeaturesForLegend != segmentFeaturesForLegend) {
-            this.segmentFeaturesForLegend = segmentFeaturesForLegend
-        }
-
-        if (this.segmentPopulationsForLegend != segmentPopulationsForLegend) {
-            this.segmentPopulationsForLegend = segmentPopulationsForLegend
-        }
-        // Create the legend for which markers are being displayed
-        this.channelLegendVisible = channelLegendVisible
-        this.populationLegendVisible = populationLegendVisible
-        this.featureLegendVisible = featureLegendVisible
-        this.plotTransform = plotTransform
-        this.transformCoefficient = transformCoefficient
         this.loadLegendGraphics()
-        // Update whether or not the zoom inset is visible and then re-render it
-        this.zoomInsetVisible = zoomInsetVisible
         this.loadZoomInsetGraphics()
 
         // Render everything
@@ -1322,16 +1298,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             kChannel: this.props.channelDomain.kChannel,
         }
 
-        const channelVisibility = {
-            rChannel: this.props.channelVisibility.rChannel,
-            gChannel: this.props.channelVisibility.gChannel,
-            bChannel: this.props.channelVisibility.bChannel,
-            cChannel: this.props.channelVisibility.cChannel,
-            mChannel: this.props.channelVisibility.mChannel,
-            yChannel: this.props.channelVisibility.yChannel,
-            kChannel: this.props.channelVisibility.kChannel,
-        }
-
         const imcData = this.props.imageData
 
         let position: Coordinate | null = null
@@ -1355,23 +1321,33 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.zoomCoefficient = this.props.zoomCoefficient
         this.selectedRegionAlpha = this.props.selectedRegionAlpha
 
-        const mousedOverSegmentsFromImage = this.props.mousedOverSegmentsFromImage
-        const segmentFeaturesInLegend = this.props.segmentFeaturesInLegend
-        const segmentPopulationsInLegend = this.props.segmentPopulationsInLegend
-        const featureLegendVisible = this.props.featureLegendVisible
-
         const exportPath = this.props.exportPath
-
-        const channelLegendVisible = this.props.channelLegendVisible
-        const populationLegendVisible = this.props.populationLegendVisible
-        const plotTransform = this.props.plotTransform
-        const transformCoefficient = this.props.transformCoefficient
-
-        const zoomInsetVisible = this.props.zoomInsetVisible
 
         const blurPixels = this.props.blurPixels
 
         const windowHeight = this.props.windowHeight
+
+        this.channelVisibility = {
+            rChannel: this.props.channelVisibility.rChannel,
+            gChannel: this.props.channelVisibility.gChannel,
+            bChannel: this.props.channelVisibility.bChannel,
+            cChannel: this.props.channelVisibility.cChannel,
+            mChannel: this.props.channelVisibility.mChannel,
+            yChannel: this.props.channelVisibility.yChannel,
+            kChannel: this.props.channelVisibility.kChannel,
+        }
+        this.blurPixels = blurPixels
+        this.channelLegendVisible = this.props.channelLegendVisible
+        this.populationLegendVisible = this.props.populationLegendVisible
+        this.featureLegendVisible = this.props.featureLegendVisible
+        this.regionLegendVisible = this.props.regionLegendVisible
+        this.plotTransform = this.props.plotTransform
+        this.transformCoefficient = this.props.transformCoefficient
+        this.zoomInsetVisible = this.props.zoomInsetVisible
+        this.mousedOverSegmentsFromImage = this.props.mousedOverSegmentsFromImage
+        this.regionsForLegend = this.props.regionsForLegend
+        this.segmentFeaturesForLegend = this.props.segmentFeaturesForLegend
+        this.segmentPopulationsForLegend = this.props.segmentPopulationsForLegend
 
         return (
             <SizeMe>
@@ -1388,24 +1364,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                                     channelMarker,
                                     channelColor,
                                     channelDomain,
-                                    channelVisibility,
                                     segmentationData,
                                     segmentOutlineAttributes,
                                     segmentationFillAlpha,
                                     selectedPopulations,
                                     highlightedPopulations,
                                     highlightedSegments,
-                                    mousedOverSegmentsFromImage,
-                                    segmentFeaturesInLegend,
-                                    segmentPopulationsInLegend,
                                     exportPath,
-                                    channelLegendVisible,
-                                    populationLegendVisible,
-                                    featureLegendVisible,
-                                    plotTransform,
-                                    transformCoefficient,
-                                    zoomInsetVisible,
-                                    blurPixels,
                                     size,
                                     windowHeight,
                                 )
