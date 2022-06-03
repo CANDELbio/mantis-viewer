@@ -68,18 +68,16 @@ export class Plot extends React.Component<PlotProps, PlotState> {
     private parseScatterEvent(data: Plotly.PlotSelectionEvent): number[] {
         const selectedSegments: number[] = []
         if (data != null) {
-            if (data.points != null && data.points.length > 0) {
-                // Take the first data point. If there are multiple populations displayed
-                // plotly will try to return points from those populations even if they
-                // aren't being moused over.
-                const point = data.points[0]
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
-                const pointText = point.text
-                if (pointText) {
-                    const splitText: string[] = pointText.split(' ')
-                    const segmentId = Number(splitText[splitText.length - 1])
-                    if (!selectedSegments.includes(segmentId)) selectedSegments.push(segmentId)
+            if (data.points != null && (data.range || data.lassoPoints)) {
+                for (const point of data.points) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
+                    const pointText = point.text
+                    if (pointText) {
+                        const splitText: string[] = pointText.split(' ')
+                        const segmentId = Number(splitText[splitText.length - 1])
+                        if (!selectedSegments.includes(segmentId)) selectedSegments.push(segmentId)
+                    }
                 }
             }
         }
