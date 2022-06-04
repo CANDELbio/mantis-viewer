@@ -1,13 +1,13 @@
+import * as parseCSV from 'csv-parse/lib/sync'
 import * as stringify from 'csv-stringify'
+import log from 'electron-log'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as parseCSV from 'csv-parse/lib/sync'
-import log from 'electron-log'
 
-import { ImageSetStore } from '../stores/ImageSetStore'
 import { writeToFCS } from './FcsWriter'
-import { ChannelMappings, MinMax } from '../interfaces/ImageInterfaces'
 import { ChannelName, ImageChannels, ChannelColorMap } from '../definitions/UIDefinitions'
+import { ChannelMappings, MinMax } from '../interfaces/ImageInterfaces'
+import { ImageSetStore } from '../stores/ImageSetStore'
 
 export function writeToCSV(data: string[][], filename: string, headerCols: string[] | null): void {
     let csvOptions: stringify.Options = { header: false }
@@ -148,7 +148,7 @@ export function parseActivePopulationCSV(
         if (!isNaN(segmentId) && populationName) {
             if (!(populationName in populations)) populations[populationName] = { segments: [], color: null }
             populations[populationName].segments.push(segmentId)
-            if (populationColor != NaN) populations[populationName].color = populationColor
+            if (!isNaN(populationColor)) populations[populationName].color = populationColor
         }
     }
 
@@ -176,7 +176,7 @@ export function parseProjectPopulationCSV(
             if (!(imageSetName in populations)) populations[imageSetName] = {}
             if (!(populationName in populations[imageSetName]))
                 populations[imageSetName][populationName] = { segments: [], color: null }
-            if (populationColor != NaN) populations[imageSetName][populationName].color = populationColor
+            if (!isNaN(populationColor)) populations[imageSetName][populationName].color = populationColor
             populations[imageSetName][populationName].segments.push(segmentId)
         }
     }

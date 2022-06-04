@@ -1,7 +1,7 @@
-import * as React from 'react'
 import { observer } from 'mobx-react'
-import { Modal, ModalHeader, ModalBody } from 'reactstrap'
+import * as React from 'react'
 import Creatable from 'react-select/creatable'
+import { Modal, ModalHeader, ModalBody } from 'reactstrap'
 import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../../lib/SelectUtils'
 import { SelectedPopulation } from '../../stores/PopulationStore'
 

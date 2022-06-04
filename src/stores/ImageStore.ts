@@ -1,9 +1,9 @@
 import { observable, action, computed } from 'mobx'
 import * as path from 'path'
 
-import { ImageData } from '../lib/ImageData'
-import { ImageChannels, ChannelName } from '../definitions/UIDefinitions'
 import { ImageSetStore } from './ImageSetStore'
+import { ImageChannels, ChannelName } from '../definitions/UIDefinitions'
+import { ImageData } from '../lib/ImageData'
 
 export class ImageStore {
     public constructor(imageSetStore: ImageSetStore) {

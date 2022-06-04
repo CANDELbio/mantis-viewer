@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import * as React from 'react'
-import * as PIXI from 'pixi.js'
 import { ColorMatrixFilter } from '@pixi/filter-color-matrix'
-import * as fs from 'fs'
-import _ from 'underscore'
 import log from 'electron-log'
+import hotkeys from 'hotkeys-js'
 import { observer } from 'mobx-react'
+import * as PIXI from 'pixi.js'
+import { IDestroyOptions } from 'pixi.js'
+import * as React from 'react'
 import { SizeMe } from 'react-sizeme'
-import { ImageData } from '../lib/ImageData'
+import _ from 'underscore'
+import * as fs from 'fs'
 import {
     ImageChannels,
     ChannelName,
@@ -17,16 +18,15 @@ import {
     DefaultSelectedRegionAlpha,
     MinZoomCoefficient,
 } from '../definitions/UIDefinitions'
-import { SegmentationData } from '../lib/SegmentationData'
-import * as GraphicsHelper from '../lib/GraphicsUtils'
-import { randomHexColor, highlightColor } from '../lib/ColorHelper'
-import { SelectedPopulation } from '../stores/PopulationStore'
 import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
-import { Line } from '../lib/pixi/Line'
 import brightnessFilter from '../lib/brightness-filter.glsl'
-import hotkeys from 'hotkeys-js'
+import { randomHexColor, highlightColor } from '../lib/ColorHelper'
+import * as GraphicsHelper from '../lib/GraphicsUtils'
+import { ImageData } from '../lib/ImageData'
+import { Line } from '../lib/pixi/Line'
+import { SegmentationData } from '../lib/SegmentationData'
+import { SelectedPopulation } from '../stores/PopulationStore'
 import { SegmentOutlineAttributes } from '../stores/SegmentationStore'
-import { IDestroyOptions } from 'pixi.js'
 
 export interface ImageProps {
     imageData: ImageData | null

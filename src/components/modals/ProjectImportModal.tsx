@@ -1,8 +1,11 @@
-import * as React from 'react'
+/* eslint-disable no-extra-boolean-cast */
 import { observer } from 'mobx-react'
+import * as React from 'react'
+import { Grid, Row, Col } from 'react-flexbox-grid'
 import Select from 'react-select'
 import { Modal, ModalHeader, ModalBody, Button } from 'reactstrap'
-import { Grid, Row, Col } from 'react-flexbox-grid'
+import * as path from 'path'
+import { FeatureCalculationOption, FeatureCalculationOptions } from '../../definitions/UIDefinitions'
 import {
     SelectStyle,
     SelectTheme,
@@ -11,8 +14,6 @@ import {
     generateSelectOptions,
     onClearableSelectChange,
 } from '../../lib/SelectUtils'
-import { FeatureCalculationOption, FeatureCalculationOptions } from '../../definitions/UIDefinitions'
-import * as path from 'path'
 
 export interface ProjectImportModalProps {
     open: boolean

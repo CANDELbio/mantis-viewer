@@ -1,13 +1,15 @@
-import * as React from 'react'
-import * as _ from 'underscore'
-import { observer } from 'mobx-react'
-import { CompactPicker, ColorResult } from 'react-color'
-import { Popover, PopoverBody } from 'reactstrap'
 import { RangeSlider } from '@blueprintjs/core'
-import Select from 'react-select'
-import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
+import { observer } from 'mobx-react'
+import * as React from 'react'
+import { CompactPicker, ColorResult } from 'react-color'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Badge } from 'reactstrap'
+import { IoMdEye, IoMdEyeOff } from 'react-icons/io'
+import Select from 'react-select'
+import { Popover, PopoverBody, Badge } from 'reactstrap'
+import * as _ from 'underscore'
+import { ChannelName } from '../definitions/UIDefinitions'
+import { MinMax } from '../interfaces/ImageInterfaces'
+import { hexToString } from '../lib/ColorHelper'
 import {
     SelectOption,
     SelectStyle,
@@ -17,9 +19,6 @@ import {
     onClearableSelectChange,
 } from '../lib/SelectUtils'
 import { labelStepSize, stepSize, sliderLabelRendererFunction } from '../lib/SliderUtils'
-import { hexToString } from '../lib/ColorHelper'
-import { MinMax } from '../interfaces/ImageInterfaces'
-import { ChannelName } from '../definitions/UIDefinitions'
 
 export interface ChannelControlsProps {
     channel: ChannelName

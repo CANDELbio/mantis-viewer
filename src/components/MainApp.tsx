@@ -1,13 +1,27 @@
-import * as React from 'react'
 import { observer } from 'mobx-react'
+import * as React from 'react'
+import { ContextMenuTrigger } from 'react-contextmenu'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { Button, Collapse, Spinner } from 'reactstrap'
-import { ContextMenuTrigger } from 'react-contextmenu'
 
+import { ChannelControls } from './ChannelControls'
+import { ImageSelector } from './image-selector/Component'
+import { ImageContextMenu, ImageContextMenuId } from './ImageContextMenu'
+import { ImageControls } from './ImageControls'
+import { ImageMessage } from './ImageMessage'
+import { ImageViewer } from './ImageViewer'
+import { ChooseSegmentFeaturesModal } from './modals/ChooseSegmentFeaturesModal'
+import { LoadingModal } from './modals/LoadingModal'
+import { ProjectImportModal } from './modals/ProjectImportModal'
+import { SegmentPopulationModal } from './modals/SegmentPopulationModal'
+import { ShortcutModal } from './modals/ShortcutModal'
+import { WelcomeModal } from './modals/WelcomeModal'
+import { Plot } from './Plot'
+import { PlotControls } from './PlotControls'
+import { SelectedPopulations } from './populations/SelectedPopulations'
 import bottomBar from '../assets/bottom_bar.png'
 import piciLogo from '../assets/pici_logo.png'
 
-import { ProjectStore } from '../stores/ProjectStore'
 import {
     ChannelName,
     MainPlotHeightPadding,
@@ -15,21 +29,7 @@ import {
     SelectedPopulationsTableHeight,
     MainWindowBottomHeight,
 } from '../definitions/UIDefinitions'
-import { ChannelControls } from './ChannelControls'
-import { ImageViewer } from './ImageViewer'
-import { ImageSelector } from './image-selector/Component'
-import { ImageControls } from './ImageControls'
-import { Plot } from './Plot'
-import { SelectedPopulations } from './populations/SelectedPopulations'
-import { WelcomeModal } from './modals/WelcomeModal'
-import { LoadingModal } from './modals/LoadingModal'
-import { ShortcutModal } from './modals/ShortcutModal'
-import { ProjectImportModal } from './modals/ProjectImportModal'
-import { PlotControls } from './PlotControls'
-import { ImageMessage } from './ImageMessage'
-import { ImageContextMenu, ImageContextMenuId } from './ImageContextMenu'
-import { SegmentPopulationModal } from './modals/SegmentPopulationModal'
-import { ChooseSegmentFeaturesModal } from './modals/ChooseSegmentFeaturesModal'
+import { ProjectStore } from '../stores/ProjectStore'
 
 export interface MainAppProps {
     projectStore: ProjectStore

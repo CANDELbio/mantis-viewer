@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput } from './SegmentFeatureCalculator'
+import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
 import { calculateMean, calculateMedian, calculateNumZero, calculateSum } from '../lib/StatsUtils'
 import { readTiffData } from '../lib/TiffUtils'
 

@@ -1,11 +1,10 @@
 import { when } from 'mobx'
-import { ProjectStore } from './ProjectStore'
+import * as path from 'path'
 import { ImageStore } from './ImageStore'
-import { SegmentationStore } from './SegmentationStore'
 import { PlotStore } from './PlotStore'
 import { PopulationStore } from './PopulationStore'
-
-import * as path from 'path'
+import { ProjectStore } from './ProjectStore'
+import { SegmentationStore } from './SegmentationStore'
 
 export class ImageSetStore {
     public constructor(projectStore: ProjectStore, directory: string) {

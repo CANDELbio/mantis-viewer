@@ -1,12 +1,12 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
+import { ipcRenderer } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { ipcRenderer } from 'electron'
-import { PlotData } from '../interfaces/DataInterfaces'
-import { PlotControls } from '../components/PlotControls'
 import { Plot } from '../components/Plot'
+import { PlotControls } from '../components/PlotControls'
 import { ExternalPlotHeightPadding, PlotStatistic, PlotTransform, PlotType } from '../definitions/UIDefinitions'
+import { PlotData } from '../interfaces/DataInterfaces'
 
 let featureNames: string[]
 let selectedPlotFeatures: string[] | null

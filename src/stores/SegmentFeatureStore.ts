@@ -1,16 +1,15 @@
-import * as path from 'path'
-import * as fs from 'fs'
-
 import { observable, action, autorun, set, get, computed, runInAction } from 'mobx'
 import { computedFn } from 'mobx-utils'
+import * as fs from 'fs'
+import * as path from 'path'
 
-import { SegmentFeatureGenerator } from '../lib/SegmentFeatureGenerator'
-import { Db } from '../lib/Db'
-import { MinMax } from '../interfaces/ImageInterfaces'
-import { ProjectStore } from './ProjectStore'
 import { ImageSetStore } from './ImageSetStore'
-import { parseSegmentDataCSV } from '../lib/IO'
+import { ProjectStore } from './ProjectStore'
 import { PlotStatistic } from '../definitions/UIDefinitions'
+import { MinMax } from '../interfaces/ImageInterfaces'
+import { Db } from '../lib/Db'
+import { parseSegmentDataCSV } from '../lib/IO'
+import { SegmentFeatureGenerator } from '../lib/SegmentFeatureGenerator'
 
 import {
     ImageSetFeatureRequest,

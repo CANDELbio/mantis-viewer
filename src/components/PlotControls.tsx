@@ -1,14 +1,14 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
-import * as React from 'react'
-import Select from 'react-select'
+import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
+import * as React from 'react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { Popover, PopoverBody } from 'reactstrap'
-import { Slider, Checkbox } from '@blueprintjs/core'
 import { IoMdSettings } from 'react-icons/io'
 import * as NumericInput from 'react-numeric-input'
+import Select from 'react-select'
+import { Popover, PopoverBody } from 'reactstrap'
 
 import {
     PlotStatistic,

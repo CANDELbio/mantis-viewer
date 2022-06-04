@@ -207,13 +207,10 @@ export default class LineGeometry extends Geometry {
                 lastPoint = point
             }
 
-            // close the shape...
-            if (true) {
-                this._addPoint(firstPoint, color, session, false)
-                this._addPoint(firstPoint, color, session, false)
-
-                lastPoint = firstPoint
-            }
+            // last point
+            this._addPoint(firstPoint, color, session, false)
+            this._addPoint(firstPoint, color, session, false)
+            lastPoint = firstPoint
 
             shape._size = session.index - shape._start
         }

@@ -1,10 +1,10 @@
-import * as React from 'react'
-import { observer } from 'mobx-react'
 import { TextArea, RangeSlider, Slider, Checkbox } from '@blueprintjs/core'
+import { observer } from 'mobx-react'
+import * as React from 'react'
 import Select from 'react-select'
+import { Input, Label } from 'reactstrap'
 import { ChannelName, ImageChannels, ChannelColorNameMap } from '../definitions/UIDefinitions'
 import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions, generateSelectOptions } from '../lib/SelectUtils'
-import { Input, Label } from 'reactstrap'
 
 export interface PreferencesProps {
     maxImageSetsInMemory: number

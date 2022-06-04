@@ -5,11 +5,11 @@
 const ctx: Worker = self as any
 
 import * as d3Scale from 'd3-scale'
-import * as path from 'path'
 import * as xml2js from 'xml2js'
+import * as path from 'path'
 
-import { MinMax } from '../interfaces/ImageInterfaces'
 import { ImageDataWorkerResult, ImageDataWorkerInput, ImageDataWorkerError } from './ImageDataWorker'
+import { MinMax } from '../interfaces/ImageInterfaces'
 import { readTiffData } from '../lib/TiffUtils'
 
 async function bitmapFromData(
@@ -94,7 +94,9 @@ async function generateMarkerName(
     try {
         const parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
         markerNameFromImageDescription = getMarkerNameFromImageDescription(parsedImageDescription)
-    } catch (error) {}
+    } catch (error) {
+        // Ignore this error
+    }
 
     // Try parsing the image description as JSON string from a mibitiff
     try {
@@ -104,7 +106,9 @@ async function generateMarkerName(
             if ('channel.target' in parsedImageDescription)
                 markerNameFromImageDescription = parsedImageDescription['channel.target']
         }
-    } catch (error) {}
+    } catch (error) {
+        // Ignore this error
+    }
 
     // Set the marker name based on what we found.
     let markerName

@@ -1,11 +1,11 @@
+import log from 'electron-log'
 import { observable, action, autorun, when } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
-import log from 'electron-log'
 import { ProjectStore } from './ProjectStore'
 import { DbFilename } from '../definitions/FileDefinitions'
-import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
 import { FeatureCalculationOption } from '../definitions/UIDefinitions'
+import { parseProjectPopulationCSV, parseSegmentDataCSV } from '../lib/IO'
 
 export class ProjectImportStore {
     private projectStore: ProjectStore

@@ -1,9 +1,9 @@
-import { SegmentationData } from '../SegmentationData'
-import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../stores/PopulationStore'
-import { calculateMean, calculateMedian } from '../StatsUtils'
-import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
+import { PlotStatistic, PlotTransform, PlotNormalization } from '../../definitions/UIDefinitions'
+import { PlotData } from '../../interfaces/DataInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
+import { SegmentationData } from '../SegmentationData'
+import { calculateMean, calculateMedian } from '../StatsUtils'
 
 function normalizeIntensitiesByMarker(intensities: number[][]): number[][] {
     const markerSums: number[] = new Array(intensities[0].length).fill(0)

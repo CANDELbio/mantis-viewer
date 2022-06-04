@@ -1,9 +1,9 @@
-import * as React from 'react'
-import Select from 'react-select'
 import { observer } from 'mobx-react'
-import { Input, Button } from 'reactstrap'
+import * as React from 'react'
 import { IoIosApps } from 'react-icons/io'
-import { Popover, PopoverBody } from 'reactstrap'
+import Select from 'react-select'
+import { Input, Button, Popover, PopoverBody } from 'reactstrap'
+import { ChannelMappings } from '../../interfaces/ImageInterfaces'
 import {
     SelectStyle,
     SelectTheme,
@@ -11,7 +11,6 @@ import {
     generateSelectOptions,
     onSelectChange,
 } from '../../lib/SelectUtils'
-import { ChannelMappings } from '../../interfaces/ImageInterfaces'
 
 export interface ChannelMappingControlsProps {
     selectedChannelMapping: string | null

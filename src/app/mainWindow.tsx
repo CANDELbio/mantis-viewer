@@ -1,15 +1,18 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
+import { ipcRenderer } from 'electron'
+// Importing the log even though it's not used in this file.
+// This makes sure the log is properly wired to the main thread.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import log from 'electron-log'
+import hotkeys from 'hotkeys-js'
+import * as Mobx from 'mobx'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as Mobx from 'mobx'
-import hotkeys from 'hotkeys-js'
-import { ipcRenderer } from 'electron'
 import { MainApp } from '../components/MainApp'
-import { ProjectStore } from '../stores/ProjectStore'
 import { ChannelName } from '../definitions/UIDefinitions'
+import { ProjectStore } from '../stores/ProjectStore'
 // Require electron-log to get main notifications in renderer.
-import log from 'electron-log'
 
 Mobx.configure({ enforceActions: 'always' })
 

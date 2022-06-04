@@ -2,10 +2,10 @@
 //Typescript workaround so that we're interacting with a Worker instead of a Window interface
 const ctx: Worker = self as any
 
-import { Db } from '../lib/Db'
-import { parseSegmentDataCSV } from '../lib/IO'
 import { SegmentFeatureDbRequest, SegmentFeatureDbResult, ImageSetFeatureResult } from './SegmentFeatureDbWorker'
 import { MinMax } from '../interfaces/ImageInterfaces'
+import { Db } from '../lib/Db'
+import { parseSegmentDataCSV } from '../lib/IO'
 
 // Globals to keep db connection
 let basePath: string

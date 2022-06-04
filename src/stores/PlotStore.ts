@@ -1,8 +1,8 @@
 import { observable, action, autorun } from 'mobx'
+import * as _ from 'underscore'
+import { ImageSetStore } from './ImageSetStore'
 import { PlotData } from '../interfaces/DataInterfaces'
 import { generatePlotData } from '../lib/plot/Index'
-import { ImageSetStore } from './ImageSetStore'
-import * as _ from 'underscore'
 
 export class PlotStore {
     public constructor(imageSetStore: ImageSetStore) {

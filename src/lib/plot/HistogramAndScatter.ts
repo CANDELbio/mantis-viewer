@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as Plotly from 'plotly.js'
 
-import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../stores/PopulationStore'
-import { MinMax } from '../../interfaces/ImageInterfaces'
-import { hexToRGB } from '../ColorHelper'
-import { PlotData } from '../../interfaces/DataInterfaces'
 import { buildTraceIdArray, buildSelectedPopulationMap, applyTransform, getTraceName } from './Helper'
-
 import {
     ActiveImageSetTraceColor,
     OtherImageSetsTraceColor,
     OtherImageSetsTraceName,
 } from '../../definitions/PlotDataDefinitions'
+import { PlotTransform, PlotType, DefaultDotSize } from '../../definitions/UIDefinitions'
+import { PlotData } from '../../interfaces/DataInterfaces'
+import { MinMax } from '../../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
+import { hexToRGB } from '../ColorHelper'
 
 // Builds a map of segment id to an array of selection/population ids it belongs to.
 function buildSegmentToPopulationMap(selectedRegion: SelectedPopulation[] | null): { [key: number]: string[] } {

@@ -1,12 +1,12 @@
 // Draws some inspiration from https://github.com/davidctj/react-plotlyjs-ts
 // Might be able to use this in the future or to make this component more React-y
-import * as React from 'react'
 import { observer } from 'mobx-react'
 import * as Plotly from 'plotly.js'
+import * as React from 'react'
 import { SizeMe } from 'react-sizeme'
 
-import { PlotData } from '../interfaces/DataInterfaces'
 import { PlotType } from '../definitions/UIDefinitions'
+import { PlotData } from '../interfaces/DataInterfaces'
 
 interface PlotProps {
     selectedType: PlotType

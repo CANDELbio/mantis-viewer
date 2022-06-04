@@ -1,8 +1,9 @@
-import * as React from 'react'
-import Select from 'react-select'
 import { observer } from 'mobx-react'
+import * as React from 'react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
+import Select from 'react-select'
+import { basename } from 'path'
 import { ChannelMappingControls, ChannelMappingControlsProps } from './ChannelMappingControls'
 import {
     SelectStyle,
@@ -11,7 +12,6 @@ import {
     generateSelectOptions,
     onSelectChange,
 } from '../../lib/SelectUtils'
-import { basename } from 'path'
 
 export interface ImageSelectorProps extends ChannelMappingControlsProps {
     selectedImage: string | null

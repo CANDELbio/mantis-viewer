@@ -1,17 +1,17 @@
-import * as React from 'react'
-import * as _ from 'underscore'
 import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
+import * as React from 'react'
 import { CompactPicker, ColorResult } from 'react-color'
-import { Popover, PopoverBody } from 'reactstrap'
 import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
+import { Popover, PopoverBody } from 'reactstrap'
+import * as _ from 'underscore'
 
-import { hexToString } from '../../lib/ColorHelper'
-import { SelectedPopulation } from '../../stores/PopulationStore'
+import { CreatePopulation } from './CreatePopulation'
 import { PopulationCreationOptions } from '../../definitions/UIDefinitions'
 import { MinMax } from '../../interfaces/ImageInterfaces'
-import { CreatePopulation } from './CreatePopulation'
+import { hexToString } from '../../lib/ColorHelper'
+import { SelectedPopulation } from '../../stores/PopulationStore'
 
 interface SelectedProps {
     updateName: (id: string, name: string) => void

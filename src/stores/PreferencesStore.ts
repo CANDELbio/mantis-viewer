@@ -1,8 +1,7 @@
-import { observable, action, autorun } from 'mobx'
-import { ChannelName } from '../definitions/UIDefinitions'
-import { ProjectStore } from './ProjectStore'
-
 import * as Store from 'electron-store'
+import { observable, action, autorun } from 'mobx'
+import { ProjectStore } from './ProjectStore'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 export class PreferencesStore {
     public constructor(projectStore: ProjectStore) {

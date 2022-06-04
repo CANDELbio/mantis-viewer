@@ -1,10 +1,10 @@
-import * as React from 'react'
 import { observer } from 'mobx-react'
-import { Modal, ModalHeader, ModalBody, Button } from 'reactstrap'
-import Select from 'react-select'
+import * as React from 'react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
-import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../../lib/SelectUtils'
+import Select from 'react-select'
+import { Modal, ModalHeader, ModalBody, Button } from 'reactstrap'
 import { PlotStatisticOptions } from '../../definitions/UIDefinitions'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../../lib/SelectUtils'
 
 export interface ChooseSegmentFeaturesModalProps {
     displayModal: boolean

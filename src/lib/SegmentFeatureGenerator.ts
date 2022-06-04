@@ -1,6 +1,6 @@
-import { SegmentationData } from './SegmentationData'
-import { ImageData } from './ImageData'
 import { Db } from './Db'
+import { ImageData } from './ImageData'
+import { SegmentationData } from './SegmentationData'
 import { AreaStatistic, PlotStatistic } from '../definitions/UIDefinitions'
 import { SegmentFeatureCalculatorInput, SegmentFeatureCalculatorResult } from '../workers/SegmentFeatureCalculator'
 import { submitJob } from '../workers/SegmentFeatureCalculatorPool'

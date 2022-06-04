@@ -1,6 +1,6 @@
-import { Db } from './Db'
-import * as path from 'path'
 import * as fs from 'fs'
+import * as path from 'path'
+import { Db } from './Db'
 
 let db: Db
 

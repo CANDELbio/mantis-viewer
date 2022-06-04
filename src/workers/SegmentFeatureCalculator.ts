@@ -1,5 +1,5 @@
-import { FileInfo } from '../interfaces/ImageInterfaces'
 import { PlotStatistic, AreaStatistic } from '../definitions/UIDefinitions'
+import { FileInfo } from '../interfaces/ImageInterfaces'
 
 export type SegmentFeatureCalculatorInput = SegmentStatisticRequest | SegmentAreaRequest
 

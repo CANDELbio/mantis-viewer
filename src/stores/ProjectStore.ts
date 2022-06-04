@@ -2,10 +2,14 @@ import { observable, action, when, computed } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { SettingStore } from './SettingStore'
-import { PreferencesStore } from './PreferencesStore'
-import { NotificationStore } from './NotificationStore'
 import { ImageSetStore } from './ImageSetStore'
+import { NotificationStore } from './NotificationStore'
+import { PreferencesStore } from './PreferencesStore'
+import { ProjectImportStore } from './ProjectImportStore'
+import { SegmentFeatureStore } from './SegmentFeatureStore'
+import { SettingStore } from './SettingStore'
+import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
+import { Coordinate } from '../interfaces/ImageInterfaces'
 import {
     saveImageExportLog,
     exportMarkerIntensities,
@@ -17,11 +21,7 @@ import {
     writeToCSV,
 } from '../lib/IO'
 
-import { SegmentFeatureStore } from './SegmentFeatureStore'
-import { ProjectImportStore } from './ProjectImportStore'
-import { Coordinate } from '../interfaces/ImageInterfaces'
 import { reverseTransform } from '../lib/plot/Helper'
-import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 
 export class ProjectStore {
     public appVersion: string

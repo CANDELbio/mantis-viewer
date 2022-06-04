@@ -1,12 +1,12 @@
 import { observable, action, autorun, computed } from 'mobx'
-import * as path from 'path'
 import * as fs from 'fs'
+import * as path from 'path'
 
-import { SegmentationData } from '../lib/SegmentationData'
 import { ImageSetStore } from './ImageSetStore'
-import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { SegmentOutlineColor, HighlightedSegmentOutlineColor } from '../../src/definitions/UIDefinitions'
 import { highlightColor } from '../lib/ColorHelper'
+import { SegmentationData } from '../lib/SegmentationData'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 
 export interface SegmentOutlineAttributes {
     colors: number[]

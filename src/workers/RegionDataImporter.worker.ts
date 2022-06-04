@@ -3,8 +3,8 @@
 const ctx: Worker = self as any
 
 import * as parseCSV from 'csv-parse/lib/sync'
-import * as path from 'path'
 import * as fs from 'fs'
+import * as path from 'path'
 
 import { RegionDataImporterInput, RegionDataImporterResult, RegionDataImporterError } from './RegionDataImporter'
 import { readTiffData } from '../lib/TiffUtils'

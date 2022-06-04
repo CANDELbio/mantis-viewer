@@ -1,10 +1,10 @@
 import { buildHeatmapData } from './HeatMap'
 import { buildScatterData, buildHistogramData } from './HistogramAndScatter'
-import { SegmentationData } from '../SegmentationData'
 import { PlotTransform, PlotType, PlotNormalization, PlotStatistic } from '../../definitions/UIDefinitions'
-import { SelectedPopulation } from '../../stores/PopulationStore'
-import { MinMax } from '../../interfaces/ImageInterfaces'
 import { PlotData } from '../../interfaces/DataInterfaces'
+import { MinMax } from '../../interfaces/ImageInterfaces'
+import { SelectedPopulation } from '../../stores/PopulationStore'
+import { SegmentationData } from '../SegmentationData'
 
 // dotSize is optional and only used for Scatter.
 export function generatePlotData(

@@ -1,6 +1,6 @@
+import { observer } from 'mobx-react'
 import * as React from 'react'
 import { ContextMenu, MenuItem } from 'react-contextmenu'
-import { observer } from 'mobx-react'
 
 export interface ImageContextMenuProps {
     segmentIds: number[]

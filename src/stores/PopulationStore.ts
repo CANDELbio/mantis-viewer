@@ -1,19 +1,18 @@
 import { observable, action, autorun, computed } from 'mobx'
 import _ from 'underscore'
-import * as path from 'path'
 import * as fs from 'fs'
+import * as path from 'path'
 
 import { ImageSetStore } from './ImageSetStore'
+import { SettingStore } from './SettingStore'
 import { randomHexColor } from '../lib/ColorHelper'
-import { processPixelIndexes } from '../lib/GraphicsUtils'
-import { generatePixelMapKey } from '../lib/SegmentationUtils'
 import { Db } from '../lib/Db'
-
-import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
+import { processPixelIndexes } from '../lib/GraphicsUtils'
+import { savePopulationTiffExportLog } from '../lib/IO'
+import { generatePixelMapKey } from '../lib/SegmentationUtils'
 
 import { TiffWriter } from '../lib/TiffWriter'
-import { savePopulationTiffExportLog } from '../lib/IO'
-import { SettingStore } from './SettingStore'
+import { importRegionTiff, RegionDataImporterResult, RegionDataImporterError } from '../workers/RegionDataImporter'
 
 // Prefixes for new populations selected from graph or image.
 const GraphPopulationNamePrefix = 'Graph'

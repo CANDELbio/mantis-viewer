@@ -1,7 +1,6 @@
-import { SelectedPopulation } from '../../stores/PopulationStore'
-
 import { ActiveImageSetTraceName, OtherImageSetsTraceName } from '../../definitions/PlotDataDefinitions'
 import { PlotTransform } from '../../definitions/UIDefinitions'
+import { SelectedPopulation } from '../../stores/PopulationStore'
 
 // Builds an array of trace IDs and names for render order
 // The first item in the array gets rendered first (and on the bottom) of the plot.

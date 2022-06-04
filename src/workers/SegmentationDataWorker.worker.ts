@@ -5,20 +5,18 @@ const ctx: Worker = self as any
 
 import * as concaveman from 'concaveman'
 
-import { RGBColorCollection } from '../interfaces/ImageInterfaces'
+import * as fs from 'fs'
+import * as path from 'path'
 import {
     SegmentationDataWorkerInput,
     SegmentationDataWorkerResult,
     SegmentationDataWorkerError,
 } from './SegmentationDataWorker'
-import { Coordinate } from '../interfaces/ImageInterfaces'
-import { readTiffData } from '../lib/TiffUtils'
+import { OptimizedSegmentationSubfolder } from '../definitions/FileDefinitions'
+import { RGBColorCollection, Coordinate } from '../interfaces/ImageInterfaces'
 import { randomRGBColor } from '../lib/ColorHelper'
 import { generatePixelMapKey } from '../lib/SegmentationUtils'
-import { OptimizedSegmentationSubfolder } from '../definitions/FileDefinitions'
-
-import * as path from 'path'
-import * as fs from 'fs'
+import { readTiffData } from '../lib/TiffUtils'
 
 function optimizedSegmentationDirectoryPath(segmentationPath: string): string {
     const segmentationDirectory = path.dirname(segmentationPath)

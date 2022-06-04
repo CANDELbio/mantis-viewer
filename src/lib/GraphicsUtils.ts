@@ -1,16 +1,16 @@
-import * as PIXI from 'pixi.js'
-import * as d3Scale from 'd3-scale'
 import { ColorMatrix } from '@pixi/filter-color-matrix'
+import * as d3Scale from 'd3-scale'
+import * as PIXI from 'pixi.js'
 
-import { SegmentationData } from './SegmentationData'
+import { hexToRGB } from './ColorHelper'
 import { ImageData } from './ImageData'
-import { ChannelName, PlotTransform } from '../definitions/UIDefinitions'
-import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
-import { SelectedPopulation } from '../stores/PopulationStore'
 import { Line, PointData } from './pixi/Line'
 import { applyTransform } from './plot/Helper'
-import { hexToRGB } from './ColorHelper'
+import { SegmentationData } from './SegmentationData'
+import { ChannelName, PlotTransform } from '../definitions/UIDefinitions'
+import { ChannelColorMapping, ChannelMarkerMapping, Coordinate } from '../interfaces/ImageInterfaces'
 import { generatePixelMapKey } from '../lib/SegmentationUtils'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export function imageBitmapToSprite(bitmap: ImageBitmap, blurPixels: boolean): PIXI.Sprite {
     const spriteOptions = { format: PIXI.FORMATS.LUMINANCE, scaleMode: PIXI.SCALE_MODES.LINEAR }

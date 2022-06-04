@@ -1,8 +1,8 @@
+import { ipcRenderer } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { ipcRenderer } from 'electron'
-import { ChannelName } from '../definitions/UIDefinitions'
 import { Preferences } from '../components/Preferences'
+import { ChannelName } from '../definitions/UIDefinitions'
 
 let maxImageSetsInMemory: number
 let blurPixels: boolean

@@ -1,6 +1,6 @@
 import * as sqlite3 from 'better-sqlite3'
-import * as path from 'path'
 import shortId from 'shortid'
+import * as path from 'path'
 
 import { DbFilename } from '../definitions/FileDefinitions'
 import { MinMax } from '../interfaces/ImageInterfaces'

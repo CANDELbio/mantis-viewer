@@ -1,13 +1,10 @@
 // TODO: Would probably be best to refactor this setting store into appropriate existing
 // stores or new stores and then create a util that saves and loads to/from db to
 // the appropriate store
-import { action, autorun, computed, observable, toJS } from 'mobx'
 import log from 'electron-log'
+import { action, autorun, computed, observable, toJS } from 'mobx'
 
-import { ImageStore } from '../stores/ImageStore'
-import { Db } from '../lib/Db'
-import { randomHexColor } from '../lib/ColorHelper'
-import { parseChannelMarkerMappingCSV, writeChannelMarkerMappingsCSV } from '../lib/IO'
+import { ProjectStore } from './ProjectStore'
 import {
     ImageChannels,
     ChannelName,
@@ -27,9 +24,17 @@ import {
     PlotNormalizationOptions,
     MinZoomCoefficient,
 } from '../definitions/UIDefinitions'
-import { ProjectStore } from './ProjectStore'
-import { MinMax, ChannelMappings, ChannelMarkerMapping, ChannelColorMapping } from '../interfaces/ImageInterfaces'
-import { Coordinate } from '../interfaces/ImageInterfaces'
+import {
+    MinMax,
+    ChannelMappings,
+    ChannelMarkerMapping,
+    ChannelColorMapping,
+    Coordinate,
+} from '../interfaces/ImageInterfaces'
+import { randomHexColor } from '../lib/ColorHelper'
+import { Db } from '../lib/Db'
+import { parseChannelMarkerMappingCSV, writeChannelMarkerMappingsCSV } from '../lib/IO'
+import { ImageStore } from '../stores/ImageStore'
 
 type SettingStoreData = {
     activeImageSet?: string | null

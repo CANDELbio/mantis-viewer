@@ -1,7 +1,7 @@
-import * as React from 'react'
 import { observer } from 'mobx-react'
-import { Button, Input } from 'reactstrap'
+import * as React from 'react'
 import Select from 'react-select'
+import { Button, Input } from 'reactstrap'
 
 import { PopulationCreationOptions } from '../../definitions/UIDefinitions'
 import { MinMax } from '../../interfaces/ImageInterfaces'
