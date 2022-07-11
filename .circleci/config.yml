@@ -68,3 +68,7 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - publish_linux:
+        filters:
+          tags:
+            only: /.*/
