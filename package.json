@@ -93,7 +93,7 @@
         "buffer": "^6.0.3",
         "canvas": "^2.9.0",
         "css-loader": "^0.27.3",
-        "electron": "17.1.2",
+        "electron": "17.2.0",
         "electron-builder": "^23.0.8",
         "electron-connect": "^0.6.3",
         "electron-rebuild": "^3.2.7",
