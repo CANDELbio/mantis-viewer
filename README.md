@@ -38,39 +38,33 @@ npm run postinstall
 
 ## Generating executables
 
-### On Mac and Linux
-
-To generate executables you will first need to make sure all dependencies are installed
+To generate executables on all systems, you will first need to make sure all dependencies are installed
 
 ```shell
 npm install
 ```
 
-Once this is done, you can build the application and then package it for distribution.
+Once this is done, you can build and package the application for distribution
+
+Linux:
 
 ```shell
-npm run dist
+npm run dist-linux
 ```
 
-When this completes, you should have executables built for Mac and Linux in the `dist` directory.
-
-### On Windows
-
-To generate executables you will first need to make sure all dependencies are installed. Navigate to the project directory on the command line and run the following command.
+Mac:
 
 ```shell
-npm install
+npm run dist-mac
 ```
 
-If you run into any issues installing packages, you may need to delete the file `package-lock.json` first because the checked in version specifies some Linux/Mac specific package versions.
-
-Once you've done installed the dependencies you can build the application and then package it for distribution.
+Windows:
 
 ```shell
 npm run dist-win
 ```
 
-When this completes, you should have executables built for Windows in the `dist` directory.
+When this completes, you should have executables built in the `dist` directory.
 
 ## Creating a New Release
 
