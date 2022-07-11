@@ -6,7 +6,7 @@ import * as Plotly from 'plotly.js'
 import * as React from 'react'
 import { Grid, Row, Col } from 'react-flexbox-grid'
 import { IoMdSettings } from 'react-icons/io'
-import * as NumericInput from 'react-numeric-input'
+import * as NumericInput from 'react-numeric-input2'
 import Select from 'react-select'
 import { Popover, PopoverBody } from 'reactstrap'
 
@@ -203,8 +203,9 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
             <div>
                 Transform Coefficient
                 <NumericInput
-                    step={4}
+                    step={0.01}
                     precision={2}
+                    min={0.01}
                     value={this.props.transformCoefficient ? this.props.transformCoefficient : undefined}
                     onChange={this.props.setTransformCoefficient}
                     disabled={this.props.selectedTransform == 'none'}

@@ -2,7 +2,7 @@ import { Slider, Checkbox } from '@blueprintjs/core'
 import * as d3Scale from 'd3-scale'
 import { observer } from 'mobx-react'
 import * as React from 'react'
-import * as NumericInput from 'react-numeric-input'
+import * as NumericInput from 'react-numeric-input2'
 import * as path from 'path'
 import { MinZoomCoefficient, MaxZoomCoefficient } from '../definitions/UIDefinitions'
 
@@ -89,6 +89,7 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                 Highlight Segment
                 <NumericInput
                     value={this.props.highlightedSegment ? this.props.highlightedSegment : undefined}
+                    min={0}
                     onChange={this.props.setHighlightedSegment}
                     disabled={!this.props.segmentationLoaded}
                     className="form-control"
