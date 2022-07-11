@@ -44,7 +44,7 @@ jobs: # a basic unit of work in a run
     steps:
       - checkout
       - node/install:
-        node-version: '16.13'
+          node-version: '16.13'
       - run:
           # build our application
           name: Install Dependencies
