@@ -54,7 +54,7 @@ export function applyTransform(
     if (plotTransform == 'arcsinh') {
         result = Math.asinh(result)
     } else if (plotTransform == 'log') {
-        result = Math.log10(result)
+        result = Math.log10(1 + result)
     }
 
     return result
