@@ -1,6 +1,6 @@
 {
     "name": "mantis-viewer",
-    "version": "1.2.2-beta.0",
+    "version": "1.2.2-beta.1",
     "description": "Electron application to visualize multidimensional microscopy data",
     "main": "app/main.js",
     "scripts": {
