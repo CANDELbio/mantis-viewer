@@ -316,6 +316,10 @@ export class ProjectStore {
         this.segmentFeatureStore.deleteAllSegmentFeatures()
     }
 
+    public clearActivePopulations = (): void => {
+        this.activeImageSetStore.populationStore.clearAllPopulations()
+    }
+
     private activeImageSetTiffPath = (): string | null => {
         const activeImagePath = this.activeImageSetPath
         const imageSubdirectory = this.settingStore.imageSubdirectory

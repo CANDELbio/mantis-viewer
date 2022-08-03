@@ -326,6 +326,10 @@ export class PopulationStore {
         }
     }
 
+    @action public clearAllPopulations = (): void => {
+        this.selectedPopulations = []
+    }
+
     @action public highlightSelectedPopulation = (id: string): void => {
         this.highlightedPopulations = this.highlightedPopulations.concat([id])
     }
