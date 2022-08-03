@@ -296,8 +296,12 @@ export function drawLegend(
                         plotTransform,
                         transformCoefficient,
                     )
-                    // Feels silly, but calling to fixed first to round to 4 decimals, then back to number and to string to drop trailing 0s.
-                    addText(segmentFeature + ': ' + Number(segmentFeatureValue.toFixed(4)).toString(), 0xffffff)
+                    const featureValueString = segmentFeatureValue
+                        ? Number(segmentFeatureValue.toFixed(4)).toString()
+                        : 'NA'
+                    // Feels silly, but calling to fixed first to round to 4 decimals,
+                    // then back to number and to string to drop trailing 0s.
+                    addText(segmentFeature + ': ' + featureValueString, 0xffffff)
                 }
             }
         }
