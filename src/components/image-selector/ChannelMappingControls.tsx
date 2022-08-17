@@ -22,6 +22,7 @@ export interface ChannelMappingControlsProps {
 }
 
 interface ChannelMappingControlsState {
+    selectedChannelMapping: string
     channelMappingName: string
     popoverOpen: boolean
 }
@@ -33,6 +34,7 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
     }
 
     public state = {
+        selectedChannelMapping: '',
         channelMappingName: '',
         popoverOpen: false,
     }
@@ -40,9 +42,16 @@ export class ChannelMappingControls extends React.Component<ChannelMappingContro
     public static getDerivedStateFromProps(
         props: ChannelMappingControlsProps,
         state: ChannelMappingControlsState,
-    ): ChannelMappingControlsState | null {
-        const mappingName = props.selectedChannelMapping ? props.selectedChannelMapping : ''
-        return { channelMappingName: mappingName, popoverOpen: state.popoverOpen }
+    ): ChannelMappingControlsState {
+        const updatedMappingName = props.selectedChannelMapping || ''
+        if (updatedMappingName != state.selectedChannelMapping) {
+            return {
+                channelMappingName: updatedMappingName,
+                selectedChannelMapping: updatedMappingName,
+                popoverOpen: state.popoverOpen,
+            }
+        }
+        return state
     }
 
     private onDelete = (): void => {
