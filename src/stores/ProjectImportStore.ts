@@ -357,9 +357,15 @@ export class ProjectImportStore {
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore
             const activeSegmentationStore = activeImageSet.segmentationStore
+
             when(
                 (): boolean => !activeImageStore.imageDataLoading,
                 (): void => {
+                    // Import populations for the project if set. Import early so they're there before the
+                    // population store gets initialized and pulls from db for the first image.
+                    if (this.projectPopulationFile)
+                        projectStore.importProjectPopulationsFromCSV(path.join(directory, this.projectPopulationFile))
+
                     const segmentationFile = this.imageSetSegmentationFile
                     const activeImageSetName = projectStore.activeImageSetPath
                     if (activeImageSetName && segmentationFile) {
@@ -390,12 +396,6 @@ export class ProjectImportStore {
                                     if (this.autoCalculateFeatures == 'project') {
                                         projectStore.calculateAllSegmentFeatures()
                                     }
-
-                                    // Import populations for the project if set
-                                    if (this.projectPopulationFile)
-                                        projectStore.importProjectPopulationsFromCSV(
-                                            path.join(this.directory, this.projectPopulationFile),
-                                        )
 
                                     // Import segment features for the project if set
                                     if (this.projectSegmentFeaturesFile) {
