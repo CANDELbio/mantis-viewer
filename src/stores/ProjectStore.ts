@@ -159,7 +159,11 @@ export class ProjectStore {
         this.setActiveImageSet(dirName)
     }
 
-    @action public openProject = (dirName: string, imageSubdirectory?: string | null): void => {
+    @action public openProject = (
+        dirName: string,
+        imageSubdirectory?: string | null,
+        initialActiveImageSet?: string | null,
+    ): void => {
         const files = fs.readdirSync(dirName)
         const paths = []
         for (const file of files) {
@@ -177,6 +181,8 @@ export class ProjectStore {
             const savedActiveImageSet = this.settingStore.activeImageSet
             if (savedActiveImageSet && this.imageSetPaths.includes(savedActiveImageSet)) {
                 this.setActiveImageSet(savedActiveImageSet)
+            } else if (initialActiveImageSet) {
+                this.setActiveImageSet(initialActiveImageSet)
             } else {
                 this.setActiveImageSet(this.imageSetPaths[0])
             }

@@ -343,6 +343,13 @@ export class ProjectImportStore {
         }
     }
 
+    private generateSelectedImageSetPath = (): string | null => {
+        if (this.directory && this.imageSet) {
+            return path.join(this.directory, this.imageSet)
+        }
+        return null
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public continueImport = (): void => {
@@ -353,7 +360,7 @@ export class ProjectImportStore {
             const projectStore = this.projectStore
             // If we're importing through the project import wizard then this should be a new project or the user has agreed to reinitialize.
             this.eraseDbIfExists()
-            projectStore.openProject(directory, imageSubdirectory)
+            projectStore.openProject(directory, imageSubdirectory, this.generateSelectedImageSetPath())
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore
             const activeSegmentationStore = activeImageSet.segmentationStore
