@@ -88,6 +88,10 @@ ipcRenderer.on('clear-active-populations', (): void => {
     projectStore.clearActivePopulations()
 })
 
+ipcRenderer.on('clear-all-populations', (): void => {
+    projectStore.clearAllPopulations()
+})
+
 // Listener to turn on/off the plot in the main window if the plotWindow is open.
 ipcRenderer.on('plot-in-main-window', (_event: Electron.Event, inMain: boolean): void => {
     projectStore.setPlotInMainWindow(inMain)

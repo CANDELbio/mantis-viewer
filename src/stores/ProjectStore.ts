@@ -326,6 +326,13 @@ export class ProjectStore {
         this.activeImageSetStore.populationStore.clearAllPopulations()
     }
 
+    public clearAllPopulations = (): void => {
+        for (const imageSetPath of this.imageSetPaths) {
+            const imageSetStore = this.imageSets[imageSetPath]
+            if (imageSetStore) imageSetStore.populationStore.clearAllPopulations()
+        }
+    }
+
     private activeImageSetTiffPath = (): string | null => {
         const activeImagePath = this.activeImageSetPath
         const imageSubdirectory = this.settingStore.imageSubdirectory
