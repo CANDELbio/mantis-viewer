@@ -136,6 +136,10 @@ ipcRenderer.on('set-scale-channel-domain-values', (_event: Electron.Event, value
     projectStore.preferencesStore.setScaleChannelDomainValues(value)
 })
 
+ipcRenderer.on('set-maintain-image-scale', (_event: Electron.Event, value: boolean): void => {
+    projectStore.preferencesStore.setMaintainImageScale(value)
+})
+
 ipcRenderer.on('set-optimize-segmentation', (_event: Electron.Event, value: boolean): void => {
     projectStore.preferencesStore.setOptimizeSegmentation(value)
 })
@@ -439,6 +443,7 @@ Mobx.autorun((): void => {
         Mobx.toJS(preferencesStore.defaultChannelDomains),
         Mobx.toJS(preferencesStore.useAnyMarkerIfNoMatch),
         preferencesStore.scaleChannelDomainValues,
+        preferencesStore.maintainImageScale,
         preferencesStore.optimizeSegmentation,
         preferencesStore.reloadOnError,
     )

@@ -750,7 +750,7 @@ const createPlotWindow = (): void => {
 function createPreferencesWindow(): void {
     preferencesWindow = new BrowserWindow({
         width: 475,
-        height: 735,
+        height: 785,
         resizable: false,
         show: false,
         webPreferences: {
@@ -1099,6 +1099,7 @@ ipcMain.on(
         domains: any,
         anyChannel: any,
         scaleChannelDomainValues: boolean,
+        maintainImageScale: boolean,
         optimizeSegmentation: boolean,
         reloadOnError: boolean,
     ): void => {
@@ -1113,6 +1114,7 @@ ipcMain.on(
                 domains,
                 anyChannel,
                 scaleChannelDomainValues,
+                maintainImageScale,
                 optimizeSegmentation,
                 reloadOnError,
             )
@@ -1156,6 +1158,10 @@ ipcMain.on('preferencesWindow-set-use-any-marker', (event: Electron.Event, chann
 
 ipcMain.on('preferencesWindow-set-scale-channel-domain-values', (event: Electron.Event, value: boolean): void => {
     if (mainWindow != null) mainWindow.webContents.send('set-scale-channel-domain-values', value)
+})
+
+ipcMain.on('preferencesWindow-set-maintain-image-scale', (event: Electron.Event, value: boolean): void => {
+    if (mainWindow != null) mainWindow.webContents.send('set-maintain-image-scale', value)
 })
 
 ipcMain.on('preferencesWindow-set-optimize-segmentation', (event: Electron.Event, value: boolean): void => {

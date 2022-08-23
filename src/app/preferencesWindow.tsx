@@ -12,6 +12,7 @@ let defaultChannelDomains: Record<ChannelName, [number, number]>
 let defaultSegmentation: string | null
 let useAnyMarker: Record<ChannelName, boolean>
 let scaleChannelDomainValues: boolean
+let maintainImageScale: boolean
 let optimizeSegmentation: boolean
 let reloadOnError: boolean
 
@@ -47,6 +48,10 @@ const setScale = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-scale-channel-domain-values', value)
 }
 
+const setMaintainImageScale = (value: boolean): void => {
+    ipcRenderer.send('preferencesWindow-set-maintain-image-scale', value)
+}
+
 const setOptimizeSegmentation = (value: boolean): void => {
     ipcRenderer.send('preferencesWindow-set-optimize-segmentation', value)
 }
@@ -75,6 +80,8 @@ function render(): void {
                 setUseAnyMarker={setUseAnyMarker}
                 scaleChannelBrightness={scaleChannelDomainValues}
                 setScaleChannelBrightness={setScale}
+                maintainImageScale={maintainImageScale}
+                setMaintainImageScale={setMaintainImageScale}
                 optimizeSegmentation={optimizeSegmentation}
                 setOptimizeSegmentation={setOptimizeSegmentation}
                 reloadOnError={reloadOnError}
@@ -96,7 +103,8 @@ ipcRenderer.on(
         markers: Record<ChannelName, string[]>,
         domains: Record<ChannelName, [number, number]>,
         anyMarker: Record<ChannelName, boolean>,
-        scale: boolean,
+        scaleDomainValues: boolean,
+        maintainScale: boolean,
         optimize: boolean,
         reload: boolean,
     ): void => {
@@ -107,7 +115,8 @@ ipcRenderer.on(
         defaultChannelMarkers = markers
         defaultChannelDomains = domains
         useAnyMarker = anyMarker
-        scaleChannelDomainValues = scale
+        scaleChannelDomainValues = scaleDomainValues
+        maintainImageScale = maintainScale
         optimizeSegmentation = optimize
         reloadOnError = reload
         render()

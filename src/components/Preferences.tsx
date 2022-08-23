@@ -23,6 +23,8 @@ export interface PreferencesProps {
     setCalculate: (value: boolean) => void
     scaleChannelBrightness: boolean
     setScaleChannelBrightness: (value: boolean) => void
+    maintainImageScale: boolean
+    setMaintainImageScale: (value: boolean) => void
     optimizeSegmentation: boolean
     setOptimizeSegmentation: (value: boolean) => void
     reloadOnError: boolean
@@ -80,6 +82,9 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
 
     private onScaleChannelBrightnessChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
         this.props.setScaleChannelBrightness(event.target.checked)
+
+    private onMaintainImageScale = (event: React.ChangeEvent<HTMLInputElement>): void =>
+        this.props.setMaintainImageScale(event.target.checked)
 
     private onOptimizeChange = (event: React.ChangeEvent<HTMLInputElement>): void =>
         this.props.setOptimizeSegmentation(event.target.checked)
@@ -173,6 +178,13 @@ export class Preferences extends React.Component<PreferencesProps, PlotControlsS
                         checked={this.props.scaleChannelBrightness}
                         onChange={this.onScaleChannelBrightnessChange}
                         label="Scale channel brightnesses when switching images"
+                    />
+                </Label>
+                <Label check style={{ paddingTop: '10px' }}>
+                    <Checkbox
+                        checked={this.props.maintainImageScale}
+                        onChange={this.onMaintainImageScale}
+                        label="Maintain zoom level when switching images"
                     />
                 </Label>
                 <Label check style={{ paddingTop: '10px' }}>

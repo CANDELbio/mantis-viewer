@@ -1086,6 +1086,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.stage.position.y = position.y
         this.stage.scale.x = scale.x
         this.stage.scale.y = scale.y
+        this.checkSetStageBounds()
         this.stage.updateTransform()
     }
 

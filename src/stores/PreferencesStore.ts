@@ -30,6 +30,9 @@ export class PreferencesStore {
 
     // Segmentation statistics/Segment level data settings
     @observable public scaleChannelDomainValues: boolean
+    // If the user wants to maintain the image scale (zoom) between images
+    // Instead of maintaining them individually for each image.
+    @observable public maintainImageScale: boolean
     @observable public optimizeSegmentation: boolean
     @observable public reloadOnError: boolean
 
@@ -74,6 +77,8 @@ export class PreferencesStore {
             kChannel: false,
         }
         this.scaleChannelDomainValues = false
+        this.scaleChannelDomainValues = false
+        this.maintainImageScale = false
         this.optimizeSegmentation = true
         this.reloadOnError = true
     }
@@ -177,6 +182,10 @@ export class PreferencesStore {
         this.reloadOnError = reload
     }
 
+    @action public setMaintainImageScale = (maintain: boolean): void => {
+        this.maintainImageScale = maintain
+    }
+
     private saveToStore = autorun(() => {
         const store = this.store
         store.set('maxImageSetsInMemory', this.maxImageSetsInMemory)
@@ -187,6 +196,7 @@ export class PreferencesStore {
         store.set('scaleChannelDomainValues', this.scaleChannelDomainValues)
         store.set('optimizeSegmentation', this.optimizeSegmentation)
         store.set('reloadOnError', this.reloadOnError)
+        store.set('maintainImageScale', this.maintainImageScale)
         if (this.defaultSegmentationBasename) {
             store.set('defaultSegmentationBasename', this.defaultSegmentationBasename)
         } else {
@@ -215,5 +225,7 @@ export class PreferencesStore {
         if (optimize != null) this.optimizeSegmentation = optimize as boolean
         const reload = store.get('reloadOnError')
         if (reload != null) this.reloadOnError = reload as boolean
+        const maintain = store.get('maintainImageScale')
+        if (maintain != null) this.maintainImageScale = maintain as boolean
     }
 }

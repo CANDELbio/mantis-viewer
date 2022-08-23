@@ -97,6 +97,8 @@ export class SettingStore {
     @observable public activeImageSet: string | null
     // The position and scale for all images so they persist between reloads
     @observable public imagePositionAndScales: Record<string, { position: Coordinate; scale: Coordinate }>
+    // The global zoom/scale. Used if the user chooses to maintain scale between images
+    @observable public globalImageScale: Coordinate
     // Storing the subdirectory name where images are stored in an ImageSet. Blank if not used.
     @observable public imageSubdirectory: string | null
     // Image settings below
@@ -686,13 +688,6 @@ export class SettingStore {
         return null
     }
 
-    @action public setActivePositionAndScale = (position: Coordinate, scale: Coordinate): void => {
-        const activeImageSet = this.activeImageSet
-        if (activeImageSet) {
-            this.imagePositionAndScales[activeImageSet] = { position: position, scale: scale }
-        }
-    }
-
     @action public updateGlobalPopulationAttributes = (name: string, color: number, visible: boolean): void => {
         this.globalPopulationAttributes[name] = { color: color, visible: visible }
     }
@@ -702,13 +697,25 @@ export class SettingStore {
             this.globalPopulationAttributes[name] = { color: color, visible: visible }
     }
 
+    @action public setActivePositionAndScale = (position: Coordinate, scale: Coordinate): void => {
+        const activeImageSet = this.activeImageSet
+        if (activeImageSet) {
+            this.imagePositionAndScales[activeImageSet] = { position: position, scale: scale }
+            this.globalImageScale = scale
+        }
+    }
+
     @computed public get activePositionAndScale(): {
         position: Coordinate
         scale: Coordinate
     } | null {
         const activeImageSet = this.activeImageSet
         if (activeImageSet) {
-            return this.imagePositionAndScales[activeImageSet]
+            const maintainScale = this.projectStore.preferencesStore.maintainImageScale
+            const activePositionAndScale = this.imagePositionAndScales[activeImageSet]
+            const position = activePositionAndScale ? activePositionAndScale.position : { x: 0, y: 0 }
+            if (maintainScale) return { position: position, scale: this.globalImageScale }
+            return activePositionAndScale
         }
         return null
     }
