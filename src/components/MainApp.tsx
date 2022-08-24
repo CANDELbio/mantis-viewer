@@ -206,6 +206,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         regionLegendVisible={settingStore.regionLegendVisible}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
                         featureLegendVisible={settingStore.featureLegendVisible}
+                        sortLegendFeatures={settingStore.sortLegendFeatures}
                         plotTransform={settingStore.plotTransform}
                         transformCoefficient={settingStore.transformCoefficient}
                         windowHeight={windowHeight}
@@ -297,6 +298,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
                         featureLegendVisible={settingStore.featureLegendVisible}
                         setFeatureLegendVisible={settingStore.setFeatureLegendVisible}
+                        sortLegendFeatures={settingStore.sortLegendFeatures}
+                        setSortLegendFeatures={settingStore.setSortLegendFeatures}
                     />
                 </div>
             )

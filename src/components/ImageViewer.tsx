@@ -52,6 +52,7 @@ export interface ImageProps {
     populationLegendVisible: boolean
     regionLegendVisible: boolean
     featureLegendVisible: boolean
+    sortLegendFeatures: boolean
     plotTransform: PlotTransform
     transformCoefficient: number | null
     zoomInsetVisible: boolean
@@ -119,6 +120,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
     private featureLegendVisible: boolean
+    private sortLegendFeatures: boolean
     private plotTransform: PlotTransform
     private transformCoefficient: number | null
 
@@ -216,6 +218,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.populationLegendVisible = false
         this.regionLegendVisible = false
         this.zoomInsetVisible = true
+        this.featureLegendVisible = false
+        this.sortLegendFeatures = false
 
         const redFilter = new PIXI.filters.ColorMatrixFilter()
         redFilter.matrix = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
@@ -1037,6 +1041,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.populationLegendVisible,
                 this.selectedPopulations,
                 this.featureLegendVisible,
+                this.sortLegendFeatures,
                 this.mousedOverSegmentsFromImage,
                 this.plotTransform,
                 this.transformCoefficient,
@@ -1341,6 +1346,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.channelLegendVisible = this.props.channelLegendVisible
         this.populationLegendVisible = this.props.populationLegendVisible
         this.featureLegendVisible = this.props.featureLegendVisible
+        this.sortLegendFeatures = this.props.sortLegendFeatures
         this.regionLegendVisible = this.props.regionLegendVisible
         this.plotTransform = this.props.plotTransform
         this.transformCoefficient = this.props.transformCoefficient

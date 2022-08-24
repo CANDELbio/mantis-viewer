@@ -74,6 +74,7 @@ type SettingStoreData = {
     populationLegendVisible?: boolean | null
     regionLegendVisible?: boolean | null
     featureLegendVisible?: boolean | null
+    sortLegendFeatures?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
@@ -127,6 +128,7 @@ export class SettingStore {
     @observable public channelLegendVisible: boolean
     @observable public populationLegendVisible: boolean
     @observable public featureLegendVisible: boolean
+    @observable public sortLegendFeatures: boolean
     @observable public regionLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
@@ -227,6 +229,7 @@ export class SettingStore {
         this.channelLegendVisible = true
         this.populationLegendVisible = false
         this.featureLegendVisible = true
+        this.sortLegendFeatures = false
         this.regionLegendVisible = false
         this.zoomInsetVisible = true
         this.transformCoefficient = null
@@ -375,6 +378,10 @@ export class SettingStore {
 
     @action public setFeatureLegendVisible = (visible: boolean): void => {
         this.featureLegendVisible = visible
+    }
+
+    @action public setSortLegendFeatures = (sort: boolean): void => {
+        this.sortLegendFeatures = sort
     }
 
     @action public setRegionLegendVisible = (visible: boolean): void => {
@@ -758,6 +765,7 @@ export class SettingStore {
                 channelLegendVisible: this.channelLegendVisible,
                 populationLegendVisible: this.populationLegendVisible,
                 featureLegendVisible: this.featureLegendVisible,
+                sortLegendFeatures: this.sortLegendFeatures,
                 regionLegendVisible: this.regionLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
@@ -830,6 +838,8 @@ export class SettingStore {
                     this.populationLegendVisible = importingSettings.populationLegendVisible
                 if (importingSettings.featureLegendVisible != null)
                     this.featureLegendVisible = importingSettings.featureLegendVisible
+                if (importingSettings.sortLegendFeatures != null)
+                    this.sortLegendFeatures = importingSettings.sortLegendFeatures
                 if (importingSettings.regionLegendVisible != null)
                     this.regionLegendVisible = importingSettings.regionLegendVisible
                 if (importingSettings.zoomInsetVisible != null)

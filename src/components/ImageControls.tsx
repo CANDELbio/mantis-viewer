@@ -32,6 +32,9 @@ export interface ImageControlsProps {
     featureLegendVisible: boolean
     setFeatureLegendVisible: (visible: boolean) => void
 
+    sortLegendFeatures: boolean
+    setSortLegendFeatures: (sort: boolean) => void
+
     regionLegendVisible: boolean
     setRegionLegendVisible: (visible: boolean) => void
 
@@ -140,6 +143,11 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     checked={this.props.featureLegendVisible}
                     label="Show Hovered Segment In Legend"
                     onChange={this.onCheckboxChange(this.props.setFeatureLegendVisible)}
+                />
+                <Checkbox
+                    checked={this.props.sortLegendFeatures}
+                    label="Sort Segment Features by Value"
+                    onChange={this.onCheckboxChange(this.props.setSortLegendFeatures)}
                 />
                 <Checkbox
                     checked={this.props.regionLegendVisible}

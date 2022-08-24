@@ -197,6 +197,7 @@ export function drawLegend(
     populationsOnLegend: boolean,
     populations: SelectedPopulation[] | null,
     segmentSummaryOnLegend: boolean,
+    sortSegmentFeatures: boolean,
     mousedOverSegments: number[],
     plotTransform: PlotTransform,
     transformCoefficient: number | null,
@@ -290,18 +291,24 @@ export function drawLegend(
                     const transformLabel = plotTransform == 'log' ? 'Log10' : 'ArcSinh'
                     addText(transformLabel + ' transformed values', 0xffffff)
                 }
+                const transformedSegmentFeatures = []
                 for (const segmentFeature of Object.keys(segmentFeatures)) {
                     const segmentFeatureValue = applyTransform(
                         segmentFeatures[segmentFeature],
                         plotTransform,
                         transformCoefficient,
                     )
+                    transformedSegmentFeatures.push({ feature: segmentFeature, value: segmentFeatureValue })
+                }
+                if (sortSegmentFeatures) transformedSegmentFeatures.sort((a, b) => (a.value < b.value ? 1 : -1))
+                for (const segmentFeature of transformedSegmentFeatures) {
+                    const segmentFeatureValue = segmentFeature.value
                     const featureValueString = segmentFeatureValue
                         ? Number(segmentFeatureValue.toFixed(4)).toString()
                         : 'NA'
                     // Feels silly, but calling to fixed first to round to 4 decimals,
                     // then back to number and to string to drop trailing 0s.
-                    addText(segmentFeature + ': ' + featureValueString, 0xffffff)
+                    addText(segmentFeature.feature + ': ' + featureValueString, 0xffffff)
                 }
             }
         }
