@@ -90,6 +90,6 @@ Robert Schiemann, Lacey Kitch, Pier Federico Gherardini, Robin Kageyama, & Mike 
 
 You may also cite the specific version of Mantis that you used instead if you wish. You can get citations for specific versions on the [Mantis Viewer Zenodo Page](https://zenodo.org/record/4009580#.X01fytNKh-W)
 
-## License
+# License
 
-Mantis Viewer is distributed under a GPLv3 license.
+Mantis Viewer is distributed under Apache 2 license. See the [LICENSE](LICENSE.md) file for details.
