@@ -57,4 +57,4 @@ You may also cite the specific version of Mantis that you used instead if you wi
 
 ## License, Bugs, and Contributing
 
-Mantis Viewer is distributed under a GPLv3 license. Check out the [Mantis Viewer GitHub page](https://github.com/ParkerICI/mantis-viewer) if you have a bug to report or if you are interested in adding features to Mantis.
+Mantis Viewer is distributed under an Apache 2 license. Check out the [Mantis Viewer GitHub page](https://github.com/ParkerICI/mantis-viewer) if you have a bug to report or if you are interested in adding features to Mantis.
