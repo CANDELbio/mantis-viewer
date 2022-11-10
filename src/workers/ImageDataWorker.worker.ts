@@ -61,7 +61,7 @@ function calculateMinMaxIntensity(v: Float32Array | Uint16Array | Uint8Array): {
 
 // Does a BFS of the imageDescription parsed XML looking for an object property named 'name'
 // TODO: Make the xml field name/object property names configurable.
-function getMarkerNameFromImageDescription(imageDescription: any): string | null {
+function getGenericXMLMarkerName(imageDescription: any): string | null {
     const descriptionValues = []
     for (const key in imageDescription) {
         if (key.toLowerCase() == 'name') {
@@ -75,12 +75,44 @@ function getMarkerNameFromImageDescription(imageDescription: any): string | null
         if (typeof curValue === 'object' && curValue !== null) descriptionValues.push(curValue)
     }
     for (const descriptionValue of descriptionValues) {
-        const descriptionValueMarkerName = getMarkerNameFromImageDescription(descriptionValue)
+        const descriptionValueMarkerName = getGenericXMLMarkerName(descriptionValue)
         if (descriptionValueMarkerName) return descriptionValueMarkerName
     }
     return null
 }
 
+function getOMEMarkerName(imageDescription: any, imageNumber: number): string | null {
+    if (Object.keys(imageDescription)[0] === 'OME') {
+        return imageDescription.OME.Image[0].Pixels[0].Channel[imageNumber].$.Name
+    }
+    return null
+}
+
+async function parseXMLImageDescription(imageDescription: string, imageNumber: number): Promise<string | null> {
+    try {
+        const parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
+        const OMEMarkerName = getOMEMarkerName(parsedImageDescription, imageNumber)
+        if (OMEMarkerName) return OMEMarkerName
+        const genericXMLMarkerName = getGenericXMLMarkerName(imageDescription)
+        if (genericXMLMarkerName) return genericXMLMarkerName
+    } catch (error) {
+        // Ignore this error
+    }
+    return null
+}
+
+function parseMIBItiffImageDescription(imageDescription: string): string | null {
+    try {
+        // Clean up the imageDescription string and try to parse it as a JSON string.
+        const parsedImageDescription = JSON.parse(imageDescription.replace(/(\r\n|\n|\r|\0)/gm, ''))
+        if ('channel.target' in parsedImageDescription) return parsedImageDescription['channel.target']
+    } catch (error) {
+        // Ignore this error
+    }
+    return null
+}
+
+// If we can find a name in the image description use that, otherwise use the filename.
 async function generateMarkerName(
     imageDescription: string,
     markerNameFromFilename: string,
@@ -88,27 +120,12 @@ async function generateMarkerName(
     imageNumber: number,
 ): Promise<string> {
     let markerNameFromImageDescription = null
-    // If we can find a name in the image description use that, otherwise use the filename.
-
     // Try parsing the image description as XML string
-    try {
-        const parsedImageDescription = await xml2js.parseStringPromise(imageDescription)
-        markerNameFromImageDescription = getMarkerNameFromImageDescription(parsedImageDescription)
-    } catch (error) {
-        // Ignore this error
-    }
+    markerNameFromImageDescription = await parseXMLImageDescription(imageDescription, imageNumber)
 
     // Try parsing the image description as JSON string from a mibitiff
-    try {
-        if (markerNameFromImageDescription == null) {
-            // Clean up the imageDescription string and try to parse it as a JSON string.
-            const parsedImageDescription = JSON.parse(imageDescription.replace(/(\r\n|\n|\r|\0)/gm, ''))
-            if ('channel.target' in parsedImageDescription)
-                markerNameFromImageDescription = parsedImageDescription['channel.target']
-        }
-    } catch (error) {
-        // Ignore this error
-    }
+    if (markerNameFromImageDescription === null)
+        markerNameFromImageDescription = parseMIBItiffImageDescription(imageDescription)
 
     // Set the marker name based on what we found.
     let markerName
