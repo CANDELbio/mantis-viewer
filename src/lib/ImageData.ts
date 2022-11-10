@@ -89,11 +89,14 @@ export class ImageData {
                 error: 'Image dimensions do not match.',
             })
         } else if (this.markerNames.indexOf(imageData.markerName) != -1) {
-            this.loadImageWorkerResultsError({
-                input: imageData.input,
-                markerName: imageData.markerName,
-                error: 'Data already loaded for marker.',
-            })
+            let deduplicatedMarkerName = imageData.markerName
+            let i = 2
+            while (this.markerNames.indexOf(deduplicatedMarkerName) != -1) {
+                deduplicatedMarkerName = `${imageData.markerName}_${i}`
+                i++
+            }
+            imageData.markerName = deduplicatedMarkerName
+            this.loadImageWorkerResults(imageData)
         } else {
             this.loadImageWorkerResults(imageData)
         }
