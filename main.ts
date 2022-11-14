@@ -2,7 +2,6 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
-import installExtension, { REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS } from 'electron-devtools-installer'
 import log from 'electron-log'
 
 import * as Store from 'electron-store'
@@ -788,18 +787,7 @@ const createWindows = (): void => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    if (isDev) {
-        const options = {
-            loadExtensionOptions: { allowFileAccess: true },
-        }
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS], options).then(() => {
-            createWindows()
-        })
-    } else {
-        createWindows()
-    }
+    createWindows()
     autoUpdater.checkForUpdatesAndNotify()
 })
 

@@ -22,12 +22,14 @@ export function writeToCSV(data: string[][], filename: string, headerCols: strin
             log.error('An error occurred while exporting to CSV:')
             log.error(err)
         }
-        fs.writeFile(filename, output, (err): void => {
-            if (err) {
-                log.error('An error occurred while exporting to CSV:')
-                log.error(err)
-            }
-        })
+        if (output) {
+            fs.writeFile(filename, output, (err): void => {
+                if (err) {
+                    log.error('An error occurred while exporting to CSV:')
+                    log.error(err)
+                }
+            })
+        }
     })
 }
 
