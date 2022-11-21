@@ -1,5 +1,7 @@
+import * as parseCSV from 'csv-parse/lib/sync'
 import * as fs from 'fs'
 import * as path from 'path'
+
 import { FileInfoMap, MinMaxMap, BitmapMap } from '../interfaces/ImageInterfaces'
 import { ImageDataWorkerResult, ImageDataWorkerError } from '../workers/ImageDataWorker'
 import { submitImageDataJob } from '../workers/ImageDataWorkerPool'
@@ -19,6 +21,8 @@ export class ImageData {
 
     public errors: string[]
 
+    private markerNamesOverride: string[]
+
     // Keep track of the number of markers. Used to know when all workers have completed.
     private numMarkers: number
 
@@ -28,6 +32,7 @@ export class ImageData {
         this.minmax = {}
         this.bitmaps = {}
         this.errors = []
+        this.markerNamesOverride = []
         this.scaled = false
         this.width = 0
         this.height = 0
@@ -80,6 +85,11 @@ export class ImageData {
     private async loadImageWorkerResultsCallback(
         imageData: ImageDataWorkerResult | ImageDataWorkerError,
     ): Promise<void> {
+        if ('numImages' in imageData) {
+            const imageNumber = imageData.input.imageNumber
+            const markerNameOverride = this.markerNamesOverride[imageNumber]
+            if (markerNameOverride) imageData.markerName = markerNameOverride
+        }
         if ('error' in imageData) {
             this.loadImageWorkerResultsError(imageData)
         } else if ((this.width && this.width != imageData.width) || (this.height && this.height != imageData.height)) {
@@ -111,7 +121,7 @@ export class ImageData {
         }
     }
 
-    private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber?: number): void {
+    private loadImageInWorker(filepath: string, useExtInMarkerName: boolean, imageNumber: number): void {
         const onComplete = (data: ImageDataWorkerResult | ImageDataWorkerError): void => {
             this.loadImageWorkerResultsCallback(data)
         }
@@ -121,8 +131,23 @@ export class ImageData {
         )
     }
 
+    private parseMarkerNamesOverride(markerNamesOverridePath: string | null): void {
+        if (markerNamesOverridePath && fs.existsSync(markerNamesOverridePath)) {
+            const input = fs.readFileSync(markerNamesOverridePath, 'utf8')
+            const records: string[][] = parseCSV(input, { columns: false })
+            this.markerNamesOverride = []
+            for (const row of records) {
+                this.markerNamesOverride.push(row[0])
+            }
+        }
+    }
+
     // Loads a folder in the background using ImageDataWorkers
-    public loadFolder(dirName: string, onReady: (imageData: ImageData) => void): void {
+    public loadFolder(
+        dirName: string,
+        markerNamesOverridePath: string | null,
+        onReady: (imageData: ImageData) => void,
+    ): void {
         this.onReady = onReady
 
         const files = fs.readdirSync(dirName)
@@ -136,6 +161,8 @@ export class ImageData {
             // If no tiffs are present in the directory, just return an empty image data.
             this.onReady(this)
         } else {
+            this.parseMarkerNamesOverride(markerNamesOverridePath)
+
             const baseNames = tiffs.map((v: string) => {
                 return path.parse(v).name
             })
@@ -144,7 +171,7 @@ export class ImageData {
             const useExtInMarkerName = baseNames.length !== new Set(baseNames).size
 
             tiffs.forEach((f) => {
-                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName)
+                this.loadImageInWorker(path.join(dirName, f), useExtInMarkerName, 0)
             })
         }
     }

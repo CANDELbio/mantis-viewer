@@ -1,5 +1,6 @@
 import log from 'electron-log'
-import { observable, action, autorun, when } from 'mobx'
+import * as GeoTIFF from 'geotiff'
+import { observable, action, autorun, when, runInAction } from 'mobx'
 import * as fs from 'fs'
 import * as path from 'path'
 import { ProjectStore } from './ProjectStore'
@@ -15,17 +16,21 @@ export class ProjectImportStore {
 
     @observable public directory: string | null
     @observable public projectDirectories: string[]
-    @observable public projectCsvs: string[]
+    @observable public projectTextFiles: string[]
 
     @observable public imageSet: string | null
     @observable public imageSetTiffs: string[]
-    @observable public imageSetCsvs: string[]
+    @observable public imageSetTextFiles: string[]
     @observable public imageSetDirs: string[]
+    // If the image set has one tiff and that tiff is stacked.
+    @observable public imageSetIsStacked: boolean
 
     @observable public projectPopulationFile: string | null
     @observable public numImageSetsInPopulationFile: number | null
     @observable public numPopulationsInPopulationsFile: number | null
     @observable public populationsFileError: boolean
+    @observable public projectMarkerNamesOverride: string | null
+    @observable public imageSetMarkerNamesOverride: string | null
     @observable public projectSegmentFeaturesFile: string | null
     @observable public numImageSetsInFeaturesFile: number | null
     @observable public imageSetSegmentFeaturesFile: string | null
@@ -47,14 +52,15 @@ export class ProjectImportStore {
     @action private initialize = (): void => {
         this.modalOpen = false
         this.directory = null
+        this.imageSetIsStacked = false
         this.showDirectoryPicker = false
         this.readyToImport = false
         this.populationsFileError = false
         this.featuresFileError = false
         this.projectDirectories = []
-        this.projectCsvs = []
+        this.projectTextFiles = []
         this.imageSetTiffs = []
-        this.imageSetCsvs = []
+        this.imageSetTextFiles = []
         this.imageSetDirs = []
         this.autoCalculateFeatures = 'none'
         this.clearFileSelections()
@@ -124,7 +130,7 @@ export class ProjectImportStore {
 
     @action private updateProjectDirectoriesAndFiles = (): void => {
         const dirs = []
-        const csvs = []
+        const textFiles = []
         if (this.directory) {
             const entries = fs.readdirSync(this.directory, { withFileTypes: true })
             for (const entry of entries) {
@@ -132,12 +138,12 @@ export class ProjectImportStore {
                     dirs.push(entry.name)
                 } else if (entry.isFile()) {
                     const lowerFileName = entry.name.toLowerCase()
-                    if (lowerFileName.endsWith('csv')) csvs.push(entry.name)
+                    if (lowerFileName.endsWith('csv') || lowerFileName.endsWith('txt')) textFiles.push(entry.name)
                 }
             }
         }
         this.projectDirectories = dirs
-        this.projectCsvs = csvs
+        this.projectTextFiles = textFiles
         // Default the selected image set to the first directory in the project
         if (this.projectDirectories.length > 0) this.setImageSet(this.projectDirectories[0])
     }
@@ -150,12 +156,28 @@ export class ProjectImportStore {
         this.updateImageSetFiles()
     }
 
+    @action public checkIfImageSetIsStacked = (): void => {
+        const tiffs = this.imageSetTiffs
+        if (this.directory && this.imageSet && tiffs.length === 1) {
+            const subDir = this.imageSubdirectory || ''
+            const tiffPath = path.join(this.directory, this.imageSet, subDir, tiffs[0])
+            GeoTIFF.fromFile(tiffPath).then(async (tiff) => {
+                const tiffIsStacked = (await tiff.getImageCount()) > 1
+                runInAction(() => {
+                    this.imageSetIsStacked = tiffIsStacked
+                })
+            })
+        } else {
+            this.imageSetIsStacked = false
+        }
+    }
+
     @action public updateImageSetFiles = (): void => {
         const directory = this.directory
         const imageSet = this.imageSet
         const imageSubdirectory = this.imageSubdirectory
         const tiffs = []
-        const csvs = []
+        const textFiles = []
         const dirs = []
         if (directory && imageSet) {
             const imageSetPath = path.join(directory, imageSet)
@@ -168,7 +190,7 @@ export class ProjectImportStore {
                     const lowerFileName = entry.name.toLowerCase()
                     if ((!imageSubdirectory && lowerFileName.endsWith('tif')) || lowerFileName.endsWith('tiff'))
                         tiffs.push(entry.name)
-                    if (lowerFileName.endsWith('csv') || lowerFileName.endsWith('txt')) csvs.push(entry.name)
+                    if (lowerFileName.endsWith('csv') || lowerFileName.endsWith('txt')) textFiles.push(entry.name)
                 }
             }
             if (imageSubdirectory) {
@@ -183,8 +205,17 @@ export class ProjectImportStore {
             }
         }
         this.imageSetTiffs = tiffs
-        this.imageSetCsvs = csvs
+        this.imageSetTextFiles = textFiles
         this.imageSetDirs = dirs
+        this.checkIfImageSetIsStacked()
+    }
+
+    @action public setProjectMarkerNamesOverride = (file: string | null): void => {
+        this.projectMarkerNamesOverride = file
+    }
+
+    @action public setImageSetMarkerNamesOverride = (file: string | null): void => {
+        this.imageSetMarkerNamesOverride = file
     }
 
     @action public setProjectSegmentFeaturesFile = (file: string | null): void => {
@@ -350,6 +381,17 @@ export class ProjectImportStore {
         return null
     }
 
+    private setMarkerNamesOverride = (projectStore: ProjectStore): void => {
+        const settingStore = projectStore.settingStore
+        if (this.projectMarkerNamesOverride) {
+            settingStore.setMarkerNamesOverride(this.projectMarkerNamesOverride, true)
+        } else if (this.imageSetMarkerNamesOverride) {
+            settingStore.setMarkerNamesOverride(this.imageSetMarkerNamesOverride, false)
+        } else {
+            settingStore.clearMarkerNamesOverride()
+        }
+    }
+
     // Not sure if it's better to have this logic in here
     // or to have it in the project store and trigger when a flag gets set to true.
     @action public continueImport = (): void => {
@@ -360,6 +402,7 @@ export class ProjectImportStore {
             const projectStore = this.projectStore
             // If we're importing through the project import wizard then this should be a new project or the user has agreed to reinitialize.
             this.eraseDbIfExists()
+            this.setMarkerNamesOverride(projectStore)
             projectStore.openProject(directory, imageSubdirectory, this.generateSelectedImageSetPath())
             const activeImageSet = projectStore.activeImageSetStore
             const activeImageStore = activeImageSet.imageStore

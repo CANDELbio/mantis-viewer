@@ -1,3 +1,7 @@
+// Stores settings for the current project.
+// Used to copy settings (e.g. selected channels) when switching between images
+// in a project or when reloading a project after closing the application.
+//
 // TODO: Would probably be best to refactor this setting store into appropriate existing
 // stores or new stores and then create a util that saves and loads to/from db to
 // the appropriate store
@@ -40,6 +44,7 @@ type SettingStoreData = {
     activeImageSet?: string | null
     imagePositionAndScales?: Record<string, { position: Coordinate; scale: Coordinate }>
     imageSubdirectory?: string | null
+    markerNamesOverride?: { basename: string; project: boolean } | null
     channelColor?: ChannelColorMapping
     channelMarker?: ChannelMarkerMapping | null
     channelDomainValue?: Record<ChannelName, [number, number]> | null
@@ -102,6 +107,11 @@ export class SettingStore {
     @observable public globalImageScale: Coordinate
     // Storing the subdirectory name where images are stored in an ImageSet. Blank if not used.
     @observable public imageSubdirectory: string | null
+    // Information about file(s) to override marker names.
+    // Only used for stacked tiffs.
+    // If basename has a value and project is true, looks for a file in the project folder.
+    // If basename has a value and project is false, looks for a file in the image folder.
+    @observable public markerNamesOverride: { basename: string; project: boolean } | null
     // Image settings below
     // Storing channel marker and channel domain so that we can copy across image sets even if a channel is missing in a set
     @observable public channelMarker: Record<ChannelName, string | null>
@@ -121,7 +131,7 @@ export class SettingStore {
     @observable public autoLoadSegmentation: boolean
     // Whether or not Mantis should automatically calculate segment features
     @observable public autoCalculateSegmentFeatures: boolean
-    // Region file basename when a region file is selected for teh whole project
+    // Region file basename when a region file is selected for the whole project
     @observable public regionsBasename: string | null
     @observable public regionsFilesLoaded: string[]
     // Whether or not the channel/population/feature legend is visible on the image
@@ -272,6 +282,14 @@ export class SettingStore {
 
     @action public setActiveImageSet = (imageSet: string): void => {
         this.activeImageSet = imageSet
+    }
+
+    @action public setMarkerNamesOverride = (basename: string, project: boolean): void => {
+        this.markerNamesOverride = { basename: basename, project: project }
+    }
+
+    @action public clearMarkerNamesOverride = (): void => {
+        this.markerNamesOverride = null
     }
 
     @action public setPlotStatistic = (statistic: PlotStatistic): void => {
@@ -733,6 +751,7 @@ export class SettingStore {
                 imageSubdirectory: this.imageSubdirectory,
                 activeImageSet: this.activeImageSet,
                 imagePositionAndScales: this.imagePositionAndScales,
+                markerNamesOverride: this.markerNamesOverride,
                 channelColor: this.channelColor,
                 channelMarker: this.channelMarker,
                 channelVisibility: this.channelVisibility,
@@ -790,6 +809,8 @@ export class SettingStore {
                 if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
                 if (importingSettings.imagePositionAndScales)
                     this.imagePositionAndScales = importingSettings.imagePositionAndScales
+                if (importingSettings.markerNamesOverride)
+                    this.markerNamesOverride = importingSettings.markerNamesOverride
                 if (importingSettings.channelColor) this.channelColor = importingSettings.channelColor
                 if (importingSettings.channelMarker) this.channelMarker = importingSettings.channelMarker
                 if (importingSettings.channelVisibility) this.channelVisibility = importingSettings.channelVisibility

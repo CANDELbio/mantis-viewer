@@ -5,7 +5,7 @@ import { MinMax } from '../interfaces/ImageInterfaces'
 export interface ImageDataWorkerInput {
     useExtInMarkerName: boolean
     filepath: string
-    imageNumber?: number
+    imageNumber: number
 }
 
 export interface ImageDataWorkerResult {

@@ -1,3 +1,5 @@
+// Stores and exposes preferences for application behavior that apply across projects.
+// These values can be modified by users in the preferences window.
 import * as Store from 'electron-store'
 import { observable, action, autorun } from 'mobx'
 import { ProjectStore } from './ProjectStore'

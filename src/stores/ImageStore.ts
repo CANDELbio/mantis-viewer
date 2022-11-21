@@ -84,12 +84,28 @@ export class ImageStore {
         this.refreshImageData()
     }
 
+    private getMarkerNamesOverridePath = (): string | null => {
+        let markerNamesOverridePath = null
+        const markerNamesOverride = this.imageSetStore.projectStore.settingStore.markerNamesOverride
+        const projectPath = this.imageSetStore.projectStore.projectPath
+        if (this.selectedDirectory && projectPath) {
+            if (markerNamesOverride?.project) {
+                markerNamesOverridePath = path.join(projectPath, markerNamesOverride.basename)
+            }
+            if (typeof markerNamesOverride?.project === 'boolean' && !markerNamesOverride.project) {
+                markerNamesOverridePath = path.join(this.selectedDirectory, markerNamesOverride.basename)
+            }
+        }
+        return markerNamesOverridePath
+    }
+
     @action public refreshImageData = (): void => {
         if (this.selectedDirectory != null && this.imageData == null) {
+            const markerNamesOverridePath = this.getMarkerNamesOverridePath()
             this.setImageDataLoading(true)
             const imageData = new ImageData()
             // Load image data in the background and set on the image store once it's loaded.
-            imageData.loadFolder(this.selectedDirectory, (data) => {
+            imageData.loadFolder(this.selectedDirectory, markerNamesOverridePath, (data) => {
                 this.setImageData(data)
             })
         }

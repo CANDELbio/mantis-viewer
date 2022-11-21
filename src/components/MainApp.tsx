@@ -463,11 +463,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     readyToImport={projectImportStore.readyToImport}
                     import={projectImportStore.import}
                     projectDirectories={projectImportStore.projectDirectories}
-                    projectCsvs={projectImportStore.projectCsvs}
+                    projectTextFiles={projectImportStore.projectTextFiles}
                     setImageSet={projectImportStore.setImageSet}
                     imageSet={projectImportStore.imageSet}
                     imageSetTiffs={projectImportStore.imageSetTiffs}
-                    imageSetCsvs={projectImportStore.imageSetCsvs}
+                    imageSetTextFiles={projectImportStore.imageSetTextFiles}
                     imageSetDirs={projectImportStore.imageSetDirs}
                     imageSubdir={projectImportStore.imageSubdirectory}
                     setImageSubdir={projectImportStore.setImageSubdirectory}
@@ -477,6 +477,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setSegmentation={projectImportStore.setImageSetSegmentationFile}
                     calculateFeatures={projectImportStore.autoCalculateFeatures}
                     setCalculateFeatures={projectImportStore.setAutoCalculateFeatures}
+                    imageSetIsStacked={projectImportStore.imageSetIsStacked}
+                    setProjectMarkerNames={projectImportStore.setProjectMarkerNamesOverride}
+                    projectMarkerNames={projectImportStore.projectMarkerNamesOverride}
+                    setImageSetMarkerNames={projectImportStore.setImageSetMarkerNamesOverride}
+                    imageSetMarkerNames={projectImportStore.imageSetMarkerNamesOverride}
                     setProjectFeatures={projectImportStore.setProjectSegmentFeaturesFile}
                     projectFeatures={projectImportStore.projectSegmentFeaturesFile}
                     setImageSetFeatures={projectImportStore.setImageSetSegmentFeaturesFile}

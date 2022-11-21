@@ -23,11 +23,11 @@ export interface ProjectImportModalProps {
     readyToImport: boolean
     import: () => void
     projectDirectories: string[]
-    projectCsvs: string[]
+    projectTextFiles: string[]
     setImageSet: (imageSet: string | null) => void
     imageSet: string | null
     imageSetTiffs: string[]
-    imageSetCsvs: string[]
+    imageSetTextFiles: string[]
     imageSetDirs: string[]
     imageSubdir: string | null
     setImageSubdir: (file: string | null) => void
@@ -37,6 +37,11 @@ export interface ProjectImportModalProps {
     setCalculateFeatures: (value: FeatureCalculationOption) => void
     setRegion: (file: string | null) => void
     region: string | null
+    imageSetIsStacked: boolean
+    setProjectMarkerNames: (file: string | null) => void
+    projectMarkerNames: string | null
+    setImageSetMarkerNames: (file: string | null) => void
+    imageSetMarkerNames: string | null
     setProjectFeatures: (file: string | null) => void
     projectFeatures: string | null
     setImageSetFeatures: (file: string | null) => void
@@ -75,14 +80,15 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
         const selectedImageSubdir = getSelectedOptions(this.props.imageSubdir, imageDirectoryOptions)
         const regionOptions = generateSelectOptions(this.props.imageSetTiffs)
         const selectedRegion = getSelectedOptions(this.props.region, regionOptions)
-        const segmentationOptions = generateSelectOptions(this.props.imageSetCsvs.concat(this.props.imageSetTiffs))
+        const segmentationOptions = generateSelectOptions(this.props.imageSetTextFiles.concat(this.props.imageSetTiffs))
         const selectedSegmentation = getSelectedOptions(this.props.segmentation, segmentationOptions)
-        const projectFeatureOptions = generateSelectOptions(this.props.projectCsvs)
-        const selectedProjectFeatures = getSelectedOptions(this.props.projectFeatures, projectFeatureOptions)
-        const imageSetFeatureOptions = generateSelectOptions(this.props.imageSetCsvs)
-        const selectedImageSetFeatures = getSelectedOptions(this.props.imageSetFeatures, imageSetFeatureOptions)
-        const populationOptions = generateSelectOptions(this.props.projectCsvs)
-        const selectedPopulation = getSelectedOptions(this.props.population, populationOptions)
+        const projectTextOptions = generateSelectOptions(this.props.projectTextFiles)
+        const selectedProjectMarkerNames = getSelectedOptions(this.props.projectMarkerNames, projectTextOptions)
+        const selectedProjectFeatures = getSelectedOptions(this.props.projectFeatures, projectTextOptions)
+        const imageSetTextOptions = generateSelectOptions(this.props.imageSetTextFiles)
+        const selectedImageSetFeatures = getSelectedOptions(this.props.imageSetFeatures, imageSetTextOptions)
+        const selectedImageSetMarkerNames = getSelectedOptions(this.props.imageSetMarkerNames, imageSetTextOptions)
+        const selectedPopulation = getSelectedOptions(this.props.population, projectTextOptions)
         const selectedCalculateFeatures = getSelectedOptions(this.props.calculateFeatures, FeatureCalculationOptions)
 
         let projectStats = null
@@ -205,11 +211,39 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     </Col>
                 </Row>
                 <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Project Marker Name Override File:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedProjectMarkerNames}
+                            options={projectTextOptions}
+                            onChange={onClearableSelectChange(this.props.setProjectMarkerNames)}
+                            isClearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!this.props.imageSetIsStacked || Boolean(this.props.imageSetMarkerNames)}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
+                    <Col xs={4}>Image Marker Name Override File:</Col>
+                    <Col xs={8}>
+                        <Select
+                            value={selectedImageSetMarkerNames}
+                            options={imageSetTextOptions}
+                            onChange={onClearableSelectChange(this.props.setImageSetMarkerNames)}
+                            isClearable={true}
+                            styles={SelectStyle}
+                            theme={SelectTheme}
+                            isDisabled={!this.props.imageSetIsStacked || Boolean(this.props.projectMarkerNames)}
+                        />
+                    </Col>
+                </Row>
+                <Row middle="xs" center="xs" style={this.rowStyle}>
                     <Col xs={4}>Project Segment Features File:</Col>
                     <Col xs={8}>
                         <Select
                             value={selectedProjectFeatures}
-                            options={projectFeatureOptions}
+                            options={projectTextOptions}
                             onChange={onClearableSelectChange(this.props.setProjectFeatures)}
                             isClearable={true}
                             styles={SelectStyle}
@@ -224,7 +258,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     <Col xs={8}>
                         <Select
                             value={selectedImageSetFeatures}
-                            options={imageSetFeatureOptions}
+                            options={imageSetTextOptions}
                             onChange={onClearableSelectChange(this.props.setImageSetFeatures)}
                             isClearable={true}
                             styles={SelectStyle}
@@ -239,7 +273,7 @@ export class ProjectImportModal extends React.Component<ProjectImportModalProps,
                     <Col xs={8}>
                         <Select
                             value={selectedPopulation}
-                            options={populationOptions}
+                            options={projectTextOptions}
                             onChange={onClearableSelectChange(this.props.setPopulations)}
                             isClearable={true}
                             styles={SelectStyle}

@@ -759,7 +759,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private mousedOverPixelMoveHandler = (): void => {
-        if (this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
+        if (this.currentMouseEvent && this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
             const position = this.stage.toLocal(this.currentMouseEvent.global)
             const xPosition = Math.round(position.x)
             const yPosition = Math.round(position.y)
