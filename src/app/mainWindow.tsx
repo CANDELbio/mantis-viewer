@@ -329,6 +329,10 @@ ipcRenderer.on('import-channel-marker-mappings-csv', (_event: Electron.Event, fi
     projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
 })
 
+ipcRenderer.on('toggle-shortcut-modal', (_event: Electron.Event): void => {
+    projectStore.notificationStore.toggleShortcutModal()
+})
+
 // Keyboard shortcuts!
 // Only let them work if we aren't actively loading data or exporting data.
 hotkeys('command+left, alt+left', function (): void {

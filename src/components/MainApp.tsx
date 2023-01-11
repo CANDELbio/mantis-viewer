@@ -148,11 +148,13 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const displayProjectImportModal = projectImportStore.modalOpen && !displayLoadingModal
 
         const displayWelcomeModal =
-            imageStore.imageData == null && !imageStore.imageDataLoading && !displayProjectImportModal
+            imageStore.imageData == null &&
+            !imageStore.imageDataLoading &&
+            !displayProjectImportModal &&
+            !notificationStore.showShortcutModal
 
         const displayShortcutModal =
-            !(displayWelcomeModal || displayLoadingModal || displayProjectImportModal) &&
-            notificationStore.showShortcutModal
+            !(displayLoadingModal || displayProjectImportModal) && notificationStore.showShortcutModal
 
         const displaySegmentFeaturesModal = notificationStore.chooseSegmentFeatures != null
 

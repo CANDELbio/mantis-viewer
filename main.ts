@@ -572,6 +572,12 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
             label: 'Help',
             submenu: [
                 {
+                    label: 'Keyboard Shortcuts',
+                    click: (): void => {
+                        if (mainWindow != null) mainWindow.webContents.send('toggle-shortcut-modal', false)
+                    },
+                },
+                {
                     label: 'Open Developer Tools',
                     click: (): void => {
                         if (mainWindow != null) mainWindow.webContents.openDevTools()
