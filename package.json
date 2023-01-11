@@ -145,7 +145,7 @@
         "mobx-utils": "^5.6.1",
         "normalize.css": "^5.0.0",
         "npm": "^8.8.0",
-        "pixi.js": "^7.0.4",
+        "pixi.js": "^7.1.0",
         "plotly.js": "~1.58.4",
         "pretty-ms": "^5.0.0",
         "react": "^16.8.2",
