@@ -828,13 +828,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private destroySprite(sprite: PIXI.Sprite): void {
         // @ts-ignore
         this.renderer.texture.destroyTexture(sprite.texture)
-        sprite.destroy(this.destroyOptions)
+        sprite.destroy({ children: true, texture: true, baseTexture: false })
     }
 
     private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
         if (this.imageData) {
-            for (const s in newChannelMarker) {
-                const channel = s as ChannelName
+            for (const c in newChannelMarker) {
+                const channel = c as ChannelName
                 const newMarker = newChannelMarker[channel]
                 const curSprite = this.channelSprite[channel]
                 if (this.channelMarker[channel] != newMarker || (newMarker && !curSprite)) {
