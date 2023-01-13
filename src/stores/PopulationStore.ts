@@ -283,6 +283,17 @@ export class PopulationStore {
         this.addToSelectedPopulations([newPopulation])
     }
 
+    @action public initiateDeleteSelectedPopulation = (id: string, confirm: boolean): void => {
+        if (!confirm) {
+            this.deleteSelectedPopulation(id)
+        } else {
+            const deletingPopulation = this.selectedPopulations.find((p) => p.id === id)
+            if (deletingPopulation) {
+                this.imageSetStore.projectStore.notificationStore.setCheckDeletePopulation(deletingPopulation.name, id)
+            }
+        }
+    }
+
     @action public deleteSelectedPopulation = (id: string): void => {
         if (this.selectedPopulations) {
             this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)

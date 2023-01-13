@@ -401,7 +401,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 updateColor={populationStore.updateSelectedPopulationColor}
                 updateVisibility={populationStore.updateSelectedPopulationVisibility}
                 updateSegments={populationStore.updateSelectedPopulationSegments}
-                deletePopulation={populationStore.deleteSelectedPopulation}
+                deletePopulation={populationStore.initiateDeleteSelectedPopulation}
                 setAllVisibility={populationStore.setAllSelectedPopulationVisibility}
                 highlightPopulation={populationStore.highlightSelectedPopulation}
                 unhighlightPopulation={populationStore.unHighlightSelectedPopulation}

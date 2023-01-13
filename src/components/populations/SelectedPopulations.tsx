@@ -18,7 +18,7 @@ interface SelectedProps {
     updateColor: (id: string, color: number) => void
     updateVisibility: (id: string, visibility: boolean) => void
     updateSegments: (id: string, segments: number[]) => void
-    deletePopulation: (id: string) => void
+    deletePopulation: (id: string, confirm: boolean) => void
     highlightPopulation: (id: string) => void
     unhighlightPopulation: (id: string) => void
 }
@@ -95,8 +95,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             segmentPopoverVisible: false,
         }
 
-        private deletePopulation = (): void => {
-            this.props.deletePopulation(this.props.population.id)
+        private deletePopulation = (e: React.MouseEvent): void => {
+            this.props.deletePopulation(this.props.population.id, !e.metaKey)
         }
 
         private updateName = (name: string): void => {

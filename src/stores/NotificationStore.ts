@@ -37,6 +37,8 @@ export class NotificationStore {
     // for the plot. Used when toggling plot all image sets.
     @observable public checkCalculateAllFeaturesForPlot: boolean
 
+    @observable public checkDeletePopulation: { name: string; id: string } | null
+
     // If the segment features are being loaded from the database.
     @observable public segmentFeaturesLoading: boolean
 
@@ -154,6 +156,14 @@ export class NotificationStore {
 
     @action setCheckImportProject = (value: boolean): void => {
         this.checkImportProject = value
+    }
+
+    @action setCheckDeletePopulation = (name: string, id: string) => {
+        this.checkDeletePopulation = { name: name, id: id }
+    }
+
+    @action clearCheckDeletePopulation = () => {
+        this.checkDeletePopulation = null
     }
 
     @action requestReloadMainWindow = (): void => {

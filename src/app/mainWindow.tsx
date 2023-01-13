@@ -329,8 +329,12 @@ ipcRenderer.on('import-channel-marker-mappings-csv', (_event: Electron.Event, fi
     projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
 })
 
-ipcRenderer.on('toggle-shortcut-modal', (_event: Electron.Event): void => {
+ipcRenderer.on('toggle-shortcut-modal', (): void => {
     projectStore.notificationStore.toggleShortcutModal()
+})
+
+ipcRenderer.on('delete-population', (_event: Electron.Event, id: string): void => {
+    projectStore.activeImageSetStore.populationStore.deleteSelectedPopulation(id)
 })
 
 // Keyboard shortcuts!
@@ -578,6 +582,15 @@ Mobx.autorun((): void => {
     if (notificationStore.checkImportProject) {
         ipcRenderer.send('mainWindow-check-import-project')
         notificationStore.setCheckImportProject(false)
+    }
+})
+
+Mobx.autorun((): void => {
+    const notificationStore = projectStore.notificationStore
+    const checkDeletePopulation = notificationStore.checkDeletePopulation
+    if (notificationStore && checkDeletePopulation) {
+        ipcRenderer.send('mainWindow-check-delete-population', checkDeletePopulation.name, checkDeletePopulation.id)
+        notificationStore.clearCheckDeletePopulation()
     }
 })
 

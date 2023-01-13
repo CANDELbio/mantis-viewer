@@ -61,6 +61,10 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                             <li>
                                 You can edit a segment&apos;s populations by right clicking the segment on the image.
                             </li>
+                            <li>
+                                You can delete a population without a confirmation by holding <b>Command/Window</b> when
+                                clicking on the delete button.
+                            </li>
                         </ul>
                     </ModalBody>
                 </Modal>

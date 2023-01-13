@@ -710,6 +710,11 @@ const createMainWindow = (): void => {
     mainWindow = initializeMainWindow()
     setMenu()
     registerMainWindowEvents()
+    // Don't let this window open other new windows.
+    // Stops command clicking on empty links from opening new windows.
+    mainWindow.webContents.setWindowOpenHandler(() => {
+        return { action: 'deny' }
+    })
     mainWindow.on('ready-to-show', (): void => {
         if (mainWindow != null) mainWindow.show()
     })
@@ -1220,6 +1225,17 @@ ipcMain.on('mainWindow-check-cancel', (): void => {
             .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
             .then((value: Electron.MessageBoxReturnValue): void => {
                 if (mainWindow != null) mainWindow.webContents.send('cancel-response', value.response == 1)
+            })
+    }
+})
+
+ipcMain.on('mainWindow-check-delete-population', (event: Electron.Event, name: string, id: string): void => {
+    if (mainWindow != null) {
+        const message = `Are you sure you want to delete the population ${name}?`
+        dialog
+            .showMessageBox(mainWindow, { type: 'warning', message: message, buttons: ['No', 'Yes'] })
+            .then((value: Electron.MessageBoxReturnValue): void => {
+                if (mainWindow != null && value.response == 1) mainWindow.webContents.send('delete-population', id)
             })
     }
 })
