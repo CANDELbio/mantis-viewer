@@ -1,11 +1,11 @@
-import { EditableText, Checkbox } from '@blueprintjs/core'
+import { EditableText } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import * as React from 'react'
 import { CompactPicker, ColorResult } from 'react-color'
-import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate } from 'react-icons/io'
+import { IoMdCloseCircle, IoMdAddCircle, IoMdCreate, IoMdEye, IoMdEyeOff } from 'react-icons/io'
 import ReactTableContainer from 'react-table-container'
 import { Popover, PopoverBody } from 'reactstrap'
-import * as _ from 'underscore'
+import _ from 'underscore'
 
 import { CreatePopulation } from './CreatePopulation'
 import { PopulationCreationOptions } from '../../definitions/UIDefinitions'
@@ -64,6 +64,15 @@ function parseSegmentIds(toParse: string): number[] {
         })
 }
 
+function visibleIcon(visible: boolean, onClick: () => void): JSX.Element {
+    const icon = visible ? <IoMdEye size="1.5em" /> : <IoMdEyeOff size="1.5em" />
+    return (
+        <a href="#" onClick={onClick}>
+            {icon}
+        </a>
+    )
+}
+
 @observer
 export class SelectedPopulations extends React.Component<SelectedPopulationProps, SelectedPopulationState> {
     public constructor(props: SelectedPopulationProps) {
@@ -98,8 +107,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             this.props.updateColor(this.props.population.id, color)
         }
 
-        private updateVisibility = (event: React.FormEvent<HTMLInputElement>): void => {
-            this.props.updateVisibility(this.props.population.id, event.currentTarget.checked)
+        private updateVisibility = (): void => {
+            this.props.updateVisibility(this.props.population.id, !this.props.population.visible)
         }
 
         private highlightPopulation = (): void => {
@@ -184,9 +193,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             </div>
                         </PopoverBody>
                     </Popover>
-                    <td>
-                        <Checkbox checked={rowPopulation.visible} onChange={this.updateVisibility} />
-                    </td>
+                    <td>{visibleIcon(rowPopulation.visible, this.updateVisibility)}</td>
                     <td id={'edit-' + rowPopulation.id} onClick={this.onToggleSegmentPopover}>
                         <a href="#">
                             <IoMdCreate size="1.5em" />
@@ -255,10 +262,6 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         return null
     }
 
-    private setVisibility = (event: React.FormEvent<HTMLInputElement>): void => {
-        this.props.setAllVisibility(event.currentTarget.checked)
-    }
-
     private anyVisible(): boolean {
         if (this.props.populations != null) {
             for (const population of this.props.populations) {
@@ -272,14 +275,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         }
     }
 
-    private visibleCheckboxDisabled(): boolean {
-        if (this.props.populations == null) {
-            return true
-        } else if (this.props.populations.length == 0) {
-            return true
-        } else {
-            return false
-        }
+    private setVisibility = (): void => {
+        this.props.setAllVisibility(!this.anyVisible())
     }
 
     private setDebounceTableScrolling = (): void => {
@@ -344,15 +341,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             <tr>
                                 <th>Name</th>
                                 <th>Color</th>
-                                <th>
-                                    <Checkbox
-                                        checked={this.anyVisible()}
-                                        onChange={this.setVisibility}
-                                        label="Visible"
-                                        disabled={this.visibleCheckboxDisabled()}
-                                        style={{ display: 'table-cell' }}
-                                    />
-                                </th>
+                                <th>{visibleIcon(this.anyVisible(), this.setVisibility)}</th>
                                 <th />
                                 <th>{this.addPopulationButton()}</th>
                             </tr>
