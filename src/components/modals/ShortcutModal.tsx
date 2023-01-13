@@ -47,10 +47,6 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                                 pressing the space bar.
                             </li>
                             <li>
-                                You can fullscreen the renderer by pressing <b>Alt</b> or <b>Command/Window</b> and F.
-                                You can exit fullscreen by pressing escape.
-                            </li>
-                            <li>
                                 You can select regions of interest on the image by holding <b>Alt</b> or{' '}
                                 <b>Command/Window</b> and clicking and drawing a region on the image.
                             </li>
@@ -64,6 +60,15 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                             <li>
                                 You can delete a population without a confirmation by holding <b>Command/Window</b> when
                                 clicking on the delete button.
+                            </li>
+                            <li>
+                                You can increment or decrement the segment highlighted on the image by holding{' '}
+                                <b>Alt</b> or <b>Command/Windows</b> and then pressing <b>=</b> or <b>-</b>{' '}
+                                respectively.
+                            </li>
+                            <li>
+                                You can fullscreen the renderer by pressing <b>Alt</b> or <b>Command/Window</b> and F.
+                                You can exit fullscreen by pressing escape.
                             </li>
                         </ul>
                     </ModalBody>

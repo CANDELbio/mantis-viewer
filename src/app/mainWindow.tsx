@@ -375,6 +375,16 @@ hotkeys('alt+down, command+down', function (): void {
     }
 })
 
+hotkeys('alt+=, command+=', function (): void {
+    const segmentationStore = projectStore.activeImageSetStore.segmentationStore
+    segmentationStore.incrementHighlightedSegment()
+})
+
+hotkeys('alt+-, command+-', function (): void {
+    const segmentationStore = projectStore.activeImageSetStore.segmentationStore
+    segmentationStore.decrementHighlightedSegment()
+})
+
 hotkeys('shift+/', function (): void {
     projectStore.notificationStore.toggleShortcutModal()
 })

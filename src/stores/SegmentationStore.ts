@@ -25,6 +25,7 @@ export class SegmentationStore {
     @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationData: SegmentationData | null
     @observable public highlightedSegment: number | null
+    private highlightedSegmentIndex: number | null
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
@@ -176,5 +177,37 @@ export class SegmentationStore {
 
     @action public setHighlightedSegment = (value: number | null): void => {
         this.highlightedSegment = value
+        const highlightedSegmentIndex = this.segmentationData?.segmentIds.findIndex((id) => id == value)
+        if (highlightedSegmentIndex && highlightedSegmentIndex !== -1) {
+            this.highlightedSegmentIndex = highlightedSegmentIndex
+        } else {
+            this.highlightedSegment = null
+        }
+    }
+
+    @action public incrementHighlightedSegment = (): void => {
+        if (this.segmentationData) {
+            const segmentIds = this.segmentationData.segmentIds
+            const curIndex = this.highlightedSegmentIndex
+            const updatedIndex = curIndex != null ? curIndex + 1 : 0
+            this.highlightedSegmentIndex = updatedIndex >= segmentIds.length ? 0 : updatedIndex
+            this.highlightedSegment = segmentIds[this.highlightedSegmentIndex]
+            console.log(
+                `updatedIndex: ${updatedIndex} index: ${this.highlightedSegmentIndex} value: ${this.highlightedSegment}`,
+            )
+        }
+    }
+
+    @action public decrementHighlightedSegment = (): void => {
+        if (this.segmentationData) {
+            const segmentIds = this.segmentationData.segmentIds
+            const curIndex = this.highlightedSegmentIndex
+            const updatedIndex = curIndex != null ? curIndex - 1 : 0
+            this.highlightedSegmentIndex = updatedIndex < 0 ? segmentIds.length - 1 : updatedIndex
+            this.highlightedSegment = this.segmentationData.segmentIds[this.highlightedSegmentIndex]
+            console.log(
+                `updatedIndex: ${updatedIndex} index: ${this.highlightedSegmentIndex} value: ${this.highlightedSegment}`,
+            )
+        }
     }
 }

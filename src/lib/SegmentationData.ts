@@ -68,7 +68,9 @@ export class SegmentationData {
         this.pixelMap = fData.pixelMap
         this.pixelIndexMap = fData.segmentIndexMap
         this.centroidMap = fData.centroidMap
-        this.segmentIds = Object.keys(this.pixelIndexMap).map((value) => parseInt(value))
+        this.segmentIds = Object.keys(this.pixelIndexMap)
+            .map((value) => parseInt(value))
+            .sort((a, b) => a - b)
         this.segmentCoordinates = this.generateSegmentCoordinates(this.segmentIds, fData.segmentOutlineMap)
         this.idIndexMap = {}
         this.segmentIds.forEach((segmentId: number, index: number) => {
