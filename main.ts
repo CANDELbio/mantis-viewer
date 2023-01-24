@@ -656,7 +656,7 @@ function registerOnReadyLoadEventHandler(window: BrowserWindow, readyFn?: (windo
 function initializeMainWindow(width?: number, height?: number): BrowserWindow {
     const newWindow = new BrowserWindow({
         width: width ? width : 1540,
-        height: height ? height : 865,
+        height: height ? height : 900,
         show: false,
         webPreferences: {
             experimentalFeatures: true,
@@ -666,7 +666,7 @@ function initializeMainWindow(width?: number, height?: number): BrowserWindow {
         },
     })
 
-    newWindow.setMinimumSize(1540, 865)
+    newWindow.setMinimumSize(1540, 900)
 
     // and load the index.html of the app.
     newWindow.loadURL(

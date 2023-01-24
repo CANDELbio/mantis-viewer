@@ -19,6 +19,7 @@ import { WelcomeModal } from './modals/WelcomeModal'
 import { Plot } from './Plot'
 import { PlotControls } from './PlotControls'
 import { SelectedPopulations } from './populations/SelectedPopulations'
+import { SegmentControls } from './SegmentControls'
 import bottomBar from '../assets/bottom_bar.png'
 import piciLogo from '../assets/pici_logo.png'
 
@@ -38,7 +39,8 @@ export interface MainAppProps {
 interface MainAppState {
     channelsOpen: boolean
     regionsOpen: boolean
-    controlsOpen: boolean
+    imageControlsOpen: boolean
+    segmentControlsOpen: boolean
     plotOpen: boolean
 }
 
@@ -51,24 +53,31 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     public state = {
         channelsOpen: true,
         regionsOpen: true,
-        controlsOpen: false,
+        imageControlsOpen: false,
+        segmentControlsOpen: false,
         plotOpen: false,
     }
 
     // Reverse ImageChannels so that select order is RGBCMYK
     private imageChannelsForControls = ImageChannels.slice().reverse()
 
-    // If opening channels, close image controls
+    // If opening channels, close control panes
     private handleChannelClick = (): void => {
         const newChannelsOpenValue = !this.state.channelsOpen
         this.setState({ channelsOpen: newChannelsOpenValue })
-        if (newChannelsOpenValue) this.setState({ controlsOpen: false })
+        if (newChannelsOpenValue) this.setState({ imageControlsOpen: false, segmentControlsOpen: false })
     }
-    // If opening image controls, close channels
-    private handleControlsClick = (): void => {
-        const newControlsOpenValue = !this.state.controlsOpen
-        this.setState({ controlsOpen: newControlsOpenValue })
-        if (newControlsOpenValue) this.setState({ channelsOpen: false })
+    // If opening image controls, close channels and segment controls
+    private handleImageControlsClick = (): void => {
+        const newControlsOpenValue = !this.state.imageControlsOpen
+        this.setState({ imageControlsOpen: newControlsOpenValue })
+        if (newControlsOpenValue) this.setState({ channelsOpen: false, segmentControlsOpen: false })
+    }
+    // If opening segment controls, close channels and image controls
+    private handleSegmentControlsClick = (): void => {
+        const newControlsOpenValue = !this.state.segmentControlsOpen
+        this.setState({ segmentControlsOpen: newControlsOpenValue })
+        if (newControlsOpenValue) this.setState({ channelsOpen: false, imageControlsOpen: false })
     }
     private handleRegionsClick = (): void => this.setState({ regionsOpen: !this.state.regionsOpen })
     private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
@@ -116,6 +125,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         let plotControls = null
         let plot = null
         let imageControls = null
+        let segmentControls = null
 
         const fullWidth = { width: '100%' }
         const fullWidthBottomSpaced = { marginBottom: '5px', width: '100%' }
@@ -273,9 +283,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 })
             }
 
-            imageControls = (
-                <div className="grey-card image-controls">
-                    <ImageControls
+            segmentControls = (
+                <div className="grey-card control-card">
+                    <SegmentControls
                         highlightedSegment={segmentationStore.highlightedSegment}
                         setHighlightedSegment={segmentationStore.setHighlightedSegment}
                         fillAlpha={settingStore.segmentationFillAlpha}
@@ -284,6 +294,17 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
                         regionAlpha={settingStore.selectedRegionAlpha}
                         onRegionAlphaChange={settingStore.setSelectedRegionAlpha}
+                        selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
+                        segmentationLoaded={segmentationStore.segmentationData != null}
+                        autoLoadSegmentation={settingStore.autoLoadSegmentation}
+                        setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
+                    />
+                </div>
+            )
+
+            imageControls = (
+                <div className="grey-card control-card">
+                    <ImageControls
                         zoomCoefficient={settingStore.zoomCoefficient}
                         onZoomCoefficientChange={settingStore.setZoomCoefficient}
                         zoomInsetVisible={settingStore.zoomInsetVisible}
@@ -292,12 +313,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setChannelLegendVisible={settingStore.setChannelLegendVisible}
                         populationLegendVisible={settingStore.populationLegendVisible}
                         setPopulationLegendVisible={settingStore.setPopulationLegendVisible}
-                        selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
                         regionLegendVisible={settingStore.regionLegendVisible}
                         setRegionLegendVisible={settingStore.setRegionLegendVisible}
-                        segmentationLoaded={segmentationStore.segmentationData != null}
-                        autoLoadSegmentation={settingStore.autoLoadSegmentation}
-                        setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
                         featureLegendVisible={settingStore.featureLegendVisible}
                         setFeatureLegendVisible={settingStore.setFeatureLegendVisible}
                         sortLegendFeatures={settingStore.sortLegendFeatures}
@@ -507,10 +524,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             <Collapse isOpen={this.state.channelsOpen} style={fullWidth}>
                                 <div>{channelControls}</div>
                             </Collapse>
-                            <Button onClick={this.handleControlsClick} style={fullWidthBottomSpaced} size="sm">
-                                {this.state.controlsOpen ? 'Hide' : 'Show'} Image Controls
+                            <Button onClick={this.handleSegmentControlsClick} style={fullWidthBottomSpaced} size="sm">
+                                {this.state.segmentControlsOpen ? 'Hide' : 'Show'} Segment Controls
                             </Button>
-                            <Collapse isOpen={this.state.controlsOpen} style={fullWidth}>
+                            <Collapse isOpen={this.state.segmentControlsOpen} style={fullWidth}>
+                                <div>{segmentControls}</div>
+                            </Collapse>
+                            <Button onClick={this.handleImageControlsClick} style={fullWidthBottomSpaced} size="sm">
+                                {this.state.imageControlsOpen ? 'Hide' : 'Show'} Image Controls
+                            </Button>
+                            <Collapse isOpen={this.state.imageControlsOpen} style={fullWidth}>
                                 <div>{imageControls}</div>
                             </Collapse>
                         </Col>
