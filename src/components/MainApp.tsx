@@ -225,6 +225,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
                         blurPixels={projectStore.preferencesStore.blurPixels}
+                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu
@@ -288,6 +289,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     <SegmentControls
                         highlightedSegment={segmentationStore.highlightedSegment}
                         setHighlightedSegment={segmentationStore.setHighlightedSegment}
+                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
+                        setSnapToHighlightedSegment={settingStore.setSnapToHighlightedSegment}
                         fillAlpha={settingStore.segmentationFillAlpha}
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}

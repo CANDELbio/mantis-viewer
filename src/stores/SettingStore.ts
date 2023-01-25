@@ -84,6 +84,7 @@ type SettingStoreData = {
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
+    snapToHighlightedSegment?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
 }
 
@@ -146,6 +147,8 @@ export class SettingStore {
     @observable public channelMappings: ChannelMappings
 
     @observable public zoomCoefficient: number
+
+    @observable public snapToHighlightedSegment: boolean
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
@@ -384,6 +387,10 @@ export class SettingStore {
 
     @action public setZoomCoefficient = (value: number): void => {
         this.zoomCoefficient = value
+    }
+
+    @action public setSnapToHighlightedSegment = (value: boolean): void => {
+        this.snapToHighlightedSegment = value
     }
 
     @action public setChannelLegendVisible = (visible: boolean): void => {
@@ -790,6 +797,7 @@ export class SettingStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
+                snapToHighlightedSegment: this.snapToHighlightedSegment,
                 globalPopulationAttributes: this.globalPopulationAttributes,
             }
             try {
@@ -869,6 +877,8 @@ export class SettingStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
+                if (importingSettings.snapToHighlightedSegment)
+                    this.snapToHighlightedSegment = importingSettings.snapToHighlightedSegment
                 if (importingSettings.globalPopulationAttributes)
                     this.globalPopulationAttributes = importingSettings.globalPopulationAttributes
             } catch (e) {

@@ -63,6 +63,7 @@ export interface ImageProps {
     segmentPopulationsForLegend: Record<number, string[]>
     regionsForLegend: string[]
     blurPixels: boolean
+    snapToHighlightedSegment: boolean
 }
 
 @observer
@@ -82,6 +83,10 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     // Whether or not pixels should be blurred for the channel sprites
     private blurPixels: boolean | undefined
+
+    private highlightedSegments: number[]
+    // If we should snap to a newly highlighted segment.
+    private snapToHighlightedSegment: boolean | undefined
 
     // Color filters to use so that the sprites display as the desired color
     private channelColorFilters: Record<ChannelName, ColorMatrixFilter>
@@ -298,6 +303,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.regionsForLegend = []
         this.segmentFeaturesForLegend = {}
         this.segmentPopulationsForLegend = []
+        this.highlightedSegments = []
 
         this.selectedRegionAlpha = DefaultSelectedRegionAlpha
         this.zoomCoefficient = MinZoomCoefficient
@@ -1106,6 +1112,25 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.stage.updateTransform()
     }
 
+    private snapToNewlyHighlightedSegment(newHighlightedSegments: number[]): void {
+        // Highlighting a segment requires user interaction of some kind, so in theory
+        // there should only ever be one newly highlighted segment at any given time.
+        const newlyHighlightedSegment = newHighlightedSegments
+            .filter((v) => !this.highlightedSegments.includes(v))
+            .shift()
+        if (newlyHighlightedSegment) {
+            const centroid = this.segmentationData?.centroidMap[newlyHighlightedSegment]
+            if (centroid) {
+                const scale = this.stage.scale
+                this.stage.x = -centroid.x * scale.x + this.renderer.width / 2
+                this.stage.y = -centroid.y * scale.y + this.renderer.height / 2
+                this.checkSetStageBounds()
+                this.syncPositionAndScale()
+            }
+        }
+        this.highlightedSegments = newHighlightedSegments
+    }
+
     // Resizes the renderer without resetting zoom/scale, x/y position, and resetting stage bounds.
     private resizeRendererForExport(width: number, height: number, xScale: number, yScale: number): void {
         // Adjust the position so that the same point is still centered if we're zoomed in.
@@ -1238,6 +1263,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Reload saved position and scale
         if (position && scale) this.setStagePositionAndScale(position, scale)
 
+        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
+
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if (
             !this.maxRendererSize ||
@@ -1341,8 +1368,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         const exportPath = this.props.exportPath
 
-        const blurPixels = this.props.blurPixels
-
         const windowHeight = this.props.windowHeight
 
         this.channelVisibility = {
@@ -1354,7 +1379,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             yChannel: this.props.channelVisibility.yChannel,
             kChannel: this.props.channelVisibility.kChannel,
         }
-        this.blurPixels = blurPixels
+        this.blurPixels = this.props.blurPixels
+        this.snapToHighlightedSegment = this.props.snapToHighlightedSegment
         this.channelLegendVisible = this.props.channelLegendVisible
         this.populationLegendVisible = this.props.populationLegendVisible
         this.featureLegendVisible = this.props.featureLegendVisible

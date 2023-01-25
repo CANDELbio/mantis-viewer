@@ -192,9 +192,6 @@ export class SegmentationStore {
             const updatedIndex = curIndex != null ? curIndex + 1 : 0
             this.highlightedSegmentIndex = updatedIndex >= segmentIds.length ? 0 : updatedIndex
             this.highlightedSegment = segmentIds[this.highlightedSegmentIndex]
-            console.log(
-                `updatedIndex: ${updatedIndex} index: ${this.highlightedSegmentIndex} value: ${this.highlightedSegment}`,
-            )
         }
     }
 
@@ -205,9 +202,6 @@ export class SegmentationStore {
             const updatedIndex = curIndex != null ? curIndex - 1 : 0
             this.highlightedSegmentIndex = updatedIndex < 0 ? segmentIds.length - 1 : updatedIndex
             this.highlightedSegment = this.segmentationData.segmentIds[this.highlightedSegmentIndex]
-            console.log(
-                `updatedIndex: ${updatedIndex} index: ${this.highlightedSegmentIndex} value: ${this.highlightedSegment}`,
-            )
         }
     }
 }
