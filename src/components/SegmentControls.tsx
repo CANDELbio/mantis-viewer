@@ -74,7 +74,7 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
                 />
                 <Checkbox
                     checked={this.props.snapToHighlightedSegment}
-                    label="Snap to Highlighted Segment"
+                    label="Center on Highlighted Segment"
                     onChange={this.onCheckboxChange(this.props.setSnapToHighlightedSegment)}
                 />
                 Segmentation Outline Alpha

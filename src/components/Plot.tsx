@@ -38,7 +38,10 @@ export class Plot extends React.Component<PlotProps, PlotState> {
     }
 
     private onPlotSelected = (data: Plotly.PlotSelectionEvent): void => {
-        if (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour')
+        if (
+            (this.props.selectedType == 'scatter' || this.props.selectedType == 'contour') &&
+            (data.range || data.lassoPoints)
+        )
             this.props.setSelectedSegments(this.parseScatterEvent(data))
         if (this.props.selectedType == 'histogram') {
             const { min, max } = this.parseHistogramEvent(data)
@@ -46,7 +49,12 @@ export class Plot extends React.Component<PlotProps, PlotState> {
         }
     }
     private onHover = (data: Plotly.PlotSelectionEvent): void => {
-        if (this.props.selectedType == 'scatter') this.props.setHoveredSegments(this.parseScatterEvent(data))
+        if (this.props.selectedType == 'scatter') {
+            const rawSegments = this.parseScatterEvent(data)
+            const highlightedSegments = []
+            if (rawSegments.length > 0) highlightedSegments.push(rawSegments[0])
+            this.props.setHoveredSegments(highlightedSegments)
+        }
     }
     private onUnHover = (): void => this.props.setHoveredSegments([])
 
@@ -68,7 +76,7 @@ export class Plot extends React.Component<PlotProps, PlotState> {
     private parseScatterEvent(data: Plotly.PlotSelectionEvent): number[] {
         const selectedSegments: number[] = []
         if (data != null) {
-            if (data.points != null && (data.range || data.lassoPoints)) {
+            if (data.points != null) {
                 for (const point of data.points) {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore: Plotly ts declaration doesn't have text on points, but it is there.
