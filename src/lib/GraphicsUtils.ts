@@ -33,9 +33,10 @@ export function highlightCoordinate(
     y: number,
     width: number,
     height: number,
+    scale: number,
 ): void {
     graphics
-        .lineStyle({ width: 2, alpha: 1, color: 0xffffff })
+        .lineStyle({ width: 3 * scale, alpha: 1, color: 0xffffff })
         .moveTo(x, 0)
         .lineTo(x, height)
         .moveTo(0, y)

@@ -377,12 +377,17 @@ hotkeys('alt+down, command+down', function (): void {
 
 hotkeys('alt+=, command+=', function (): void {
     const segmentationStore = projectStore.activeImageSetStore.segmentationStore
-    segmentationStore.incrementHighlightedSegment()
+    segmentationStore.incrementUserHighlightedSegment()
 })
 
 hotkeys('alt+-, command+-', function (): void {
     const segmentationStore = projectStore.activeImageSetStore.segmentationStore
-    segmentationStore.decrementHighlightedSegment()
+    segmentationStore.decrementUserHighlightedSegment()
+})
+
+hotkeys('alt+h, command+h', function (): void {
+    const settingStore = projectStore.settingStore
+    settingStore.setMarkHighlightedSegments(!settingStore.markHighlightedSegments)
 })
 
 hotkeys('shift+/', function (): void {

@@ -67,6 +67,10 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                                 respectively.
                             </li>
                             <li>
+                                You can toggle marking highlighted segments on the image with a cross and outline by
+                                holding <b>Alt</b> or <b>Command/Windows</b> and then pressing <b>h</b>.
+                            </li>
+                            <li>
                                 You can fullscreen the renderer by pressing <b>Alt</b> or <b>Command/Window</b> and F.
                                 You can exit fullscreen by pressing escape.
                             </li>

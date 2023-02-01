@@ -181,8 +181,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         if (imageMessage && windowHeight) windowHeight -= 20
 
         let highlightedSegments = plotStore.segmentsHoveredOnPlot
-        if (segmentationStore.highlightedSegment)
-            highlightedSegments = highlightedSegments.concat([segmentationStore.highlightedSegment])
+        if (segmentationStore.userHighlightedSegment)
+            highlightedSegments = highlightedSegments.concat([segmentationStore.userHighlightedSegment])
         const imageViewer = (
             <div>
                 <ContextMenuTrigger
@@ -207,6 +207,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
                         highlightedSegments={highlightedSegments}
+                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
+                        markHighlightedSegments={settingStore.markHighlightedSegments}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
                         segmentFeaturesForLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsForLegend={populationStore.populationsForMousedOverSegments}
@@ -225,7 +227,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
                         blurPixels={projectStore.preferencesStore.blurPixels}
-                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu
@@ -287,10 +288,12 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             segmentControls = (
                 <div className="grey-card control-card">
                     <SegmentControls
-                        highlightedSegment={segmentationStore.highlightedSegment}
-                        setHighlightedSegment={segmentationStore.setHighlightedSegment}
+                        highlightedSegment={segmentationStore.userHighlightedSegment}
+                        setHighlightedSegment={segmentationStore.setUserHighlightedSegment}
                         snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
                         setSnapToHighlightedSegment={settingStore.setSnapToHighlightedSegment}
+                        markHighlightedSegments={settingStore.markHighlightedSegments}
+                        setMarkHighlightedSegments={settingStore.setMarkHighlightedSegments}
                         fillAlpha={settingStore.segmentationFillAlpha}
                         outlineAlpha={settingStore.segmentationOutlineAlpha}
                         onFillAlphaChange={settingStore.setSegmentationFillAlpha}

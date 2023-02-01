@@ -85,6 +85,7 @@ type SettingStoreData = {
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
     snapToHighlightedSegment?: boolean
+    markHighlightedSegments?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
 }
 
@@ -149,6 +150,7 @@ export class SettingStore {
     @observable public zoomCoefficient: number
 
     @observable public snapToHighlightedSegment: boolean
+    @observable public markHighlightedSegments: boolean
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
@@ -253,6 +255,9 @@ export class SettingStore {
         this.channelMappings = {}
 
         this.zoomCoefficient = MinZoomCoefficient
+
+        this.snapToHighlightedSegment = false
+        this.markHighlightedSegments = true
 
         this.globalPopulationAttributes = {}
     }
@@ -391,6 +396,10 @@ export class SettingStore {
 
     @action public setSnapToHighlightedSegment = (value: boolean): void => {
         this.snapToHighlightedSegment = value
+    }
+
+    @action public setMarkHighlightedSegments = (value: boolean): void => {
+        this.markHighlightedSegments = value
     }
 
     @action public setChannelLegendVisible = (visible: boolean): void => {
@@ -798,6 +807,7 @@ export class SettingStore {
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
                 snapToHighlightedSegment: this.snapToHighlightedSegment,
+                markHighlightedSegments: this.markHighlightedSegments,
                 globalPopulationAttributes: this.globalPopulationAttributes,
             }
             try {
@@ -879,6 +889,8 @@ export class SettingStore {
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
                 if (importingSettings.snapToHighlightedSegment)
                     this.snapToHighlightedSegment = importingSettings.snapToHighlightedSegment
+                if (importingSettings.markHighlightedSegments)
+                    this.markHighlightedSegments = importingSettings.markHighlightedSegments
                 if (importingSettings.globalPopulationAttributes)
                     this.globalPopulationAttributes = importingSettings.globalPopulationAttributes
             } catch (e) {

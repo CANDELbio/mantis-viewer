@@ -45,6 +45,8 @@ export interface ImageProps {
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
     highlightedSegments: number[]
+    snapToHighlightedSegment: boolean
+    markHighlightedSegments: boolean
     mousedOverSegmentsFromImage: number[]
     exportPath: string | null
     onExportComplete: () => void
@@ -63,7 +65,6 @@ export interface ImageProps {
     segmentPopulationsForLegend: Record<number, string[]>
     regionsForLegend: string[]
     blurPixels: boolean
-    snapToHighlightedSegment: boolean
 }
 
 @observer
@@ -87,6 +88,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private highlightedSegments: number[]
     // If we should snap to a newly highlighted segment.
     private snapToHighlightedSegment: boolean | undefined
+    // If we should mark highlighted segments on the image.
+    private markHighlightedSegments: boolean | undefined
 
     // Color filters to use so that the sprites display as the desired color
     private channelColorFilters: Record<ChannelName, ColorMatrixFilter>
@@ -1014,7 +1017,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         graphics.clear()
         graphics.removeChildren()
         const imageData = this.imageData
-        if (imageData) {
+        if (imageData && this.markHighlightedSegments) {
             for (const segmentId of highlightedSegments) {
                 const centroid = this.segmentationData?.centroidMap[segmentId]
                 if (imageData && centroid) {
@@ -1024,6 +1027,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                         centroid.y,
                         imageData.width,
                         imageData.height,
+                        this.minScale / this.stage.scale.x,
                     )
                 }
             }
@@ -1381,6 +1385,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         }
         this.blurPixels = this.props.blurPixels
         this.snapToHighlightedSegment = this.props.snapToHighlightedSegment
+        this.markHighlightedSegments = this.props.markHighlightedSegments
         this.channelLegendVisible = this.props.channelLegendVisible
         this.populationLegendVisible = this.props.populationLegendVisible
         this.featureLegendVisible = this.props.featureLegendVisible

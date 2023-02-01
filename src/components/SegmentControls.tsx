@@ -11,6 +11,9 @@ export interface SegmentControlProps {
     snapToHighlightedSegment: boolean
     setSnapToHighlightedSegment: (value: boolean) => void
 
+    markHighlightedSegments: boolean
+    setMarkHighlightedSegments: (value: boolean) => void
+
     fillAlpha: number
     outlineAlpha: number
     regionAlpha: number
@@ -76,6 +79,11 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
                     checked={this.props.snapToHighlightedSegment}
                     label="Center on Highlighted Segment"
                     onChange={this.onCheckboxChange(this.props.setSnapToHighlightedSegment)}
+                />
+                <Checkbox
+                    checked={this.props.markHighlightedSegments}
+                    label="Mark Highlighted Segments on Image"
+                    onChange={this.onCheckboxChange(this.props.setMarkHighlightedSegments)}
                 />
                 Segmentation Outline Alpha
                 <Slider

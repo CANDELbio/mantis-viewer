@@ -24,8 +24,9 @@ export class SegmentationStore {
     @observable public selectedSegmentationFile: string | null
     @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationData: SegmentationData | null
-    @observable public highlightedSegment: number | null
-    private highlightedSegmentIndex: number | null
+    // Segment highlighted by the user in the segment controls pane.
+    @observable public userHighlightedSegment: number | null
+    private userHighlightedSegmentIndex: number | null
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
@@ -61,6 +62,7 @@ export class SegmentationStore {
         const segmentationData = this.segmentationData
         if (segmentationData) {
             const imageSetStore = this.imageSetStore
+            const settingStore = this.imageSetStore.projectStore.settingStore
 
             let outlineColors = []
             let outlineAlphas = []
@@ -93,15 +95,20 @@ export class SegmentationStore {
             }
 
             // Highlighting segments that need to be highlighted.
-            const plotStore = imageSetStore.plotStore
-            const segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
-            for (const highlightedSegmentId of segmentsToHighlight) {
-                const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
-                if (highlightedSegmentIndex) {
-                    outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
-                    outlineAlphas[highlightedSegmentIndex] = 1
+            if (settingStore.markHighlightedSegments) {
+                const plotStore = imageSetStore.plotStore
+                let segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
+                if (this.userHighlightedSegment)
+                    segmentsToHighlight = segmentsToHighlight.concat([this.userHighlightedSegment])
+                for (const highlightedSegmentId of segmentsToHighlight) {
+                    const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
+                    if (highlightedSegmentIndex) {
+                        outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
+                        outlineAlphas[highlightedSegmentIndex] = 1
+                    }
                 }
             }
+
             return { colors: outlineColors, alphas: outlineAlphas }
         }
         return null
@@ -175,33 +182,33 @@ export class SegmentationStore {
         this.imageSetStore.imageStore.removeSegmentationFileFromMarkers()
     }
 
-    @action public setHighlightedSegment = (value: number | null): void => {
-        this.highlightedSegment = value
+    @action public setUserHighlightedSegment = (value: number | null): void => {
+        this.userHighlightedSegment = value
         const highlightedSegmentIndex = this.segmentationData?.segmentIds.findIndex((id) => id == value)
         if (highlightedSegmentIndex && highlightedSegmentIndex !== -1) {
-            this.highlightedSegmentIndex = highlightedSegmentIndex
+            this.userHighlightedSegmentIndex = highlightedSegmentIndex
         } else {
-            this.highlightedSegment = null
+            this.userHighlightedSegment = null
         }
     }
 
-    @action public incrementHighlightedSegment = (): void => {
+    @action public incrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
             const segmentIds = this.segmentationData.segmentIds
-            const curIndex = this.highlightedSegmentIndex
+            const curIndex = this.userHighlightedSegmentIndex
             const updatedIndex = curIndex != null ? curIndex + 1 : 0
-            this.highlightedSegmentIndex = updatedIndex >= segmentIds.length ? 0 : updatedIndex
-            this.highlightedSegment = segmentIds[this.highlightedSegmentIndex]
+            this.userHighlightedSegmentIndex = updatedIndex >= segmentIds.length ? 0 : updatedIndex
+            this.userHighlightedSegment = segmentIds[this.userHighlightedSegmentIndex]
         }
     }
 
-    @action public decrementHighlightedSegment = (): void => {
+    @action public decrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
             const segmentIds = this.segmentationData.segmentIds
-            const curIndex = this.highlightedSegmentIndex
+            const curIndex = this.userHighlightedSegmentIndex
             const updatedIndex = curIndex != null ? curIndex - 1 : 0
-            this.highlightedSegmentIndex = updatedIndex < 0 ? segmentIds.length - 1 : updatedIndex
-            this.highlightedSegment = this.segmentationData.segmentIds[this.highlightedSegmentIndex]
+            this.userHighlightedSegmentIndex = updatedIndex < 0 ? segmentIds.length - 1 : updatedIndex
+            this.userHighlightedSegment = this.segmentationData.segmentIds[this.userHighlightedSegmentIndex]
         }
     }
 }
