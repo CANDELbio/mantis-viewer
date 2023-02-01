@@ -83,9 +83,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
 
     private getChannelMin(s: ChannelName): number {
-        const settingStore = this.props.projectStore.persistedValueStore
+        const persistedValueStore = this.props.projectStore.persistedValueStore
         const imageStore = this.props.projectStore.activeImageSetStore.imageStore
-        const channelMarker = settingStore.channelMarker[s]
+        const channelMarker = persistedValueStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             const minmax = imageStore.imageData.minmax[channelMarker]
             if (minmax) return imageStore.imageData.minmax[channelMarker].min
@@ -94,9 +94,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
 
     private getChannelMax(s: ChannelName): number {
-        const settingStore = this.props.projectStore.persistedValueStore
+        const persistedValueStore = this.props.projectStore.persistedValueStore
         const imageStore = this.props.projectStore.activeImageSetStore.imageStore
-        const channelMarker = settingStore.channelMarker[s]
+        const channelMarker = persistedValueStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
             const minmax = imageStore.imageData.minmax[channelMarker]
             if (minmax) return imageStore.imageData.minmax[channelMarker].max
@@ -116,7 +116,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const segmentFeatureStore = projectStore.segmentFeatureStore
         const populationStore = imageSetStore.populationStore
         const plotStore = imageSetStore.plotStore
-        const settingStore = projectStore.persistedValueStore
+        const persistedValueStore = projectStore.persistedValueStore
         const notificationStore = projectStore.notificationStore
         const projectImportStore = projectStore.projectImportStore
 
@@ -193,36 +193,36 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     <ImageViewer
                         imageData={imageStore.imageData}
                         segmentationData={segmentationStore.segmentationData}
-                        segmentationFillAlpha={settingStore.segmentationFillAlpha}
-                        selectedRegionAlpha={settingStore.selectedRegionAlpha}
+                        segmentationFillAlpha={persistedValueStore.segmentationFillAlpha}
+                        selectedRegionAlpha={persistedValueStore.selectedRegionAlpha}
                         segmentOutlineAttributes={segmentationStore.outlineAttributes}
                         channelDomain={imageStore.channelDomain}
-                        channelVisibility={settingStore.channelVisibility}
-                        channelColor={settingStore.channelColor}
-                        channelMarker={settingStore.channelMarker}
-                        zoomCoefficient={settingStore.zoomCoefficient}
-                        positionAndScale={settingStore.activePositionAndScale}
-                        setPositionAndScale={settingStore.setActivePositionAndScale}
+                        channelVisibility={persistedValueStore.channelVisibility}
+                        channelColor={persistedValueStore.channelColor}
+                        channelMarker={persistedValueStore.channelMarker}
+                        zoomCoefficient={persistedValueStore.zoomCoefficient}
+                        positionAndScale={persistedValueStore.activePositionAndScale}
+                        setPositionAndScale={persistedValueStore.setActivePositionAndScale}
                         addSelectedPopulation={populationStore.createPopulationFromPixels}
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
                         highlightedSegments={highlightedSegments}
-                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
-                        markHighlightedSegments={settingStore.markHighlightedSegments}
+                        snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
+                        markHighlightedSegments={persistedValueStore.markHighlightedSegments}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
                         segmentFeaturesForLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsForLegend={populationStore.populationsForMousedOverSegments}
                         regionsForLegend={populationStore.mousedOverRegions}
                         exportPath={imageStore.imageExportFilename}
                         onExportComplete={imageStore.clearImageExportFilePath}
-                        channelLegendVisible={settingStore.channelLegendVisible}
-                        populationLegendVisible={settingStore.populationLegendVisible}
-                        regionLegendVisible={settingStore.regionLegendVisible}
-                        zoomInsetVisible={settingStore.zoomInsetVisible}
-                        featureLegendVisible={settingStore.featureLegendVisible}
-                        sortLegendFeatures={settingStore.sortLegendFeatures}
-                        plotTransform={settingStore.plotTransform}
-                        transformCoefficient={settingStore.transformCoefficient}
+                        channelLegendVisible={persistedValueStore.channelLegendVisible}
+                        populationLegendVisible={persistedValueStore.populationLegendVisible}
+                        regionLegendVisible={persistedValueStore.regionLegendVisible}
+                        zoomInsetVisible={persistedValueStore.zoomInsetVisible}
+                        featureLegendVisible={persistedValueStore.featureLegendVisible}
+                        sortLegendFeatures={persistedValueStore.sortLegendFeatures}
+                        plotTransform={persistedValueStore.plotTransform}
+                        transformCoefficient={persistedValueStore.transformCoefficient}
                         windowHeight={windowHeight}
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
@@ -247,11 +247,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     setSelectedImage={projectStore.setActiveImageSet}
                     previousImage={projectStore.setPreviousImageSet}
                     nextImage={projectStore.setNextImageSet}
-                    selectedChannelMapping={settingStore.activeChannelMapping}
-                    channelMappings={settingStore.channelMappings}
-                    saveChannelMapping={settingStore.saveChannelMapping}
-                    loadChannelMapping={settingStore.loadChannelMarkerMapping}
-                    deleteChannelMapping={settingStore.deleteChannelMarkerMapping}
+                    selectedChannelMapping={persistedValueStore.activeChannelMapping}
+                    channelMappings={persistedValueStore.channelMappings}
+                    saveChannelMapping={persistedValueStore.saveChannelMapping}
+                    loadChannelMapping={persistedValueStore.loadChannelMarkerMapping}
+                    deleteChannelMapping={persistedValueStore.deleteChannelMarkerMapping}
                 />
             </div>
         )
@@ -260,24 +260,24 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             const markerNames = imageStore.imageData.markerNames
             if (markerNames.length > 0) {
                 channelControls = this.imageChannelsForControls.map((s: ChannelName) => {
-                    const channelMarker = settingStore.channelMarker[s]
+                    const channelMarker = persistedValueStore.channelMarker[s]
                     const selectedMarker = channelMarker && markerNames.includes(channelMarker) ? channelMarker : null
                     return (
                         <div className="grey-card channel-controls" key={s}>
                             <ChannelControls
                                 channel={s}
-                                channelColor={settingStore.channelColor[s]}
-                                setChannelColor={settingStore.setChannelColorCallback(s)}
-                                channelVisible={settingStore.channelVisibility[s]}
-                                setChannelVisibility={settingStore.setChannelVisibilityCallback(s)}
+                                channelColor={persistedValueStore.channelColor[s]}
+                                setChannelColor={persistedValueStore.setChannelColorCallback(s)}
+                                channelVisible={persistedValueStore.channelVisibility[s]}
+                                setChannelVisibility={persistedValueStore.setChannelVisibilityCallback(s)}
                                 channelMin={this.getChannelMin(s)}
                                 channelMax={this.getChannelMax(s)}
                                 sliderValue={imageStore.channelDomain[s]}
-                                setChannelDomainValue={settingStore.setChannelDomainValueCallback(s)}
+                                setChannelDomainValue={persistedValueStore.setChannelDomainValueCallback(s)}
                                 markers={markerNames}
                                 selectedMarker={selectedMarker}
-                                allSelectedMarkers={Object.values(settingStore.channelMarker)}
-                                setMarker={settingStore.setChannelMarkerCallback(s)}
+                                allSelectedMarkers={Object.values(persistedValueStore.channelMarker)}
+                                setMarker={persistedValueStore.setChannelMarkerCallback(s)}
                                 windowWidth={projectStore.windowWidth}
                             />
                         </div>
@@ -290,20 +290,20 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     <SegmentControls
                         highlightedSegment={segmentationStore.userHighlightedSegment}
                         setHighlightedSegment={segmentationStore.setUserHighlightedSegment}
-                        snapToHighlightedSegment={settingStore.snapToHighlightedSegment}
-                        setSnapToHighlightedSegment={settingStore.setSnapToHighlightedSegment}
-                        markHighlightedSegments={settingStore.markHighlightedSegments}
-                        setMarkHighlightedSegments={settingStore.setMarkHighlightedSegments}
-                        fillAlpha={settingStore.segmentationFillAlpha}
-                        outlineAlpha={settingStore.segmentationOutlineAlpha}
-                        onFillAlphaChange={settingStore.setSegmentationFillAlpha}
-                        onOutlineAlphaChange={settingStore.setSegmentationOutlineAlpha}
-                        regionAlpha={settingStore.selectedRegionAlpha}
-                        onRegionAlphaChange={settingStore.setSelectedRegionAlpha}
+                        snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
+                        setSnapToHighlightedSegment={persistedValueStore.setSnapToHighlightedSegment}
+                        markHighlightedSegments={persistedValueStore.markHighlightedSegments}
+                        setMarkHighlightedSegments={persistedValueStore.setMarkHighlightedSegments}
+                        fillAlpha={persistedValueStore.segmentationFillAlpha}
+                        outlineAlpha={persistedValueStore.segmentationOutlineAlpha}
+                        onFillAlphaChange={persistedValueStore.setSegmentationFillAlpha}
+                        onOutlineAlphaChange={persistedValueStore.setSegmentationOutlineAlpha}
+                        regionAlpha={persistedValueStore.selectedRegionAlpha}
+                        onRegionAlphaChange={persistedValueStore.setSelectedRegionAlpha}
                         selectedSegmentationFile={segmentationStore.selectedSegmentationFile}
                         segmentationLoaded={segmentationStore.segmentationData != null}
-                        autoLoadSegmentation={settingStore.autoLoadSegmentation}
-                        setAutoLoadSegmentation={settingStore.setAutoLoadSegmentation}
+                        autoLoadSegmentation={persistedValueStore.autoLoadSegmentation}
+                        setAutoLoadSegmentation={persistedValueStore.setAutoLoadSegmentation}
                     />
                 </div>
             )
@@ -311,20 +311,20 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             imageControls = (
                 <div className="grey-card control-card">
                     <ImageControls
-                        zoomCoefficient={settingStore.zoomCoefficient}
-                        onZoomCoefficientChange={settingStore.setZoomCoefficient}
-                        zoomInsetVisible={settingStore.zoomInsetVisible}
-                        setZoomInsetVisible={settingStore.setZoomInsetVisible}
-                        channelLegendVisible={settingStore.channelLegendVisible}
-                        setChannelLegendVisible={settingStore.setChannelLegendVisible}
-                        populationLegendVisible={settingStore.populationLegendVisible}
-                        setPopulationLegendVisible={settingStore.setPopulationLegendVisible}
-                        regionLegendVisible={settingStore.regionLegendVisible}
-                        setRegionLegendVisible={settingStore.setRegionLegendVisible}
-                        featureLegendVisible={settingStore.featureLegendVisible}
-                        setFeatureLegendVisible={settingStore.setFeatureLegendVisible}
-                        sortLegendFeatures={settingStore.sortLegendFeatures}
-                        setSortLegendFeatures={settingStore.setSortLegendFeatures}
+                        zoomCoefficient={persistedValueStore.zoomCoefficient}
+                        onZoomCoefficientChange={persistedValueStore.setZoomCoefficient}
+                        zoomInsetVisible={persistedValueStore.zoomInsetVisible}
+                        setZoomInsetVisible={persistedValueStore.setZoomInsetVisible}
+                        channelLegendVisible={persistedValueStore.channelLegendVisible}
+                        setChannelLegendVisible={persistedValueStore.setChannelLegendVisible}
+                        populationLegendVisible={persistedValueStore.populationLegendVisible}
+                        setPopulationLegendVisible={persistedValueStore.setPopulationLegendVisible}
+                        regionLegendVisible={persistedValueStore.regionLegendVisible}
+                        setRegionLegendVisible={persistedValueStore.setRegionLegendVisible}
+                        featureLegendVisible={persistedValueStore.featureLegendVisible}
+                        setFeatureLegendVisible={persistedValueStore.setFeatureLegendVisible}
+                        sortLegendFeatures={persistedValueStore.sortLegendFeatures}
+                        setSortLegendFeatures={persistedValueStore.setSortLegendFeatures}
                     />
                 </div>
             )
@@ -341,35 +341,35 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 windowWidth={projectStore.windowWidth}
                                 modalOpen={modalOpen}
                                 features={segmentFeatureStore.activeAvailableFeatures}
-                                selectedPlotFeatures={settingStore.selectedPlotFeatures}
-                                setSelectedPlotFeatures={settingStore.setSelectedPlotFeatures}
-                                selectedStatistic={settingStore.plotStatistic}
-                                setSelectedStatistic={settingStore.setPlotStatistic}
-                                selectedTransform={settingStore.plotTransform}
-                                setSelectedTransform={settingStore.setPlotTransform}
-                                selectedType={settingStore.plotType}
-                                setSelectedType={settingStore.setPlotType}
-                                selectedNormalization={settingStore.plotNormalization}
-                                setSelectedNormalization={settingStore.setPlotNormalization}
-                                dotSize={settingStore.plotDotSize}
-                                setDotSize={settingStore.setPlotDotSize}
-                                transformCoefficient={settingStore.transformCoefficient}
-                                setTransformCoefficient={settingStore.setTransformCoefficient}
+                                selectedPlotFeatures={persistedValueStore.selectedPlotFeatures}
+                                setSelectedPlotFeatures={persistedValueStore.setSelectedPlotFeatures}
+                                selectedStatistic={persistedValueStore.plotStatistic}
+                                setSelectedStatistic={persistedValueStore.setPlotStatistic}
+                                selectedTransform={persistedValueStore.plotTransform}
+                                setSelectedTransform={persistedValueStore.setPlotTransform}
+                                selectedType={persistedValueStore.plotType}
+                                setSelectedType={persistedValueStore.setPlotType}
+                                selectedNormalization={persistedValueStore.plotNormalization}
+                                setSelectedNormalization={persistedValueStore.setPlotNormalization}
+                                dotSize={persistedValueStore.plotDotSize}
+                                setDotSize={persistedValueStore.setPlotDotSize}
+                                transformCoefficient={persistedValueStore.transformCoefficient}
+                                setTransformCoefficient={persistedValueStore.setTransformCoefficient}
                                 projectLoaded={projectStore.imageSetPaths.length > 1}
-                                plotAllImageSets={settingStore.plotAllImageSets}
+                                plotAllImageSets={persistedValueStore.plotAllImageSets}
                                 setPlotAllImageSets={projectStore.setPlotAllImageSets}
-                                collapseAllImageSets={settingStore.plotCollapseAllImageSets}
-                                setCollapseAllImageSets={settingStore.setPlotCollapseAllImageSets}
-                                downsample={settingStore.plotDownsample}
-                                setDownsample={settingStore.setPlotDownsample}
-                                downsamplePercent={settingStore.plotDownsamplePercent}
-                                setDownsamplePercent={settingStore.setPlotDownsamplePercent}
-                                numHistogramBins={settingStore.plotNumHistogramBins}
-                                setNumHistogramBins={settingStore.setPlotNumHistogramBins}
-                                xLogScale={settingStore.plotXLogScale}
-                                setXLogScale={settingStore.setPlotXLogScale}
-                                yLogScale={settingStore.plotYLogScale}
-                                setYLogScale={settingStore.setPlotYLogScale}
+                                collapseAllImageSets={persistedValueStore.plotCollapseAllImageSets}
+                                setCollapseAllImageSets={persistedValueStore.setPlotCollapseAllImageSets}
+                                downsample={persistedValueStore.plotDownsample}
+                                setDownsample={persistedValueStore.setPlotDownsample}
+                                downsamplePercent={persistedValueStore.plotDownsamplePercent}
+                                setDownsamplePercent={persistedValueStore.setPlotDownsamplePercent}
+                                numHistogramBins={persistedValueStore.plotNumHistogramBins}
+                                setNumHistogramBins={persistedValueStore.setPlotNumHistogramBins}
+                                xLogScale={persistedValueStore.plotXLogScale}
+                                setXLogScale={persistedValueStore.setPlotXLogScale}
+                                yLogScale={persistedValueStore.plotYLogScale}
+                                setYLogScale={persistedValueStore.setPlotYLogScale}
                             />
                         </div>
                     )
@@ -398,15 +398,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                             <div>
                                 <Plot
                                     windowWidth={projectStore.windowWidth}
-                                    selectedType={settingStore.plotType}
+                                    selectedType={persistedValueStore.plotType}
                                     setSelectedSegments={populationStore.createPopulationFromSegments}
                                     setSelectedRange={projectStore.addPopulationFromPlotRange}
                                     setHoveredSegments={plotStore.setSegmentsHoveredOnPlot}
-                                    updateHiddenPopulation={settingStore.updateHiddenPopulation}
-                                    hiddenPopulations={settingStore.plotHiddenPopulations}
+                                    updateHiddenPopulation={persistedValueStore.updateHiddenPopulation}
+                                    hiddenPopulations={persistedValueStore.plotHiddenPopulations}
                                     plotData={plotStore.plotData}
                                     maxPlotHeight={maxPlotHeight}
-                                    downsample={settingStore.plotDownsample}
+                                    downsample={persistedValueStore.plotDownsample}
                                 />
                             </div>
                         )
