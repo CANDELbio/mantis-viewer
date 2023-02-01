@@ -173,7 +173,7 @@ export class PreferencesStore {
 
     @action public setScaleChannelDomainValues = (scale: boolean): void => {
         this.scaleChannelDomainValues = scale
-        this.projectStore.settingStore.resetChannelDomainValues()
+        this.projectStore.persistedValueStore.resetChannelDomainValues()
     }
 
     @action public setOptimizeSegmentation = (optimize: boolean): void => {

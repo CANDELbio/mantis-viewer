@@ -29,19 +29,19 @@ export class SegmentationStore {
     private userHighlightedSegmentIndex: number | null
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
-    // TODO: Not sure if this should run for every segmentation store whenever the SettingStore segmentationBasename changes.
+    // TODO: Not sure if this should run for every segmentation store whenever the persistedValueStore segmentationBasename changes.
     // Might want to only have this run of this is the active image set.
     private autoSetSegmentationFile = autorun(() => {
         const imageStore = this.imageSetStore.imageStore
         const imageSetDirectory = this.imageSetStore.directory
         const imageData = imageStore.imageData
-        const settingStore = this.imageSetStore.projectStore.settingStore
-        const segmentationBasename = settingStore.segmentationBasename
-        const autoLoadSegmentation = settingStore.autoLoadSegmentation
+        const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
+        const segmentationBasename = persistedValueStore.segmentationBasename
+        const autoLoadSegmentation = persistedValueStore.autoLoadSegmentation
 
         // Check if there is a file to load and if image data has loaded (so we know width and height for text segmentation)
         if (segmentationBasename && autoLoadSegmentation && imageData && imageSetDirectory) {
-            const imageSubdirectory = settingStore.imageSubdirectory
+            const imageSubdirectory = persistedValueStore.imageSubdirectory
             const segmentationFile =
                 imageSubdirectory && imageSubdirectory.length > 0
                     ? path.join(imageSetDirectory, imageSubdirectory, segmentationBasename)
@@ -62,7 +62,7 @@ export class SegmentationStore {
         const segmentationData = this.segmentationData
         if (segmentationData) {
             const imageSetStore = this.imageSetStore
-            const settingStore = this.imageSetStore.projectStore.settingStore
+            const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
 
             let outlineColors = []
             let outlineAlphas = []
@@ -70,7 +70,7 @@ export class SegmentationStore {
             const segmentIds = segmentationData.segmentIds
             outlineColors = Array(segmentIds.length).fill(SegmentOutlineColor)
             outlineAlphas = Array(segmentIds.length).fill(
-                imageSetStore.projectStore.settingStore.segmentationOutlineAlpha,
+                imageSetStore.projectStore.persistedValueStore.segmentationOutlineAlpha,
             )
 
             // Set the colors for the selected populations
@@ -95,7 +95,7 @@ export class SegmentationStore {
             }
 
             // Highlighting segments that need to be highlighted.
-            if (settingStore.markHighlightedSegments) {
+            if (persistedValueStore.markHighlightedSegments) {
                 const plotStore = imageSetStore.plotStore
                 let segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
                 if (this.userHighlightedSegment)

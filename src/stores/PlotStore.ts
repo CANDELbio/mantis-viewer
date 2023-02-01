@@ -25,14 +25,19 @@ export class PlotStore {
                 const segmentationStore = this.imageSetStore.segmentationStore
                 const segmentFeatureStore = projectStore.segmentFeatureStore
                 const populationStore = this.imageSetStore.populationStore
-                const settingStore = this.imageSetStore.projectStore.settingStore
-                const selectedPlotFeatures = settingStore.selectedPlotFeatures
+                const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
+                const selectedPlotFeatures = persistedValueStore.selectedPlotFeatures
 
-                const imageSetsToPlot = settingStore.plotAllImageSets ? projectStore.imageSetNames : [imageSetName]
+                const imageSetsToPlot = persistedValueStore.plotAllImageSets
+                    ? projectStore.imageSetNames
+                    : [imageSetName]
 
                 let featureValues = segmentFeatureStore.featureValues(imageSetsToPlot)
-                if (settingStore.plotDownsample && settingStore.plotDownsamplePercent > 0)
-                    featureValues = this.downsampleFeatureValues(settingStore.plotDownsamplePercent, featureValues)
+                if (persistedValueStore.plotDownsample && persistedValueStore.plotDownsamplePercent > 0)
+                    featureValues = this.downsampleFeatureValues(
+                        persistedValueStore.plotDownsamplePercent,
+                        featureValues,
+                    )
                 const featureMinMaxes = segmentFeatureStore.featureMinMaxes(imageSetsToPlot)
 
                 let clearPlotData = true
@@ -45,13 +50,17 @@ export class PlotStore {
 
                     if (imageStore && populationStore && selectedPlotFeaturesInImageSet) {
                         const loadHistogram =
-                            settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'histogram'
+                            persistedValueStore.selectedPlotFeatures.length > 0 &&
+                            persistedValueStore.plotType == 'histogram'
                         const loadScatter =
-                            settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'scatter'
+                            persistedValueStore.selectedPlotFeatures.length > 1 &&
+                            persistedValueStore.plotType == 'scatter'
                         const loadContour =
-                            settingStore.selectedPlotFeatures.length > 1 && settingStore.plotType == 'contour'
+                            persistedValueStore.selectedPlotFeatures.length > 1 &&
+                            persistedValueStore.plotType == 'contour'
                         const loadHeatmap =
-                            settingStore.selectedPlotFeatures.length > 0 && settingStore.plotType == 'heatmap'
+                            persistedValueStore.selectedPlotFeatures.length > 0 &&
+                            persistedValueStore.plotType == 'heatmap'
                         if (loadHistogram || loadScatter || loadHeatmap || loadContour) {
                             if (
                                 segmentationStore.segmentationData != null &&
@@ -59,22 +68,22 @@ export class PlotStore {
                             ) {
                                 const plotData = generatePlotData(
                                     imageSetName,
-                                    settingStore.plotCollapseAllImageSets,
-                                    settingStore.selectedPlotFeatures.slice(),
+                                    persistedValueStore.plotCollapseAllImageSets,
+                                    persistedValueStore.selectedPlotFeatures.slice(),
                                     featureValues,
                                     featureMinMaxes,
                                     segmentationStore.segmentationData,
-                                    settingStore.plotStatistic,
-                                    settingStore.plotType,
-                                    settingStore.plotTransform,
-                                    settingStore.transformCoefficient,
-                                    settingStore.plotNormalization,
+                                    persistedValueStore.plotStatistic,
+                                    persistedValueStore.plotType,
+                                    persistedValueStore.plotTransform,
+                                    persistedValueStore.transformCoefficient,
+                                    persistedValueStore.plotNormalization,
                                     populationStore.selectedPopulations,
-                                    settingStore.plotImageSetColors,
-                                    settingStore.plotNumHistogramBins,
-                                    settingStore.plotXLogScale,
-                                    settingStore.plotYLogScale,
-                                    settingStore.plotDotSize,
+                                    persistedValueStore.plotImageSetColors,
+                                    persistedValueStore.plotNumHistogramBins,
+                                    persistedValueStore.plotXLogScale,
+                                    persistedValueStore.plotYLogScale,
+                                    persistedValueStore.plotDotSize,
                                 )
                                 if (plotData != null) this.setPlotData(plotData)
                                 clearPlotData = false

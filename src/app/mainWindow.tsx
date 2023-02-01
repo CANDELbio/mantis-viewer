@@ -107,7 +107,7 @@ ipcRenderer.on('set-blur-pixels', (_event: Electron.Event, value: boolean): void
 })
 
 ipcRenderer.on('set-calculate-features', (_event: Electron.Event, value: boolean): void => {
-    projectStore.settingStore.setAutoCalculateSegmentFeatures(value)
+    projectStore.persistedValueStore.setAutoCalculateSegmentFeatures(value)
 })
 
 ipcRenderer.on('set-default-segmentation', (_event: Electron.Event, segmentation: string): void => {
@@ -150,31 +150,31 @@ ipcRenderer.on('set-reload-on-error', (_event: Electron.Event, value: boolean): 
 
 // Methods to get data from the plotWindow relayed by the main thread
 ipcRenderer.on('set-plot-features', (_event: Electron.Event, features: string[]): void => {
-    projectStore.settingStore.setSelectedPlotFeatures(features)
+    projectStore.persistedValueStore.setSelectedPlotFeatures(features)
 })
 
 ipcRenderer.on('set-plot-statistic', (_event: Electron.Event, statistic: any): void => {
-    projectStore.settingStore.setPlotStatistic(statistic)
+    projectStore.persistedValueStore.setPlotStatistic(statistic)
 })
 
 ipcRenderer.on('set-plot-transform', (_event: Electron.Event, transform: any): void => {
-    projectStore.settingStore.setPlotTransform(transform)
+    projectStore.persistedValueStore.setPlotTransform(transform)
 })
 
 ipcRenderer.on('set-plot-type', (_event: Electron.Event, type: any): void => {
-    projectStore.settingStore.setPlotType(type)
+    projectStore.persistedValueStore.setPlotType(type)
 })
 
 ipcRenderer.on('set-plot-normalization', (_event: Electron.Event, normalization: any): void => {
-    projectStore.settingStore.setPlotNormalization(normalization)
+    projectStore.persistedValueStore.setPlotNormalization(normalization)
 })
 
 ipcRenderer.on('set-plot-dot-size', (_event: Electron.Event, size: number): void => {
-    projectStore.settingStore.setPlotDotSize(size)
+    projectStore.persistedValueStore.setPlotDotSize(size)
 })
 
 ipcRenderer.on('set-plot-coefficient', (_event: Electron.Event, coefficient: number): void => {
-    projectStore.settingStore.setTransformCoefficient(coefficient)
+    projectStore.persistedValueStore.setTransformCoefficient(coefficient)
 })
 
 ipcRenderer.on('set-plot-all-image-sets', (_event: Electron.Event, value: boolean): void => {
@@ -182,31 +182,31 @@ ipcRenderer.on('set-plot-all-image-sets', (_event: Electron.Event, value: boolea
 })
 
 ipcRenderer.on('set-collapse-all-image-sets', (_event: Electron.Event, value: boolean): void => {
-    projectStore.settingStore.setPlotCollapseAllImageSets(value)
+    projectStore.persistedValueStore.setPlotCollapseAllImageSets(value)
 })
 
 ipcRenderer.on('set-plot-downsample', (_event: Electron.Event, value: boolean): void => {
-    projectStore.settingStore.setPlotDownsample(value)
+    projectStore.persistedValueStore.setPlotDownsample(value)
 })
 
 ipcRenderer.on('set-plot-downsample-percent', (_event: Electron.Event, value: number): void => {
-    projectStore.settingStore.setPlotDownsamplePercent(value)
+    projectStore.persistedValueStore.setPlotDownsamplePercent(value)
 })
 
 ipcRenderer.on('set-plot-num-histogram-bins', (_event: Electron.Event, value: number): void => {
-    projectStore.settingStore.setPlotNumHistogramBins(value)
+    projectStore.persistedValueStore.setPlotNumHistogramBins(value)
 })
 
 ipcRenderer.on('set-plot-x-log-scale', (_event: Electron.Event, value: boolean): void => {
-    projectStore.settingStore.setPlotXLogScale(value)
+    projectStore.persistedValueStore.setPlotXLogScale(value)
 })
 
 ipcRenderer.on('set-plot-y-log-scale', (_event: Electron.Event, value: boolean): void => {
-    projectStore.settingStore.setPlotYLogScale(value)
+    projectStore.persistedValueStore.setPlotYLogScale(value)
 })
 
 ipcRenderer.on('update-plot-hidden-population', (_event: Electron.Event, value: string): void => {
-    projectStore.settingStore.updateHiddenPopulation(value)
+    projectStore.persistedValueStore.updateHiddenPopulation(value)
 })
 
 ipcRenderer.on('add-plot-selected-population', (_event: Electron.Event, segmentIds: number[]): void => {
@@ -288,7 +288,7 @@ ipcRenderer.on('continue-segment-feature-import', (_event: Electron.Event, overw
 })
 
 ipcRenderer.on('set-auto-calculate-segment-features', (_event: Electron.Event, autoCalculate: boolean): void => {
-    projectStore.settingStore.setAutoCalculateSegmentFeatures(autoCalculate)
+    projectStore.persistedValueStore.setAutoCalculateSegmentFeatures(autoCalculate)
     projectStore.segmentFeatureStore.autoCalculateSegmentFeatures(projectStore.activeImageSetStore)
 })
 
@@ -322,11 +322,11 @@ ipcRenderer.on('cancel-response', (_event: Electron.Event, cancel: boolean): voi
 })
 
 ipcRenderer.on('export-channel-marker-mappings-csv', (_event: Electron.Event, filename: string): void => {
-    projectStore.settingStore.exportChannelMarkerMappingsToCSV(filename)
+    projectStore.persistedValueStore.exportChannelMarkerMappingsToCSV(filename)
 })
 
 ipcRenderer.on('import-channel-marker-mappings-csv', (_event: Electron.Event, filename: string): void => {
-    projectStore.settingStore.importChannelMarkerMappingsFromCSV(filename)
+    projectStore.persistedValueStore.importChannelMarkerMappingsFromCSV(filename)
 })
 
 ipcRenderer.on('toggle-shortcut-modal', (): void => {
@@ -362,16 +362,16 @@ hotkeys('command+right, alt+right', function (): void {
 })
 
 hotkeys('alt+up, command+up', function (): void {
-    const settingStore = projectStore.settingStore
-    if (settingStore.activeChannelMapping) {
-        settingStore.nextChannelMarkerMapping()
+    const persistedValueStore = projectStore.persistedValueStore
+    if (persistedValueStore.activeChannelMapping) {
+        persistedValueStore.nextChannelMarkerMapping()
     }
 })
 
 hotkeys('alt+down, command+down', function (): void {
-    const settingStore = projectStore.settingStore
-    if (settingStore.activeChannelMapping) {
-        settingStore.previousChannelMarkerMapping()
+    const persistedValueStore = projectStore.persistedValueStore
+    if (persistedValueStore.activeChannelMapping) {
+        persistedValueStore.previousChannelMarkerMapping()
     }
 })
 
@@ -386,8 +386,8 @@ hotkeys('alt+-, command+-', function (): void {
 })
 
 hotkeys('alt+h, command+h', function (): void {
-    const settingStore = projectStore.settingStore
-    settingStore.setMarkHighlightedSegments(!settingStore.markHighlightedSegments)
+    const persistedValueStore = projectStore.persistedValueStore
+    persistedValueStore.setMarkHighlightedSegments(!persistedValueStore.markHighlightedSegments)
 })
 
 hotkeys('shift+/', function (): void {
@@ -408,19 +408,19 @@ for (const c in channelKeys) {
     const channel = c as ChannelName
     const curKey = channelKeys[channel]
     hotkeys(curKey + '+up', function (): void {
-        projectStore.settingStore.increaseMaxChannelDomainValue(channel)
+        projectStore.persistedValueStore.increaseMaxChannelDomainValue(channel)
     })
     hotkeys(curKey + '+down', function (): void {
-        projectStore.settingStore.decreaseMaxChannelDomainValue(channel)
+        projectStore.persistedValueStore.decreaseMaxChannelDomainValue(channel)
     })
     hotkeys(curKey + '+right', function (): void {
-        projectStore.settingStore.increaseMinChannelDomainValue(channel)
+        projectStore.persistedValueStore.increaseMinChannelDomainValue(channel)
     })
     hotkeys(curKey + '+left', function (): void {
-        projectStore.settingStore.decreaseMinChannelDomainValue(channel)
+        projectStore.persistedValueStore.decreaseMinChannelDomainValue(channel)
     })
     hotkeys(curKey + '+space', function (): void {
-        projectStore.settingStore.toggleChannelVisibility(channel)
+        projectStore.persistedValueStore.toggleChannelVisibility(channel)
     })
 }
 
@@ -428,26 +428,26 @@ for (const c in channelKeys) {
 Mobx.autorun((): void => {
     const imageSet = projectStore.activeImageSetStore
     const plotStore = imageSet.plotStore
-    const settingStore = projectStore.settingStore
+    const persistedValueStore = projectStore.persistedValueStore
     const featureNames = projectStore.segmentFeatureStore.activeAvailableFeatures
     ipcRenderer.send(
         'mainWindow-set-plot-data',
         Mobx.toJS(featureNames),
-        Mobx.toJS(settingStore.selectedPlotFeatures),
-        settingStore.plotStatistic,
-        settingStore.plotTransform,
-        settingStore.plotType,
-        settingStore.plotNormalization,
-        settingStore.plotDotSize,
-        settingStore.transformCoefficient,
-        settingStore.plotAllImageSets,
-        settingStore.plotCollapseAllImageSets,
-        settingStore.plotDownsample,
-        settingStore.plotDownsamplePercent,
-        settingStore.plotNumHistogramBins,
-        settingStore.plotXLogScale,
-        settingStore.plotYLogScale,
-        Mobx.toJS(settingStore.plotHiddenPopulations),
+        Mobx.toJS(persistedValueStore.selectedPlotFeatures),
+        persistedValueStore.plotStatistic,
+        persistedValueStore.plotTransform,
+        persistedValueStore.plotType,
+        persistedValueStore.plotNormalization,
+        persistedValueStore.plotDotSize,
+        persistedValueStore.transformCoefficient,
+        persistedValueStore.plotAllImageSets,
+        persistedValueStore.plotCollapseAllImageSets,
+        persistedValueStore.plotDownsample,
+        persistedValueStore.plotDownsamplePercent,
+        persistedValueStore.plotNumHistogramBins,
+        persistedValueStore.plotXLogScale,
+        persistedValueStore.plotYLogScale,
+        Mobx.toJS(persistedValueStore.plotHiddenPopulations),
         plotStore.plotData,
     )
 })
@@ -455,12 +455,12 @@ Mobx.autorun((): void => {
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {
     const preferencesStore = projectStore.preferencesStore
-    const settingStore = projectStore.settingStore
+    const persistedValueStore = projectStore.persistedValueStore
     ipcRenderer.send(
         'mainWindow-set-preferences',
         preferencesStore.maxImageSetsInMemory,
         preferencesStore.blurPixels,
-        settingStore.autoCalculateSegmentFeatures,
+        persistedValueStore.autoCalculateSegmentFeatures,
         preferencesStore.defaultSegmentationBasename,
         Mobx.toJS(preferencesStore.defaultChannelMarkers),
         Mobx.toJS(preferencesStore.defaultChannelDomains),

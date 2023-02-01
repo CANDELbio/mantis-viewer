@@ -83,7 +83,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     private handlePlotClick = (): void => this.setState({ plotOpen: !this.state.plotOpen })
 
     private getChannelMin(s: ChannelName): number {
-        const settingStore = this.props.projectStore.settingStore
+        const settingStore = this.props.projectStore.persistedValueStore
         const imageStore = this.props.projectStore.activeImageSetStore.imageStore
         const channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
@@ -94,7 +94,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
     }
 
     private getChannelMax(s: ChannelName): number {
-        const settingStore = this.props.projectStore.settingStore
+        const settingStore = this.props.projectStore.persistedValueStore
         const imageStore = this.props.projectStore.activeImageSetStore.imageStore
         const channelMarker = settingStore.channelMarker[s]
         if (channelMarker != null && imageStore.imageData != null) {
@@ -116,7 +116,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
         const segmentFeatureStore = projectStore.segmentFeatureStore
         const populationStore = imageSetStore.populationStore
         const plotStore = imageSetStore.plotStore
-        const settingStore = projectStore.settingStore
+        const settingStore = projectStore.persistedValueStore
         const notificationStore = projectStore.notificationStore
         const projectImportStore = projectStore.projectImportStore
 

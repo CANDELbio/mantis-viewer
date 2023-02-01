@@ -27,9 +27,9 @@ export class ImageSetStore {
 
     public loadImageStoreData = (): void => {
         const imageStore = this.imageStore
-        const settingStore = this.projectStore.settingStore
+        const persistedValueStore = this.projectStore.persistedValueStore
         if (imageStore.imageData == null) {
-            const imageSubdirectory = settingStore.imageSubdirectory
+            const imageSubdirectory = persistedValueStore.imageSubdirectory
             const imageDirectory =
                 imageSubdirectory && imageSubdirectory.length > 0
                     ? path.join(this.directory, imageSubdirectory)
@@ -40,7 +40,7 @@ export class ImageSetStore {
             // Set defaults once image data has loaded
             when(
                 (): boolean => !imageStore.imageDataLoading,
-                (): void => settingStore.setDefaultImageSetSettings(imageStore),
+                (): void => persistedValueStore.setDefaultImageSetSettings(imageStore),
             )
         }
     }

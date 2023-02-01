@@ -4,10 +4,10 @@ import * as path from 'path'
 
 import { ImageSetStore } from './ImageSetStore'
 import { NotificationStore } from './NotificationStore'
+import { PersistedValueStore } from './PersistedValueStore'
 import { PreferencesStore } from './PreferencesStore'
 import { ProjectImportStore } from './ProjectImportStore'
 import { SegmentFeatureStore } from './SegmentFeatureStore'
-import { SettingStore } from './SettingStore'
 import { PlotStatistic, PlotStatistics } from '../definitions/UIDefinitions'
 import { Coordinate } from '../interfaces/ImageInterfaces'
 import {
@@ -36,7 +36,7 @@ export class ProjectStore {
     @observable.ref public activeImageSetStore: ImageSetStore
 
     public segmentFeatureStore: SegmentFeatureStore
-    public settingStore: SettingStore
+    public persistedValueStore: PersistedValueStore
     public preferencesStore: PreferencesStore
     public notificationStore: NotificationStore
     public projectImportStore: ProjectImportStore
@@ -100,7 +100,7 @@ export class ProjectStore {
         // Initialize the preferences store (for storing user preferences)
         this.preferencesStore = new PreferencesStore(this)
         // Initialize the setting store (for storing image display settings to transfer when switching)
-        this.settingStore = new SettingStore(this)
+        this.persistedValueStore = new PersistedValueStore(this)
         this.notificationStore = new NotificationStore()
         this.projectImportStore = new ProjectImportStore(this)
 
@@ -136,7 +136,7 @@ export class ProjectStore {
         this.activeImageSetPath = null
         this.lastActiveImageSetPath = null
 
-        this.settingStore.initialize()
+        this.persistedValueStore.initialize()
     }
 
     public setAppVersion = (appVersion: string): void => {
@@ -154,7 +154,7 @@ export class ProjectStore {
     @action public openImageSet = (dirName: string): void => {
         // Clear out old image sets
         this.initializeImageSets()
-        this.settingStore.setBasePath(dirName)
+        this.persistedValueStore.setBasePath(dirName)
         this.initializeImageSetStores([dirName])
         this.setActiveImageSet(dirName)
     }
@@ -173,12 +173,12 @@ export class ProjectStore {
         if (paths.length > 0) {
             // Clear out old image sets
             this.initializeImageSets()
-            this.settingStore.setBasePath(dirName)
-            if (imageSubdirectory) this.settingStore.setImageSubdirectory(imageSubdirectory)
+            this.persistedValueStore.setBasePath(dirName)
+            if (imageSubdirectory) this.persistedValueStore.setImageSubdirectory(imageSubdirectory)
 
             this.projectPath = dirName
             this.initializeImageSetStores(paths)
-            const savedActiveImageSet = this.settingStore.activeImageSet
+            const savedActiveImageSet = this.persistedValueStore.activeImageSet
             if (savedActiveImageSet && this.imageSetPaths.includes(savedActiveImageSet)) {
                 this.setActiveImageSet(savedActiveImageSet)
             } else if (initialActiveImageSet) {
@@ -260,7 +260,7 @@ export class ProjectStore {
         // Set this directory as the active one and set the stores as the active ones.
         this.setActiveStores(dirName)
 
-        this.settingStore.setActiveImageSet(dirName)
+        this.persistedValueStore.setActiveImageSet(dirName)
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(
@@ -310,8 +310,8 @@ export class ProjectStore {
     // Gets called when the user sets a new segmentation file from the menu and segmentation
     // has already been set or when the user clicks the 'Clear Segmentation' button and approves.
     @action public clearSegmentation = (): void => {
-        this.settingStore.setSegmentationBasename(null)
-        this.settingStore.clearSelectedPlotFeatures()
+        this.persistedValueStore.setSegmentationBasename(null)
+        this.persistedValueStore.clearSelectedPlotFeatures()
         for (const imageSet of this.imageSetPaths) {
             const curSet = this.imageSets[imageSet]
             if (curSet) {
@@ -335,7 +335,7 @@ export class ProjectStore {
 
     private activeImageSetTiffPath = (): string | null => {
         const activeImagePath = this.activeImageSetPath
-        const imageSubdirectory = this.settingStore.imageSubdirectory
+        const imageSubdirectory = this.persistedValueStore.imageSubdirectory
         if (activeImagePath && imageSubdirectory && imageSubdirectory.length > 0) {
             return path.join(activeImagePath, imageSubdirectory)
         }
@@ -343,14 +343,14 @@ export class ProjectStore {
     }
 
     @action public setSegmentationBasename = (filePath: string, checkCalculateFeatures: boolean): void => {
-        const settingStore = this.settingStore
+        const persistedValueStore = this.persistedValueStore
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
         // Clear segmentation if it's already been set
         // Set the new segmentation file
         if (dirname == this.activeImageSetTiffPath()) {
-            if (settingStore.segmentationBasename != null) this.clearSegmentation()
-            this.settingStore.setSegmentationBasename(basename)
+            if (persistedValueStore.segmentationBasename != null) this.clearSegmentation()
+            this.persistedValueStore.setSegmentationBasename(basename)
         } else {
             // TODO: Not sure this is best behavior. If the segmentation file is not in the image set directory then we just set the segmentation file on the image store.
             // Could result in weird behavior when switching between image sets.
@@ -363,7 +363,7 @@ export class ProjectStore {
             this.activeImageSetStore.segmentationStore.setSegmentationFile(filePath)
         }
         // If Mantis isn't auto calculating features, ask the user
-        const autoCalculateSegmentFeatures = this.settingStore.autoCalculateSegmentFeatures
+        const autoCalculateSegmentFeatures = this.persistedValueStore.autoCalculateSegmentFeatures
         if (checkCalculateFeatures && !autoCalculateSegmentFeatures)
             this.notificationStore.setCheckCalculateSegmentFeatures(true)
     }
@@ -372,16 +372,16 @@ export class ProjectStore {
         const dirname = path.dirname(filePath)
         const basename = path.basename(filePath)
         if (dirname == this.activeImageSetTiffPath()) {
-            this.settingStore.setRegionsBasename(basename)
+            this.persistedValueStore.setRegionsBasename(basename)
         } else {
             this.activeImageSetStore.populationStore.importRegionsFromTiff(filePath)
         }
     }
 
     public addPopulationFromPlotRange = (min: number, max: number): void => {
-        const settingStore = this.settingStore
-        const plotTransform = settingStore.plotTransform
-        const transformCoefficient = settingStore.transformCoefficient
+        const persistedValueStore = this.persistedValueStore
+        const plotTransform = persistedValueStore.plotTransform
+        const transformCoefficient = persistedValueStore.transformCoefficient
         const reverseMin = reverseTransform(min, plotTransform, transformCoefficient)
         const reverseMax = reverseTransform(max, plotTransform, transformCoefficient)
         this.addPopulationFromRange(reverseMin, reverseMax)
@@ -391,9 +391,9 @@ export class ProjectStore {
         const activeImageData = this.activeImageSetStore.imageStore.imageData
         const activeImageSetName = this.activeImageSetStore.name
         if (activeImageData && activeImageSetName) {
-            const settingStore = this.settingStore
+            const persistedValueStore = this.persistedValueStore
             const populationStore = this.activeImageSetStore.populationStore
-            const selectedFeature = feature ? feature : settingStore.selectedPlotFeatures[0]
+            const selectedFeature = feature ? feature : persistedValueStore.selectedPlotFeatures[0]
             const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, selectedFeature, min, max)
             const populationName =
                 selectedFeature + ' ' + min?.toFixed(1).toString() + ' - ' + max?.toFixed(1).toString()
@@ -444,9 +444,9 @@ export class ProjectStore {
     public exportImage = (filePath: string): void => {
         saveImageExportLog(
             filePath,
-            this.settingStore.channelMarker,
-            this.settingStore.channelVisibility,
-            this.settingStore.channelDomainValue,
+            this.persistedValueStore.channelMarker,
+            this.persistedValueStore.channelVisibility,
+            this.persistedValueStore.channelDomainValue,
         )
         this.activeImageSetStore.imageStore.setImageExportFilePath(filePath)
     }
@@ -754,11 +754,15 @@ export class ProjectStore {
     }
 
     public setPlotAllImageSets = (value: boolean): void => {
-        if (value && this.settingStore.autoCalculateSegmentFeatures && this.settingStore.plotCheckGenerateAllFeatures) {
+        if (
+            value &&
+            this.persistedValueStore.autoCalculateSegmentFeatures &&
+            this.persistedValueStore.plotCheckGenerateAllFeatures
+        ) {
             this.notificationStore.setCheckCalculateAllFeaturesForPlot(value)
-            this.settingStore.setPlotCheckGenerateAllFeatures(false)
+            this.persistedValueStore.setPlotCheckGenerateAllFeatures(false)
         }
-        this.settingStore.setPlotAllImageSets(value)
+        this.persistedValueStore.setPlotAllImageSets(value)
     }
 
     // Called when segment feature calculation is requested

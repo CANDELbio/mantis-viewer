@@ -30,16 +30,16 @@ export class ImageStore {
             yChannel: [0, 100],
             kChannel: [0, 100],
         }
-        const settingStore = this.imageSetStore.projectStore.settingStore
+        const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
         const preferencesStore = this.imageSetStore.projectStore.preferencesStore
         for (const channel of ImageChannels) {
-            const channelMarker = settingStore.channelMarker[channel]
+            const channelMarker = persistedValueStore.channelMarker[channel]
             if (this.imageData && channelMarker) {
                 const channelMinMax = this.imageData.minmax[channelMarker]
                 if (channelMinMax) {
                     const channelMin = channelMinMax.min
                     const channelMax = channelMinMax.max
-                    const channelDomainValue = settingStore.channelDomainValue[channel]
+                    const channelDomainValue = persistedValueStore.channelDomainValue[channel]
                     if (preferencesStore.scaleChannelDomainValues) {
                         // If the user's preference is to scale channel domain values, the domain value is a percentage
                         // that we multiply by the max to get the actual channel domain for the current marker.
@@ -86,7 +86,7 @@ export class ImageStore {
 
     private getMarkerNamesOverridePath = (): string | null => {
         let markerNamesOverridePath = null
-        const markerNamesOverride = this.imageSetStore.projectStore.settingStore.markerNamesOverride
+        const markerNamesOverride = this.imageSetStore.projectStore.persistedValueStore.markerNamesOverride
         const projectPath = this.imageSetStore.projectStore.projectPath
         if (this.selectedDirectory && projectPath) {
             if (markerNamesOverride?.project) {
@@ -114,11 +114,12 @@ export class ImageStore {
     @action public removeMarker = (fileName: string): void => {
         const markerName = path.parse(fileName).name
         if (this.imageData != null && this.imageData.markerNames.includes(markerName)) {
-            const settingStore = this.imageSetStore.projectStore.settingStore
+            const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
             // Unset the marker if it is being used
             for (const s of ImageChannels) {
                 const curChannel = s as ChannelName
-                if (settingStore.channelMarker[curChannel] == markerName) settingStore.unsetChannelMarker(curChannel)
+                if (persistedValueStore.channelMarker[curChannel] == markerName)
+                    persistedValueStore.unsetChannelMarker(curChannel)
             }
             // Delete it from image data
             this.imageData.removeMarker(markerName)

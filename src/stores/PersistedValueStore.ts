@@ -1,5 +1,5 @@
-// Stores settings for the current project.
-// Used to copy settings (e.g. selected channels) when switching between images
+// Stores values that should be persisted for the current project.
+// Used to copy values (e.g. selected channels) when switching between images
 // in a project or when reloading a project after closing the application.
 //
 // TODO: Would probably be best to refactor this setting store into appropriate existing
@@ -8,6 +8,7 @@
 import log from 'electron-log'
 import { action, autorun, computed, observable, toJS } from 'mobx'
 
+import { ImageStore } from './ImageStore'
 import { ProjectStore } from './ProjectStore'
 import {
     ImageChannels,
@@ -38,9 +39,8 @@ import {
 import { randomHexColor } from '../lib/ColorHelper'
 import { Db } from '../lib/Db'
 import { parseChannelMarkerMappingCSV, writeChannelMarkerMappingsCSV } from '../lib/IO'
-import { ImageStore } from '../stores/ImageStore'
 
-type SettingStoreData = {
+type PersistedValueStoreData = {
     activeImageSet?: string | null
     imagePositionAndScales?: Record<string, { position: Coordinate; scale: Coordinate }>
     imageSubdirectory?: string | null
@@ -89,7 +89,7 @@ type SettingStoreData = {
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
 }
 
-export class SettingStore {
+export class PersistedValueStore {
     public constructor(projectStore: ProjectStore) {
         this.projectStore = projectStore
         this.initialize()
@@ -763,7 +763,7 @@ export class SettingStore {
 
     private exportSettings = autorun(() => {
         if (this.db != null) {
-            const exporting: SettingStoreData = {
+            const exporting: PersistedValueStoreData = {
                 imageSubdirectory: this.imageSubdirectory,
                 activeImageSet: this.activeImageSet,
                 imagePositionAndScales: this.imagePositionAndScales,
@@ -822,7 +822,7 @@ export class SettingStore {
     private importSettingsFromDb = (): void => {
         if (this.db != null) {
             try {
-                const importingSettings: SettingStoreData = this.db.getSettings()
+                const importingSettings: PersistedValueStoreData = this.db.getSettings()
                 if (importingSettings.imageSubdirectory) this.imageSubdirectory = importingSettings.imageSubdirectory
                 if (importingSettings.activeImageSet) this.activeImageSet = importingSettings.activeImageSet
                 if (importingSettings.imagePositionAndScales)

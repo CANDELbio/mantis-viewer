@@ -382,13 +382,13 @@ export class ProjectImportStore {
     }
 
     private setMarkerNamesOverride = (projectStore: ProjectStore): void => {
-        const settingStore = projectStore.settingStore
+        const persistedValueStore = projectStore.persistedValueStore
         if (this.projectMarkerNamesOverride) {
-            settingStore.setMarkerNamesOverride(this.projectMarkerNamesOverride, true)
+            persistedValueStore.setMarkerNamesOverride(this.projectMarkerNamesOverride, true)
         } else if (this.imageSetMarkerNamesOverride) {
-            settingStore.setMarkerNamesOverride(this.imageSetMarkerNamesOverride, false)
+            persistedValueStore.setMarkerNamesOverride(this.imageSetMarkerNamesOverride, false)
         } else {
-            settingStore.clearMarkerNamesOverride()
+            persistedValueStore.clearMarkerNamesOverride()
         }
     }
 
@@ -421,7 +421,7 @@ export class ProjectImportStore {
                     if (activeImageSetName && segmentationFile) {
                         // Set auto calculate segment features if set
                         if (this.autoCalculateFeatures == 'image') {
-                            projectStore.settingStore.setAutoCalculateSegmentFeatures(true)
+                            projectStore.persistedValueStore.setAutoCalculateSegmentFeatures(true)
                         }
                         // Import segmentation
                         const segmentationPath =

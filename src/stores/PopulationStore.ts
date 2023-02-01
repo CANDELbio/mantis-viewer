@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { ImageSetStore } from './ImageSetStore'
-import { SettingStore } from './SettingStore'
+import { PersistedValueStore } from './PersistedValueStore'
 import { randomHexColor } from '../lib/ColorHelper'
 import { Db } from '../lib/Db'
 import { processPixelIndexes } from '../lib/GraphicsUtils'
@@ -50,8 +50,8 @@ export class PopulationStore {
     @observable public selectedFeatureForNewPopulation: string | null
     @observable public pixelToRegionMapping: Record<string, string[]>
 
-    get settingStore(): SettingStore {
-        return this.imageSetStore.projectStore.settingStore
+    get persistedValueStore(): PersistedValueStore {
+        return this.imageSetStore.projectStore.persistedValueStore
     }
 
     @action public initialize = (): void => {
@@ -60,7 +60,7 @@ export class PopulationStore {
         this.selectionsLoading = false
         this.selectedFeatureForNewPopulation = null
         this.pixelToRegionMapping = {}
-        const projectBasePath = this.settingStore.basePath
+        const projectBasePath = this.persistedValueStore.basePath
         const imageSetName = this.imageSetStore.name
         if (projectBasePath) {
             this.db = new Db(projectBasePath)
@@ -119,9 +119,9 @@ export class PopulationStore {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const imageData = imageStore.imageData
 
-        const settingStore = imageSetStore.projectStore.settingStore
-        const imageSubdirectory = settingStore.imageSubdirectory
-        const regionsBasename = settingStore.regionsBasename
+        const persistedValueStore = imageSetStore.projectStore.persistedValueStore
+        const imageSubdirectory = persistedValueStore.imageSubdirectory
+        const regionsBasename = persistedValueStore.regionsBasename
 
         if (imageData != null && regionsBasename) {
             // If the regions basename is set in settings then import regions from that tiff if we haven't already
@@ -131,7 +131,7 @@ export class PopulationStore {
                     : path.join(imageSetDirectory, regionsBasename)
             // If the file exists and we haven't already imported from it, import it.
             if (fs.existsSync(regionsFile)) {
-                if (!settingStore.regionsFilesLoaded.includes(imageSetName)) {
+                if (!persistedValueStore.regionsFilesLoaded.includes(imageSetName)) {
                     this.importRegionsFromTiff(regionsFile)
                 }
                 imageStore.removeMarker(regionsBasename)
@@ -188,12 +188,16 @@ export class PopulationStore {
     // the db schema and population store. Doing this for now and will
     // revisit when adding cross-image populations
     private syncPopulationWithGlobalAttributes = (population: SelectedPopulation): SelectedPopulation => {
-        const curGlobalAttributes = this.settingStore.globalPopulationAttributes[population.name]
+        const curGlobalAttributes = this.persistedValueStore.globalPopulationAttributes[population.name]
         if (curGlobalAttributes) {
             population.color = curGlobalAttributes.color
             population.visible = curGlobalAttributes.visible
         } else {
-            this.settingStore.updateGlobalPopulationAttributes(population.name, population.color, population.visible)
+            this.persistedValueStore.updateGlobalPopulationAttributes(
+                population.name,
+                population.color,
+                population.visible,
+            )
         }
         return population
     }
@@ -385,8 +389,8 @@ export class PopulationStore {
         this.selectionsLoading = false
         const imageSetStore = this.imageSetStore
         const imageSetName = imageSetStore.name
-        const settingStore = imageSetStore.projectStore.settingStore
-        settingStore.addToRegionFilesLoaded(imageSetName)
+        const persistedValueStore = imageSetStore.projectStore.persistedValueStore
+        persistedValueStore.addToRegionFilesLoaded(imageSetName)
     }
 
     @action private onRegionImportComplete = (result: RegionDataImporterResult | RegionDataImporterError): void => {
@@ -487,7 +491,7 @@ export class PopulationStore {
     public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
             const updateFn = (p: SelectedPopulation) => {
-                this.settingStore.updateGlobalPopulationAttributes(p.name, color, p.visible)
+                this.persistedValueStore.updateGlobalPopulationAttributes(p.name, color, p.visible)
                 p.color = color
                 return p
             }
@@ -532,7 +536,7 @@ export class PopulationStore {
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
         const updateFn = (p: SelectedPopulation) => {
-            this.settingStore.updateGlobalPopulationAttributes(p.name, p.color, visible)
+            this.persistedValueStore.updateGlobalPopulationAttributes(p.name, p.color, visible)
             p.visible = visible
             return p
         }

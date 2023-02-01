@@ -43,7 +43,7 @@ export class SegmentFeatureStore {
     }
 
     @computed public get basePath(): string | null {
-        return this.projectStore.settingStore.basePath
+        return this.projectStore.persistedValueStore.basePath
     }
 
     private refreshDb = autorun(() => {
@@ -56,13 +56,13 @@ export class SegmentFeatureStore {
     }
 
     private selectedPlotFeatures(): string[] {
-        return this.projectStore.settingStore.selectedPlotFeatures.slice()
+        return this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
     }
 
     private autoRefreshFeatureStatistics = autorun(() => {
         const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName) {
-            let plotFeatures = this.projectStore.settingStore.selectedPlotFeatures.slice()
+            let plotFeatures = this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
             const selectedFeatureForNewPopulation =
                 this.projectStore.activeImageSetStore.populationStore.selectedFeatureForNewPopulation
             if (selectedFeatureForNewPopulation) plotFeatures = plotFeatures.concat([selectedFeatureForNewPopulation])
@@ -200,7 +200,7 @@ export class SegmentFeatureStore {
         const imageData = imageStore.imageData
         const projectStore = this.projectStore
         const notificationStore = projectStore.notificationStore
-        const basePath = this.projectStore.settingStore.basePath
+        const basePath = this.projectStore.persistedValueStore.basePath
         const segmentationData = segmentationStore.segmentationData
         const markerStats: PlotStatistic[] = featuresToCalculate
 
@@ -264,7 +264,7 @@ export class SegmentFeatureStore {
     // Helper method that calls setFeatureStatistics with the selected image sets.
     private setFeatureStatisticsForSelectedImageSets = (features: string[]): void => {
         let imageSets: string[] = []
-        if (this.projectStore.settingStore.plotAllImageSets) {
+        if (this.projectStore.persistedValueStore.plotAllImageSets) {
             imageSets = this.projectStore.imageSetNames
         } else {
             const activeImageSetName = this.projectStore.activeImageSetStore.name
@@ -348,7 +348,7 @@ export class SegmentFeatureStore {
 
         // Only want to auto calculate if we're not loading multiple for FCS/CSV export.
         if (notLoadingMultiple) {
-            const calculate = projectStore.settingStore.autoCalculateSegmentFeatures
+            const calculate = projectStore.persistedValueStore.autoCalculateSegmentFeatures
             const imageSetName = imageSetStore.name
             const featuresGenerated = this.db?.featuresGeneratedForImageSet(imageSetName)
             if (calculate && !featuresGenerated) {
