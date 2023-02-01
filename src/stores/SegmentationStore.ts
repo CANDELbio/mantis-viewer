@@ -24,9 +24,6 @@ export class SegmentationStore {
     @observable public selectedSegmentationFile: string | null
     @observable public segmentationDataLoading: boolean
     @observable.ref public segmentationData: SegmentationData | null
-    // Segment highlighted by the user in the segment controls pane.
-    @observable public userHighlightedSegment: number | null
-    private userHighlightedSegmentIndex: number | null
 
     // Looks for a segmentation file with the same filename from source in dest and sets it if it exists.
     // TODO: Not sure if this should run for every segmentation store whenever the persistedValueStore segmentationBasename changes.
@@ -53,6 +50,17 @@ export class SegmentationStore {
             }
         }
     })
+
+    // This feels bad using a computed value to just get something from another store (PersistedValueStore).
+    // Using this because there is some logic around setting the user highlighted segment id
+    // that needs to happen in this store, but we want to persist the user highlighted segment id
+    // in case of restart.
+    // Would be fixed by refactoring the persisted value store, but not enough time to pay down that
+    // tech debt right now.
+    @computed get userHighlightedSegment(): number | null {
+        const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
+        return persistedValueStore.segmentationStoreUserHighlightedSegment
+    }
 
     // This generates an array of segment colors to use for updating the colors of the PIXI Line object.
     // This gets recomputed when populations are changed or a segment is highlighted.
@@ -182,33 +190,41 @@ export class SegmentationStore {
         this.imageSetStore.imageStore.removeSegmentationFileFromMarkers()
     }
 
-    @action public setUserHighlightedSegment = (value: number | null): void => {
-        this.userHighlightedSegment = value
-        const highlightedSegmentIndex = this.segmentationData?.segmentIds.findIndex((id) => id == value)
-        if (highlightedSegmentIndex && highlightedSegmentIndex !== -1) {
-            this.userHighlightedSegmentIndex = highlightedSegmentIndex
+    public setUserHighlightedSegment = (value: number | null): void => {
+        if (this.userHighlightedSegment && value == this.userHighlightedSegment + 1) {
+            this.incrementUserHighlightedSegment()
+        } else if (this.userHighlightedSegment && value == this.userHighlightedSegment - 1) {
+            this.decrementUserHighlightedSegment()
         } else {
-            this.userHighlightedSegment = null
+            this.imageSetStore.projectStore.persistedValueStore.setSegmentationStoreUserHighlightedSegment(value)
         }
     }
 
-    @action public incrementUserHighlightedSegment = (): void => {
+    // If there is no current highlighted segment id sets to the lowest segment id.
+    // Otherwise finds and sets the highlighted segment id to the next largest segment id
+    public incrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
             const segmentIds = this.segmentationData.segmentIds
-            const curIndex = this.userHighlightedSegmentIndex
-            const updatedIndex = curIndex != null ? curIndex + 1 : 0
-            this.userHighlightedSegmentIndex = updatedIndex >= segmentIds.length ? 0 : updatedIndex
-            this.userHighlightedSegment = segmentIds[this.userHighlightedSegmentIndex]
+            this.findSetHighlightedSegmentId(segmentIds, (findId, curId) => findId > curId)
         }
     }
 
-    @action public decrementUserHighlightedSegment = (): void => {
+    // If there is no current highlighted segment id sets to the highest segment id.
+    // Otherwise finds and sets the highlighted segment id to the next smallest segment id
+    public decrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
-            const segmentIds = this.segmentationData.segmentIds
-            const curIndex = this.userHighlightedSegmentIndex
-            const updatedIndex = curIndex != null ? curIndex - 1 : 0
-            this.userHighlightedSegmentIndex = updatedIndex < 0 ? segmentIds.length - 1 : updatedIndex
-            this.userHighlightedSegment = this.segmentationData.segmentIds[this.userHighlightedSegmentIndex]
+            const reversedSegmentIds = this.segmentationData.segmentIds.slice().reverse()
+            this.findSetHighlightedSegmentId(reversedSegmentIds, (findId, curId) => findId < curId)
         }
+    }
+
+    private findSetHighlightedSegmentId(segmentIds: number[], findFn: (findId: number, curId: number) => boolean) {
+        const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
+        const curSegmentId = this.userHighlightedSegment
+        let nextSegmentId
+        if (curSegmentId) nextSegmentId = segmentIds.find((id) => findFn(id, curSegmentId))
+        // If there isn't a current segment, or if the current segment is the last segment then set to the first segment in the list.
+        nextSegmentId ||= segmentIds[0]
+        persistedValueStore.setSegmentationStoreUserHighlightedSegment(nextSegmentId)
     }
 }

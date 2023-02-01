@@ -84,6 +84,7 @@ type PersistedValueStoreData = {
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
+    segmentationStoreUserHighlightedSegment?: number | null
     snapToHighlightedSegment?: boolean
     markHighlightedSegments?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
@@ -149,6 +150,10 @@ export class PersistedValueStore {
 
     @observable public zoomCoefficient: number
 
+    // Saves the value for the user highlighted segment.
+    // This should only be used and set from the segmentation store.
+    // Feels dirty, but need to do a big refactor to do correctly.
+    @observable public segmentationStoreUserHighlightedSegment: number | null
     @observable public snapToHighlightedSegment: boolean
     @observable public markHighlightedSegments: boolean
 
@@ -392,6 +397,10 @@ export class PersistedValueStore {
 
     @action public setZoomCoefficient = (value: number): void => {
         this.zoomCoefficient = value
+    }
+
+    @action public setSegmentationStoreUserHighlightedSegment = (value: number | null): void => {
+        this.segmentationStoreUserHighlightedSegment = value
     }
 
     @action public setSnapToHighlightedSegment = (value: boolean): void => {
@@ -806,6 +815,7 @@ export class PersistedValueStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
+                segmentationStoreUserHighlightedSegment: this.segmentationStoreUserHighlightedSegment,
                 snapToHighlightedSegment: this.snapToHighlightedSegment,
                 markHighlightedSegments: this.markHighlightedSegments,
                 globalPopulationAttributes: this.globalPopulationAttributes,
@@ -887,6 +897,9 @@ export class PersistedValueStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
+                if (importingSettings.segmentationStoreUserHighlightedSegment)
+                    this.segmentationStoreUserHighlightedSegment =
+                        importingSettings.segmentationStoreUserHighlightedSegment
                 if (importingSettings.snapToHighlightedSegment)
                     this.snapToHighlightedSegment = importingSettings.snapToHighlightedSegment
                 if (importingSettings.markHighlightedSegments)
