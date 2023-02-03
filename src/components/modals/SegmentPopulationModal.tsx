@@ -9,8 +9,8 @@ export interface SegmentPopulationModalProps {
     segmentId: number | null
     populations: SelectedPopulation[]
     closeModal: () => void
-    removeSegmentFromPopulation: (segment: number, population: string) => void
-    addSegmentToPopulation: (segment: number, population: string) => void
+    removeSegmentFromPopulation: (segment: number, populationId: string) => void
+    addSegmentToPopulation: (segment: number, populationId: string) => void
     createPopulationFromSegments: (segments: number[], name?: string) => void
 }
 

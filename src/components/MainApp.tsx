@@ -443,6 +443,9 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 selectedFeatureMinMax={segmentFeatureStore.activeFeatureMinMaxes(
                     populationStore.selectedFeatureForNewPopulation,
                 )}
+                userHighlightedSegmentId={segmentationStore.userHighlightedSegment}
+                addSegmentToPopulation={populationStore.addSegmentToPopulation}
+                removeSegmentFromPopulation={populationStore.removeSegmentFromPopulation}
                 tableHeight={populationsTableHeight}
             />
         )

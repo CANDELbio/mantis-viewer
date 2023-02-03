@@ -1,4 +1,4 @@
-import { EditableText } from '@blueprintjs/core'
+import { EditableText, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import * as React from 'react'
 import { CompactPicker, ColorResult } from 'react-color'
@@ -21,6 +21,9 @@ interface SelectedProps {
     deletePopulation: (id: string, confirm: boolean) => void
     highlightPopulation: (id: string) => void
     unhighlightPopulation: (id: string) => void
+    userHighlightedSegmentId: number | null
+    removeSegmentFromPopulation: (segment: number, populationId: string) => void
+    addSegmentToPopulation: (segment: number, populationId: string) => void
 }
 
 interface SelectedPopulationProps extends SelectedProps {
@@ -132,6 +135,20 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
         private onToggleSegmentPopover = (): void =>
             this.setState({ colorPopoverVisible: false, segmentPopoverVisible: !this.state.segmentPopoverVisible })
 
+        private onToggleContainsCheckboxCallback = (): ((event: React.FormEvent<HTMLInputElement>) => void) => {
+            const userHighlightedSegmentId = this.props.userHighlightedSegmentId
+            const populationId = this.props.population.id
+            return (event: React.FormEvent<HTMLInputElement>) => {
+                if (userHighlightedSegmentId) {
+                    if (event.currentTarget.checked) {
+                        this.props.addSegmentToPopulation(userHighlightedSegmentId, populationId)
+                    } else {
+                        this.props.removeSegmentFromPopulation(userHighlightedSegmentId, populationId)
+                    }
+                }
+            }
+        }
+
         private onChangeSelectedSegments = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
             const updatedSegments = parseSegmentIds(event.target.value)
             this.props.updateSegments(this.props.population.id, updatedSegments)
@@ -153,6 +170,10 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
 
         public render(): React.ReactElement {
             const rowPopulation = this.props.population
+            const userHighlightedSegmentId = this.props.userHighlightedSegmentId
+            const containsCheckboxChecked = userHighlightedSegmentId
+                ? this.props.population.selectedSegments.includes(userHighlightedSegmentId)
+                : false
             return (
                 <tr onMouseEnter={this.highlightPopulation} onMouseLeave={this.unhighlightPopulation}>
                     <td>
@@ -193,12 +214,20 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             </div>
                         </PopoverBody>
                     </Popover>
-                    <td>{visibleIcon(rowPopulation.visible, this.updateVisibility)}</td>
+                    <td>
+                        {' '}
+                        <Checkbox
+                            checked={containsCheckboxChecked}
+                            onChange={this.onToggleContainsCheckboxCallback()}
+                            disabled={!this.props.userHighlightedSegmentId || rowPopulation.regionBitmap != undefined}
+                        />
+                    </td>
                     <td id={'edit-' + rowPopulation.id} onClick={this.onToggleSegmentPopover}>
                         <a href="#">
                             <IoMdCreate size="1.5em" />
                         </a>
                     </td>
+                    <td>{visibleIcon(rowPopulation.visible, this.updateVisibility)}</td>
                     {/* Popover outside of the td so that the user can interact with it */}
                     <Popover
                         placement="left"
@@ -254,6 +283,9 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             highlightPopulation={this.props.highlightPopulation}
                             unhighlightPopulation={this.props.unhighlightPopulation}
                             updateSegments={this.props.updateSegments}
+                            userHighlightedSegmentId={this.props.userHighlightedSegmentId}
+                            removeSegmentFromPopulation={this.props.removeSegmentFromPopulation}
+                            addSegmentToPopulation={this.props.addSegmentToPopulation}
                             tableScrolling={tableScrolling}
                         />
                     )
@@ -341,8 +373,9 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             <tr>
                                 <th>Name</th>
                                 <th>Color</th>
-                                <th>{visibleIcon(this.anyVisible(), this.setVisibility)}</th>
+                                <th>Contains Segment</th>
                                 <th />
+                                <th>{visibleIcon(this.anyVisible(), this.setVisibility)}</th>
                                 <th>{this.addPopulationButton()}</th>
                             </tr>
                         </thead>
