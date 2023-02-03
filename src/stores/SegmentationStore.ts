@@ -62,6 +62,16 @@ export class SegmentationStore {
         return persistedValueStore.segmentationStoreUserHighlightedSegment
     }
 
+    @computed get userHighlightedSegmentValid(): boolean {
+        const userHighlightedSegment = this.userHighlightedSegment
+        if (userHighlightedSegment == null) return true
+        if (this.segmentationData) {
+            const segmentIds = this.segmentationData.segmentIds
+            return segmentIds.includes(userHighlightedSegment)
+        }
+        return true
+    }
+
     // This generates an array of segment colors to use for updating the colors of the PIXI Line object.
     // This gets recomputed when populations are changed or a segment is highlighted.
     // Returns object of arrays instead of array of objects to improve performance with using fill

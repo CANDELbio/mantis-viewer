@@ -7,6 +7,7 @@ import * as path from 'path'
 export interface SegmentControlProps {
     highlightedSegment: number | null
     setHighlightedSegment: (value: number) => void
+    highlightedSegmentValid: boolean
 
     snapToHighlightedSegment: boolean
     setSnapToHighlightedSegment: (value: boolean) => void
@@ -64,17 +65,35 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
         )
     }
 
+    // React.CSSProperties should work for return type, but invalid return complains.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private highlightSegmentInputStyle(): any {
+        if (!this.props.highlightedSegmentValid)
+            return {
+                input: { borderColor: 'red' },
+                paddingBottom: '10px',
+            }
+        return {}
+    }
+
+    private highlightSegmentInputValidationMessage(): JSX.Element {
+        const validationMessage = this.props.highlightedSegmentValid ? '' : 'Highlight segment not found'
+        return <div style={{ paddingBottom: '10px', color: 'red' }}>{validationMessage}</div>
+    }
+
     public render(): React.ReactElement {
         return (
             <div>
-                Highlight Segment
+                <b>Highlight Segment</b>
                 <NumericInput
                     value={this.props.highlightedSegment ? this.props.highlightedSegment : undefined}
                     min={0}
                     onChange={this.props.setHighlightedSegment}
                     disabled={!this.props.segmentationLoaded}
                     className="form-control"
+                    style={this.highlightSegmentInputStyle()}
                 />
+                {this.highlightSegmentInputValidationMessage()}
                 <Checkbox
                     checked={this.props.snapToHighlightedSegment}
                     label="Center on Highlighted Segment"
@@ -85,21 +104,21 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
                     label="Mark Highlighted Segments on Image"
                     onChange={this.onCheckboxChange(this.props.setMarkHighlightedSegments)}
                 />
-                Segmentation Outline Alpha
+                <b>Segmentation Outline Alpha</b>
                 <Slider
                     value={this.props.outlineAlpha * this.sliderMax}
                     onChange={this.onOutlineAlphaSliderChange}
                     max={this.sliderMax}
                     disabled={!this.props.segmentationLoaded}
                 />
-                Segmentation Fill Alpha
+                <b>Segmentation Fill Alpha</b>
                 <Slider
                     value={this.props.fillAlpha * this.sliderMax}
                     onChange={this.onFillAlphaSliderChange}
                     max={this.sliderMax}
                     disabled={!this.props.segmentationLoaded}
                 />
-                Region Fill Alpha
+                <b>Region Fill Alpha</b>
                 <Slider
                     value={this.props.regionAlpha * this.sliderMax}
                     onChange={this.onRegionAlphaSliderChange}

@@ -290,6 +290,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     <SegmentControls
                         highlightedSegment={segmentationStore.userHighlightedSegment}
                         setHighlightedSegment={segmentationStore.setUserHighlightedSegment}
+                        highlightedSegmentValid={segmentationStore.userHighlightedSegmentValid}
                         snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
                         setSnapToHighlightedSegment={persistedValueStore.setSnapToHighlightedSegment}
                         markHighlightedSegments={persistedValueStore.markHighlightedSegments}

@@ -51,7 +51,7 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
     public render(): React.ReactElement {
         return (
             <div>
-                Zoom Speed
+                <b>Zoom Speed</b>
                 <Slider
                     value={this.zoomToSliderScale(this.props.zoomCoefficient)}
                     onChange={this.onZoomSliderChange}
