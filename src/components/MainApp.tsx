@@ -291,6 +291,11 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         highlightedSegment={segmentationStore.userHighlightedSegment}
                         setHighlightedSegment={segmentationStore.setUserHighlightedSegment}
                         highlightedSegmentValid={segmentationStore.userHighlightedSegmentValid}
+                        populations={populationStore.selectedPopulations}
+                        limitHighlightedSegmentPopulationId={persistedValueStore.limitHighlightedSegmentPopulationId}
+                        setLimitHighlightedSegmentPopulationId={
+                            persistedValueStore.setLimitHighlightedSegmentPopulationId
+                        }
                         snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
                         setSnapToHighlightedSegment={persistedValueStore.setSnapToHighlightedSegment}
                         markHighlightedSegments={persistedValueStore.markHighlightedSegments}

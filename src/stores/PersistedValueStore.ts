@@ -85,6 +85,7 @@ type PersistedValueStoreData = {
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
     segmentationStoreUserHighlightedSegment?: number | null
+    limitHighlightedSegmentPopulationId?: string | null
     snapToHighlightedSegment?: boolean
     markHighlightedSegments?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
@@ -154,6 +155,7 @@ export class PersistedValueStore {
     // This should only be used and set from the segmentation store.
     // Feels dirty, but need to do a big refactor to do correctly.
     @observable public segmentationStoreUserHighlightedSegment: number | null
+    @observable public limitHighlightedSegmentPopulationId: string | null
     @observable public snapToHighlightedSegment: boolean
     @observable public markHighlightedSegments: boolean
 
@@ -401,6 +403,10 @@ export class PersistedValueStore {
 
     @action public setSegmentationStoreUserHighlightedSegment = (value: number | null): void => {
         this.segmentationStoreUserHighlightedSegment = value
+    }
+
+    @action public setLimitHighlightedSegmentPopulationId = (value: string | null): void => {
+        this.limitHighlightedSegmentPopulationId = value
     }
 
     @action public setSnapToHighlightedSegment = (value: boolean): void => {
@@ -816,6 +822,7 @@ export class PersistedValueStore {
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
                 segmentationStoreUserHighlightedSegment: this.segmentationStoreUserHighlightedSegment,
+                limitHighlightedSegmentPopulationId: this.limitHighlightedSegmentPopulationId,
                 snapToHighlightedSegment: this.snapToHighlightedSegment,
                 markHighlightedSegments: this.markHighlightedSegments,
                 globalPopulationAttributes: this.globalPopulationAttributes,
@@ -900,6 +907,8 @@ export class PersistedValueStore {
                 if (importingSettings.segmentationStoreUserHighlightedSegment)
                     this.segmentationStoreUserHighlightedSegment =
                         importingSettings.segmentationStoreUserHighlightedSegment
+                if (importingSettings.limitHighlightedSegmentPopulationId)
+                    this.limitHighlightedSegmentPopulationId = importingSettings.limitHighlightedSegmentPopulationId
                 if (importingSettings.snapToHighlightedSegment)
                     this.snapToHighlightedSegment = importingSettings.snapToHighlightedSegment
                 if (importingSettings.markHighlightedSegments)

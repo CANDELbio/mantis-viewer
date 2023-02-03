@@ -62,11 +62,28 @@ export class SegmentationStore {
         return persistedValueStore.segmentationStoreUserHighlightedSegment
     }
 
+    @computed get segmentIdsForUserHighlight(): number[] {
+        if (this.segmentationData) {
+            const limitHighlightedSegmentPopulationId =
+                this.imageSetStore.projectStore.persistedValueStore.limitHighlightedSegmentPopulationId
+            const selectedPopulations = this.imageSetStore.populationStore.selectedPopulations
+            if (limitHighlightedSegmentPopulationId) {
+                const limitHighlightedSegmentPopulation = selectedPopulations.find(
+                    (p) => p.id == limitHighlightedSegmentPopulationId,
+                )
+                if (limitHighlightedSegmentPopulation)
+                    return limitHighlightedSegmentPopulation.selectedSegments.slice().sort((a, b) => a - b)
+            }
+            return this.segmentationData.segmentIds
+        }
+        return []
+    }
+
     @computed get userHighlightedSegmentValid(): boolean {
         const userHighlightedSegment = this.userHighlightedSegment
         if (userHighlightedSegment == null) return true
         if (this.segmentationData) {
-            const segmentIds = this.segmentationData.segmentIds
+            const segmentIds = this.segmentIdsForUserHighlight
             return segmentIds.includes(userHighlightedSegment)
         }
         return true
@@ -214,7 +231,7 @@ export class SegmentationStore {
     // Otherwise finds and sets the highlighted segment id to the next largest segment id
     public incrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
-            const segmentIds = this.segmentationData.segmentIds
+            const segmentIds = this.segmentIdsForUserHighlight
             this.findSetHighlightedSegmentId(segmentIds, (findId, curId) => findId > curId)
         }
     }
@@ -223,7 +240,7 @@ export class SegmentationStore {
     // Otherwise finds and sets the highlighted segment id to the next smallest segment id
     public decrementUserHighlightedSegment = (): void => {
         if (this.segmentationData) {
-            const reversedSegmentIds = this.segmentationData.segmentIds.slice().reverse()
+            const reversedSegmentIds = this.segmentIdsForUserHighlight.slice().reverse()
             this.findSetHighlightedSegmentId(reversedSegmentIds, (findId, curId) => findId < curId)
         }
     }

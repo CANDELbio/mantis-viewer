@@ -2,12 +2,19 @@ import { Slider, Checkbox } from '@blueprintjs/core'
 import { observer } from 'mobx-react'
 import * as React from 'react'
 import * as NumericInput from 'react-numeric-input2'
+import Select from 'react-select'
 import * as path from 'path'
+import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../lib/SelectUtils'
+import { SelectedPopulation } from '../stores/PopulationStore'
 
 export interface SegmentControlProps {
     highlightedSegment: number | null
     setHighlightedSegment: (value: number) => void
     highlightedSegmentValid: boolean
+
+    populations: SelectedPopulation[]
+    limitHighlightedSegmentPopulationId: string | null
+    setLimitHighlightedSegmentPopulationId: (id: string | null) => void
 
     snapToHighlightedSegment: boolean
     setSnapToHighlightedSegment: (value: boolean) => void
@@ -34,6 +41,14 @@ export interface SegmentControlProps {
 export class SegmentControls extends React.Component<SegmentControlProps, Record<string, never>> {
     public constructor(props: SegmentControlProps) {
         super(props)
+    }
+
+    private onLimitHighlightedPopulationSelect = (selected: SelectOption | null): void => {
+        if (selected) {
+            this.props.setLimitHighlightedSegmentPopulationId(selected.value)
+        } else {
+            this.props.setLimitHighlightedSegmentPopulationId(null)
+        }
     }
 
     private sliderMax = 10
@@ -77,11 +92,16 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
     }
 
     private highlightSegmentInputValidationMessage(): JSX.Element {
-        const validationMessage = this.props.highlightedSegmentValid ? '' : 'Highlight segment not found'
+        const validationMessage = this.props.highlightedSegmentValid ? ' ' : 'Highlight segment not found'
         return <div style={{ paddingBottom: '10px', color: 'red' }}>{validationMessage}</div>
     }
 
     public render(): React.ReactElement {
+        const selectOptions: SelectOption[] = []
+        for (const population of this.props.populations) {
+            selectOptions.push({ value: population.id, label: population.name })
+        }
+        const selectedOption = getSelectedOptions(this.props.limitHighlightedSegmentPopulationId, selectOptions)
         return (
             <div>
                 <b>Highlight Segment</b>
@@ -94,6 +114,20 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
                     style={this.highlightSegmentInputStyle()}
                 />
                 {this.highlightSegmentInputValidationMessage()}
+                <b>Limit Highlight Segment to a Population</b>
+                <div style={{ paddingBottom: '10px' }}>
+                    <Select
+                        value={selectedOption}
+                        options={selectOptions}
+                        onChange={this.onLimitHighlightedPopulationSelect}
+                        isMulti={false}
+                        isClearable={true}
+                        placeholder={'Select a population...'}
+                        styles={SelectStyle}
+                        theme={SelectTheme}
+                    />
+                </div>
+
                 <Checkbox
                     checked={this.props.snapToHighlightedSegment}
                     label="Center on Highlighted Segment"
