@@ -703,6 +703,12 @@ const registerMainWindowEvents = (): void => {
             closePlotWindow()
             closePreferencesWindow()
         })
+
+        // Don't let this window open other new windows.
+        // Stops command clicking on empty links from opening new windows.
+        mainWindow.webContents.setWindowOpenHandler(() => {
+            return { action: 'deny' }
+        })
     }
 }
 
@@ -710,11 +716,6 @@ const createMainWindow = (): void => {
     mainWindow = initializeMainWindow()
     setMenu()
     registerMainWindowEvents()
-    // Don't let this window open other new windows.
-    // Stops command clicking on empty links from opening new windows.
-    mainWindow.webContents.setWindowOpenHandler(() => {
-        return { action: 'deny' }
-    })
     mainWindow.on('ready-to-show', (): void => {
         if (mainWindow != null) mainWindow.show()
     })

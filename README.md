@@ -78,6 +78,12 @@ npm version prerelease --preid=rc
 
 Preminor, minor, and major releases do not need any additional arguments for npm-version.
 
+To specify the verion during a release run the following command
+
+```shell
+npm version <new-version>
+```
+
 ## Technologies
 
 Mantis Viewer is build using Electron, Typescript, React, MobX, and PIXI.js.
