@@ -243,8 +243,9 @@ export class PopulationStore {
 
     public createPopulationFromPixels = (regionPixelIndexes: number[], color: number): void => {
         const order = this.getRenderOrder()
+        const imageSetName = this.imageSetStore.name
         const newPopulation: SelectedPopulation = {
-            id: this.db.generateSelectionId(),
+            id: this.db.generateSelectionId(imageSetName),
             renderOrder: order,
             pixelIndexes: regionPixelIndexes,
             selectedSegments: [],
@@ -262,8 +263,9 @@ export class PopulationStore {
         color?: number | null,
     ): SelectedPopulation => {
         const order = this.getRenderOrder()
+        const imageSetName = this.imageSetStore.name
         const newPopulation: SelectedPopulation = {
-            id: this.db.generateSelectionId(),
+            id: this.db.generateSelectionId(imageSetName),
             renderOrder: order,
             selectedSegments: selectedSegments,
             name: name ? name : this.newROIName(order, GraphPopulationNamePrefix),
@@ -276,8 +278,9 @@ export class PopulationStore {
 
     public addEmptyPopulation = (): void => {
         const order = this.getRenderOrder()
+        const imageSetName = this.imageSetStore.name
         const newPopulation: SelectedPopulation = {
-            id: this.db.generateSelectionId(),
+            id: this.db.generateSelectionId(imageSetName),
             renderOrder: order,
             selectedSegments: [],
             name: this.newROIName(order, 'Empty'),
@@ -301,10 +304,9 @@ export class PopulationStore {
     @action public deleteSelectedPopulation = (id: string): void => {
         if (this.selectedPopulations) {
             this.selectedPopulations = this.selectedPopulations.filter((region): boolean => region.id != id)
-            if (this.db) {
-                const imageSetName = this.imageSetStore.name
-                this.db.deleteSelection(imageSetName, id)
-            }
+
+            const imageSetName = this.imageSetStore.name
+            this.db.deleteSelection(imageSetName, id)
         }
     }
 
@@ -332,11 +334,10 @@ export class PopulationStore {
             // Set the refreshed populations
             this.selectedPopulations = refreshedPopulations
             // Delete the removed populations from the db
-            if (this.db) {
-                const imageSetName = this.imageSetStore.name
-                for (const id of deleting) {
-                    this.db.deleteSelection(imageSetName, id)
-                }
+
+            const imageSetName = this.imageSetStore.name
+            for (const id of deleting) {
+                this.db.deleteSelection(imageSetName, id)
             }
         }
     }
@@ -401,6 +402,7 @@ export class PopulationStore {
             const newRegionMap = result.regionIndexMap
             const newRegionNames = result.regionNames
             let order = this.getRenderOrder()
+            const imageSetName = this.imageSetStore.name
             for (const regionIdStr in newRegionMap) {
                 const regionId = parseInt(regionIdStr)
                 const regionPixels = newRegionMap[regionId]
@@ -416,7 +418,7 @@ export class PopulationStore {
                         ? newRegionNames[regionId]
                         : this.newROIName(regionId, ImportedPopulationNamePrefix)
                     const newPopulation = {
-                        id: this.db.generateSelectionId(),
+                        id: this.db.generateSelectionId(imageSetName),
                         renderOrder: order,
                         pixelIndexes: regionPixels,
                         selectedSegments: [],

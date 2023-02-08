@@ -321,7 +321,7 @@ export class Db {
         return results
     }
 
-    public generateSelectionId(): string {
+    public generateSelectionId(imageSet: string): string {
         const db = this.getConnection()
         let id = ''
         let count = 1
@@ -330,7 +330,7 @@ export class Db {
             const stmt = db.prepare(`SELECT COUNT(*) as count
                                      FROM selections
                                      WHERE id = ?`)
-            count = stmt.get(id).count
+            count = stmt.get(imageSet + id).count
         }
         db.close()
         return id
