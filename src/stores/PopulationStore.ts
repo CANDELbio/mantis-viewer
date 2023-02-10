@@ -343,6 +343,8 @@ export class PopulationStore {
     }
 
     @action public clearAllPopulations = (): void => {
+        const imageSetName = this.imageSetStore.name
+        this.selectedPopulations.map((p) => this.db.deleteSelection(imageSetName, p.id))
         this.selectedPopulations = []
     }
 
