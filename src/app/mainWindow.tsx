@@ -394,6 +394,10 @@ hotkeys('shift+/', function (): void {
     projectStore.notificationStore.toggleShortcutModal()
 })
 
+hotkeys('esc', function (): void {
+    projectStore.persistedValueStore.setSelectedSegment(null)
+})
+
 const channelKeys: Record<ChannelName, string> = {
     rChannel: 'q',
     gChannel: 'w',
