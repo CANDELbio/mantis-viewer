@@ -97,7 +97,6 @@ export class SegmentationStore {
         const segmentationData = this.segmentationData
         if (segmentationData) {
             const imageSetStore = this.imageSetStore
-            const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
 
             let outlineColors = []
             let outlineAlphas = []
@@ -130,17 +129,15 @@ export class SegmentationStore {
             }
 
             // Highlighting segments that need to be highlighted.
-            if (persistedValueStore.markSelectedSegments) {
-                const plotStore = imageSetStore.plotStore
-                let segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
-                if (this.userHighlightedSegment)
-                    segmentsToHighlight = segmentsToHighlight.concat([this.userHighlightedSegment])
-                for (const highlightedSegmentId of segmentsToHighlight) {
-                    const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
-                    if (highlightedSegmentIndex) {
-                        outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
-                        outlineAlphas[highlightedSegmentIndex] = 1
-                    }
+            const plotStore = imageSetStore.plotStore
+            let segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
+            if (this.userHighlightedSegment)
+                segmentsToHighlight = segmentsToHighlight.concat([this.userHighlightedSegment])
+            for (const highlightedSegmentId of segmentsToHighlight) {
+                const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
+                if (highlightedSegmentIndex) {
+                    outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
+                    outlineAlphas[highlightedSegmentIndex] = 1
                 }
             }
 
