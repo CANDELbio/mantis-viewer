@@ -387,7 +387,7 @@ hotkeys('alt+-, command+-', function (): void {
 
 hotkeys('alt+h, command+h', function (): void {
     const persistedValueStore = projectStore.persistedValueStore
-    persistedValueStore.setMarkHighlightedSegments(!persistedValueStore.markHighlightedSegments)
+    persistedValueStore.setMarkSelectedSegments(!persistedValueStore.markSelectedSegments)
 })
 
 hotkeys('shift+/', function (): void {

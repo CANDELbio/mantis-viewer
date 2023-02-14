@@ -59,13 +59,13 @@ export class SegmentationStore {
     // tech debt right now.
     @computed get userHighlightedSegment(): number | null {
         const persistedValueStore = this.imageSetStore.projectStore.persistedValueStore
-        return persistedValueStore.segmentationStoreUserHighlightedSegment
+        return persistedValueStore.selectedSegment
     }
 
     @computed get segmentIdsForUserHighlight(): number[] {
         if (this.segmentationData) {
             const limitHighlightedSegmentPopulationId =
-                this.imageSetStore.projectStore.persistedValueStore.limitHighlightedSegmentPopulationId
+                this.imageSetStore.projectStore.persistedValueStore.limitSelectedSegmentPopulationId
             const selectedPopulations = this.imageSetStore.populationStore.selectedPopulations
             if (limitHighlightedSegmentPopulationId) {
                 const limitHighlightedSegmentPopulation = selectedPopulations.find(
@@ -130,7 +130,7 @@ export class SegmentationStore {
             }
 
             // Highlighting segments that need to be highlighted.
-            if (persistedValueStore.markHighlightedSegments) {
+            if (persistedValueStore.markSelectedSegments) {
                 const plotStore = imageSetStore.plotStore
                 let segmentsToHighlight = plotStore.segmentsHoveredOnPlot.concat(this.mousedOverSegments)
                 if (this.userHighlightedSegment)
@@ -223,7 +223,7 @@ export class SegmentationStore {
         } else if (this.userHighlightedSegment && value == this.userHighlightedSegment - 1) {
             this.decrementUserHighlightedSegment()
         } else {
-            this.imageSetStore.projectStore.persistedValueStore.setSegmentationStoreUserHighlightedSegment(value)
+            this.imageSetStore.projectStore.persistedValueStore.setSelectedSegment(value)
         }
     }
 
@@ -252,6 +252,6 @@ export class SegmentationStore {
         if (curSegmentId) nextSegmentId = segmentIds.find((id) => findFn(id, curSegmentId))
         // If there isn't a current segment, or if the current segment is the last segment then set to the first segment in the list.
         nextSegmentId ||= segmentIds[0]
-        persistedValueStore.setSegmentationStoreUserHighlightedSegment(nextSegmentId)
+        persistedValueStore.setSelectedSegment(nextSegmentId)
     }
 }

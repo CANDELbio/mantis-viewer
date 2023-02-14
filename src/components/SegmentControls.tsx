@@ -8,19 +8,19 @@ import { SelectOption, SelectStyle, SelectTheme, getSelectedOptions } from '../l
 import { SelectedPopulation } from '../stores/PopulationStore'
 
 export interface SegmentControlProps {
-    highlightedSegment: number | null
-    setHighlightedSegment: (value: number) => void
-    highlightedSegmentValid: boolean
+    selectedSegment: number | null
+    setSelectedSegment: (value: number) => void
+    selectedSegmentValid: boolean
 
     populations: SelectedPopulation[]
-    limitHighlightedSegmentPopulationId: string | null
-    setLimitHighlightedSegmentPopulationId: (id: string | null) => void
+    limitSelectedSegmentPopulationId: string | null
+    setLimitSelectedSegmentPopulationId: (id: string | null) => void
 
-    snapToHighlightedSegment: boolean
-    setSnapToHighlightedSegment: (value: boolean) => void
+    snapToSelectedSegment: boolean
+    setSnapToSelectedSegment: (value: boolean) => void
 
-    markHighlightedSegments: boolean
-    setMarkHighlightedSegments: (value: boolean) => void
+    markSelectedSegments: boolean
+    setMarkSelectedSegments: (value: boolean) => void
 
     fillAlpha: number
     outlineAlpha: number
@@ -45,9 +45,9 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
 
     private onLimitHighlightedPopulationSelect = (selected: SelectOption | null): void => {
         if (selected) {
-            this.props.setLimitHighlightedSegmentPopulationId(selected.value)
+            this.props.setLimitSelectedSegmentPopulationId(selected.value)
         } else {
-            this.props.setLimitHighlightedSegmentPopulationId(null)
+            this.props.setLimitSelectedSegmentPopulationId(null)
         }
     }
 
@@ -83,7 +83,7 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
     // React.CSSProperties should work for return type, but invalid return complains.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private highlightSegmentInputStyle(): any {
-        if (!this.props.highlightedSegmentValid)
+        if (!this.props.selectedSegmentValid)
             return {
                 input: { borderColor: 'red' },
                 paddingBottom: '10px',
@@ -92,7 +92,13 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
     }
 
     private highlightSegmentInputValidationMessage(): JSX.Element {
-        const validationMessage = this.props.highlightedSegmentValid ? ' ' : 'Highlight segment not found'
+        const selectedSegmentValid = this.props.selectedSegmentValid
+        let validationMessage = ' '
+        if (!selectedSegmentValid && this.props.limitSelectedSegmentPopulationId) {
+            validationMessage = 'Selected segment not in selected population'
+        } else if (!selectedSegmentValid) {
+            validationMessage = 'Selected segment not found'
+        }
         return <div style={{ paddingBottom: '10px', color: 'red' }}>{validationMessage}</div>
     }
 
@@ -101,20 +107,20 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
         for (const population of this.props.populations) {
             selectOptions.push({ value: population.id, label: population.name })
         }
-        const selectedOption = getSelectedOptions(this.props.limitHighlightedSegmentPopulationId, selectOptions)
+        const selectedOption = getSelectedOptions(this.props.limitSelectedSegmentPopulationId, selectOptions)
         return (
             <div>
-                <b>Highlight Segment</b>
+                <b>Selected Segment</b>
                 <NumericInput
-                    value={this.props.highlightedSegment ? this.props.highlightedSegment : undefined}
+                    value={this.props.selectedSegment ? this.props.selectedSegment : undefined}
                     min={0}
-                    onChange={this.props.setHighlightedSegment}
+                    onChange={this.props.setSelectedSegment}
                     disabled={!this.props.segmentationLoaded}
                     className="form-control"
                     style={this.highlightSegmentInputStyle()}
                 />
                 {this.highlightSegmentInputValidationMessage()}
-                <b>Limit Highlight Segment to a Population</b>
+                <b>Limit Selected Segment to a Population</b>
                 <div style={{ paddingBottom: '10px' }}>
                     <Select
                         value={selectedOption}
@@ -129,14 +135,14 @@ export class SegmentControls extends React.Component<SegmentControlProps, Record
                 </div>
 
                 <Checkbox
-                    checked={this.props.snapToHighlightedSegment}
-                    label="Center on Highlighted Segment"
-                    onChange={this.onCheckboxChange(this.props.setSnapToHighlightedSegment)}
+                    checked={this.props.snapToSelectedSegment}
+                    label="Center on Selected Segment"
+                    onChange={this.onCheckboxChange(this.props.setSnapToSelectedSegment)}
                 />
                 <Checkbox
-                    checked={this.props.markHighlightedSegments}
-                    label="Mark Highlighted Segments on Image"
-                    onChange={this.onCheckboxChange(this.props.setMarkHighlightedSegments)}
+                    checked={this.props.markSelectedSegments}
+                    label="Mark Selected Segments on Image"
+                    onChange={this.onCheckboxChange(this.props.setMarkSelectedSegments)}
                 />
                 <b>Segmentation Outline Alpha</b>
                 <Slider

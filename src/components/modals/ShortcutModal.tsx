@@ -62,12 +62,15 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                                 clicking on the delete button.
                             </li>
                             <li>
-                                You can increment or decrement the segment highlighted on the image by holding{' '}
-                                <b>Alt</b> or <b>Command/Windows</b> and then pressing <b>=</b> or <b>-</b>{' '}
-                                respectively.
+                                You can select a segment on the image to change its populations by holding <b>Shift</b>{' '}
+                                and then clicking on it.
                             </li>
                             <li>
-                                You can toggle marking highlighted segments on the image with a cross and outline by
+                                You can increment or decrement the selected segment by holding <b>Alt</b> or{' '}
+                                <b>Command/Windows</b> and then pressing <b>=</b> or <b>-</b> respectively.
+                            </li>
+                            <li>
+                                You can toggle marking selected segments on the image with a cross and outline by
                                 holding <b>Alt</b> or <b>Command/Windows</b> and then pressing <b>h</b>.
                             </li>
                             <li>

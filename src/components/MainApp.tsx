@@ -207,8 +207,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         selectedPopulations={populationStore.selectedPopulations}
                         highlightedPopulations={populationStore.highlightedPopulations}
                         highlightedSegments={highlightedSegments}
-                        snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
-                        markHighlightedSegments={persistedValueStore.markHighlightedSegments}
+                        snapToSelectedSegment={persistedValueStore.snapToSelectedSegment}
+                        markSelectedSegments={persistedValueStore.markSelectedSegments}
                         mousedOverSegmentsFromImage={segmentationStore.mousedOverSegments}
                         segmentFeaturesForLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsForLegend={populationStore.populationsForMousedOverSegments}
@@ -227,6 +227,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
                         blurPixels={projectStore.preferencesStore.blurPixels}
+                        setSelectedSegment={persistedValueStore.setSelectedSegment}
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu
@@ -288,18 +289,16 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
             segmentControls = (
                 <div className="grey-card control-card">
                     <SegmentControls
-                        highlightedSegment={segmentationStore.userHighlightedSegment}
-                        setHighlightedSegment={segmentationStore.setUserHighlightedSegment}
-                        highlightedSegmentValid={segmentationStore.userHighlightedSegmentValid}
+                        selectedSegment={segmentationStore.userHighlightedSegment}
+                        setSelectedSegment={segmentationStore.setUserHighlightedSegment}
+                        selectedSegmentValid={segmentationStore.userHighlightedSegmentValid}
                         populations={populationStore.selectedPopulations}
-                        limitHighlightedSegmentPopulationId={persistedValueStore.limitHighlightedSegmentPopulationId}
-                        setLimitHighlightedSegmentPopulationId={
-                            persistedValueStore.setLimitHighlightedSegmentPopulationId
-                        }
-                        snapToHighlightedSegment={persistedValueStore.snapToHighlightedSegment}
-                        setSnapToHighlightedSegment={persistedValueStore.setSnapToHighlightedSegment}
-                        markHighlightedSegments={persistedValueStore.markHighlightedSegments}
-                        setMarkHighlightedSegments={persistedValueStore.setMarkHighlightedSegments}
+                        limitSelectedSegmentPopulationId={persistedValueStore.limitSelectedSegmentPopulationId}
+                        setLimitSelectedSegmentPopulationId={persistedValueStore.setLimitSelectedSegmentPopulationId}
+                        snapToSelectedSegment={persistedValueStore.snapToSelectedSegment}
+                        setSnapToSelectedSegment={persistedValueStore.setSnapToSelectedSegment}
+                        markSelectedSegments={persistedValueStore.markSelectedSegments}
+                        setMarkSelectedSegments={persistedValueStore.setMarkSelectedSegments}
                         fillAlpha={persistedValueStore.segmentationFillAlpha}
                         outlineAlpha={persistedValueStore.segmentationOutlineAlpha}
                         onFillAlphaChange={persistedValueStore.setSegmentationFillAlpha}

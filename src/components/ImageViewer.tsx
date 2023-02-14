@@ -45,8 +45,9 @@ export interface ImageProps {
     addSelectedPopulation: (pixelIndexes: number[], color: number) => void
     highlightedPopulations: string[]
     highlightedSegments: number[]
-    snapToHighlightedSegment: boolean
-    markHighlightedSegments: boolean
+    setSelectedSegment: (segmentId: number | null) => void
+    snapToSelectedSegment: boolean
+    markSelectedSegments: boolean
     mousedOverSegmentsFromImage: number[]
     exportPath: string | null
     onExportComplete: () => void
@@ -335,6 +336,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             el.removeEventListener('mouseup', this.selectMouseUpHandler)
             el.removeEventListener('mousemove', this.mousedOverPixelMoveHandler)
             el.removeEventListener('mouseout', this.mousedOverPixelMoveOutHandler)
+            el.removeEventListener('click', this.segmentSelectClickHandler)
             this.removeWebGLContextLostListener(el)
         }
     }
@@ -692,6 +694,18 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         el.addEventListener('mouseup', this.selectMouseUpHandler)
     }
 
+    // On shift click set the selected segment to the moused over segment.
+    private segmentSelectClickHandler = (e: MouseEvent): void => {
+        const shiftKey = e.shiftKey
+        if (shiftKey) {
+            const mousedOverSegment = this.props.mousedOverSegmentsFromImage[0]
+            this.props.setSelectedSegment(mousedOverSegment)
+        }
+    }
+
+    private addSegmentClick(el: HTMLDivElement): void {
+        el.addEventListener('click', this.segmentSelectClickHandler)
+    }
     // Checks the stage scale factor and x,y position to make sure we aren't too zoomed out
     // Or haven't moved the stage outside of the renderer bounds
     private checkScale(): void {
@@ -830,6 +844,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.addZoom(this.el)
         this.addPan(this.el)
         this.addSelect(this.el)
+        this.addSegmentClick(this.el)
         this.addFullscreen()
         this.addWebGLContextLostListener(this.el)
     }
@@ -1384,8 +1399,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             kChannel: this.props.channelVisibility.kChannel,
         }
         this.blurPixels = this.props.blurPixels
-        this.snapToHighlightedSegment = this.props.snapToHighlightedSegment
-        this.markHighlightedSegments = this.props.markHighlightedSegments
+        this.snapToHighlightedSegment = this.props.snapToSelectedSegment
+        this.markHighlightedSegments = this.props.markSelectedSegments
         this.channelLegendVisible = this.props.channelLegendVisible
         this.populationLegendVisible = this.props.populationLegendVisible
         this.featureLegendVisible = this.props.featureLegendVisible

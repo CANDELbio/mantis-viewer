@@ -84,10 +84,10 @@ type PersistedValueStoreData = {
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
-    segmentationStoreUserHighlightedSegment?: number | null
-    limitHighlightedSegmentPopulationId?: string | null
-    snapToHighlightedSegment?: boolean
-    markHighlightedSegments?: boolean
+    selectedSegment?: number | null
+    limitSelectedSegmentPopulationId?: string | null
+    snapToSelectedSegment?: boolean
+    markSelectedSegments?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
 }
 
@@ -151,13 +151,13 @@ export class PersistedValueStore {
 
     @observable public zoomCoefficient: number
 
-    // Saves the value for the user highlighted segment.
+    // Saves the value for the user selected segment.
     // This should only be used and set from the segmentation store.
     // Feels dirty, but need to do a big refactor to do correctly.
-    @observable public segmentationStoreUserHighlightedSegment: number | null
-    @observable public limitHighlightedSegmentPopulationId: string | null
-    @observable public snapToHighlightedSegment: boolean
-    @observable public markHighlightedSegments: boolean
+    @observable public selectedSegment: number | null
+    @observable public limitSelectedSegmentPopulationId: string | null
+    @observable public snapToSelectedSegment: boolean
+    @observable public markSelectedSegments: boolean
 
     // Segmentation visibility on image settings below
     @observable public segmentationFillAlpha: number
@@ -263,8 +263,8 @@ export class PersistedValueStore {
 
         this.zoomCoefficient = MinZoomCoefficient
 
-        this.snapToHighlightedSegment = false
-        this.markHighlightedSegments = true
+        this.snapToSelectedSegment = false
+        this.markSelectedSegments = true
 
         this.globalPopulationAttributes = {}
     }
@@ -401,20 +401,20 @@ export class PersistedValueStore {
         this.zoomCoefficient = value
     }
 
-    @action public setSegmentationStoreUserHighlightedSegment = (value: number | null): void => {
-        this.segmentationStoreUserHighlightedSegment = value
+    @action public setSelectedSegment = (value: number | null): void => {
+        this.selectedSegment = value
     }
 
-    @action public setLimitHighlightedSegmentPopulationId = (value: string | null): void => {
-        this.limitHighlightedSegmentPopulationId = value
+    @action public setLimitSelectedSegmentPopulationId = (value: string | null): void => {
+        this.limitSelectedSegmentPopulationId = value
     }
 
-    @action public setSnapToHighlightedSegment = (value: boolean): void => {
-        this.snapToHighlightedSegment = value
+    @action public setSnapToSelectedSegment = (value: boolean): void => {
+        this.snapToSelectedSegment = value
     }
 
-    @action public setMarkHighlightedSegments = (value: boolean): void => {
-        this.markHighlightedSegments = value
+    @action public setMarkSelectedSegments = (value: boolean): void => {
+        this.markSelectedSegments = value
     }
 
     @action public setChannelLegendVisible = (visible: boolean): void => {
@@ -821,10 +821,10 @@ export class PersistedValueStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
-                segmentationStoreUserHighlightedSegment: this.segmentationStoreUserHighlightedSegment,
-                limitHighlightedSegmentPopulationId: this.limitHighlightedSegmentPopulationId,
-                snapToHighlightedSegment: this.snapToHighlightedSegment,
-                markHighlightedSegments: this.markHighlightedSegments,
+                selectedSegment: this.selectedSegment,
+                limitSelectedSegmentPopulationId: this.limitSelectedSegmentPopulationId,
+                snapToSelectedSegment: this.snapToSelectedSegment,
+                markSelectedSegments: this.markSelectedSegments,
                 globalPopulationAttributes: this.globalPopulationAttributes,
             }
             try {
@@ -904,15 +904,13 @@ export class PersistedValueStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
-                if (importingSettings.segmentationStoreUserHighlightedSegment)
-                    this.segmentationStoreUserHighlightedSegment =
-                        importingSettings.segmentationStoreUserHighlightedSegment
-                if (importingSettings.limitHighlightedSegmentPopulationId)
-                    this.limitHighlightedSegmentPopulationId = importingSettings.limitHighlightedSegmentPopulationId
-                if (importingSettings.snapToHighlightedSegment)
-                    this.snapToHighlightedSegment = importingSettings.snapToHighlightedSegment
-                if (importingSettings.markHighlightedSegments)
-                    this.markHighlightedSegments = importingSettings.markHighlightedSegments
+                if (importingSettings.selectedSegment) this.selectedSegment = importingSettings.selectedSegment
+                if (importingSettings.limitSelectedSegmentPopulationId)
+                    this.limitSelectedSegmentPopulationId = importingSettings.limitSelectedSegmentPopulationId
+                if (importingSettings.snapToSelectedSegment)
+                    this.snapToSelectedSegment = importingSettings.snapToSelectedSegment
+                if (importingSettings.markSelectedSegments)
+                    this.markSelectedSegments = importingSettings.markSelectedSegments
                 if (importingSettings.globalPopulationAttributes)
                     this.globalPopulationAttributes = importingSettings.globalPopulationAttributes
             } catch (e) {
