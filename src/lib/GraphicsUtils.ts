@@ -27,20 +27,41 @@ export function hexToFilterMatrix(hex: number): ColorMatrix {
     return [rgbColor.r / 255, 0, 0, 0, 0, 0, rgbColor.g / 255, 0, 0, 0, 0, 0, rgbColor.b / 255, 0, 0, 0, 0, 0, 1, 0]
 }
 
+function getSegmentDiameter(outline: Coordinate[]): number {
+    let minX = outline[0].x
+    let maxX = outline[0].x
+    let minY = outline[0].y
+    let maxY = outline[0].y
+    for (const point of outline) {
+        if (point.x < minX) minX = point.x
+        if (point.x > maxX) maxX = point.x
+        if (point.y < minY) minY = point.y
+        if (point.y > maxY) maxY = point.y
+    }
+    return Math.max(maxX - minX, maxY - minY)
+}
+
 export function highlightCoordinate(
     graphics: PIXI.Graphics,
-    x: number,
-    y: number,
+    centroid: Coordinate,
+    outline: Coordinate[],
     width: number,
     height: number,
     scale: number,
 ): void {
+    const segmentDiameter = getSegmentDiameter(outline)
+    const circleRadius = segmentDiameter / 2 + 3
     graphics
         .lineStyle({ width: 3 * scale, alpha: 1, color: 0xffffff })
-        .moveTo(x, 0)
-        .lineTo(x, height)
-        .moveTo(0, y)
-        .lineTo(width, y)
+        .drawCircle(centroid.x, centroid.y, circleRadius)
+        .moveTo(centroid.x, 0)
+        .lineTo(centroid.x, centroid.y - circleRadius)
+        .moveTo(centroid.x, centroid.y + circleRadius)
+        .lineTo(centroid.x, height)
+        .moveTo(0, centroid.y)
+        .lineTo(centroid.x - circleRadius, centroid.y)
+        .moveTo(centroid.x + circleRadius, centroid.y)
+        .lineTo(width, centroid.y)
 }
 
 // Draws a selected region of the format [x, y, x, y, ...] of the given color and alpha

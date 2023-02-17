@@ -1034,12 +1034,15 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         const imageData = this.imageData
         if (imageData && this.markHighlightedSegments) {
             for (const segmentId of highlightedSegments) {
-                const centroid = this.segmentationData?.centroidMap[segmentId]
-                if (imageData && centroid) {
+                const segmentationData = this.segmentationData
+                if (imageData && segmentationData) {
+                    const centroid = segmentationData.centroidMap[segmentId]
+                    const segmentOutlineIndex = segmentationData.idIndexMap[segmentId]
+                    const segmentOutlineCoordinates = segmentationData.segmentCoordinates[segmentOutlineIndex]
                     GraphicsHelper.highlightCoordinate(
                         graphics,
-                        centroid.x,
-                        centroid.y,
+                        { x: centroid.x, y: centroid.y },
+                        segmentOutlineCoordinates,
                         imageData.width,
                         imageData.height,
                         this.minScale / this.stage.scale.x,
