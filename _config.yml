@@ -23,7 +23,8 @@ github_username: ParkerICI
 
 # Build settings
 markdown: kramdown
-remote_theme: pmarsceill/just-the-docs
+remote_theme: just-the-docs/just-the-docs
+color_scheme: "dark"
 plugins:
   - jekyll-feed
   - jekyll-default-layout
