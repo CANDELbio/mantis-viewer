@@ -249,9 +249,10 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages (~> 201)
+  jekyll-default-layout
   jekyll-feed (~> 0.6)
   just-the-docs (~> 0.2.7)
   tzinfo-data
 
 BUNDLED WITH
-   2.0.2
+   2.1.4
