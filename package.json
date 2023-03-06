@@ -21,7 +21,7 @@
         "prepare": "husky install",
         "postversion": "git push && git push --tags"
     },
-    "repository": "https://github.com/ParkerICI/mantis-viewer",
+    "repository": "https://github.com/CANDELbio/mantis-viewer",
     "keywords": [
         "Electron",
         "Microscopy"
@@ -58,7 +58,7 @@
             "publish": [
                 "github"
             ],
-            "maintainer": "engineering@parkerici.org",
+            "maintainer": "robert.schiemann@gmail.com",
             "category": "Development"
         }
     },
