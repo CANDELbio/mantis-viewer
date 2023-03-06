@@ -52,7 +52,7 @@ export function highlightCoordinate(
     const segmentDiameter = getSegmentDiameter(outline)
     const circleRadius = segmentDiameter / 2 + 3
     graphics
-        .lineStyle({ width: 3 * scale, alpha: 1, color: 0xffffff })
+        .lineStyle({ width: 4 * scale, alpha: 1, color: 0xffffff })
         .drawCircle(centroid.x, centroid.y, circleRadius)
         .moveTo(centroid.x, 0)
         .lineTo(centroid.x, centroid.y - circleRadius)
