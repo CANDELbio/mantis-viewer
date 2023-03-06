@@ -4,11 +4,11 @@ Mantis Viewer is an application developed by the [Parker Institute for Cancer Im
 
 ## Using Mantis Viewer
 
-If you want a walkthrough for using Mantis Viewer, you can [check out the documentation](https://mantis.parkerici.org)!
+If you want a walkthrough for using Mantis Viewer, you can [check out the documentation](https://candelbio.github.io/mantis-viewer/)!
 
 ## Downloading
 
-If you just want to use the application head to the [releases](https://github.com/ParkerICI/imc-viewer-js/releases) page! Otherwise continue reading if you want to build the project yourself or to contribute to this project.
+If you just want to use the application head to the [releases](https://github.com/CANDELbio/mantis-viewer/releases) page! Otherwise continue reading if you want to build the project yourself or to contribute to this project.
 
 ## Develop and Run Locally
 
