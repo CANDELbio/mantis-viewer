@@ -106,9 +106,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private minScale: number
     private zoomCoefficient: number
 
-    // Keep track of the most recent mousemove event for use in zoom/pan/select handlers.
-    private currentMouseEvent: PIXI.FederatedMouseEvent
-
     // Segmentation data stored locally for two reasons:
     // 1) Calculation of segments/centroids in selected regions
     // 2) If segmentation data being passed in from store are different we need to
@@ -178,16 +175,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.rootContainer?.destroy()
         this.rootContainer = new PIXI.Container()
 
-        this.stage?.removeAllListeners()
         this.stage?.destroy()
         this.stage = new PIXI.Container()
         this.stage.interactive = true
-        this.stage.on(
-            'mousemove',
-            _.throttle((e: PIXI.FederatedMouseEvent) => {
-                this.currentMouseEvent = e
-            }, 100),
-        )
         this.rootContainer.addChild(this.stage)
 
         const destroyOptions = this.destroyOptions
@@ -424,7 +414,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private zoom(isZoomIn: boolean): void {
-        const beforeTransform = this.stage.toLocal(this.currentMouseEvent.global)
+        const beforeTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
         // Only zoom if the user is zooming on the image
         if (this.positionInBounds(beforeTransform)) {
             const direction = isZoomIn ? 1 : -1
@@ -437,7 +427,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             //If we are actually zooming in/out then move the x/y position so the zoom is centered on the mouse
             if (!atMinScale) {
                 this.stage.updateTransform()
-                const afterTransform = this.stage.toLocal(this.currentMouseEvent.global)
+                const afterTransform = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
 
                 this.stage.position.x += (afterTransform.x - beforeTransform.x) * this.stage.scale.x
                 this.stage.position.y += (afterTransform.y - beforeTransform.y) * this.stage.scale.y
@@ -461,10 +451,10 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     // On mousedown set dragging to true and save the mouse position where we started dragging
     private panMouseDownHandler = (): void => {
-        const altPressed = this.currentMouseEvent.altKey
-        const metaPressed = this.currentMouseEvent.metaKey
-        if (!(altPressed || metaPressed)) {
-            const pos = this.stage.toLocal(this.currentMouseEvent.global)
+        const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+        const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
+        if (!(altPressed | metaPressed)) {
+            const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             if (this.positionInBounds(pos)) {
                 this.panState.active = true
                 this.panState.x = pos.x
@@ -476,7 +466,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // If the mouse moves and we are dragging, adjust the position of the stage and re-render.
     private panMouseMoveHandler = (): void => {
         if (this.panState.active) {
-            const pos = this.stage.toLocal(this.currentMouseEvent.global)
+            const pos = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             if (this.positionInBounds(pos) && this.panState.x && this.panState.y) {
                 const dx = (pos.x - this.panState.x) * this.stage.scale.x
                 const dy = (pos.y - this.panState.y) * this.stage.scale.y
@@ -526,7 +516,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         maxY: number | null
     }): void {
         if (this.imageData) {
-            const position = this.stage.toLocal(this.currentMouseEvent.global)
+            const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             // Round here so that we don't have issues using the min and max values in RGBAtoPixelIndexes
             let xPosition = Math.round(position.x)
             let yPosition = Math.round(position.y)
@@ -555,8 +545,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // On mousedown, if alt is pressed set selecting to true and start adding positions to the selection
     private selectMouseDownHandler = (): void => {
         const state = this.selectState
-        const altPressed = this.currentMouseEvent.altKey
-        const metaPressed = this.currentMouseEvent.metaKey
+        const altPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.altKey
+        const metaPressed = this.renderer.plugins.interaction.eventData.data.originalEvent.metaKey
         if (altPressed || metaPressed) {
             state.active = true
             state.selectionColor = randomHexColor()
@@ -782,8 +772,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private mousedOverPixelMoveHandler = (): void => {
-        if (this.currentMouseEvent && this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
-            const position = this.stage.toLocal(this.currentMouseEvent.global)
+        if (this.featureLegendVisible && !(this.panState.active || this.selectState.active)) {
+            const position = this.renderer.plugins.interaction.eventData.data.getLocalPosition(this.stage)
             const xPosition = Math.round(position.x)
             const yPosition = Math.round(position.y)
             this.props.setMousedOverPixel({ x: xPosition, y: yPosition })
@@ -852,7 +842,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private destroySprite(sprite: PIXI.Sprite): void {
         // @ts-ignore
         this.renderer.texture.destroyTexture(sprite.texture)
-        sprite.destroy({ children: true, texture: true, baseTexture: false })
+        sprite.destroy(this.destroyOptions)
     }
 
     private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
