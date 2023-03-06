@@ -120,7 +120,7 @@ export class SegmentationStore {
                     const selectedSegments = selectedPopulation.selectedSegments
                     for (const selectedSegmentId of selectedSegments) {
                         const selectedSegmentIndex = segmentationData.idIndexMap[selectedSegmentId]
-                        if (selectedSegmentIndex) {
+                        if (selectedSegmentIndex != null) {
                             outlineColors[selectedSegmentIndex] = color
                             outlineAlphas[selectedSegmentIndex] = 1
                         }
@@ -135,7 +135,7 @@ export class SegmentationStore {
                 segmentsToHighlight = segmentsToHighlight.concat([this.userHighlightedSegment])
             for (const highlightedSegmentId of segmentsToHighlight) {
                 const highlightedSegmentIndex = segmentationData.idIndexMap[highlightedSegmentId]
-                if (highlightedSegmentIndex) {
+                if (highlightedSegmentIndex != null) {
                     outlineColors[highlightedSegmentIndex] = HighlightedSegmentOutlineColor
                     outlineAlphas[highlightedSegmentIndex] = 1
                 }
