@@ -261,6 +261,7 @@ export class ProjectStore {
         this.setActiveStores(dirName)
 
         this.persistedValueStore.setActiveImageSet(dirName)
+        this.persistedValueStore.setSelectedSegment(null)
         // Use when because image data loading takes a while
         // We can't copy image set settings or set warnings until image data has loaded.
         when(
