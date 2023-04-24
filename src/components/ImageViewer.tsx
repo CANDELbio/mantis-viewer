@@ -80,7 +80,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private imageData: ImageData | null
 
     private channelMarker: Record<ChannelName, string | null>
-    private channelSprite: Record<ChannelName, PIXI.Sprite | null>
+    private markerSprite: Record<string, PIXI.Sprite | null>
     private channelVisibility: Record<ChannelName, boolean>
 
     // Whether or not pixels should be blurred for the channel sprites
@@ -201,17 +201,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.clearSpriteMap(this.selectedPopulationRegionSprites)
         if (!this.selectedPopulationRegionSprites) this.selectedPopulationRegionSprites = {}
 
-        this.clearSpriteMap(this.channelSprite)
-        if (!this.channelSprite) {
-            this.channelSprite = {
-                rChannel: null,
-                gChannel: null,
-                bChannel: null,
-                cChannel: null,
-                mChannel: null,
-                yChannel: null,
-                kChannel: null,
-            }
+        this.clearSpriteMap(this.markerSprite)
+        if (!this.markerSprite) {
+            this.markerSprite = {}
         }
 
         const ticker = PIXI.Ticker.shared
@@ -841,26 +833,37 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
     private destroySprite(sprite: PIXI.Sprite): void {
         // @ts-ignore
-        this.renderer.texture.destroyTexture(sprite.texture)
-        sprite.destroy(this.destroyOptions)
+        // this.renderer.textureGC.unload(sprite)
+        // this.renderer.texture.destroyTexture(sprite.texture)
+        // sprite.destroy()
     }
 
-    private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
+    private updateMarkerSprites(newChannelMarker: Record<ChannelName, string | null>): void {
         if (this.imageData) {
-            for (const c in newChannelMarker) {
-                const channel = c as ChannelName
-                const newMarker = newChannelMarker[channel]
-                const curSprite = this.channelSprite[channel]
-                if (this.channelMarker[channel] != newMarker || (newMarker && !curSprite)) {
-                    if (curSprite) this.destroySprite(curSprite)
-                    if (newMarker) {
-                        const channelBitmap = this.imageData.bitmaps[newMarker]
-                        const blurPixels = this.blurPixels
-                        if (channelBitmap && blurPixels != undefined) {
-                            this.channelSprite[channel] = GraphicsHelper.imageBitmapToSprite(channelBitmap, blurPixels)
-                        }
-                    } else {
-                        this.channelSprite[channel] = null
+            const newMarkers = Object.values(newChannelMarker)
+            const existingMarkers = Object.keys(this.markerSprite)
+            const markersToDelete = existingMarkers.filter((m) => !newMarkers.includes(m))
+            const markersToCreate = newMarkers.filter((m) => m && !existingMarkers.includes(m))
+            console.log('newChannelMarker')
+            console.log(newChannelMarker)
+            console.log('existingMarkers')
+            console.log(existingMarkers)
+            console.log('Deleting')
+            console.log(markersToDelete)
+            console.log('Creating')
+            console.log(markersToCreate)
+            for (const m of markersToDelete) {
+                const curSprite = this.markerSprite[m]
+                if (curSprite) this.destroySprite(curSprite)
+                this.markerSprite[m] = null
+            }
+            for (const m of markersToCreate) {
+                if (m) {
+                    const channelBitmap = this.imageData.bitmaps[m]
+                    const blurPixels = this.blurPixels
+                    if (channelBitmap && blurPixels != undefined) {
+                        console.log(`Creating ${m}`)
+                        this.markerSprite[m] = GraphicsHelper.imageBitmapToSprite(channelBitmap, blurPixels)
                     }
                 }
             }
@@ -875,33 +878,32 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     ): void {
         const imcData = this.imageData
         const channelMax = channelDomain[curChannel][1]
+        const curMarker = this.channelMarker[curChannel]
         // Don't load channels whose markers have no non-zero pixels.
         // They get rendered as all white due to some new bug/feature in PIXI.
-        if (imcData && channelMax) {
+        if (imcData && channelMax && curMarker) {
             const brightnessFilters = this.channelBrightnessFilters
-            const curSprite = this.channelSprite[curChannel]
+            const curSprite = this.markerSprite[curMarker]
             if (curSprite) {
-                if (curSprite) {
-                    curSprite.filters = null
-
-                    const curBrightnessFilter = brightnessFilters[curChannel]
-                    const brightnessFilterUniforms = GraphicsHelper.generateBrightnessFilterUniforms(
-                        curChannel,
-                        imcData,
-                        this.channelMarker,
-                        channelDomain,
-                    )
-                    if (brightnessFilterUniforms) {
-                        curBrightnessFilter.uniforms.transformMin = brightnessFilterUniforms.transformMin
-                        curBrightnessFilter.uniforms.transformMax = brightnessFilterUniforms.transformMax
-                    }
-
-                    const curColorFilter = this.channelColorFilters[curChannel]
-                    curColorFilter.matrix = GraphicsHelper.hexToFilterMatrix(channelColor)
-
-                    curSprite.filters = [curBrightnessFilter, curColorFilter]
-                    this.stage.addChild(curSprite)
+                curSprite.filters = null
+                const curBrightnessFilter = brightnessFilters[curChannel]
+                const brightnessFilterUniforms = GraphicsHelper.generateBrightnessFilterUniforms(
+                    curChannel,
+                    imcData,
+                    this.channelMarker,
+                    channelDomain,
+                )
+                if (brightnessFilterUniforms) {
+                    curBrightnessFilter.uniforms.transformMin = brightnessFilterUniforms.transformMin
+                    curBrightnessFilter.uniforms.transformMax = brightnessFilterUniforms.transformMax
                 }
+
+                const curColorFilter = this.channelColorFilters[curChannel]
+                curColorFilter.matrix = GraphicsHelper.hexToFilterMatrix(channelColor)
+
+                curSprite.filters = null
+                curSprite.filters = [curBrightnessFilter, curColorFilter]
+                this.stage.addChild(curSprite)
             }
         }
     }
@@ -1226,20 +1228,19 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // This should remove the image textures off of the graphics card to keep memory free.
     private destroyImageTextures(): void {
         const imageData = this.imageData
-        const channelSprite = this.channelSprite
+        const markerSprite = this.markerSprite
         if (imageData) {
-            for (const s in channelSprite) {
-                const channel = s as ChannelName
-                const sprite = channelSprite[channel]
+            for (const m in markerSprite) {
+                const sprite = markerSprite[m]
                 if (sprite) this.destroySprite(sprite)
-                channelSprite[channel] = null
+                markerSprite[m] = null
             }
         }
     }
 
     private renderImage(
         el: HTMLDivElement | null,
-        imcData: ImageData | null,
+        imageData: ImageData | null,
         position: Coordinate | null,
         scale: Coordinate | null,
         channelMarker: ChannelMarkerMapping,
@@ -1261,66 +1262,68 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         const maxRendererSize = this.calculateMaxRendererSize(parentElementSize, windowHeight)
 
         if (!this.el.hasChildNodes()) {
-            this.initializeGraphics(imcData, maxRendererSize)
+            this.initializeGraphics(imageData, maxRendererSize)
         }
 
         // We want to resize graphics and reset zoom if imcData has changed
-        if (this.imageData != imcData) {
+        if (this.imageData != imageData) {
             this.destroyImageTextures()
-            this.imageData = imcData
+            this.imageData = imageData
             this.resizeGraphics(maxRendererSize)
             this.resetZoom()
-            if (imcData) {
-                GraphicsHelper.drawBackgroundRect(this.backgroundGraphics, imcData.width, imcData.height)
+            if (imageData) {
+                GraphicsHelper.drawBackgroundRect(this.backgroundGraphics, imageData.width, imageData.height)
             }
         }
 
-        // Reload saved position and scale
-        if (position && scale) this.setStagePositionAndScale(position, scale)
+        if (imageData) {
+            // Reload saved position and scale
+            if (position && scale) this.setStagePositionAndScale(position, scale)
 
-        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
+            if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
 
-        // We want to resize the graphics and set the min zoom if the windowWidth has changed
-        if (
-            !this.maxRendererSize ||
-            this.maxRendererSize.width != maxRendererSize.width ||
-            this.maxRendererSize.height != maxRendererSize.height
-        ) {
-            this.resizeGraphics(maxRendererSize)
-            this.syncPositionAndScale()
-        }
+            // We want to resize the graphics and set the min zoom if the windowWidth has changed
+            if (
+                !this.maxRendererSize ||
+                this.maxRendererSize.width != maxRendererSize.width ||
+                this.maxRendererSize.height != maxRendererSize.height
+            ) {
+                this.resizeGraphics(maxRendererSize)
+                this.syncPositionAndScale()
+            }
 
-        // Clear the stage in preparation for rendering.
-        this.stage.removeChildren()
+            // Clear the stage in preparation for rendering.
+            this.stage.removeChildren()
 
-        this.stage.addChild(this.backgroundGraphics)
+            this.stage.addChild(this.backgroundGraphics)
 
-        this.setChannelMarkerAndSprite(channelMarker)
-        // For each channel setting the brightness and color filters
-        for (const curChannel of ImageChannels) {
-            if (this.channelVisibility[curChannel])
-                this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
-        }
+            this.updateMarkerSprites(channelMarker)
+            // For each channel setting the brightness and color filters
+            for (const curChannel of ImageChannels) {
+                if (this.channelVisibility[curChannel])
+                    this.loadChannelGraphics(curChannel, channelColor[curChannel], channelDomain)
+            }
 
-        //Load segmentation graphics
-        this.setSegmentationData(segmentationData)
-        this.loadSegmentationGraphics(segmentOutlineAttributes, segmentationFillAlpha)
+            //Load segmentation graphics
+            this.setSegmentationData(segmentationData)
+            this.loadSegmentationGraphics(segmentOutlineAttributes, segmentationFillAlpha)
 
-        // Load selected region graphics
-        this.setSelectedPopulations(selectedPopulations)
-        this.loadSelectedRegionGraphics(highlightedPopulations)
+            // Load selected region graphics
+            this.setSelectedPopulations(selectedPopulations)
+            this.loadSelectedRegionGraphics(highlightedPopulations)
 
-        this.loadHighlightedSegmentGraphics(highlightedSegments)
+            this.loadHighlightedSegmentGraphics(highlightedSegments)
 
-        this.loadLegendGraphics()
-        this.loadZoomInsetGraphics()
+            this.loadLegendGraphics()
+            this.loadZoomInsetGraphics()
 
-        // Render everything
-        this.renderer.render(this.rootContainer)
+            // Render everything
+            this.renderer.render(this.rootContainer)
 
-        // Export the renderer if exportPath is set
-        if (exportPath) {
-            this.exportRenderer(exportPath)
+            // Export the renderer if exportPath is set
+            if (exportPath) {
+                this.exportRenderer(exportPath)
+            }
         }
     }
 
