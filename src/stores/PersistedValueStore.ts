@@ -85,6 +85,7 @@ type PersistedValueStoreData = {
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
     selectedSegment?: number | null
+    selectedSegmentMap?: Record<string, number | null>
     limitSelectedSegmentPopulationId?: string | null
     snapToSelectedSegment?: boolean
     markSelectedSegments?: boolean
@@ -154,7 +155,8 @@ export class PersistedValueStore {
     // Saves the value for the user selected segment.
     // This should only be used and set from the segmentation store.
     // Feels dirty, but need to do a big refactor to do correctly.
-    @observable public selectedSegment: number | null
+    //@observable public selectedSegment: number | null
+    @observable public selectedSegmentMap: Record<string, number | null>
     @observable public limitSelectedSegmentPopulationId: string | null
     @observable public snapToSelectedSegment: boolean
     @observable public markSelectedSegments: boolean
@@ -265,6 +267,8 @@ export class PersistedValueStore {
 
         this.snapToSelectedSegment = false
         this.markSelectedSegments = true
+
+        this.selectedSegmentMap = {}
 
         this.globalPopulationAttributes = {}
     }
@@ -401,9 +405,10 @@ export class PersistedValueStore {
         this.zoomCoefficient = value
     }
 
-    @action public setSelectedSegment = (value: number | null): void => {
-        this.selectedSegment = value
-    }
+    //@action public setSelectedSegment = (value: number | null): void => {
+    //    this.selectedSegment = value
+    //    this.setActiveSelectedSegment(value)
+    //}
 
     @action public setLimitSelectedSegmentPopulationId = (value: string | null): void => {
         this.limitSelectedSegmentPopulationId = value
@@ -776,6 +781,28 @@ export class PersistedValueStore {
         return null
     }
 
+    //@action public setActiveSelectedSegment = (selectedSegmentID: number | null): void => {
+    @action public setSelectedSegment = (selectedSegmentID: number | null): void => {
+        const activeImageSet = this.activeImageSet
+        //console.log(this.selectedSegmentMap['/Users/yuvalbu/Dropbox (Weizmann Institute)/MantisProjectCRC_Feb2623/P21_A_FOV41'])
+
+        if (activeImageSet) {
+            console.log(selectedSegmentID)
+            console.log(activeImageSet)
+            this.selectedSegmentMap[activeImageSet] = selectedSegmentID
+            //this.selectedSegment = selectedSegmentID
+        }
+    }
+
+    @computed public get selectedSegment(): number | null {
+        const activeImageSet = this.activeImageSet
+        if (activeImageSet) {
+            const activeSelectedSegment = this.selectedSegmentMap[activeImageSet]
+            return activeSelectedSegment
+        }
+        return null
+    }
+
     private exportSettings = autorun(() => {
         if (this.db != null) {
             const exporting: PersistedValueStoreData = {
@@ -821,7 +848,8 @@ export class PersistedValueStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
-                selectedSegment: this.selectedSegment,
+                //selectedSegment: this.selectedSegment,
+                selectedSegmentMap: this.selectedSegmentMap,
                 limitSelectedSegmentPopulationId: this.limitSelectedSegmentPopulationId,
                 snapToSelectedSegment: this.snapToSelectedSegment,
                 markSelectedSegments: this.markSelectedSegments,
@@ -904,7 +932,8 @@ export class PersistedValueStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
-                if (importingSettings.selectedSegment) this.selectedSegment = importingSettings.selectedSegment
+                //if (importingSettings.selectedSegment) this.selectedSegment = importingSettings.selectedSegment
+                if (importingSettings.selectedSegmentMap) this.selectedSegmentMap = importingSettings.selectedSegmentMap
                 if (importingSettings.limitSelectedSegmentPopulationId)
                     this.limitSelectedSegmentPopulationId = importingSettings.limitSelectedSegmentPopulationId
                 if (importingSettings.snapToSelectedSegment)
