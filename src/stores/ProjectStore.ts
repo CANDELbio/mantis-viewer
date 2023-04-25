@@ -261,7 +261,7 @@ export class ProjectStore {
         this.setActiveStores(dirName)
 
         this.persistedValueStore.setActiveImageSet(dirName)
-        //this.persistedValueStore.setSelectedSegment(this.persistedValueStore.selectedSegment)
+        //this.persistedValueStore.setSelectedSegment(null)
         //if (this.persistedValueStore.activePositionAndScale) {
         //    this.persistedValueStore.setActivePositionAndScale(this.persistedValueStore.activePositionAndScale.position, this.persistedValueStore.activePositionAndScale.scale)
         //}
