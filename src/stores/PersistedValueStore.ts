@@ -405,11 +405,6 @@ export class PersistedValueStore {
         this.zoomCoefficient = value
     }
 
-    //@action public setSelectedSegment = (value: number | null): void => {
-    //    this.selectedSegment = value
-    //    this.setActiveSelectedSegment(value)
-    //}
-
     @action public setLimitSelectedSegmentPopulationId = (value: string | null): void => {
         this.limitSelectedSegmentPopulationId = value
     }
@@ -781,16 +776,11 @@ export class PersistedValueStore {
         return null
     }
 
-    //@action public setActiveSelectedSegment = (selectedSegmentID: number | null): void => {
     @action public setSelectedSegment = (selectedSegmentID: number | null): void => {
         const activeImageSet = this.activeImageSet
-        //console.log(this.selectedSegmentMap['/Users/yuvalbu/Dropbox (Weizmann Institute)/MantisProjectCRC_Feb2623/P21_A_FOV41'])
 
         if (activeImageSet) {
-            console.log(selectedSegmentID)
-            console.log(activeImageSet)
             this.selectedSegmentMap[activeImageSet] = selectedSegmentID
-            //this.selectedSegment = selectedSegmentID
         }
     }
 
@@ -848,7 +838,6 @@ export class PersistedValueStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
-                //selectedSegment: this.selectedSegment,
                 selectedSegmentMap: this.selectedSegmentMap,
                 limitSelectedSegmentPopulationId: this.limitSelectedSegmentPopulationId,
                 snapToSelectedSegment: this.snapToSelectedSegment,
@@ -932,7 +921,6 @@ export class PersistedValueStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
-                //if (importingSettings.selectedSegment) this.selectedSegment = importingSettings.selectedSegment
                 if (importingSettings.selectedSegmentMap) this.selectedSegmentMap = importingSettings.selectedSegmentMap
                 if (importingSettings.limitSelectedSegmentPopulationId)
                     this.limitSelectedSegmentPopulationId = importingSettings.limitSelectedSegmentPopulationId

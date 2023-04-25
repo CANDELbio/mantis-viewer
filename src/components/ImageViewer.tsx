@@ -907,6 +907,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private setSegmentationData(segmentationData: SegmentationData | null): void {
+        console.log('setSegmentationData')
         if (this.segmentationData != segmentationData) {
             // If segmentation data was present but is being replaced, clear the old sprite texture from the gpu.
             if (this.segmentationFillSprite) {
@@ -1121,6 +1122,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private setStagePositionAndScale(position: Coordinate, scale: Coordinate): void {
+        //console.log("setStagePosition")
+        //console.log(position.x)
         this.stage.position.x = position.x
         this.stage.position.y = position.y
         this.stage.scale.x = scale.x
@@ -1132,12 +1135,17 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private snapToNewlyHighlightedSegment(newHighlightedSegments: number[]): void {
         // Highlighting a segment requires user interaction of some kind, so in theory
         // there should only ever be one newly highlighted segment at any given time.
+        console.log('snap: ', newHighlightedSegments, this.highlightedSegments)
+        console.log('segmentationData1000: x', this.segmentationData?.centroidMap[1000].x)
         const newlyHighlightedSegment = newHighlightedSegments
             .filter((v) => !this.highlightedSegments.includes(v))
             .shift()
         if (newlyHighlightedSegment) {
             const centroid = this.segmentationData?.centroidMap[newlyHighlightedSegment]
+
             if (centroid) {
+                console.log('centroid: ', newlyHighlightedSegment, centroid.x, centroid.y)
+
                 const scale = this.stage.scale
                 this.stage.x = -centroid.x * scale.x + this.renderer.width / 2
                 this.stage.y = -centroid.y * scale.y + this.renderer.height / 2
@@ -1280,7 +1288,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Reload saved position and scale
         if (position && scale) this.setStagePositionAndScale(position, scale)
 
-        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
+        //if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
 
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if (
@@ -1307,6 +1315,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         //Load segmentation graphics
         this.setSegmentationData(segmentationData)
         this.loadSegmentationGraphics(segmentOutlineAttributes, segmentationFillAlpha)
+
+        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
 
         // Load selected region graphics
         this.setSelectedPopulations(selectedPopulations)
@@ -1369,7 +1379,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             position = positionAndScale.position
             scale = positionAndScale.scale
         }
-
+        //if (position) {
+        //    console.log(position.x)
+        //}
         const segmentationData = this.props.segmentationData
         const segmentationFillAlpha = this.props.segmentationFillAlpha
         const segmentOutlineAttributes = this.props.segmentOutlineAttributes
