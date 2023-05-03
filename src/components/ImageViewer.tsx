@@ -80,7 +80,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private imageData: ImageData | null
 
     private channelMarker: Record<ChannelName, string | null>
-    private channelSprite: Record<ChannelName, PIXI.Sprite | null>
+    private markerSprite: Record<string, PIXI.Sprite | null>
     private channelVisibility: Record<ChannelName, boolean>
 
     // Whether or not pixels should be blurred for the channel sprites
@@ -211,18 +211,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.clearSpriteMap(this.selectedPopulationRegionSprites)
         if (!this.selectedPopulationRegionSprites) this.selectedPopulationRegionSprites = {}
 
-        this.clearSpriteMap(this.channelSprite)
-        if (!this.channelSprite) {
-            this.channelSprite = {
-                rChannel: null,
-                gChannel: null,
-                bChannel: null,
-                cChannel: null,
-                mChannel: null,
-                yChannel: null,
-                kChannel: null,
-            }
-        }
+        this.clearSpriteMap(this.markerSprite)
+        this.markerSprite = {}
 
         const ticker = PIXI.Ticker.shared
         ticker.autoStart = false
@@ -297,6 +287,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
             yChannel: null,
             kChannel: null,
         }
+
+        this.markerSprite = {}
 
         this.minScale = 1.0
         this.initializeSelectState()
@@ -850,27 +842,30 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     }
 
     private destroySprite(sprite: PIXI.Sprite): void {
-        // @ts-ignore
-        this.renderer.texture.destroyTexture(sprite.texture)
-        sprite.destroy({ children: true, texture: true, baseTexture: false })
+        sprite.destroy({ children: true, texture: true, baseTexture: true })
     }
 
-    private setChannelMarkerAndSprite(newChannelMarker: Record<ChannelName, string | null>): void {
+    private setMarkerSpriteMapping(newChannelMarker: Record<ChannelName, string | null>): void {
         if (this.imageData) {
-            for (const c in newChannelMarker) {
-                const channel = c as ChannelName
-                const newMarker = newChannelMarker[channel]
-                const curSprite = this.channelSprite[channel]
-                if (this.channelMarker[channel] != newMarker || (newMarker && !curSprite)) {
-                    if (curSprite) this.destroySprite(curSprite)
-                    if (newMarker) {
-                        const channelBitmap = this.imageData.bitmaps[newMarker]
-                        const blurPixels = this.blurPixels
-                        if (channelBitmap && blurPixels != undefined) {
-                            this.channelSprite[channel] = GraphicsHelper.imageBitmapToSprite(channelBitmap, blurPixels)
-                        }
-                    } else {
-                        this.channelSprite[channel] = null
+            const newMarkers = new Set(Object.values(newChannelMarker))
+            const existingMarkers = new Set(Object.keys(this.markerSprite))
+            const blurPixels = this.blurPixels
+            // Deleting sprites for markers that are no longer being used
+            for (const marker of existingMarkers) {
+                if (!newMarkers.has(marker)) {
+                    const curSprite = this.markerSprite[marker]
+                    if (curSprite) {
+                        this.destroySprite(curSprite)
+                        delete this.markerSprite[marker]
+                    }
+                }
+            }
+            // Creating sprites for new markers
+            for (const marker of newMarkers) {
+                if (marker && !existingMarkers.has(marker)) {
+                    const channelBitmap = this.imageData.bitmaps[marker]
+                    if (channelBitmap && blurPixels != undefined) {
+                        this.markerSprite[marker] = GraphicsHelper.imageBitmapToSprite(channelBitmap, blurPixels)
                     }
                 }
             }
@@ -889,8 +884,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // They get rendered as all white due to some new bug/feature in PIXI.
         if (imcData && channelMax) {
             const brightnessFilters = this.channelBrightnessFilters
-            const curSprite = this.channelSprite[curChannel]
-            if (curSprite) {
+            const curMarker = this.channelMarker[curChannel]
+            if (curMarker) {
+                const curSprite = this.markerSprite[curMarker]
                 if (curSprite) {
                     curSprite.filters = null
 
@@ -1238,13 +1234,11 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     // This should remove the image textures off of the graphics card to keep memory free.
     private destroyImageTextures(): void {
         const imageData = this.imageData
-        const channelSprite = this.channelSprite
         if (imageData) {
-            for (const s in channelSprite) {
-                const channel = s as ChannelName
-                const sprite = channelSprite[channel]
+            for (const m in this.markerSprite) {
+                const sprite = this.markerSprite[m]
                 if (sprite) this.destroySprite(sprite)
-                channelSprite[channel] = null
+                delete this.markerSprite[m]
             }
         }
     }
@@ -1307,7 +1301,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
 
         this.stage.addChild(this.backgroundGraphics)
 
-        this.setChannelMarkerAndSprite(channelMarker)
+        this.setMarkerSpriteMapping(channelMarker)
         // For each channel setting the brightness and color filters
         for (const curChannel of ImageChannels) {
             if (this.channelVisibility[curChannel])
