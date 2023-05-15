@@ -678,6 +678,10 @@ export class PersistedValueStore {
         delete this.channelMappings[name]
     }
 
+    @action public clearChannelMarkerMappings = (): void => {
+        this.channelMappings = {}
+    }
+
     @action public loadChannelMarkerMapping = (name: string): void => {
         const selectedChannelMarkerMapping = this.channelMappings[name]
         if (selectedChannelMarkerMapping) {

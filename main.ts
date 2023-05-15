@@ -485,6 +485,28 @@ const generateMenuTemplate = (): Electron.MenuItemConstructorOptions[] => {
                                 }
                             },
                         },
+                        {
+                            label: 'Channel Mappings',
+                            enabled: imageLoaded,
+                            click: (): void => {
+                                if (mainWindow != null) {
+                                    const message =
+                                        'Are you sure you want to delete all of the channel mappings in the project?'
+                                    dialog
+                                        .showMessageBox(mainWindow, {
+                                            type: 'warning',
+                                            message: message,
+                                            buttons: ['No', 'Yes'],
+                                        })
+                                        .then((value: Electron.MessageBoxReturnValue): void => {
+                                            if (value.response == 1) {
+                                                if (mainWindow != null)
+                                                    mainWindow.webContents.send('clear-channel-mappings')
+                                            }
+                                        })
+                                }
+                            },
+                        },
                     ],
                 },
                 {
