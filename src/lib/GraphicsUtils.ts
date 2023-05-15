@@ -225,6 +225,8 @@ export function drawLegend(
     segmentPopulationsForLegend: Record<number, string[]>,
     regionsOnLegend: boolean,
     regionsForLegend: string[],
+    activeMappingOnLegend: boolean,
+    activeMappingName: string | null,
 ): void {
     legendGraphics.clear()
     legendGraphics.removeChildren()
@@ -257,6 +259,11 @@ export function drawLegend(
         textWidth = Math.max(textWidth, pixiText.width)
         legendText.push(pixiText)
         if (spacerHeight == 0) spacerHeight = pixiText.height
+    }
+
+    if (activeMappingOnLegend && activeMappingName != null) {
+        textHeight += spacerHeight
+        addText('Selected Mapping: ' + activeMappingName, 0xffffff)
     }
 
     // Create channel names

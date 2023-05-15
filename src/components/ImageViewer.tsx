@@ -56,6 +56,8 @@ export interface ImageProps {
     regionLegendVisible: boolean
     featureLegendVisible: boolean
     sortLegendFeatures: boolean
+    activeChannelMappingName: string | null
+    channelMappingLegendVisible: boolean
     plotTransform: PlotTransform
     transformCoefficient: number | null
     zoomInsetVisible: boolean
@@ -128,6 +130,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private channelLegendVisible: boolean
     private populationLegendVisible: boolean
     private regionLegendVisible: boolean
+    private activeChannelMappingName: string | null
+    private channelMappingLegendVisible: boolean
 
     private zoomInsetGraphics: PIXI.Graphics
     private zoomInsetVisible: boolean
@@ -226,6 +230,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.channelLegendVisible = false
         this.populationLegendVisible = false
         this.regionLegendVisible = false
+        this.channelMappingLegendVisible = false
         this.zoomInsetVisible = true
         this.featureLegendVisible = false
         this.sortLegendFeatures = false
@@ -1089,6 +1094,8 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.segmentPopulationsForLegend,
                 this.regionLegendVisible,
                 this.regionsForLegend,
+                this.channelMappingLegendVisible,
+                this.activeChannelMappingName,
             )
             this.resizeStaticGraphics(this.legendGraphics)
         } else {
@@ -1408,6 +1415,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.featureLegendVisible = this.props.featureLegendVisible
         this.sortLegendFeatures = this.props.sortLegendFeatures
         this.regionLegendVisible = this.props.regionLegendVisible
+        this.channelMappingLegendVisible = this.props.channelMappingLegendVisible
         this.plotTransform = this.props.plotTransform
         this.transformCoefficient = this.props.transformCoefficient
         this.zoomInsetVisible = this.props.zoomInsetVisible
@@ -1415,6 +1423,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.regionsForLegend = this.props.regionsForLegend
         this.segmentFeaturesForLegend = this.props.segmentFeaturesForLegend
         this.segmentPopulationsForLegend = this.props.segmentPopulationsForLegend
+        this.activeChannelMappingName = this.props.activeChannelMappingName
 
         return (
             <SizeMe>

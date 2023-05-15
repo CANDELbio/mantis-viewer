@@ -218,6 +218,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         channelLegendVisible={persistedValueStore.channelLegendVisible}
                         populationLegendVisible={persistedValueStore.populationLegendVisible}
                         regionLegendVisible={persistedValueStore.regionLegendVisible}
+                        activeChannelMappingName={persistedValueStore.activeChannelMapping}
+                        channelMappingLegendVisible={persistedValueStore.channelMappingLegendVisible}
                         zoomInsetVisible={persistedValueStore.zoomInsetVisible}
                         featureLegendVisible={persistedValueStore.featureLegendVisible}
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
@@ -330,6 +332,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setFeatureLegendVisible={persistedValueStore.setFeatureLegendVisible}
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
                         setSortLegendFeatures={persistedValueStore.setSortLegendFeatures}
+                        channelMappingLegendVisible={persistedValueStore.channelMappingLegendVisible}
+                        setChannelMappingLegendVisible={persistedValueStore.setChannelMappingLegendVisible}
                     />
                 </div>
             )

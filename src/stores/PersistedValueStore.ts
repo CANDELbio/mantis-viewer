@@ -80,6 +80,7 @@ type PersistedValueStoreData = {
     regionLegendVisible?: boolean | null
     featureLegendVisible?: boolean | null
     sortLegendFeatures?: boolean | null
+    channelMappingLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
     transformCoefficient?: number | null
     channelMappings?: ChannelMappings
@@ -144,6 +145,7 @@ export class PersistedValueStore {
     @observable public featureLegendVisible: boolean
     @observable public sortLegendFeatures: boolean
     @observable public regionLegendVisible: boolean
+    @observable public channelMappingLegendVisible: boolean
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
     // Saves ChannelMappings with names so that the user can quickly switch between different mappings.
@@ -253,6 +255,7 @@ export class PersistedValueStore {
         this.featureLegendVisible = true
         this.sortLegendFeatures = false
         this.regionLegendVisible = false
+        this.channelMappingLegendVisible = false
         this.zoomInsetVisible = true
         this.transformCoefficient = null
 
@@ -435,6 +438,10 @@ export class PersistedValueStore {
 
     @action public setRegionLegendVisible = (visible: boolean): void => {
         this.regionLegendVisible = visible
+    }
+
+    @action public setChannelMappingLegendVisible = (visible: boolean): void => {
+        this.channelMappingLegendVisible = visible
     }
 
     @action public setZoomInsetVisible = (visible: boolean): void => {
@@ -817,6 +824,7 @@ export class PersistedValueStore {
                 featureLegendVisible: this.featureLegendVisible,
                 sortLegendFeatures: this.sortLegendFeatures,
                 regionLegendVisible: this.regionLegendVisible,
+                channelMappingLegendVisible: this.channelMappingLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
@@ -898,6 +906,8 @@ export class PersistedValueStore {
                     this.sortLegendFeatures = importingSettings.sortLegendFeatures
                 if (importingSettings.regionLegendVisible != null)
                     this.regionLegendVisible = importingSettings.regionLegendVisible
+                if (importingSettings.channelMappingLegendVisible != null)
+                    this.channelMappingLegendVisible = importingSettings.channelMappingLegendVisible
                 if (importingSettings.zoomInsetVisible != null)
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
                 if (importingSettings.transformCoefficient)

@@ -26,6 +26,9 @@ export interface ImageControlsProps {
 
     regionLegendVisible: boolean
     setRegionLegendVisible: (visible: boolean) => void
+
+    channelMappingLegendVisible: boolean
+    setChannelMappingLegendVisible: (visible: boolean) => void
 }
 
 @observer
@@ -86,6 +89,11 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     checked={this.props.regionLegendVisible}
                     label="Show Hovered Region in Legend"
                     onChange={this.onCheckboxChange(this.props.setRegionLegendVisible)}
+                />
+                <Checkbox
+                    checked={this.props.channelMappingLegendVisible}
+                    label="Show Active Channel Mapping in Legend"
+                    onChange={this.onCheckboxChange(this.props.setChannelMappingLegendVisible)}
                 />
             </div>
         )
