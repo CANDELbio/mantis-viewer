@@ -884,10 +884,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         channelDomain: Record<ChannelName, [number, number]>,
     ): void {
         const imcData = this.imageData
-        const channelMax = channelDomain[curChannel][1]
         // Don't load channels whose markers have no non-zero pixels.
         // They get rendered as all white due to some new bug/feature in PIXI.
-        if (imcData && channelMax) {
+        if (imcData) {
             const brightnessFilters = this.channelBrightnessFilters
             const curMarker = this.channelMarker[curChannel]
             if (curMarker) {
