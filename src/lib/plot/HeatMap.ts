@@ -75,7 +75,7 @@ function calculateHeatmapData(
     transformCoefficient: number | null,
     plotNormalization: PlotNormalization,
     selectedPopulations: SelectedPopulation[] | null,
-): Partial<Plotly.PlotData>[] {
+): Partial<Plotly.Data>[] {
     const selectionIds = buildTraceIdArray(activeImageSet, false, [activeImageSet], selectedPopulations)
     const intensities = []
     // Builds a map of selected region ids to their regions.

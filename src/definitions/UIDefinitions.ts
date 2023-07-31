@@ -44,9 +44,10 @@ export type PlotStatistic = 'mean' | 'median' | 'sum' | 'num0'
 export const PlotStatistics: PlotStatistic[] = ['mean', 'median', 'sum', 'num0']
 export type AreaStatistic = 'area'
 
+// Disabling contour plot. Broken with plotly upgrade, not sure it's worth the time to fix.
 export const PlotTypeOptions = [
     { label: 'Scatter Plot', value: 'scatter' },
-    { label: 'Contour Plot', value: 'contour' },
+    // { label: 'Contour Plot', value: 'contour' },
     { label: 'Histogram', value: 'histogram' },
     { label: 'Heatmap', value: 'heatmap' },
 ]

@@ -125,7 +125,7 @@ export class Plot extends React.Component<PlotProps, PlotState> {
             const layoutWithSize = plotData.layout
             const config: Partial<Plotly.Config> = {}
             // Setting any hidden populations as hidden, and all visible as visible.
-            plotData.data.forEach((curve: Partial<Plotly.Data>): Partial<Plotly.Data> => {
+            plotData.data.forEach((curve: Partial<Plotly.PlotData>): Partial<Plotly.PlotData> => {
                 const populationName = curve.name
                 if (populationName && hiddenPopulations.includes(populationName)) {
                     curve.visible = 'legendonly'

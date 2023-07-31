@@ -155,9 +155,9 @@ function calculateRawPlotData(
 function configureTraceForHistogram(
     features: string[],
     featureMinMaxes: Record<string, Record<string, MinMax>>,
-    trace: Partial<Plotly.Data>,
+    trace: Partial<Plotly.PlotData>,
     numBins: number,
-): Partial<Plotly.Data> {
+): Partial<Plotly.PlotData> {
     const feature = features[0]
     const mins: number[] = []
     const maxes: number[] = []
@@ -204,7 +204,7 @@ export function calculatePlotData(
         selectedPopulations,
     )
 
-    const plotData = Array<Plotly.Data>()
+    const plotData = Array<Partial<Plotly.PlotData>>()
 
     // Sorts the selection IDs so that the graph data appears in the same order/stacking every time.
     const sortedTraceIds = buildTraceIdArray(
@@ -228,7 +228,7 @@ export function calculatePlotData(
             if (plotType == 'scatter') plotlyType = 'scattergl'
             if (plotType == 'contour') plotlyType = 'scatter'
 
-            let trace: Partial<Plotly.Data> = {
+            let trace: Partial<Plotly.PlotData> = {
                 x: traceData.values[0],
                 y: numTraceValues > 1 ? traceData.values[1] : undefined,
                 mode: 'markers',
@@ -249,24 +249,26 @@ export function calculatePlotData(
         }
     }
 
-    if (plotType == 'contour') {
-        const allData = rawPlotData[activeImageSet]
-        const contourTrace: Partial<Plotly.Data> = {
-            x: allData.values[0],
-            y: allData.values[1],
-            name: 'density',
-            ncontours: 30,
-            colorscale: [
-                [0.0, 'rgb(255, 255, 255)'],
-                [1.0, 'rgb(255, 255, 255)'],
-            ],
-            reversescale: true,
-            showscale: false,
-            //@ts-ignore
-            type: 'histogram2dcontour',
-        }
-        plotData.push(contourTrace)
-    }
+    // Removing contour plot for now?
+    // Broken with plotly upgrade, not sure if it's worth fixing this.
+    // if (plotType == 'contour') {
+    //     const allData = rawPlotData[activeImageSet]
+    //     const contourTrace: Partial<Plotly.PlotData> = {
+    //         x: allData.values[0],
+    //         y: allData.values[1],
+    //         name: 'density',
+    //         ncontours: 30,
+    //         colorscale: [
+    //             [0.0, 'rgb(255, 255, 255)'],
+    //             [1.0, 'rgb(255, 255, 255)'],
+    //         ],
+    //         reversescale: true,
+    //         showscale: false,
+    //         //@ts-ignore
+    //         type: 'histogram2dcontour',
+    //     }
+    //     plotData.push(contourTrace)
+    // }
 
     return plotData
 }

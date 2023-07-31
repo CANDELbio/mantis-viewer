@@ -1,6 +1,5 @@
 // Simplified port of https://github.com/ZELLMECHANIK-DRESDEN/fcswrite/blob/master/fcswrite/fcswrite.py
 
-import { range } from 'd3'
 import * as fs from 'fs'
 
 const sanitize: Record<string, string> = { µ: 'u', '²': '2', ' ': '', '?': '', _: '' }
@@ -52,7 +51,7 @@ export function writeToFCS(filename: string, chNames: string[], data: number[][]
     if (version) text += version
 
     // Check for content of data columns and set range
-    for (const i of range(chNames.length)) {
+    for (const i of Array(chNames.length).keys()) {
         const chValues = data.map((value: number[]) => {
             return value[i]
         })
