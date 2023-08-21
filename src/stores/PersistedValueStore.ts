@@ -86,6 +86,7 @@ type PersistedValueStoreData = {
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
     selectedSegment?: number | null
+    selectedSegmentMap?: Record<string, number | null>
     limitSelectedSegmentPopulationId?: string | null
     snapToSelectedSegment?: boolean
     markSelectedSegments?: boolean
@@ -156,7 +157,8 @@ export class PersistedValueStore {
     // Saves the value for the user selected segment.
     // This should only be used and set from the segmentation store.
     // Feels dirty, but need to do a big refactor to do correctly.
-    @observable public selectedSegment: number | null
+    //@observable public selectedSegment: number | null
+    @observable public selectedSegmentMap: Record<string, number | null>
     @observable public limitSelectedSegmentPopulationId: string | null
     @observable public snapToSelectedSegment: boolean
     @observable public markSelectedSegments: boolean
@@ -268,6 +270,8 @@ export class PersistedValueStore {
 
         this.snapToSelectedSegment = false
         this.markSelectedSegments = true
+
+        this.selectedSegmentMap = {}
 
         this.globalPopulationAttributes = {}
     }
@@ -402,10 +406,6 @@ export class PersistedValueStore {
 
     @action public setZoomCoefficient = (value: number): void => {
         this.zoomCoefficient = value
-    }
-
-    @action public setSelectedSegment = (value: number | null): void => {
-        this.selectedSegment = value
     }
 
     @action public setLimitSelectedSegmentPopulationId = (value: string | null): void => {
@@ -787,6 +787,23 @@ export class PersistedValueStore {
         return null
     }
 
+    @action public setSelectedSegment = (selectedSegmentID: number | null): void => {
+        const activeImageSet = this.activeImageSet
+
+        if (activeImageSet) {
+            this.selectedSegmentMap[activeImageSet] = selectedSegmentID
+        }
+    }
+
+    @computed public get selectedSegment(): number | null {
+        const activeImageSet = this.activeImageSet
+        if (activeImageSet) {
+            const activeSelectedSegment = this.selectedSegmentMap[activeImageSet]
+            return activeSelectedSegment
+        }
+        return null
+    }
+
     private exportSettings = autorun(() => {
         if (this.db != null) {
             const exporting: PersistedValueStoreData = {
@@ -833,7 +850,7 @@ export class PersistedValueStore {
                 transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
-                selectedSegment: this.selectedSegment,
+                selectedSegmentMap: this.selectedSegmentMap,
                 limitSelectedSegmentPopulationId: this.limitSelectedSegmentPopulationId,
                 snapToSelectedSegment: this.snapToSelectedSegment,
                 markSelectedSegments: this.markSelectedSegments,
@@ -918,7 +935,7 @@ export class PersistedValueStore {
                     this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
-                if (importingSettings.selectedSegment) this.selectedSegment = importingSettings.selectedSegment
+                if (importingSettings.selectedSegmentMap) this.selectedSegmentMap = importingSettings.selectedSegmentMap
                 if (importingSettings.limitSelectedSegmentPopulationId)
                     this.limitSelectedSegmentPopulationId = importingSettings.limitSelectedSegmentPopulationId
                 if (importingSettings.snapToSelectedSegment)

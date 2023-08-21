@@ -1290,8 +1290,6 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         // Reload saved position and scale
         if (position && scale) this.setStagePositionAndScale(position, scale)
 
-        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
-
         // We want to resize the graphics and set the min zoom if the windowWidth has changed
         if (
             !this.maxRendererSize ||
@@ -1317,6 +1315,9 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         //Load segmentation graphics
         this.setSegmentationData(segmentationData)
         this.loadSegmentationGraphics(segmentOutlineAttributes, segmentationFillAlpha)
+
+        // Snap to highlighted segment
+        if (this.snapToHighlightedSegment) this.snapToNewlyHighlightedSegment(highlightedSegments)
 
         // Load selected region graphics
         this.setSelectedPopulations(selectedPopulations)
