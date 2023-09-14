@@ -1,4 +1,4 @@
-// Stores values that should be persisted for the current project.
+// Stores values (application state) that should be persisted for the current project.
 // Used to copy values (e.g. selected channels) when switching between images
 // in a project or when reloading a project after closing the application.
 //
@@ -79,6 +79,7 @@ type PersistedValueStoreData = {
     populationLegendVisible?: boolean | null
     regionLegendVisible?: boolean | null
     featureLegendVisible?: boolean | null
+    zeroFeaturesLegendVisible?: boolean | null
     sortLegendFeatures?: boolean | null
     channelMappingLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
@@ -144,6 +145,7 @@ export class PersistedValueStore {
     @observable public channelLegendVisible: boolean
     @observable public populationLegendVisible: boolean
     @observable public featureLegendVisible: boolean
+    @observable public zeroFeaturesLegendVisible: boolean
     @observable public sortLegendFeatures: boolean
     @observable public regionLegendVisible: boolean
     @observable public channelMappingLegendVisible: boolean
@@ -255,6 +257,7 @@ export class PersistedValueStore {
         this.channelLegendVisible = true
         this.populationLegendVisible = false
         this.featureLegendVisible = true
+        this.zeroFeaturesLegendVisible = true
         this.sortLegendFeatures = false
         this.regionLegendVisible = false
         this.channelMappingLegendVisible = false
@@ -430,6 +433,10 @@ export class PersistedValueStore {
 
     @action public setFeatureLegendVisible = (visible: boolean): void => {
         this.featureLegendVisible = visible
+    }
+
+    @action public setZeroFeaturesLegendVisible = (visible: boolean): void => {
+        this.zeroFeaturesLegendVisible = visible
     }
 
     @action public setSortLegendFeatures = (sort: boolean): void => {
@@ -843,6 +850,7 @@ export class PersistedValueStore {
                 channelLegendVisible: this.channelLegendVisible,
                 populationLegendVisible: this.populationLegendVisible,
                 featureLegendVisible: this.featureLegendVisible,
+                zeroFeaturesLegendVisible: this.zeroFeaturesLegendVisible,
                 sortLegendFeatures: this.sortLegendFeatures,
                 regionLegendVisible: this.regionLegendVisible,
                 channelMappingLegendVisible: this.channelMappingLegendVisible,
@@ -923,6 +931,8 @@ export class PersistedValueStore {
                     this.populationLegendVisible = importingSettings.populationLegendVisible
                 if (importingSettings.featureLegendVisible != null)
                     this.featureLegendVisible = importingSettings.featureLegendVisible
+                if (importingSettings.zeroFeaturesLegendVisible != null)
+                    this.zeroFeaturesLegendVisible = importingSettings.zeroFeaturesLegendVisible
                 if (importingSettings.sortLegendFeatures != null)
                     this.sortLegendFeatures = importingSettings.sortLegendFeatures
                 if (importingSettings.regionLegendVisible != null)

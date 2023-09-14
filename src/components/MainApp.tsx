@@ -223,6 +223,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         zoomInsetVisible={persistedValueStore.zoomInsetVisible}
                         featureLegendVisible={persistedValueStore.featureLegendVisible}
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
+                        zeroFeaturesInLegend={persistedValueStore.zeroFeaturesLegendVisible}
                         plotTransform={persistedValueStore.plotTransform}
                         transformCoefficient={persistedValueStore.transformCoefficient}
                         windowHeight={windowHeight}
@@ -330,6 +331,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setRegionLegendVisible={persistedValueStore.setRegionLegendVisible}
                         featureLegendVisible={persistedValueStore.featureLegendVisible}
                         setFeatureLegendVisible={persistedValueStore.setFeatureLegendVisible}
+                        zeroFeaturesLegendVisible={persistedValueStore.zeroFeaturesLegendVisible}
+                        setZeroFeaturesLegendVisible={persistedValueStore.setZeroFeaturesLegendVisible}
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
                         setSortLegendFeatures={persistedValueStore.setSortLegendFeatures}
                         channelMappingLegendVisible={persistedValueStore.channelMappingLegendVisible}

@@ -56,6 +56,7 @@ export interface ImageProps {
     regionLegendVisible: boolean
     featureLegendVisible: boolean
     sortLegendFeatures: boolean
+    zeroFeaturesInLegend: boolean
     activeChannelMappingName: string | null
     channelMappingLegendVisible: boolean
     plotTransform: PlotTransform
@@ -137,6 +138,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private zoomInsetVisible: boolean
     private featureLegendVisible: boolean
     private sortLegendFeatures: boolean
+    private zeroFeaturesInLegend: boolean
     private plotTransform: PlotTransform
     private transformCoefficient: number | null
 
@@ -1086,6 +1088,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                 this.selectedPopulations,
                 this.featureLegendVisible,
                 this.sortLegendFeatures,
+                this.zeroFeaturesInLegend,
                 this.mousedOverSegmentsFromImage,
                 this.plotTransform,
                 this.transformCoefficient,
@@ -1414,6 +1417,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
         this.populationLegendVisible = this.props.populationLegendVisible
         this.featureLegendVisible = this.props.featureLegendVisible
         this.sortLegendFeatures = this.props.sortLegendFeatures
+        this.zeroFeaturesInLegend = this.props.zeroFeaturesInLegend
         this.regionLegendVisible = this.props.regionLegendVisible
         this.channelMappingLegendVisible = this.props.channelMappingLegendVisible
         this.plotTransform = this.props.plotTransform
