@@ -31,20 +31,25 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                             </li>
                             <li>
                                 You can adjust channel settings by holding a channel key along with the below{' '}
-                                combinations. The channel keys are Q for red, W for green, E for blue, R for cyan, A for{' '}
-                                magenta, S for yellow, and D for black.
+                                combinations. The channel keys are <b>Q</b> for red, <b>W</b> for green, <b>E</b> for
+                                blue, <b>R</b> for cyan, <b>A</b> for magenta, <b>S</b> for yellow, and <b>D</b> for
+                                black.
                             </li>
                             <li>
                                 You can adjust the upper channel brightness threshold by holding the desired channel key{' '}
-                                and then pressing left or right.
+                                and then pressing <b>left</b> or <b>right</b>.
                             </li>
                             <li>
                                 You can adjust the lower channel brightness threshold by holding the desired channel key{' '}
-                                and then pressing up or down.
+                                and then pressing <b>up</b> or <b>down</b>.
                             </li>
                             <li>
                                 You can toggle a channel&apos;s visibility by holding the desired channel key and then{' '}
-                                pressing the space bar.
+                                pressing the <b>space bar</b>.
+                            </li>
+                            <li>
+                                You can toggle all channel&apos;s visibility by holding <b>z</b> and then pressing the{' '}
+                                <b>space bar</b>.
                             </li>
                             <li>
                                 You can select regions of interest on the image by holding <b>Alt</b> or{' '}

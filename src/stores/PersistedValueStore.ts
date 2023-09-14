@@ -543,6 +543,21 @@ export class PersistedValueStore {
         this.channelVisibility[name] = !this.channelVisibility[name]
     }
 
+    @action public toggleAllChannelVisibility = (): void => {
+        let anyOn = false
+        for (const c in this.channelVisibility) {
+            const channelName = c as ChannelName
+            if (this.channelVisibility[channelName]) {
+                anyOn = true
+                break
+            }
+        }
+        for (const c in this.channelVisibility) {
+            const channelName = c as ChannelName
+            this.channelVisibility[channelName] = !anyOn
+        }
+    }
+
     @action public setChannelColorCallback = (name: ChannelName): ((value: number) => void) => {
         return action((value: number) => {
             this.setChannelColor(name, value)

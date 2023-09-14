@@ -430,6 +430,10 @@ for (const c in channelKeys) {
     })
 }
 
+hotkeys('z+space', function (): void {
+    projectStore.persistedValueStore.toggleAllChannelVisibility()
+})
+
 // Autorun that sends plot related data to the main thread to be relayed to the plotWindow
 Mobx.autorun((): void => {
     const imageSet = projectStore.activeImageSetStore
