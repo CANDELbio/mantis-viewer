@@ -67,6 +67,8 @@ export class ProjectStore {
     // Used to lock the context menu to a specific segment ID to prevent it from changing when the user moves the mouse.
     @observable private lockedContextMenuSegmentIds: number[] | null
 
+    @observable public editingLegendFeatures: boolean
+
     // Used when a user requests to cancel a long running process
     // (e.g. importing, generating, and exporting segment features for multiple images)
     @observable public cancelTask: boolean
@@ -122,6 +124,8 @@ export class ProjectStore {
         this.selectedStatistics = []
 
         this.cancelTask = false
+
+        this.editingLegendFeatures = false
 
         this.imageSetHistory = []
         this.imageSetFeaturesToCalculate = []
@@ -382,7 +386,7 @@ export class ProjectStore {
     public addPopulationFromPlotRange = (min: number, max: number): void => {
         const persistedValueStore = this.persistedValueStore
         const plotTransform = persistedValueStore.plotTransform
-        const transformCoefficient = persistedValueStore.transformCoefficient
+        const transformCoefficient = persistedValueStore.plotTransformCoefficient
         const reverseMin = reverseTransform(min, plotTransform, transformCoefficient)
         const reverseMax = reverseTransform(max, plotTransform, transformCoefficient)
         this.addPopulationFromRange(reverseMin, reverseMax)
@@ -420,6 +424,10 @@ export class ProjectStore {
 
     @action clearEditingPopulationSegmentId = (): void => {
         this.editingPopulationsSegmentId = null
+    }
+
+    @action setEditingLegendFeatures = (editing: boolean): void => {
+        this.editingLegendFeatures = editing
     }
 
     @action lockContextMenuSegmentIds = (): void => {

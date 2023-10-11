@@ -110,6 +110,7 @@ export class PlotControls extends React.Component<PlotControlsProps, PlotControl
     private onTransformSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedTransform(x.value as PlotTransform)
     }
+
     private onTypeSelect = (x: SelectOption): void => {
         if (x != null) this.props.setSelectedType(x.value as PlotType)
     }

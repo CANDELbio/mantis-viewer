@@ -176,7 +176,7 @@ ipcRenderer.on('set-plot-dot-size', (_event: Electron.Event, size: number): void
 })
 
 ipcRenderer.on('set-plot-coefficient', (_event: Electron.Event, coefficient: number): void => {
-    projectStore.persistedValueStore.setTransformCoefficient(coefficient)
+    projectStore.persistedValueStore.setPlotTransformCoefficient(coefficient)
 })
 
 ipcRenderer.on('set-plot-all-image-sets', (_event: Electron.Event, value: boolean): void => {
@@ -449,7 +449,7 @@ Mobx.autorun((): void => {
         persistedValueStore.plotType,
         persistedValueStore.plotNormalization,
         persistedValueStore.plotDotSize,
-        persistedValueStore.transformCoefficient,
+        persistedValueStore.plotTransformCoefficient,
         persistedValueStore.plotAllImageSets,
         persistedValueStore.plotCollapseAllImageSets,
         persistedValueStore.plotDownsample,

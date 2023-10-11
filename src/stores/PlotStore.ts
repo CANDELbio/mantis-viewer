@@ -76,7 +76,7 @@ export class PlotStore {
                                     persistedValueStore.plotStatistic,
                                     persistedValueStore.plotType,
                                     persistedValueStore.plotTransform,
-                                    persistedValueStore.transformCoefficient,
+                                    persistedValueStore.plotTransformCoefficient,
                                     persistedValueStore.plotNormalization,
                                     populationStore.selectedPopulations,
                                     persistedValueStore.plotImageSetColors,

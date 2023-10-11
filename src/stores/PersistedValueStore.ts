@@ -58,6 +58,7 @@ type PersistedValueStoreData = {
     selectedPlotFeatures?: string[] | null
     plotStatistic?: PlotStatistic | null
     plotTransform?: PlotTransform | null
+    plotTransformCoefficient?: number | null
     plotType?: PlotType | null
     plotNormalization?: PlotNormalization | null
     plotDotSize?: number
@@ -83,7 +84,6 @@ type PersistedValueStoreData = {
     sortLegendFeatures?: boolean | null
     channelMappingLegendVisible?: boolean | null
     zoomInsetVisible?: boolean | null
-    transformCoefficient?: number | null
     channelMappings?: ChannelMappings
     zoomCoefficient?: number
     selectedSegment?: number | null
@@ -92,6 +92,9 @@ type PersistedValueStoreData = {
     snapToSelectedSegment?: boolean
     markSelectedSegments?: boolean
     globalPopulationAttributes?: Record<string, { color: number; visible: boolean }>
+    legendFeatures?: string[] | null
+    legendTransform?: PlotTransform | null
+    legendTransformCoefficient?: number | null
 }
 
 export class PersistedValueStore {
@@ -149,6 +152,10 @@ export class PersistedValueStore {
     @observable public sortLegendFeatures: boolean
     @observable public regionLegendVisible: boolean
     @observable public channelMappingLegendVisible: boolean
+    // Legend feature stuff
+    @observable public legendFeatures: string[]
+    @observable public legendTransform: PlotTransform
+    @observable public legendTransformCoefficient: number | null
     // Whether or not the zoom inset is visible on the image
     @observable public zoomInsetVisible: boolean
     // Saves ChannelMappings with names so that the user can quickly switch between different mappings.
@@ -175,7 +182,7 @@ export class PersistedValueStore {
     @observable public selectedPlotFeatures: string[]
     @observable public plotStatistic: PlotStatistic
     @observable public plotTransform: PlotTransform
-    @observable public transformCoefficient: number | null
+    @observable public plotTransformCoefficient: number | null
     @observable public plotType: PlotType
     @observable public plotNormalization: PlotNormalization
     @observable public plotDotSize: number
@@ -236,6 +243,7 @@ export class PersistedValueStore {
 
         this.plotStatistic = PlotStatisticOptions[0].value as PlotStatistic
         this.plotTransform = PlotTransformOptions[0].value as PlotTransform
+        this.plotTransformCoefficient = null
         this.plotType = PlotTypeOptions[0].value as PlotType
         this.plotNormalization = PlotNormalizationOptions[0].value as PlotNormalization
         this.plotDotSize = DefaultDotSize
@@ -262,7 +270,10 @@ export class PersistedValueStore {
         this.regionLegendVisible = false
         this.channelMappingLegendVisible = false
         this.zoomInsetVisible = true
-        this.transformCoefficient = null
+
+        this.legendFeatures = []
+        this.legendTransform = PlotTransformOptions[0].value as PlotTransform
+        this.legendTransformCoefficient = null
 
         this.segmentationBasename = this.projectStore.preferencesStore.defaultSegmentationBasename
         this.channelDomainValue = this.projectStore.preferencesStore.getChannelDomainPercentage()
@@ -323,6 +334,10 @@ export class PersistedValueStore {
 
     @action public setPlotTransform = (transform: PlotTransform): void => {
         this.plotTransform = transform
+    }
+
+    @action public setPlotTransformCoefficient = (coefficient: number): void => {
+        this.plotTransformCoefficient = coefficient
     }
 
     @action public setPlotType = (type: PlotType): void => {
@@ -391,10 +406,6 @@ export class PersistedValueStore {
         }
     }
 
-    @action public setTransformCoefficient = (coefficient: number): void => {
-        this.transformCoefficient = coefficient
-    }
-
     @action public setSegmentationFillAlpha = (alpha: number): void => {
         this.segmentationFillAlpha = alpha
     }
@@ -453,6 +464,22 @@ export class PersistedValueStore {
 
     @action public setZoomInsetVisible = (visible: boolean): void => {
         this.zoomInsetVisible = visible
+    }
+
+    @action public setLegendFeatures = (features: string[]): void => {
+        this.legendFeatures = features
+    }
+
+    @action public clearLegendFeatures = (): void => {
+        this.legendFeatures = []
+    }
+
+    @action public setLegendTransform = (transform: PlotTransform): void => {
+        this.legendTransform = transform
+    }
+
+    @action public setLegendTransformCoefficient = (coefficient: number): void => {
+        this.legendTransformCoefficient = coefficient
     }
 
     @action public setChannelDomainValueCallback = (
@@ -846,6 +873,7 @@ export class PersistedValueStore {
                 selectedPlotFeatures: toJS(this.selectedPlotFeatures),
                 plotStatistic: this.plotStatistic,
                 plotTransform: this.plotTransform,
+                plotTransformCoefficient: this.plotTransformCoefficient,
                 plotType: this.plotType,
                 plotNormalization: this.plotNormalization,
                 plotDotSize: this.plotDotSize,
@@ -870,7 +898,6 @@ export class PersistedValueStore {
                 regionLegendVisible: this.regionLegendVisible,
                 channelMappingLegendVisible: this.channelMappingLegendVisible,
                 zoomInsetVisible: this.zoomInsetVisible,
-                transformCoefficient: this.transformCoefficient,
                 channelMappings: this.channelMappings,
                 zoomCoefficient: this.zoomCoefficient,
                 selectedSegmentMap: this.selectedSegmentMap,
@@ -878,6 +905,9 @@ export class PersistedValueStore {
                 snapToSelectedSegment: this.snapToSelectedSegment,
                 markSelectedSegments: this.markSelectedSegments,
                 globalPopulationAttributes: this.globalPopulationAttributes,
+                legendFeatures: toJS(this.legendFeatures),
+                legendTransform: this.legendTransform,
+                legendTransformCoefficient: this.legendTransformCoefficient,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -915,6 +945,8 @@ export class PersistedValueStore {
                     this.selectedPlotFeatures = importingSettings.selectedPlotFeatures
                 if (importingSettings.plotStatistic) this.plotStatistic = importingSettings.plotStatistic
                 if (importingSettings.plotTransform) this.plotTransform = importingSettings.plotTransform
+                if (importingSettings.plotTransformCoefficient)
+                    this.plotTransformCoefficient = importingSettings.plotTransformCoefficient
                 if (importingSettings.plotType) this.plotType = importingSettings.plotType
                 if (importingSettings.plotNormalization) this.plotNormalization = importingSettings.plotNormalization
                 if (importingSettings.plotDotSize) this.plotDotSize = importingSettings.plotDotSize
@@ -956,8 +988,6 @@ export class PersistedValueStore {
                     this.channelMappingLegendVisible = importingSettings.channelMappingLegendVisible
                 if (importingSettings.zoomInsetVisible != null)
                     this.zoomInsetVisible = importingSettings.zoomInsetVisible
-                if (importingSettings.transformCoefficient)
-                    this.transformCoefficient = importingSettings.transformCoefficient
                 if (importingSettings.channelMappings) this.channelMappings = importingSettings.channelMappings
                 if (importingSettings.zoomCoefficient) this.zoomCoefficient = importingSettings.zoomCoefficient
                 if (importingSettings.selectedSegmentMap) this.selectedSegmentMap = importingSettings.selectedSegmentMap
@@ -969,6 +999,10 @@ export class PersistedValueStore {
                     this.markSelectedSegments = importingSettings.markSelectedSegments
                 if (importingSettings.globalPopulationAttributes)
                     this.globalPopulationAttributes = importingSettings.globalPopulationAttributes
+                if (importingSettings.legendFeatures) this.legendFeatures = importingSettings.legendFeatures
+                if (importingSettings.legendTransform) this.legendTransform = importingSettings.legendTransform
+                if (importingSettings.legendTransformCoefficient)
+                    this.legendTransformCoefficient = importingSettings.legendTransformCoefficient
             } catch (e) {
                 log.error('Error importing settings from db:')
                 log.error(e)

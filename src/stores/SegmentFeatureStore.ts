@@ -55,18 +55,27 @@ export class SegmentFeatureStore {
         this.db = new Db(dbPath)
     }
 
-    private selectedPlotFeatures(): string[] {
-        return this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
+    private selectedFeatures(): string[] {
+        const selectedPlotFeatures = this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
+        const legendFeatures = this.projectStore.persistedValueStore.legendFeatures.slice()
+        const allSelectedFeatures = selectedPlotFeatures.concat(legendFeatures)
+        const selectedFeatures = new Set(allSelectedFeatures)
+        return Array.from(selectedFeatures)
     }
 
     private autoRefreshFeatureStatistics = autorun(() => {
         const activeImageSetName = this.projectStore.activeImageSetStore.name
         if (activeImageSetName) {
-            let plotFeatures = this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
+            const selectedPlotFeatures = this.projectStore.persistedValueStore.selectedPlotFeatures.slice()
+            const legendFeatures = this.projectStore.persistedValueStore.legendFeatures.slice()
+            let allSelectedFeatures = selectedPlotFeatures.concat(legendFeatures)
+
             const selectedFeatureForNewPopulation =
                 this.projectStore.activeImageSetStore.populationStore.selectedFeatureForNewPopulation
-            if (selectedFeatureForNewPopulation) plotFeatures = plotFeatures.concat([selectedFeatureForNewPopulation])
-            this.refreshFeatureStatistics(activeImageSetName, plotFeatures)
+            if (selectedFeatureForNewPopulation)
+                allSelectedFeatures = allSelectedFeatures.concat([selectedFeatureForNewPopulation])
+            const selectedFeatures = new Set(allSelectedFeatures)
+            this.refreshFeatureStatistics(activeImageSetName, Array.from(selectedFeatures))
         }
     })
 
@@ -130,6 +139,8 @@ export class SegmentFeatureStore {
     @computed get segmentFeaturesForMousedOverSegments(): Record<number, Record<string, number>> {
         const segmentFeatures: Record<number, Record<string, number>> = {}
         const projectStore = this.projectStore
+        const legendFeatures = projectStore.persistedValueStore.legendFeatures
+        const selectedPlotFeatures = this.projectStore.persistedValueStore.selectedPlotFeatures
         const imageSetStore = projectStore.activeImageSetStore
         const activeImageSetName = imageSetStore.name
         const segmentationStore = imageSetStore.segmentationStore
@@ -137,7 +148,7 @@ export class SegmentFeatureStore {
         const mousedOverSegments = segmentationStore.mousedOverSegments
         if (segmentationData && mousedOverSegments.length > 0) {
             const activeValues: Record<string, Record<number, number>> = get(this.values, activeImageSetName)
-            const featuresToFetch = this.selectedPlotFeatures()
+            const featuresToFetch = legendFeatures.length > 0 ? legendFeatures : selectedPlotFeatures
             if (activeValues && mousedOverSegments) {
                 for (const segment of mousedOverSegments) {
                     segmentFeatures[segment] = {}
@@ -257,7 +268,7 @@ export class SegmentFeatureStore {
 
     // Helper method that calls setFeatureStatisticsForSelectedImageSets with the selected features.
     private setStatisticsForSelectedFeatures = (): void => {
-        const features = this.selectedPlotFeatures()
+        const features = this.selectedFeatures()
         this.setFeatureStatisticsForSelectedImageSets(features)
     }
 

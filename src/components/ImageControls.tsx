@@ -2,6 +2,7 @@ import { Slider, Checkbox } from '@blueprintjs/core'
 import * as d3Scale from 'd3-scale'
 import { observer } from 'mobx-react'
 import * as React from 'react'
+import { Button } from 'reactstrap'
 import { MinZoomCoefficient, MaxZoomCoefficient } from '../definitions/UIDefinitions'
 
 export interface ImageControlsProps {
@@ -32,6 +33,8 @@ export interface ImageControlsProps {
 
     channelMappingLegendVisible: boolean
     setChannelMappingLegendVisible: (visible: boolean) => void
+
+    setEditingLegendFeatures: (editing: boolean) => void
 }
 
 @observer
@@ -47,6 +50,8 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
 
     private onZoomSliderChange = (value: number): void =>
         this.props.onZoomCoefficientChange(this.sliderToZoomScale(value))
+
+    private onRequestEditFeatures = (): void => this.props.setEditingLegendFeatures(true)
 
     private onCheckboxChange = (
         callback: (value: boolean) => void,
@@ -68,6 +73,9 @@ export class ImageControls extends React.Component<ImageControlsProps, Record<st
                     label="Show Zoom Inset"
                     onChange={this.onCheckboxChange(this.props.setZoomInsetVisible)}
                 />
+                <Button onClick={this.onRequestEditFeatures} style={{ marginBottom: '5px', width: '100%' }} size="sm">
+                    Edit Legend Features
+                </Button>
                 <Checkbox
                     checked={this.props.channelLegendVisible}
                     label="Show Channels in Legend"

@@ -11,6 +11,7 @@ import { ImageControls } from './ImageControls'
 import { ImageMessage } from './ImageMessage'
 import { ImageViewer } from './ImageViewer'
 import { ChooseSegmentFeaturesModal } from './modals/ChooseSegmentFeaturesModal'
+import { LegendFeatureModal } from './modals/LegendFeatureModal'
 import { LoadingModal } from './modals/LoadingModal'
 import { ProjectImportModal } from './modals/ProjectImportModal'
 import { SegmentPopulationModal } from './modals/SegmentPopulationModal'
@@ -168,12 +169,15 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
 
         const displaySegmentFeaturesModal = notificationStore.chooseSegmentFeatures != null
 
+        const displayLegendFeatureModal = projectStore.editingLegendFeatures
+
         const modalOpen =
             displayWelcomeModal ||
             displayLoadingModal ||
             displayProjectImportModal ||
             displayShortcutModal ||
-            displaySegmentFeaturesModal
+            displaySegmentFeaturesModal ||
+            displayLegendFeatureModal
 
         let windowHeight = projectStore.windowHeight
         const imageMessage = <ImageMessage imageData={imageStore.imageData}></ImageMessage>
@@ -225,7 +229,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
                         zeroFeaturesInLegend={persistedValueStore.zeroFeaturesLegendVisible}
                         plotTransform={persistedValueStore.plotTransform}
-                        transformCoefficient={persistedValueStore.transformCoefficient}
+                        transformCoefficient={persistedValueStore.plotTransformCoefficient}
                         windowHeight={windowHeight}
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}
@@ -337,6 +341,7 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setSortLegendFeatures={persistedValueStore.setSortLegendFeatures}
                         channelMappingLegendVisible={persistedValueStore.channelMappingLegendVisible}
                         setChannelMappingLegendVisible={persistedValueStore.setChannelMappingLegendVisible}
+                        setEditingLegendFeatures={projectStore.setEditingLegendFeatures}
                     />
                 </div>
             )
@@ -365,8 +370,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                                 setSelectedNormalization={persistedValueStore.setPlotNormalization}
                                 dotSize={persistedValueStore.plotDotSize}
                                 setDotSize={persistedValueStore.setPlotDotSize}
-                                transformCoefficient={persistedValueStore.transformCoefficient}
-                                setTransformCoefficient={persistedValueStore.setTransformCoefficient}
+                                transformCoefficient={persistedValueStore.plotTransformCoefficient}
+                                setTransformCoefficient={persistedValueStore.setPlotTransformCoefficient}
                                 projectLoaded={projectStore.imageSetPaths.length > 1}
                                 plotAllImageSets={persistedValueStore.plotAllImageSets}
                                 setPlotAllImageSets={projectStore.setPlotAllImageSets}
@@ -481,6 +486,17 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                     removeSegmentFromPopulation={populationStore.removeSegmentFromPopulation}
                     createPopulationFromSegments={populationStore.createPopulationFromSegments}
                 ></SegmentPopulationModal>
+                <LegendFeatureModal
+                    displayModal={displayLegendFeatureModal}
+                    features={segmentFeatureStore.activeAvailableFeatures}
+                    selectedFeatures={persistedValueStore.legendFeatures}
+                    setSelectedFeatures={persistedValueStore.setLegendFeatures}
+                    selectedTransform={persistedValueStore.legendTransform}
+                    setSelectedTransform={persistedValueStore.setLegendTransform}
+                    transformCoefficient={persistedValueStore.legendTransformCoefficient}
+                    setTransformCoefficient={persistedValueStore.setLegendTransformCoefficient}
+                    setEditingLegendFeatures={projectStore.setEditingLegendFeatures}
+                ></LegendFeatureModal>
                 <LoadingModal
                     numToCalculate={numToCalculate}
                     numCalculated={numCalculated}
