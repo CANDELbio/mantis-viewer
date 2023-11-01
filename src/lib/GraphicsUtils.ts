@@ -393,11 +393,9 @@ export function RGBAtoPixelIndexes(
 ): number[] {
     const indexes: Set<number> = new Set()
     for (let y = minY; y <= maxY; y++) {
-        // PIXI Pixel extract flips the Y values, so we need to flip them back here.
-        const flippedY = height - y - 1
         for (let x = minX; x <= maxX; x++) {
-            const flippedIndex = flippedY * width + x
-            const RGBAIndex = flippedIndex << 2
+            const index = y * width + x
+            const RGBAIndex = index << 2
             // If the alpha is set for this pixel then add the non-flipped pixel index.
             if (RGBAValues[RGBAIndex + 3] > 0) {
                 const pixelIndex = y * width + x
