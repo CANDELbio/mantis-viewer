@@ -217,6 +217,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         segmentFeaturesForLegend={segmentFeatureStore.segmentFeaturesForMousedOverSegments}
                         segmentPopulationsForLegend={populationStore.populationsForMousedOverSegments}
                         regionsForLegend={populationStore.mousedOverRegions}
+                        plotTransform={persistedValueStore.activeLegendTransform}
+                        transformCoefficient={persistedValueStore.activeLegendTranformCoefficient}
                         exportPath={imageStore.imageExportFilename}
                         onExportComplete={imageStore.clearImageExportFilePath}
                         channelLegendVisible={persistedValueStore.channelLegendVisible}
@@ -228,8 +230,6 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         featureLegendVisible={persistedValueStore.featureLegendVisible}
                         sortLegendFeatures={persistedValueStore.sortLegendFeatures}
                         zeroFeaturesInLegend={persistedValueStore.zeroFeaturesLegendVisible}
-                        plotTransform={persistedValueStore.plotTransform}
-                        transformCoefficient={persistedValueStore.plotTransformCoefficient}
                         windowHeight={windowHeight}
                         onWebGLContextLoss={projectStore.onWebGLContextLoss}
                         setMousedOverPixel={projectStore.setMousedOverPixel}

@@ -804,6 +804,16 @@ export class PersistedValueStore {
         return null
     }
 
+    @computed public get activeLegendTransform(): PlotTransform {
+        if (this.legendFeatures.length > 0) return this.legendTransform
+        return this.plotTransform
+    }
+
+    @computed public get activeLegendTranformCoefficient(): number | null {
+        if (this.legendFeatures.length > 0) return this.legendTransformCoefficient
+        return this.plotTransformCoefficient
+    }
+
     @action public updateGlobalPopulationAttributes = (name: string, color: number, visible: boolean): void => {
         this.globalPopulationAttributes[name] = { color: color, visible: visible }
     }
