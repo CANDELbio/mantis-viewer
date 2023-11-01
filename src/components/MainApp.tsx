@@ -235,6 +235,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                         setMousedOverPixel={projectStore.setMousedOverPixel}
                         blurPixels={projectStore.preferencesStore.blurPixels}
                         setSelectedSegment={persistedValueStore.setSelectedSegment}
+                        labelingPopulation={persistedValueStore.labelingPopulation}
+                        toggleSegmentInPopulation={populationStore.toggleSegmentInPopulation}
                     />
                 </ContextMenuTrigger>
                 <ImageContextMenu
@@ -458,6 +460,8 @@ export class MainApp extends React.Component<MainAppProps, MainAppState> {
                 addSegmentToPopulation={populationStore.addSegmentToPopulation}
                 removeSegmentFromPopulation={populationStore.removeSegmentFromPopulation}
                 tableHeight={populationsTableHeight}
+                labelingPopulation={persistedValueStore.labelingPopulation}
+                setLabelingPopulation={persistedValueStore.setLabelingPopulation}
             />
         )
 

@@ -398,6 +398,7 @@ hotkeys('shift+/', function (): void {
 
 hotkeys('esc', function (): void {
     projectStore.persistedValueStore.setSelectedSegment(null)
+    projectStore.persistedValueStore.setLabelingPopulation(null)
 })
 
 const channelKeys: Record<ChannelName, string> = {

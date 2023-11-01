@@ -95,6 +95,7 @@ type PersistedValueStoreData = {
     legendFeatures?: string[] | null
     legendTransform?: PlotTransform | null
     legendTransformCoefficient?: number | null
+    labelingPopulation?: string | null
 }
 
 export class PersistedValueStore {
@@ -196,6 +197,11 @@ export class PersistedValueStore {
     @observable public plotXLogScale: boolean
     @observable public plotYLogScale: boolean
     @observable public plotHiddenPopulations: string[]
+
+    // The population id of a population that we are actively adding or removing
+    // segments from on the image. The labeling population is selected from the
+    // SelectedPopulations table.
+    @observable public labelingPopulation: string | null
 
     // Used to sync population visibility and color across images
     // Really dirty and hacky way to do this. Long term need to update
@@ -639,6 +645,11 @@ export class PersistedValueStore {
         this.selectedPlotFeatures = []
     }
 
+    @action public setLabelingPopulation = (populationId: string | null): void => {
+        if (populationId != null) this.setSelectedSegment(null)
+        this.labelingPopulation = populationId
+    }
+
     @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {
         const markers = this.channelMarker
         // Set defaults if the project markers are uninitialized
@@ -918,6 +929,7 @@ export class PersistedValueStore {
                 legendFeatures: toJS(this.legendFeatures),
                 legendTransform: this.legendTransform,
                 legendTransformCoefficient: this.legendTransformCoefficient,
+                labelingPopulation: this.labelingPopulation,
             }
             try {
                 this.db.upsertSettings(exporting)
@@ -1013,6 +1025,7 @@ export class PersistedValueStore {
                 if (importingSettings.legendTransform) this.legendTransform = importingSettings.legendTransform
                 if (importingSettings.legendTransformCoefficient)
                     this.legendTransformCoefficient = importingSettings.legendTransformCoefficient
+                if (importingSettings.labelingPopulation) this.labelingPopulation = importingSettings.labelingPopulation
             } catch (e) {
                 log.error('Error importing settings from db:')
                 log.error(e)

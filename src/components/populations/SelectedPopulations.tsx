@@ -24,6 +24,8 @@ interface SelectedProps {
     userHighlightedSegmentId: number | null
     removeSegmentFromPopulation: (segment: number, populationId: string) => void
     addSegmentToPopulation: (segment: number, populationId: string) => void
+    labelingPopulation: string | null
+    setLabelingPopulation: (id: string | null) => void
 }
 
 interface SelectedPopulationProps extends SelectedProps {
@@ -149,6 +151,18 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
             }
         }
 
+        private onToggleLabelingCheckboxCallback = (): (() => void) => {
+            const populationId = this.props.population.id
+            const labelingPopulationId = this.props.labelingPopulation
+            return () => {
+                if (labelingPopulationId == populationId) {
+                    this.props.setLabelingPopulation(null)
+                } else {
+                    this.props.setLabelingPopulation(populationId)
+                }
+            }
+        }
+
         private onChangeSelectedSegments = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
             const updatedSegments = parseSegmentIds(event.target.value)
             this.props.updateSegments(this.props.population.id, updatedSegments)
@@ -222,6 +236,12 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             disabled={!this.props.userHighlightedSegmentId || rowPopulation.regionBitmap != undefined}
                         />
                     </td>
+                    <td>
+                        <Checkbox
+                            checked={rowPopulation.id == this.props.labelingPopulation}
+                            onChange={this.onToggleLabelingCheckboxCallback()}
+                        />
+                    </td>
                     <td id={'edit-' + rowPopulation.id} onClick={this.onToggleSegmentPopover}>
                         <a href="#">
                             <IoMdCreate size="1.5em" />
@@ -287,6 +307,8 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                             removeSegmentFromPopulation={this.props.removeSegmentFromPopulation}
                             addSegmentToPopulation={this.props.addSegmentToPopulation}
                             tableScrolling={tableScrolling}
+                            labelingPopulation={this.props.labelingPopulation}
+                            setLabelingPopulation={this.props.setLabelingPopulation}
                         />
                     )
                 })
@@ -374,6 +396,7 @@ export class SelectedPopulations extends React.Component<SelectedPopulationProps
                                 <th>Name</th>
                                 <th>Color</th>
                                 <th>Contains Segment</th>
+                                <th>Add Segments</th>
                                 <th />
                                 <th>{visibleIcon(this.anyVisible(), this.setVisibility)}</th>
                                 <th>{this.addPopulationButton()}</th>

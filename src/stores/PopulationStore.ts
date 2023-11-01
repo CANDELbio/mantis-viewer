@@ -530,6 +530,18 @@ export class PopulationStore {
         this.updatePopulationById(id, updateFn)
     }
 
+    public toggleSegmentInPopulation = (segment: number, id: string): void => {
+        const updateFn = (p: SelectedPopulation) => {
+            if (p.selectedSegments.includes(segment)) {
+                p.selectedSegments = p.selectedSegments.filter((segmentId) => segmentId !== segment)
+            } else {
+                p.selectedSegments.push(segment)
+            }
+            return p
+        }
+        this.updatePopulationById(id, updateFn)
+    }
+
     @action public updateSelectedPopulationName = (id: string, newName: string): void => {
         const updateFn = (p: SelectedPopulation) => {
             p.name = newName
