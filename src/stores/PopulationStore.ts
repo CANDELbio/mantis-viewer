@@ -369,7 +369,7 @@ export class PopulationStore {
         const asArray: string[][] = []
         this.selectedPopulations.map((population: SelectedPopulation): void => {
             population.selectedSegments.map((segmentId: number): void => {
-                asArray.push([segmentId.toString(), population.name])
+                if (segmentId) asArray.push([segmentId.toString(), population.name])
             })
         })
         return asArray
@@ -522,9 +522,9 @@ export class PopulationStore {
         this.updatePopulationById(id, updateFn)
     }
 
-    public addSegmentToPopulation = (segment: number, id: string): void => {
+    public addSegmentToPopulation = (segment: number | null, id: string): void => {
         const updateFn = (p: SelectedPopulation) => {
-            p.selectedSegments.push(segment)
+            if (segment) p.selectedSegments.push(segment)
             return p
         }
         this.updatePopulationById(id, updateFn)
