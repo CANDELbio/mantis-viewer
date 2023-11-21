@@ -71,6 +71,10 @@ export class ShortcutModal extends React.Component<ShortcutModalProps, Record<st
                                 and then clicking on it.
                             </li>
                             <li>
+                                You can add or remove a segment from a population by checking the add segments checkbox
+                                for a population and then holding <b>Shift</b> and clicking on a segment.
+                            </li>
+                            <li>
                                 You can increment or decrement the selected segment by holding <b>Alt</b> or{' '}
                                 <b>Command/Windows</b> and then pressing <b>=</b> or <b>-</b> respectively.
                             </li>

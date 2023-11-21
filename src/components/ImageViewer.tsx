@@ -699,13 +699,13 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private segmentSelectClickHandler = (e: MouseEvent): void => {
         const mousedOverSegment = this.props.mousedOverSegmentsFromImage[0]
         const labelingPopulation = this.props.labelingPopulation
-        if (labelingPopulation == '') {
-            const shiftKey = e.shiftKey
-            if (shiftKey) {
+        const shiftKey = e.shiftKey
+        if (shiftKey) {
+            if (labelingPopulation == '') {
                 this.props.setSelectedSegment(mousedOverSegment)
+            } else {
+                this.props.toggleSegmentInPopulation(mousedOverSegment, labelingPopulation)
             }
-        } else {
-            this.props.toggleSegmentInPopulation(mousedOverSegment, labelingPopulation)
         }
     }
 
