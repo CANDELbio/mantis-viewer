@@ -201,7 +201,7 @@ export class PersistedValueStore {
     // The population id of a population that we are actively adding or removing
     // segments from on the image. The labeling population is selected from the
     // SelectedPopulations table.
-    @observable public labelingPopulation: string | null
+    @observable public labelingPopulation: string
 
     // Used to sync population visibility and color across images
     // Really dirty and hacky way to do this. Long term need to update
@@ -294,6 +294,8 @@ export class PersistedValueStore {
         this.selectedSegmentMap = {}
 
         this.globalPopulationAttributes = {}
+
+        this.labelingPopulation = ''
     }
 
     @action public setBasePath = (path: string): void => {
@@ -646,8 +648,12 @@ export class PersistedValueStore {
     }
 
     @action public setLabelingPopulation = (populationId: string | null): void => {
-        if (populationId != null) this.setSelectedSegment(null)
-        this.labelingPopulation = populationId
+        if (populationId != null) {
+            this.setSelectedSegment(null)
+            this.labelingPopulation = populationId
+        } else {
+            this.labelingPopulation = ''
+        }
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {

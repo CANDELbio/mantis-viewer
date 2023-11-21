@@ -69,7 +69,7 @@ export interface ImageProps {
     segmentPopulationsForLegend: Record<number, string[]>
     regionsForLegend: string[]
     blurPixels: boolean
-    labelingPopulation: string | null
+    labelingPopulation: string
     toggleSegmentInPopulation: (segment: number, populationId: string) => void
 }
 
@@ -699,7 +699,7 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
     private segmentSelectClickHandler = (e: MouseEvent): void => {
         const mousedOverSegment = this.props.mousedOverSegmentsFromImage[0]
         const labelingPopulation = this.props.labelingPopulation
-        if (labelingPopulation == null) {
+        if (labelingPopulation == '') {
             const shiftKey = e.shiftKey
             if (shiftKey) {
                 this.props.setSelectedSegment(mousedOverSegment)
