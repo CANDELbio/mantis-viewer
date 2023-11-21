@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { Menu, app, dialog, BrowserWindow, ipcMain } from 'electron'
+import { Menu, app, dialog, BrowserWindow, ipcMain, MessageBoxOptions } from 'electron'
 import log from 'electron-log'
 
 import * as Store from 'electron-store'
@@ -902,7 +902,7 @@ ipcMain.on('mainWindow-show-remove-image-dialog', (event: Electron.Event, messag
 
 ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
     if (mainWindow != null) {
-        const options = {
+        const options: MessageBoxOptions = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
@@ -919,7 +919,7 @@ ipcMain.on('mainWindow-show-calculate-segment-features-dialog', (): void => {
 // TODO: Combine with 'mainWindow-show-continue-importing-segment-features-dialog' to DRY up.
 ipcMain.on('mainWindow-show-continue-calculating-segment-features-dialog', (): void => {
     if (mainWindow != null) {
-        const options = {
+        const options: MessageBoxOptions = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
@@ -935,7 +935,7 @@ ipcMain.on('mainWindow-show-continue-calculating-segment-features-dialog', (): v
 
 ipcMain.on('mainWindow-show-continue-importing-segment-features-dialog', (): void => {
     if (mainWindow != null) {
-        const options = {
+        const options: MessageBoxOptions = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
@@ -955,7 +955,7 @@ ipcMain.on('mainWindow-show-continue-importing-segment-features-dialog', (): voi
 
 ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
     if (mainWindow != null) {
-        const options = {
+        const options: MessageBoxOptions = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
@@ -972,7 +972,7 @@ ipcMain.on('mainWindow-show-calculate-features-for-plot-dialog', (): void => {
 
 ipcMain.on('mainWindow-ask-calculate-features', (event: Electron.Event, channel: string, dir: string): void => {
     if (mainWindow != null) {
-        const options = {
+        const options: MessageBoxOptions = {
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 0,
