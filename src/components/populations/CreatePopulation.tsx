@@ -20,7 +20,7 @@ interface CreatePopulationProps {
     selectedFeature: string | null
     selectedFeatureMinMax: MinMax | null
     createPopulationFromSegments: (segments: number[], name?: string) => void
-    createPopulationFromRange: (min: number, max: number, marker: string) => void
+    createPopulationFromRange: (min: number, max: number, marker: string, name?: string) => void
     onCreatePopulation?: () => void
 }
 
@@ -28,6 +28,7 @@ interface CreatePopulationState {
     selectedPopulationCreationOption: string
     newPopulationSegmentIds: string
     newPopulationMinMax: MinMax | null
+    newPopulationName?: string
 }
 
 function parseSegmentIds(toParse: string): number[] {
@@ -50,6 +51,7 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
     public state: CreatePopulationState = {
         selectedPopulationCreationOption: PopulationCreationOptions[0].value,
         newPopulationSegmentIds: '',
+        newPopulationName: undefined,
         newPopulationMinMax: null,
     }
 
@@ -76,17 +78,23 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
     }
 
     private createPopulationSubmit = (): void => {
+        const populationName = this.state.newPopulationName
         if (this.state.selectedPopulationCreationOption == 'ids') {
             this.props.createPopulationFromSegments(
                 parseSegmentIds(this.state.newPopulationSegmentIds),
-                'New Population from Segment IDs',
+                populationName ? populationName : 'New Population from Segment IDs',
             )
             this.setState({ newPopulationSegmentIds: '' })
         } else if (this.state.selectedPopulationCreationOption == 'range') {
             const selectedFeature = this.props.selectedFeature
             const populationMinMax = this.state.newPopulationMinMax
             if (selectedFeature != null && populationMinMax != null) {
-                this.props.createPopulationFromRange(populationMinMax.min, populationMinMax.max, selectedFeature)
+                this.props.createPopulationFromRange(
+                    populationMinMax.min,
+                    populationMinMax.max,
+                    selectedFeature,
+                    populationName,
+                )
                 this.setState({ newPopulationMinMax: null })
                 this.props.setSelectedFeature(null)
             }
@@ -179,6 +187,10 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
         }
     }
 
+    private onPopulationNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ newPopulationName: event.target.value })
+    }
+
     public render(): React.ReactElement {
         const selectedPopulationCreationOption = getSelectedOptions(
             this.state.selectedPopulationCreationOption,
@@ -214,6 +226,15 @@ export class CreatePopulation extends React.Component<CreatePopulationProps, Cre
                         </tr>
                         <tr>
                             <td> {creationForm}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Input
+                                    value={this.state.newPopulationName ? this.state.newPopulationName : ''}
+                                    onChange={this.onPopulationNameChange}
+                                    placeholder="Name (Optional)"
+                                />
+                            </td>
                         </tr>
                         <tr>
                             <td>

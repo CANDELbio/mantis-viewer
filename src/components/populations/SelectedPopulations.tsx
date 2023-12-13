@@ -37,7 +37,7 @@ interface SelectedPopulationProps extends SelectedProps {
     selectedFeature: string | null
     selectedFeatureMinMax: MinMax | null
     createPopulationFromSegments: (segments: number[], name?: string) => void
-    createPopulationFromRange: (min: number, max: number, marker: string) => void
+    createPopulationFromRange: (min: number, max: number, marker: string, name?: string) => void
     tableHeight: number
 }
 

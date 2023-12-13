@@ -392,7 +392,7 @@ export class ProjectStore {
         this.addPopulationFromRange(reverseMin, reverseMax)
     }
 
-    @action public addPopulationFromRange = (min: number, max: number, feature?: string): void => {
+    @action public addPopulationFromRange = (min: number, max: number, feature?: string, name?: string): void => {
         const activeImageData = this.activeImageSetStore.imageStore.imageData
         const activeImageSetName = this.activeImageSetStore.name
         if (activeImageData && activeImageSetName) {
@@ -400,8 +400,12 @@ export class ProjectStore {
             const populationStore = this.activeImageSetStore.populationStore
             const selectedFeature = feature ? feature : persistedValueStore.selectedPlotFeatures[0]
             const segmentIds = this.segmentFeatureStore.segmentsInRange(activeImageSetName, selectedFeature, min, max)
-            const populationName =
-                selectedFeature + ' ' + min?.toFixed(1).toString() + ' - ' + max?.toFixed(1).toString()
+            let populationName = ''
+            if (name) {
+                populationName = name
+            } else {
+                populationName = selectedFeature + ' ' + min?.toFixed(1).toString() + ' - ' + max?.toFixed(1).toString()
+            }
             populationStore.createPopulationFromSegments(segmentIds, populationName)
         }
     }
