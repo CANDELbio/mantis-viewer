@@ -1035,6 +1035,15 @@ export class ImageViewer extends React.Component<ImageProps, Record<string, neve
                         regionGraphics.tint = populationColor
                         this.stage.addChild(regionGraphics)
                     }
+
+                    // TODO: Use regionGraphics pattern to optimize.
+                    const fillBitmap = selectedPopulation.fillBitmap
+                    if (fillBitmap) {
+                        const fillGraphics = PIXI.Sprite.from(fillBitmap)
+                        fillGraphics.alpha = this.selectedRegionAlpha
+                        fillGraphics.tint = populationColor
+                        this.stage.addChild(fillGraphics)
+                    }
                 }
             }
         }

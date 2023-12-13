@@ -29,6 +29,7 @@ export interface SelectedPopulation {
     pixelSet?: Set<string>
     // The IDs of the selected segments
     selectedSegments: number[]
+    fillBitmap?: ImageBitmap
     regionBitmap?: ImageBitmap
 }
 
@@ -222,6 +223,15 @@ export class PopulationStore {
                     population.selectedSegments = segmentationData.segmentsInRegion(pixelIndexes)
                 }
             }
+            // TODO - Need to call this when populations get updated
+            if (imageData && segmentationData && population.selectedSegments.length != 0) {
+                let segmentPixels: number[] = []
+                for (const segment of population.selectedSegments) {
+                    segmentPixels = segmentPixels.concat(segmentationData.pixelIndexMap[segment])
+                }
+                const results = await processPixelIndexes(segmentPixels, imageData.width, imageData.height)
+                population.fillBitmap = results.bitmap
+            }
 
             const syncedPopulation = this.syncPopulationWithGlobalAttributes(population)
             refreshedPopulations.push(syncedPopulation)
@@ -272,7 +282,7 @@ export class PopulationStore {
             color: color ? color : randomHexColor(),
             visible: true,
         }
-        this.addToSelectedPopulations([newPopulation])
+        this.refreshGraphicsAndAddToPopulations(newPopulation)
         return newPopulation
     }
 
