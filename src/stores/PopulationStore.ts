@@ -203,7 +203,28 @@ export class PopulationStore {
         return population
     }
 
-    private refreshGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
+    private refreshSegmentFillGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
+        const refreshedPopulations = []
+        const imageData = this.imageSetStore.imageStore.imageData
+        const segmentationData = this.imageSetStore.segmentationStore.segmentationData
+        for (const population of populations) {
+            // TODO - Need to call this when populations get updated
+            if (imageData && segmentationData && population.selectedSegments.length != 0) {
+                let segmentPixels: number[] = []
+                for (const segment of population.selectedSegments) {
+                    segmentPixels = segmentPixels.concat(segmentationData.pixelIndexMap[segment])
+                }
+                const results = await processPixelIndexes(segmentPixels, imageData.width, imageData.height)
+                population.fillBitmap = results.bitmap
+            }
+
+            const syncedPopulation = this.syncPopulationWithGlobalAttributes(population)
+            refreshedPopulations.push(syncedPopulation)
+        }
+        return refreshedPopulations
+    }
+
+    private refreshRegionGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
         const refreshedPopulations = []
         const imageData = this.imageSetStore.imageStore.imageData
         const segmentationData = this.imageSetStore.segmentationStore.segmentationData
@@ -237,6 +258,12 @@ export class PopulationStore {
             refreshedPopulations.push(syncedPopulation)
         }
         return refreshedPopulations
+    }
+
+    private refreshGraphics = async (populations: SelectedPopulation[]): Promise<SelectedPopulation[]> => {
+        return await this.refreshRegionGraphics(populations).then((refreshedPopulations) =>
+            this.refreshSegmentFillGraphics(refreshedPopulations),
+        )
     }
 
     private refreshGraphicsAndAddToPopulations = (population: SelectedPopulation): void => {
@@ -490,9 +517,10 @@ export class PopulationStore {
     @action private updatePopulationById = (
         id: string,
         updateFn: (population: SelectedPopulation) => SelectedPopulation,
-    ): void => {
+    ): SelectedPopulation[] => {
+        let updatedPopulations = this.selectedPopulations
         if (this.selectedPopulations != null) {
-            this.selectedPopulations = this.selectedPopulations.slice().map((population): SelectedPopulation => {
+            updatedPopulations = this.selectedPopulations.slice().map((population): SelectedPopulation => {
                 if (population.id == id) {
                     return updateFn(population)
                 } else {
@@ -500,16 +528,17 @@ export class PopulationStore {
                 }
             })
         }
+        return updatedPopulations
     }
 
-    public updateSelectedPopulationColor = (id: string, color: number): void => {
+    @action public updateSelectedPopulationColor = (id: string, color: number): void => {
         if (this.selectedPopulations != null) {
             const updateFn = (p: SelectedPopulation) => {
                 this.persistedValueStore.updateGlobalPopulationAttributes(p.name, color, p.visible)
                 p.color = color
                 return p
             }
-            this.updatePopulationById(id, updateFn)
+            this.selectedPopulations = this.updatePopulationById(id, updateFn)
         }
     }
 
@@ -518,7 +547,10 @@ export class PopulationStore {
             p.selectedSegments = segments
             return p
         }
-        this.updatePopulationById(id, updateFn)
+        const updatedPopulations = this.updatePopulationById(id, updateFn)
+        this.refreshSegmentFillGraphics(updatedPopulations).then((updatedPopulations) => {
+            this.setSelectedPopulations(updatedPopulations)
+        })
     }
 
     public removeSegmentFromPopulation = (segment: number, id: string): void => {
@@ -529,7 +561,10 @@ export class PopulationStore {
             }
             return p
         }
-        this.updatePopulationById(id, updateFn)
+        const updatedPopulations = this.updatePopulationById(id, updateFn)
+        this.refreshSegmentFillGraphics(updatedPopulations).then((updatedPopulations) => {
+            this.setSelectedPopulations(updatedPopulations)
+        })
     }
 
     public addSegmentToPopulation = (segment: number | null, id: string): void => {
@@ -537,7 +572,10 @@ export class PopulationStore {
             if (segment) p.selectedSegments.push(segment)
             return p
         }
-        this.updatePopulationById(id, updateFn)
+        const updatedPopulations = this.updatePopulationById(id, updateFn)
+        this.refreshSegmentFillGraphics(updatedPopulations).then((updatedPopulations) => {
+            this.setSelectedPopulations(updatedPopulations)
+        })
     }
 
     public toggleSegmentInPopulation = (segment: number, id: string): void => {
@@ -549,7 +587,10 @@ export class PopulationStore {
             }
             return p
         }
-        this.updatePopulationById(id, updateFn)
+        const updatedPopulations = this.updatePopulationById(id, updateFn)
+        this.refreshSegmentFillGraphics(updatedPopulations).then((updatedPopulations) => {
+            this.setSelectedPopulations(updatedPopulations)
+        })
     }
 
     @action public updateSelectedPopulationName = (id: string, newName: string): void => {
@@ -557,7 +598,7 @@ export class PopulationStore {
             p.name = newName
             return this.syncPopulationWithGlobalAttributes(p)
         }
-        this.updatePopulationById(id, updateFn)
+        this.selectedPopulations = this.updatePopulationById(id, updateFn)
     }
 
     @action public updateSelectedPopulationVisibility = (id: string, visible: boolean): void => {
@@ -566,6 +607,6 @@ export class PopulationStore {
             p.visible = visible
             return p
         }
-        this.updatePopulationById(id, updateFn)
+        this.selectedPopulations = this.updatePopulationById(id, updateFn)
     }
 }
