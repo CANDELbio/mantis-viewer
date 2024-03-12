@@ -294,6 +294,9 @@ export class PersistedValueStore {
         this.selectedSegmentMap = {}
 
         this.globalPopulationAttributes = {}
+
+        this.limitSelectedSegmentPopulationId = null
+        this.labelingPopulation = null
     }
 
     @action public setBasePath = (path: string): void => {
@@ -429,7 +432,11 @@ export class PersistedValueStore {
     }
 
     @action public setLimitSelectedSegmentPopulationId = (value: string | null): void => {
-        this.limitSelectedSegmentPopulationId = value
+        if (value) {
+            this.limitSelectedSegmentPopulationId = value
+        } else {
+            this.limitSelectedSegmentPopulationId = ''
+        }
     }
 
     @action public setSnapToSelectedSegment = (value: boolean): void => {
@@ -646,8 +653,12 @@ export class PersistedValueStore {
     }
 
     @action public setLabelingPopulation = (populationId: string | null): void => {
-        if (populationId != null) this.setSelectedSegment(null)
-        this.labelingPopulation = populationId
+        if (populationId) {
+            this.setSelectedSegment(null)
+            this.labelingPopulation = populationId
+        } else {
+            this.labelingPopulation = ''
+        }
     }
 
     @action public setDefaultImageSetSettings = (imageStore: ImageStore): void => {
